@@ -1,4 +1,4 @@
-import { BADGE_GAP_RATIO, type Anchor, type AvatarConfig } from '@/state/config'
+import type { Anchor, AvatarConfig } from '@/state/config'
 import { fitStatus, fitText, safeArea, type FitResult } from './fit'
 import { createCanvasMeasure, type MeasureFn } from './measure'
 
@@ -29,8 +29,13 @@ export interface LayoutLine {
   descent: number
   /** 竖排时逐字的位置，横排为空数组。 */
   glyphs: LayoutGlyph[]
-  /** 这一行自己的 canvas font；缺省时用 layout.font。状态徽章的次行比首行小。 */
+  /**
+   * 这一行自己的字号档。缺省时用 layout 那一层的值。状态徽章的次行比首行小，
+   * 三个字段要一起给：字体简写决定字形，字号决定效果的尺度，字距决定逐字补偿的步长。
+   */
   font?: string
+  fontSizePx?: number
+  letterSpacingPx?: number
 }
 
 export interface PillRect extends Rect {
@@ -54,8 +59,6 @@ export interface TextLayout {
   align: 'left' | 'center' | 'right'
   /** 文字超出安全框，界面据此提示。 */
   overflow: boolean
-  /** 图标徽章下图形的落位；其他用途下是 null。 */
-  graphicBox: Rect | null
 }
 
 const ANCHOR_X: Record<Anchor, number> = {
@@ -95,14 +98,14 @@ function alignFactor(align: 'left' | 'center' | 'right'): number {
 
 /**
  * 把一个求解好的块落到 (originX, originY)，产出可直接绘制的行。
- * `fontOverride` 给状态徽章的次行用：它与首行不同号，绘制时要逐行改 ctx.font。
+ * `sized` 给状态徽章的次行用：它与首行不同号，绘制时要按行换一套字号。
  */
 function placeBlock(
   config: AvatarConfig,
   fit: FitResult,
   originX: number,
   originY: number,
-  fontOverride?: string,
+  sized = false,
 ): LayoutLine[] {
   const typography = config.typography
   const block = fit.block
@@ -141,7 +144,13 @@ function placeBlock(
         glyphs: [],
       }))
 
-  return fontOverride === undefined ? lines : lines.map((line) => ({ ...line, font: fontOverride }))
+  if (!sized) return lines
+  return lines.map((line) => ({
+    ...line,
+    font: fit.font,
+    fontSizePx: fit.fontSizePx,
+    letterSpacingPx: fit.letterSpacingPx,
+  }))
 }
 
 /** 胶囊底板：把整块文字按 pill.padding 外扩，圆角按短边算。 */
@@ -192,7 +201,6 @@ function layoutPlain(
     vertical: block.vertical,
     align: typography.align,
     overflow: !fit.fits,
-    graphicBox: null,
   }
 }
 
@@ -218,7 +226,7 @@ function layoutStatus(
   if (fit.secondary) {
     const tailX = originX + (fit.width - fit.secondary.block.width) / 2
     const tailY = originY + fit.primary.block.height + fit.gapPx
-    lines.push(...placeBlock(config, fit.secondary, tailX, tailY, fit.secondary.font))
+    lines.push(...placeBlock(config, fit.secondary, tailX, tailY, true))
   }
 
   const box: Rect = { x: originX, y: originY, width: fit.width, height: fit.height }
@@ -234,53 +242,6 @@ function layoutStatus(
     vertical: false,
     align: config.typography.align,
     overflow: !fit.fits,
-    graphicBox: null,
-  }
-}
-
-/**
- * 图标徽章：图形占安全框上部，文字排在下部。
- * 文字为空时图形独占安全框居中，不留一块空白。
- */
-function layoutBadge(
-  config: AvatarConfig,
-  width: number,
-  height: number,
-  measure: MeasureFn,
-): TextLayout {
-  const safeBox: Rect = safeArea(config, width, height)
-  const hasText = config.text.trim() !== ''
-  const graphicHeight = safeBox.height * config.layout.graphic
-  const gap = hasText ? safeBox.height * BADGE_GAP_RATIO : 0
-
-  const graphicBox: Rect = hasText
-    ? { x: safeBox.x, y: safeBox.y, width: safeBox.width, height: graphicHeight }
-    : safeBox
-  const textArea: Rect = {
-    x: safeBox.x,
-    y: safeBox.y + graphicHeight + gap,
-    width: safeBox.width,
-    height: Math.max(0, safeBox.height - graphicHeight - gap),
-  }
-
-  const fit = fitText(config, width, height, measure, textArea)
-  const originX = textArea.x + (textArea.width - fit.block.width) / 2
-  const originY = textArea.y + (textArea.height - fit.block.height) / 2
-  const box: Rect = { x: originX, y: originY, width: fit.block.width, height: fit.block.height }
-
-  return {
-    lines: hasText ? placeBlock(config, fit, originX, originY) : [],
-    fontSizePx: fit.fontSizePx,
-    lineHeightPx: fit.lineHeightPx,
-    letterSpacingPx: fit.letterSpacingPx,
-    font: fit.font,
-    box,
-    safeBox,
-    pill: pillOf(config, box, fit.fontSizePx),
-    vertical: false,
-    align: config.typography.align,
-    overflow: !fit.fits,
-    graphicBox,
   }
 }
 
@@ -296,6 +257,5 @@ export function layoutText(
 ): TextLayout {
   const m = measure ?? getSharedMeasure()
   if (config.layout.kind === 'status') return layoutStatus(config, width, height, m)
-  if (config.layout.kind === 'logo') return layoutBadge(config, width, height, m)
   return layoutPlain(config, width, height, m)
 }

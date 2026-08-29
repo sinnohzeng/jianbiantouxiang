@@ -65,6 +65,23 @@ afterEach(() => {
   cleanup()
 })
 
+/** 切用途。分段控件的真实控件是 sr-only 的 radio，按 data-group 与取值查。 */
+function pickKind(container: HTMLElement, value: string): void {
+  const radio = container.querySelector<HTMLInputElement>(
+    `input[data-group="text-kind"][value="${value}"]`,
+  )
+  expect(radio, value).not.toBeNull()
+  fireEvent.click(radio!)
+}
+
+function firstLine(container: HTMLElement): HTMLInputElement {
+  return container.querySelector<HTMLInputElement>('#avatar-text-first')!
+}
+
+function secondLine(container: HTMLElement): HTMLInputElement {
+  return container.querySelector<HTMLInputElement>('#avatar-text-second')!
+}
+
 describe('TextPanel', () => {
   it('输入文字写回 store', () => {
     const { container } = mount(<TextPanel />)
@@ -103,6 +120,72 @@ describe('TextPanel', () => {
     // jsdom 没有布局，thumb 会停在 visibility:hidden，按 role 查不到，所以按标签查
     const { container } = mount(<TextPanel />)
     expect(container.querySelectorAll('input[type="range"]').length).toBeGreaterThanOrEqual(6)
+  })
+
+  it('状态徽章下换成两个单行输入框，两行用换行连起来写回', () => {
+    const { container } = mount(<TextPanel />)
+    pickKind(container, 'status')
+
+    expect(container.querySelector('textarea')).toBeNull()
+    fireEvent.change(firstLine(container), { target: { value: '请假中' } })
+    fireEvent.change(secondLine(container), { target: { value: '09-01 至 09-07' } })
+    expect(config().text).toBe('请假中\n09-01 至 09-07')
+  })
+
+  it('第二行清空后不留尾随换行', () => {
+    const { container } = mount(<TextPanel />)
+    pickKind(container, 'status')
+
+    fireEvent.change(firstLine(container), { target: { value: '请假中' } })
+    fireEvent.change(secondLine(container), { target: { value: '09-01' } })
+    fireEvent.change(secondLine(container), { target: { value: '' } })
+    expect(config().text).toBe('请假中')
+  })
+
+  it('切用途不清空已经填好的文字', () => {
+    const { container } = mount(<TextPanel />)
+    fireEvent.change(container.querySelector('textarea')!, { target: { value: '猪猪老公\n09-01' } })
+
+    pickKind(container, 'status')
+    expect(config().text).toBe('猪猪老公\n09-01')
+    expect(firstLine(container).value).toBe('猪猪老公')
+    expect(secondLine(container).value).toBe('09-01')
+
+    pickKind(container, 'text')
+    expect(config().text).toBe('猪猪老公\n09-01')
+    expect(container.querySelector<HTMLTextAreaElement>('textarea')!.value).toBe('猪猪老公\n09-01')
+  })
+
+  it('状态徽章下锚点、偏移、对齐、竖排、自动换行都不在 DOM 里', () => {
+    const { container } = mount(<TextPanel />)
+    const sliders = () => container.querySelectorAll('input[type="range"]').length
+
+    expect(container.querySelector('input[data-group="text-align"]')).not.toBeNull()
+    expect(container.querySelectorAll('input[data-group="text-anchor"]')).toHaveLength(9)
+    expect(container.querySelector('#text-vertical')).not.toBeNull()
+    expect(container.querySelector('#text-auto-wrap')).not.toBeNull()
+    const before = sliders()
+
+    pickKind(container, 'status')
+
+    // 条件渲染而不是 CSS 隐藏：这几个参数在这个用途下不参与求解，读屏与键盘也不该走到它们
+    expect(container.querySelector('input[data-group="text-align"]')).toBeNull()
+    expect(container.querySelectorAll('input[data-group="text-anchor"]')).toHaveLength(0)
+    expect(container.querySelector('#text-vertical')).toBeNull()
+    expect(container.querySelector('#text-auto-wrap')).toBeNull()
+    // 两个偏移滑杆收起、次行字号滑杆出现，净少一个。数数量而不是认文案，换语言不会红
+    expect(sliders()).toBe(before - 1)
+  })
+
+  it('次行字号滑杆写回 layout.scale', () => {
+    const { container } = mount(<TextPanel />)
+    pickKind(container, 'status')
+
+    // 基础组排在最前，这个用途下它里面唯一的滑杆就是次行字号
+    const range = container.querySelector<HTMLInputElement>('input[type="range"]')
+    expect(range).not.toBeNull()
+    fireEvent.change(range!, { target: { value: '0.6' } })
+    expect(config().layout.scale).toBeCloseTo(0.6)
   })
 })
 

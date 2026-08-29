@@ -88,6 +88,7 @@
 | `panel.canvas.width`              | 宽                                                                               |
 | `panel.common.edit`               | 编辑{name}                                                                       |
 | `panel.common.hex`                | 十六进制色值                                                                     |
+| `panel.layout.scale`              | 次行字号                                                                         |
 | `panel.palette.builtin`           | 内置配色                                                                         |
 | `panel.palette.custom`            | 自定义配色                                                                       |
 | `panel.palette.custom.add`        | 添加颜色                                                                         |
@@ -157,7 +158,15 @@
 | `panel.text.group.basic`          | 基础                                                                             |
 | `panel.text.group.effect`         | 效果                                                                             |
 | `panel.text.group.type`           | 排版                                                                             |
+| `panel.text.kind`                 | 用途                                                                             |
+| `panel.text.kind.status`          | 状态徽章                                                                         |
+| `panel.text.kind.status.hint`     | 第一行大字写状态，第二行小字写日期                                               |
+| `panel.text.kind.text`            | 纯文字                                                                           |
 | `panel.text.letterSpacing`        | 字间距                                                                           |
+| `panel.text.line1`                | 第一行                                                                           |
+| `panel.text.line1.placeholder`    | 请假中                                                                           |
+| `panel.text.line2`                | 第二行                                                                           |
+| `panel.text.line2.placeholder`    | 09-01 至 09-07                                                                   |
 | `panel.text.lineHeight`           | 行高                                                                             |
 | `panel.text.offsetX`              | 水平偏移                                                                         |
 | `panel.text.offsetY`              | 垂直偏移                                                                         |

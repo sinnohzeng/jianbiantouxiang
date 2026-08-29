@@ -318,12 +318,10 @@ export function fitText(
   width: number,
   height: number,
   measure: MeasureFn,
-  /** 排版可用的方框。图标徽章把文字挤到下半部分，传的就是那一块。 */
-  area?: Box,
 ): FitResult {
   const typography = config.typography
   const shortSide = Math.max(1, Math.min(width, height))
-  const box = area ?? safeArea(config, width, height)
+  const box = safeArea(config, width, height)
   const safeWidth = box.width
   const safeHeight = box.height
   const paragraphs = splitParagraphs(config.text)
@@ -476,8 +474,17 @@ export function fitStatus(
     return build(config.typography.fontSize)
   }
 
-  const broke = (fit: StatusFit): boolean =>
-    fit.primary.block.broke || (fit.secondary?.block.broke ?? false)
+  /**
+   * 严格档要求两件事：没把哪个拉丁词从中间劈开，且首行没换行。
+   *
+   * 首行是状态词，「请假中」被折成「请假」加「中」比小一号难看得多，
+   * 而二分只认「更大」，不加这一条它会一路放大到刚好折行的那个尺寸。
+   * 放不下的长首行没有满足这一条的解，自动落到宽松档，与拆词那条同一个兜底。
+   */
+  const tidy = (fit: StatusFit): boolean =>
+    !fit.primary.block.broke &&
+    !(fit.secondary?.block.broke ?? false) &&
+    fit.primary.block.lines.length <= 1
 
   const search = (strict: boolean): StatusFit => {
     let low = MIN_FONT_RATIO
@@ -486,7 +493,7 @@ export function fitStatus(
     for (let i = 0; i < FIT_ITERATIONS; i += 1) {
       const mid = (low + high) / 2
       const candidate = build(mid)
-      if (candidate.fits && !(strict && broke(candidate))) {
+      if (candidate.fits && !(strict && !tidy(candidate))) {
         best = candidate
         low = mid
       } else {
@@ -497,5 +504,5 @@ export function fitStatus(
   }
 
   const strict = search(true)
-  return broke(strict) ? search(false) : strict
+  return tidy(strict) ? strict : search(false)
 }

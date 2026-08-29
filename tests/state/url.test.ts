@@ -119,12 +119,7 @@ describe('旧链接兼容', () => {
     const config: AvatarConfig = {
       ...DEFAULT_CONFIG,
       text: '请假中\n09-01 至 09-07',
-      layout: {
-        kind: 'status',
-        scale: 0.35,
-        graphic: 0.6,
-        icon: { source: 'builtin', id: 'plane' },
-      },
+      layout: { kind: 'status', scale: 0.35 },
     }
     expect(decodeConfigFromHash(encodeConfigToHash(config))).toEqual(config)
   })
@@ -134,12 +129,11 @@ describe('旧链接兼容', () => {
     expect(payload).toEqual({ text: '同事' })
   })
 
-  it('链接里的版式同样过一遍夹值', () => {
-    const hacked = encodePayload({ layout: { kind: 'logo', scale: 99, icon: { source: 'x' } } })
+  it('链接里的版式同样过一遍夹值，未来版本的用途退回纯文字', () => {
+    const hacked = encodePayload({ layout: { kind: 'logo', scale: 99 } })
     const config = decodeConfigFromHash(hacked)
-    expect(config?.layout.kind).toBe('logo')
+    expect(config?.layout.kind).toBe('text')
     expect(config?.layout.scale).toBe(0.8)
-    expect(config?.layout.icon).toEqual(DEFAULT_CONFIG.layout.icon)
   })
 })
 

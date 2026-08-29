@@ -51,7 +51,7 @@ function paintLine(
   ctx: CanvasRenderingContext2D,
   line: LayoutLine,
   mode: PaintMode,
-  layout: TextLayout,
+  letterSpacingPx: number,
   nativeSpacing: boolean,
 ): void {
   if (line.glyphs.length > 0) {
@@ -66,17 +66,48 @@ function paintLine(
   let cursor = line.x
   for (const grapheme of toGraphemes(line.text)) {
     paintOne(ctx, mode, grapheme, cursor, line.y)
-    cursor += ctx.measureText(grapheme).width + layout.letterSpacingPx
+    cursor += ctx.measureText(grapheme).width + letterSpacingPx
   }
+}
+
+/**
+ * 一段同号的行。状态徽章的首行与次行字号不同，字号既决定 ctx.font，
+ * 也决定描边、光晕、阴影的尺度，所以效果要按段各算一遍，不能拿整块的字号一刀切。
+ */
+interface Run {
+  lines: LayoutLine[]
+  font: string
+  fontSizePx: number
+  letterSpacingPx: number
+}
+
+/** 相邻同字体的行并成一段。纯文字与图标徽章只会得到一段，走的还是原来那条路。 */
+function runsOf(layout: TextLayout): Run[] {
+  const runs: Run[] = []
+  for (const line of layout.lines) {
+    const font = line.font ?? layout.font
+    const last = runs.at(-1)
+    if (last && last.font === font) {
+      last.lines.push(line)
+      continue
+    }
+    runs.push({
+      lines: [line],
+      font,
+      fontSizePx: line.fontSizePx ?? layout.fontSizePx,
+      letterSpacingPx: line.letterSpacingPx ?? layout.letterSpacingPx,
+    })
+  }
+  return runs
 }
 
 function paintAll(
   ctx: CanvasRenderingContext2D,
-  layout: TextLayout,
+  run: Run,
   mode: PaintMode,
   nativeSpacing: boolean,
 ): void {
-  for (const line of layout.lines) paintLine(ctx, line, mode, layout, nativeSpacing)
+  for (const line of run.lines) paintLine(ctx, line, mode, run.letterSpacingPx, nativeSpacing)
 }
 
 function clearShadow(ctx: CanvasRenderingContext2D): void {
@@ -87,9 +118,9 @@ function clearShadow(ctx: CanvasRenderingContext2D): void {
 }
 
 /** 竖排逐字定位，字距已经算进坐标，原生字距必须归零。 */
-function applyLetterSpacing(ctx: CanvasRenderingContext2D, layout: TextLayout): boolean {
-  if (!('letterSpacing' in ctx)) return layout.letterSpacingPx === 0
-  ctx.letterSpacing = layout.vertical ? '0px' : cssPx(layout.letterSpacingPx)
+function applyLetterSpacing(ctx: CanvasRenderingContext2D, run: Run, vertical: boolean): boolean {
+  if (!('letterSpacing' in ctx)) return run.letterSpacingPx === 0
+  ctx.letterSpacing = vertical ? '0px' : cssPx(run.letterSpacingPx)
   return true
 }
 
@@ -120,42 +151,59 @@ export function drawText(
   color: string,
 ): void {
   if (layout.lines.length === 0) return
-  const { effect, effectStrength } = config.typography
 
   ctx.save()
-  ctx.font = layout.font
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = color
   clearShadow(ctx)
-  const nativeSpacing = applyLetterSpacing(ctx, layout)
 
-  if (effect === 'pill') drawPlate(ctx, layout, config, color)
+  // 底板包住整块文字，与分段无关，所以铺在所有段之前
+  if (config.typography.effect === 'pill') drawPlate(ctx, layout, config, color)
+
+  for (const run of runsOf(layout)) paintRun(ctx, run, layout, config, color)
+
+  clearShadow(ctx)
+  ctx.restore()
+}
+
+/** 画一段同号的行：先按效果补底层，再落正文那一遍。 */
+function paintRun(
+  ctx: CanvasRenderingContext2D,
+  run: Run,
+  layout: TextLayout,
+  config: AvatarConfig,
+  color: string,
+): void {
+  const { effect, effectStrength } = config.typography
+  ctx.font = run.font
+  ctx.fillStyle = color
+  clearShadow(ctx)
+  const nativeSpacing = applyLetterSpacing(ctx, run, layout.vertical)
 
   if (effect === 'outline') {
-    const lineWidth = layout.fontSizePx * OUTLINE_RATIO * effectStrength
+    const lineWidth = run.fontSizePx * OUTLINE_RATIO * effectStrength
     if (lineWidth > 0) {
       ctx.lineWidth = lineWidth
       ctx.lineJoin = 'round'
       ctx.miterLimit = 2
       ctx.strokeStyle = inkOpposite(color)
-      paintAll(ctx, layout, 'stroke', nativeSpacing)
+      paintAll(ctx, run, 'stroke', nativeSpacing)
     }
   } else if (effect === 'shadow') {
     ctx.shadowColor = `rgba(0, 0, 0, ${(0.15 + 0.45 * effectStrength).toFixed(3)})`
-    ctx.shadowBlur = layout.fontSizePx * 0.16 * effectStrength
-    ctx.shadowOffsetY = layout.fontSizePx * 0.05 * effectStrength
+    ctx.shadowBlur = run.fontSizePx * 0.16 * effectStrength
+    ctx.shadowOffsetY = run.fontSizePx * 0.05 * effectStrength
   } else if (effect === 'glow') {
     // 两层外发光：先大范围铺一层弥散，再补一层近距离的亮边。
     ctx.shadowColor = glowColor(color)
-    ctx.shadowBlur = layout.fontSizePx * 0.45 * effectStrength
-    paintAll(ctx, layout, 'fill', nativeSpacing)
-    ctx.shadowBlur = layout.fontSizePx * 0.18 * effectStrength
-    paintAll(ctx, layout, 'fill', nativeSpacing)
+    ctx.shadowBlur = run.fontSizePx * 0.45 * effectStrength
+    paintAll(ctx, run, 'fill', nativeSpacing)
+    ctx.shadowBlur = run.fontSizePx * 0.18 * effectStrength
+    paintAll(ctx, run, 'fill', nativeSpacing)
     clearShadow(ctx)
   }
 
-  paintAll(ctx, layout, 'fill', nativeSpacing)
+  paintAll(ctx, run, 'fill', nativeSpacing)
   clearShadow(ctx)
-  ctx.restore()
 }

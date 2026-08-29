@@ -34,6 +34,7 @@ export const DEFAULT_UI: UiState = {
 }
 
 type TypographyPatch = NonNullable<PartialConfig['typography']>
+type LayoutPatch = NonNullable<PartialConfig['layout']>
 type StyleParamsPatch = NonNullable<PartialConfig['styleParams']>
 type CanvasPatch = NonNullable<PartialConfig['canvas']>
 type ExportPatch = NonNullable<PartialConfig['exportOptions']>
@@ -44,6 +45,7 @@ export interface AvatarStore {
   ui: UiState
   setConfig: (partial: PartialConfig) => void
   setTypography: (partial: TypographyPatch) => void
+  setLayout: (partial: LayoutPatch) => void
   setStyleParams: (partial: StyleParamsPatch) => void
   setCanvas: (partial: CanvasPatch) => void
   setExportOptions: (partial: ExportPatch) => void
@@ -158,6 +160,10 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
 
   setTypography: (partial) => {
     get().setConfig({ typography: partial })
+  },
+
+  setLayout: (partial) => {
+    get().setConfig({ layout: partial })
   },
 
   setStyleParams: (partial) => {

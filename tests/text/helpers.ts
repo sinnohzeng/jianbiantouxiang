@@ -29,9 +29,12 @@ export function makeConfig(overrides: PartialConfig = {}): AvatarConfig {
 /** 每次落笔时的画笔状态，用来断言底板色与光晕色。 */
 export interface PaintState {
   op: 'fill' | 'fillText' | 'strokeText'
+  /** 落笔当时的 canvas font，用来盯住逐行换字号有没有真的生效。 */
+  font: string
   fillStyle: string
   strokeStyle: string
   shadowColor: string
+  shadowBlur: number
   globalAlpha: number
 }
 
@@ -48,9 +51,11 @@ export function createStubContext(): StubContext {
   const snap = (op: PaintState['op']): void => {
     paints.push({
       op,
+      font: stub.font,
       fillStyle: stub.fillStyle,
       strokeStyle: stub.strokeStyle,
       shadowColor: stub.shadowColor,
+      shadowBlur: stub.shadowBlur,
       globalAlpha: stub.globalAlpha,
     })
   }

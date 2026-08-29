@@ -1,5 +1,5 @@
 /**
- * 三种版式用途的落位。用 manual 字号把求解那一步固定住，
+ * 两种版式用途的落位。用 manual 字号把求解那一步固定住，
  * 剩下的全是可以手算的几何：安全框 100..900，单行块高恰好等于字号。
  */
 
@@ -18,9 +18,8 @@ function layout(overrides: PartialConfig, width = 1000, height = 1000) {
 const SAFE = { x: 100, y: 100, width: 800, height: 800 }
 
 describe('纯文字用途', () => {
-  it('不产出图形框', () => {
+  it('安全框按边距与圆角算，圆角 20 % 下不收缩', () => {
     const result = layout({ text: '中', typography: { sizeMode: 'manual', fontSize: 0.2 } })
-    expect(result.graphicBox).toBeNull()
     expect(result.safeBox).toEqual(SAFE)
   })
 })
@@ -49,7 +48,6 @@ describe('状态徽章', () => {
     expect(result.box.height).toBeCloseTo(320)
     expect(result.box.x).toBeCloseTo(200)
     expect(result.box.y).toBeCloseTo(340)
-    expect(result.graphicBox).toBeNull()
   })
 
   it('次行短的时候在整体宽度里居中，不靠左', () => {
@@ -108,65 +106,7 @@ describe('状态徽章', () => {
   })
 })
 
-describe('图标徽章', () => {
-  /** 图形占安全框 52 %，间隙 800 × 0.06 = 48，文字区是剩下的 336。 */
-  const BADGE: PartialConfig = {
-    text: '设计',
-    typography: { sizeMode: 'manual', fontSize: 0.1, padding: 0.1 },
-    layout: { kind: 'logo' },
-  }
-
-  it('图形占安全框上部，文字排在下部', () => {
-    const result = layout(BADGE)
-    expect(result.graphicBox).toEqual({ x: 100, y: 100, width: 800, height: 416 })
-    // 文字块在 (100, 564, 800, 336) 里居中：200 × 100
-    expect(result.box.x).toBeCloseTo(400)
-    expect(result.box.y).toBeCloseTo(682)
-    expect(result.box.width).toBeCloseTo(200)
-  })
-
-  it('图形与文字不重叠', () => {
-    const result = layout(BADGE)
-    const graphic = result.graphicBox
-    expect(graphic).not.toBeNull()
-    expect(result.box.y).toBeGreaterThanOrEqual((graphic?.y ?? 0) + (graphic?.height ?? 0))
-  })
-
-  it('graphic 直接改图形高度', () => {
-    const result = layout({ ...BADGE, layout: { kind: 'logo', graphic: 0.3 } })
-    expect(result.graphicBox?.height).toBeCloseTo(240)
-    expect(result.box.y).toBeGreaterThanOrEqual(340)
-  })
-
-  it('没有文字时图形独占安全框，不留空行', () => {
-    const result = layout({ ...BADGE, text: '   ' })
-    expect(result.lines).toEqual([])
-    expect(result.graphicBox).toEqual(SAFE)
-  })
-
-  it('文字自动字号落在文字区里，不侵占图形', () => {
-    const result = layout({
-      text: '飞书效率先锋',
-      typography: { padding: 0.1 },
-      layout: { kind: 'logo' },
-    })
-    expect(result.overflow).toBe(false)
-    expect(result.box.height).toBeLessThanOrEqual(336 + 1e-6)
-    expect(result.box.y + result.box.height).toBeLessThanOrEqual(SAFE.y + SAFE.height + 1e-6)
-  })
-
-  it('锚点与偏移在这个用途下同样不生效', () => {
-    const moved = layout({
-      ...BADGE,
-      typography: { ...BADGE.typography, anchor: 'br', offsetX: 0.2, offsetY: 0.2 },
-    })
-    const plain = layout(BADGE)
-    expect(moved.box.x).toBeCloseTo(plain.box.x)
-    expect(moved.box.y).toBeCloseTo(plain.box.y)
-  })
-})
-
-describe('圆形画布下的三种用途', () => {
+describe('圆形画布下的两种用途', () => {
   const ROUND: PartialConfig = {
     canvas: { shape: 'circle' },
     typography: { padding: 0.1 },
@@ -179,10 +119,10 @@ describe('圆形画布下的三种用途', () => {
     return dx * dx + dy * dy <= (size / 2) ** 2 + 1e-6
   }
 
-  for (const kind of ['text', 'status', 'logo'] as const) {
+  for (const kind of ['text', 'status'] as const) {
     it(`${kind} 的块四角都在圆内`, () => {
       const result = layout({ ...ROUND, text: '请假中\n09-01', layout: { kind } })
-      const box = kind === 'logo' ? (result.graphicBox ?? result.box) : result.box
+      const box = result.box
       expect(insideCircle(box.x, box.y)).toBe(true)
       expect(insideCircle(box.x + box.width, box.y)).toBe(true)
       expect(insideCircle(box.x, box.y + box.height)).toBe(true)

@@ -237,19 +237,6 @@ describe('自动填满不把词拆开', () => {
   })
 })
 
-describe('指定区域求解', () => {
-  it('给了 area 就按 area 求解，不再自己算安全框', () => {
-    const config = makeConfig({ text: '渐变头像', typography: { padding: 0.1 } })
-    const half = { x: 100, y: 500, width: 800, height: 200 }
-    const inside = fitText(config, 1000, 1000, measure, half)
-    expect(inside.safeWidth).toBe(800)
-    expect(inside.safeHeight).toBe(200)
-    expect(inside.block.height).toBeLessThanOrEqual(200 + 1e-6)
-    // 同一份配置不给 area 时用的是 800 × 800，字号必然更大
-    expect(fitText(config, 1000, 1000, measure).fontSizePx).toBeGreaterThan(inside.fontSizePx)
-  })
-})
-
 describe('状态徽章求解', () => {
   const STATUS: PartialConfig = {
     text: '请假中\n09-01',
@@ -295,9 +282,19 @@ describe('状态徽章求解', () => {
     expect(result.width).toBeCloseTo(result.secondary?.block.width ?? 0)
   })
 
-  it('scale 越大整体越高，首行字号相应变小', () => {
+  it('scale 越大次行越大、整体越高，两档都塞得进安全框', () => {
     const small = status({ ...STATUS, layout: { kind: 'status', scale: 0.2 } })
     const large = status({ ...STATUS, layout: { kind: 'status', scale: 0.8 } })
+    expect(large.secondary?.fontSizePx ?? 0).toBeGreaterThan(small.secondary?.fontSizePx ?? 0)
+    expect(large.height).toBeGreaterThan(small.height)
+    expect(small.fits).toBe(true)
+    expect(large.fits).toBe(true)
+  })
+
+  it('高度吃紧时 scale 越大首行越小，两块要一起塞进安全框', () => {
+    // 扁画布下高度才是约束，首行不再被宽度封顶
+    const small = status({ ...STATUS, layout: { kind: 'status', scale: 0.2 } }, 1000, 300)
+    const large = status({ ...STATUS, layout: { kind: 'status', scale: 0.8 } }, 1000, 300)
     expect(large.primary.fontSizePx).toBeLessThan(small.primary.fontSizePx)
     expect(large.fits).toBe(true)
   })
@@ -317,5 +314,45 @@ describe('状态徽章求解', () => {
   it('三段及以上时次行之后的都并进次块', () => {
     const result = status({ ...STATUS, text: '请假中\n09-01\n找钱猪宝' })
     expect(result.secondary?.block.lines.map((line) => line.text)).toEqual(['09-01', '找钱猪宝'])
+  })
+})
+
+describe('状态徽章的首行不折行', () => {
+  function status(overrides: PartialConfig, width = 1000, height = 1000) {
+    return fitStatus(makeConfig(overrides), width, height, measure)
+  }
+
+  it('三字状态整整齐齐一行，宁可小一号也不折成两行', () => {
+    const result = status({
+      text: '请假中\n09-01 至 09-07',
+      typography: { padding: 0.1 },
+      layout: { kind: 'status' },
+    })
+    expect(result.primary.block.lines).toHaveLength(1)
+    expect(result.primary.block.lines[0]?.text).toBe('请假中')
+    expect(result.fits).toBe(true)
+  })
+
+  it('首行长到一行放不下时才允许折，不至于退到最小字号', () => {
+    const result = status({
+      text: '这一行长得任何字号都放不进一行里去啊真的很长\n09-01',
+      typography: { padding: 0.1 },
+      layout: { kind: 'status' },
+    })
+    expect(result.primary.block.lines.length).toBeGreaterThan(1)
+    expect(result.fits).toBe(true)
+    // 退化到下限就说明宽松档没接住
+    expect(result.primary.fontSizePx).toBeGreaterThan(MIN_FONT_RATIO * 1000 + 1)
+  })
+
+  it('次行折行不受这条限制，日期长了照样换行', () => {
+    const result = status({
+      text: '休假\n2026-09-01 至 2026-09-07 有事找钱猪宝',
+      typography: { padding: 0.1 },
+      layout: { kind: 'status' },
+    })
+    expect(result.primary.block.lines).toHaveLength(1)
+    expect((result.secondary?.block.lines.length ?? 0) > 1).toBe(true)
+    expect(result.fits).toBe(true)
   })
 })
