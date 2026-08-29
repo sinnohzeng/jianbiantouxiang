@@ -7,10 +7,10 @@
   "homepage": "https://jianbian.zixuan.net",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sinnohzeng/gradient-avatar.git"
+    "url": "git+https://github.com/sinnohzeng/jianbiantouxiang.git"
   },
   "bugs": {
-    "url": "https://github.com/sinnohzeng/gradient-avatar/issues"
+    "url": "https://github.com/sinnohzeng/jianbiantouxiang/issues"
   },
   "license": "MIT",
   "author": "Zeng Zixuan",

@@ -7,7 +7,7 @@
 Node.js 24 以上，npm 随 Node 安装。克隆后 `npm install` 即可，构建与测试都不需要任何密钥。
 
 ```bash
-git clone https://github.com/sinnohzeng/gradient-avatar.git
+git clone https://github.com/sinnohzeng/jianbiantouxiang.git
 cd gradient-avatar
 npm install
 npm run dev

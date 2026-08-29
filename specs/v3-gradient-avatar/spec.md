@@ -6,7 +6,7 @@
 
 一个部署在 Cloudflare Pages 的纯前端工具站：输入几个字，秒出一张 OpenAI 发布图那种柔光质感的渐变头像，主要用于群聊头像、账号头像、部门标识。手机端是第一使用场景，桌面端是精修场景。
 
-产品名：**渐变头像生成器**，英文 **Gradient Avatar**。npm 包名与 GitHub 仓库名 `gradient-avatar`。
+产品名：**渐变头像生成器**，英文 **Gradient Avatar**。npm 包名 `gradient-avatar`，GitHub 仓库 `sinnohzeng/jianbiantouxiang`。
 
 ## 2. 用户故事
 

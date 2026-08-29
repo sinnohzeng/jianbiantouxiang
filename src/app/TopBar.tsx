@@ -16,7 +16,7 @@ import { THEME_MODES, useTheme, type ThemeMode } from '@/app/theme'
 import { LOCALES, useLocale, useT, type Locale } from '@/i18n'
 import { cn } from '@/lib/utils'
 
-const REPO_URL = 'https://github.com/sinnohzeng/gradient-avatar'
+const REPO_URL = 'https://github.com/sinnohzeng/jianbiantouxiang'
 
 const THEME_ICON: Record<ThemeMode, LucideIcon> = {
   light: SunIcon,
