@@ -4,8 +4,16 @@
   "private": true,
   "type": "module",
   "description": "输入几个字，秒出一张柔光质感的渐变头像",
-  "author": "Zeng Zixuan",
+  "homepage": "https://jianbian.zixuan.net",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sinnohzeng/gradient-avatar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sinnohzeng/gradient-avatar/issues"
+  },
   "license": "MIT",
+  "author": "Zeng Zixuan",
   "engines": {
     "node": ">=24"
   },
