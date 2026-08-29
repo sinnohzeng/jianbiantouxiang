@@ -70,7 +70,7 @@ export const CANVAS_MAX = 8192
 
 export const DEFAULT_CONFIG: AvatarConfig = {
   v: 3,
-  text: '猪猪家族',
+  text: '飞书效率先锋',
   seed: '',
   style: 'mesh',
   styleParams: {
@@ -100,7 +100,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     offsetY: 0,
     vertical: false,
     autoWrap: true,
-    effect: 'plain',
+    effect: 'glow',
     effectStrength: 0.5,
     colorMode: 'auto',
     color: '#ffffff',

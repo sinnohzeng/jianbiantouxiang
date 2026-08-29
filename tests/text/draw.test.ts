@@ -14,9 +14,10 @@ function render(overrides: PartialConfig, color = '#FFFFFF') {
   return { ctx, calls, paints, layout }
 }
 
+// 这一组用例验的是绘制机制，effect 显式钉成 plain：默认的 glow 要画三遍，笔数对不上
 const BASE: PartialConfig = {
   text: '猪猪',
-  typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1 },
+  typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
 }
 
 describe('drawText 基本行为', () => {
@@ -141,6 +142,7 @@ describe('字距与竖排', () => {
         fontSize: 0.2,
         padding: 0.1,
         vertical: true,
+        effect: 'plain',
       },
     })
     expect(calls.filter((call) => call.startsWith('fillText'))).toHaveLength(6)

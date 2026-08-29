@@ -84,7 +84,7 @@ describe('默认字体跟随界面语言', () => {
     mount()
     stop()
 
-    expect(config().text).toBe('猪猪家族')
+    expect(config().text).toBe(DEFAULT_CONFIG.text)
     expect(config().typography.fontFamily).toBe('Noto Sans SC')
     expect(writes).toHaveLength(0)
   })
@@ -124,7 +124,7 @@ describe('默认字体跟随界面语言', () => {
     localStorage.setItem(LOCALE_STORAGE_KEY, 'en')
     mount()
 
-    expect(config().text).toBe('猪猪家族')
+    expect(config().text).toBe(DEFAULT_CONFIG.text)
     expect(config().typography.fontFamily).toBe('Noto Sans SC')
   })
 })
@@ -192,7 +192,7 @@ describe('懒加载语言的字典到货前不写', () => {
 
     // 字典是独立 chunk，这一刻还没到货，什么都不该写
     expect(writes).toHaveLength(0)
-    expect(config().text).toBe('猪猪家族')
+    expect(config().text).toBe(DEFAULT_CONFIG.text)
 
     await waitFor(() => {
       expect(config().text).toBe('こんにちは')
