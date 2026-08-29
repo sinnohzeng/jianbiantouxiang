@@ -159,6 +159,8 @@
   "panel.text.line2": "2 行目",
   "panel.text.line2.placeholder": "09/01 〜 09/07",
   "panel.text.lineHeight": "行間",
+  "panel.text.lineOffset": "{index} 行目の水平補正",
+  "panel.text.lineSize": "{index} 行目のサイズ",
   "panel.text.offsetX": "水平オフセット",
   "panel.text.offsetY": "垂直オフセット",
   "panel.text.padding": "余白",

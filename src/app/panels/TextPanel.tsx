@@ -24,6 +24,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useT } from '@/i18n'
 import {
+  LINE_OVERRIDE_MAX,
   ANCHORS,
   TEXT_EFFECTS,
   type Anchor,
@@ -32,6 +33,7 @@ import {
 } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { cn } from '@/lib/utils'
+import { splitParagraphs } from '@/text/wrap'
 import { weightsOf } from './font-entries'
 import { FontPickerLazy } from './lazy'
 
@@ -69,6 +71,18 @@ function joinStatus(first: string, second: string): string {
   return second === '' ? first : `${first}\n${second}`
 }
 
+function withLineValue(
+  values: readonly number[],
+  index: number,
+  value: number,
+  fallback: number,
+): number[] {
+  const length = Math.min(Math.max(values.length, index + 1), LINE_OVERRIDE_MAX)
+  const next = Array.from({ length }, (_, position) => values[position] ?? fallback)
+  next[index] = value
+  return next
+}
+
 export function TextPanel() {
   const t = useT()
   const uid = useId()
@@ -88,6 +102,8 @@ export function TextPanel() {
   const freeform = kind !== 'status'
   const [first, second] = splitStatus(config.text)
   const weights = useMemo(() => weightsOf(type.fontFamily), [type.fontFamily])
+  const paragraphs = useMemo(() => splitParagraphs(config.text), [config.text])
+  const lineCount = Math.min(paragraphs.length, LINE_OVERRIDE_MAX)
 
   // 图标是给名字加个锚，不替代名字：这一档选错，后面填的内容全排在错的版式上
   const kindOptions: SegmentedOption<LayoutKind>[] = [
@@ -168,13 +184,20 @@ export function TextPanel() {
             <SliderField
               label={t('panel.layout.scale')}
               editLabel={t('panel.common.edit', { name: t('panel.layout.scale') })}
-              value={config.layout.scale}
+              value={type.lineSizeScales[1] ?? config.layout.scale}
               min={0.2}
               max={0.8}
               step={0.01}
               scale={100}
               unit="%"
-              onChange={(scale) => setLayout({ scale })}
+              onChange={(scale) =>
+                setConfig({
+                  typography: {
+                    lineSizeScales: withLineValue(type.lineSizeScales, 1, scale, 1),
+                  },
+                  layout: { scale },
+                })
+              }
             />
           </>
         ) : (
@@ -268,6 +291,48 @@ export function TextPanel() {
           disabled={type.sizeMode === 'auto'}
           onChange={(fontSize) => setTypography({ fontSize })}
         />
+
+        {freeform && !type.vertical && lineCount > 1
+          ? Array.from({ length: lineCount }, (_, index) => (
+              <div key={index} className="flex flex-col gap-2">
+                <SliderField
+                  label={t('panel.text.lineSize', { index: index + 1 })}
+                  editLabel={t('panel.common.edit', {
+                    name: t('panel.text.lineSize', { index: index + 1 }),
+                  })}
+                  value={type.lineSizeScales[index] ?? 1}
+                  min={0.2}
+                  max={2}
+                  step={0.01}
+                  precision={2}
+                  unit="×"
+                  onChange={(scale) =>
+                    setTypography({
+                      lineSizeScales: withLineValue(type.lineSizeScales, index, scale, 1),
+                    })
+                  }
+                />
+                <SliderField
+                  label={t('panel.text.lineOffset', { index: index + 1 })}
+                  editLabel={t('panel.common.edit', {
+                    name: t('panel.text.lineOffset', { index: index + 1 }),
+                  })}
+                  value={type.lineOffsetsX[index] ?? 0}
+                  min={-0.25}
+                  max={0.25}
+                  step={0.0025}
+                  scale={100}
+                  precision={1}
+                  unit="%"
+                  onChange={(offset) =>
+                    setTypography({
+                      lineOffsetsX: withLineValue(type.lineOffsetsX, index, offset, 0),
+                    })
+                  }
+                />
+              </div>
+            ))
+          : null}
 
         <SliderField
           label={t('panel.text.padding')}

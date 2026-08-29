@@ -173,11 +173,11 @@ describe('TextPanel', () => {
     expect(container.querySelectorAll('input[data-group="text-anchor"]')).toHaveLength(0)
     expect(container.querySelector('#text-vertical')).toBeNull()
     expect(container.querySelector('#text-auto-wrap')).toBeNull()
-    // 两个偏移滑杆收起、次行字号滑杆出现，净少一个。数数量而不是认文案，换语言不会红
-    expect(sliders()).toBe(before - 1)
+    // 四个行级滑杆收起、次行字号滑杆出现。数数量而不是认文案，换语言不会红
+    expect(sliders()).toBe(before - 5)
   })
 
-  it('次行字号滑杆写回 layout.scale', () => {
+  it('次行字号滑杆同时写回行级比例与 layout.scale', () => {
     const { container } = mount(<TextPanel />)
     pickKind(container, 'status')
 
@@ -185,7 +185,25 @@ describe('TextPanel', () => {
     const range = container.querySelector<HTMLInputElement>('input[type="range"]')
     expect(range).not.toBeNull()
     fireEvent.change(range!, { target: { value: '0.6' } })
+    expect(config().typography.lineSizeScales[1]).toBeCloseTo(0.6)
     expect(config().layout.scale).toBeCloseTo(0.6)
+  })
+
+  it('纯文字多行时能分别调每一行的字号与水平补偿', () => {
+    const { container } = mount(<TextPanel />)
+    fireEvent.change(container.querySelector('textarea')!, {
+      target: { value: '飞书\n效率先锋' },
+    })
+
+    const ranges = container.querySelectorAll<HTMLInputElement>('input[type="range"]')
+    // 字号之后是两行各自的字号与水平补偿，第二行那一组在第 3、4 个滑杆
+    const lineSize = ranges[3]!
+    const lineOffset = ranges[4]!
+    fireEvent.change(lineSize, { target: { value: '0.7' } })
+    fireEvent.change(lineOffset, { target: { value: '0.02' } })
+
+    expect(config().typography.lineSizeScales).toEqual([1, 0.7])
+    expect(config().typography.lineOffsetsX).toEqual([0, 0.02])
   })
 })
 

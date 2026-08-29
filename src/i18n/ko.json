@@ -159,6 +159,8 @@
   "panel.text.line2": "둘째 줄",
   "panel.text.line2.placeholder": "09-01 ~ 09-07",
   "panel.text.lineHeight": "행간",
+  "panel.text.lineOffset": "{index}번째 줄 수평 보정",
+  "panel.text.lineSize": "{index}번째 줄 크기",
   "panel.text.offsetX": "가로 오프셋",
   "panel.text.offsetY": "세로 오프셋",
   "panel.text.padding": "여백",

@@ -168,6 +168,8 @@
 | `panel.text.line2`                | 第二行                                                                           |
 | `panel.text.line2.placeholder`    | 09-01 至 09-07                                                                   |
 | `panel.text.lineHeight`           | 行高                                                                             |
+| `panel.text.lineOffset`           | 第 {index} 行水平补偿                                                            |
+| `panel.text.lineSize`             | 第 {index} 行字号                                                                |
 | `panel.text.offsetX`              | 水平偏移                                                                         |
 | `panel.text.offsetY`              | 垂直偏移                                                                         |
 | `panel.text.padding`              | 边距                                                                             |

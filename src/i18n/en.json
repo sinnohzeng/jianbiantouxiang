@@ -159,6 +159,8 @@
   "panel.text.line2": "Second line",
   "panel.text.line2.placeholder": "Sep 1 to Sep 7",
   "panel.text.lineHeight": "Line height",
+  "panel.text.lineOffset": "Line {index} nudge",
+  "panel.text.lineSize": "Line {index} size",
   "panel.text.offsetX": "Offset X",
   "panel.text.offsetY": "Offset Y",
   "panel.text.padding": "Padding",
