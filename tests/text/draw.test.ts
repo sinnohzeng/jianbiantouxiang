@@ -150,7 +150,7 @@ describe('字距与竖排', () => {
 })
 
 describe('逐行字号', () => {
-  /** 状态徽章首行 200 px、次行 84 px。这一组盯的是「字段有没有真的被用来落笔」。 */
+  /** 状态徽章首行 200 px、次行 124 px。这一组盯的是「字段有没有真的被用来落笔」。 */
   const STATUS: PartialConfig = {
     text: '请假中\n09-01',
     typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
@@ -160,15 +160,30 @@ describe('逐行字号', () => {
   it('次行按自己的字号落笔，不跟着首行走', () => {
     const { paints } = render(STATUS)
     expect(fontSizeOf(paints[0]?.font ?? '')).toBeCloseTo(200)
-    expect(fontSizeOf(paints.at(-1)?.font ?? '')).toBeCloseTo(84)
+    expect(fontSizeOf(paints.at(-1)?.font ?? '')).toBeCloseTo(124)
   })
 
   it('纯文字用途全篇一个字号，行为与原来一致', () => {
     const { paints } = render({
       text: '飞书\n效率',
-      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+      typography: {
+        sizeMode: 'manual',
+        fontSize: 0.2,
+        padding: 0.1,
+        effect: 'plain',
+        lineSizeScales: [1, 1],
+      },
     })
     expect([...new Set(paints.map((paint) => fontSizeOf(paint.font)))]).toEqual([200])
+  })
+
+  it('纯文字用途按行级字号落笔', () => {
+    const { paints } = render({
+      text: '飞书\n效率',
+      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+    })
+    expect(fontSizeOf(paints[0]?.font ?? '')).toBeCloseTo(200)
+    expect(fontSizeOf(paints.at(-1)?.font ?? '')).toBeCloseTo(124)
   })
 
   it('发光按各段自己的字号算模糊半径，次行不被首行的光圈糊掉', () => {
@@ -185,7 +200,7 @@ describe('逐行字号', () => {
     // 两段各画三遍，每段头一遍的模糊半径是自己字号的 0.45 倍
     expect(paints).toHaveLength(6)
     expect(paints[0]?.shadowBlur).toBeCloseTo(200 * 0.45)
-    expect(paints[3]?.shadowBlur).toBeCloseTo(84 * 0.45)
+    expect(paints[3]?.shadowBlur).toBeCloseTo(124 * 0.45)
   })
 
   it('描边也按各段自己的字号算线宽', () => {
@@ -202,6 +217,6 @@ describe('逐行字号', () => {
     const strokes = paints.filter((paint) => paint.op === 'strokeText')
     expect(strokes).toHaveLength(2)
     expect(fontSizeOf(strokes[0]?.font ?? '')).toBeCloseTo(200)
-    expect(fontSizeOf(strokes[1]?.font ?? '')).toBeCloseTo(84)
+    expect(fontSizeOf(strokes[1]?.font ?? '')).toBeCloseTo(124)
   })
 })

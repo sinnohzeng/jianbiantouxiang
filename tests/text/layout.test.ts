@@ -65,7 +65,13 @@ describe('九宫格锚点', () => {
 describe('基线与对齐', () => {
   const twoLines: PartialConfig = {
     text: '中\n中文',
-    typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, anchor: 'c' },
+    typography: {
+      sizeMode: 'manual',
+      fontSize: 0.2,
+      padding: 0.1,
+      anchor: 'c',
+      lineSizeScales: [1, 1],
+    },
   }
 
   it('首行基线按 ascent 落位，行距等于行高', () => {

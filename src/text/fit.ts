@@ -21,6 +21,12 @@ export interface LineMetric {
   width: number
   ascent: number
   descent: number
+  /** 行级字号启用时的字体简写；竖排与统一字号时缺省。 */
+  font?: string
+  fontSizePx?: number
+  letterSpacingPx?: number
+  /** 相对块左边缘的水平补偿，已归一到最小补偿为 0。 */
+  offsetX?: number
   /** 竖排时该列逐字的宽度，横排为空数组。 */
   glyphs: GlyphMetric[]
 }
@@ -78,48 +84,83 @@ function maxOf(values: number[]): number {
   return max
 }
 
+function lineScaleOf(config: AvatarConfig, index: number): number {
+  return config.typography.lineSizeScales[index] ?? 1
+}
+
+function lineOffsetOf(config: AvatarConfig, index: number): number {
+  return config.typography.lineOffsetsX[index] ?? 0
+}
+
 /** 横排：换行后逐行度量，块高按各行墨迹的并集算，避免行高偏小时首尾被切。 */
 function composeHorizontal(
   config: AvatarConfig,
   paragraphs: string[],
   fontSizePx: number,
-  lineHeightPx: number,
-  letterSpacingPx: number,
-  font: string,
   safeWidth: number,
+  canvasWidth: number,
   measure: MeasureFn,
+  sizeScales: readonly number[],
+  offsetsX: readonly number[],
 ): TextBlock {
-  const wrapped: string[] = []
+  const offsets = paragraphs.map((_, index) => (offsetsX[index] ?? 0) * canvasWidth)
+  const minOffset = offsets.length > 0 ? Math.min(...offsets) : 0
+  const maxOffset = offsets.length > 0 ? Math.max(...offsets) : 0
+  const offsetRoom = maxOffset - minOffset
+  const maxWidth = Math.max(1, safeWidth - offsetRoom)
+  const wrapped: Array<{ text: string; paragraph: number }> = []
   let broke = false
-  for (const paragraph of paragraphs) {
+  paragraphs.forEach((paragraph, paragraphIndex) => {
     if (config.typography.autoWrap) {
-      const parts = wrapLineParts(paragraph, safeWidth, measure, font, letterSpacingPx)
-      wrapped.push(...parts.lines)
+      const lineFontSizePx = fontSizePx * (sizeScales[paragraphIndex] ?? 1)
+      const lineFont = fontString(config, lineFontSizePx)
+      const lineLetterSpacingPx = letterSpacingPxOf(config, lineFontSizePx)
+      const parts = wrapLineParts(
+        paragraph,
+        maxWidth,
+        measure,
+        lineFont,
+        lineLetterSpacingPx,
+      )
+      wrapped.push(...parts.lines.map((text) => ({ text, paragraph: paragraphIndex })))
       broke ||= parts.broke
     } else {
-      wrapped.push(paragraph)
+      wrapped.push({ text: paragraph, paragraph: paragraphIndex })
     }
-  }
+  })
 
-  const lines: LineMetric[] = wrapped.map((text) => {
-    const metrics = measure(text, font, letterSpacingPx)
+  const lines: LineMetric[] = wrapped.map(({ text, paragraph }) => {
+    const lineFontSizePx = fontSizePx * (sizeScales[paragraph] ?? 1)
+    const lineFont = fontString(config, lineFontSizePx)
+    const lineLetterSpacingPx = letterSpacingPxOf(config, lineFontSizePx)
+    const metrics = measure(text, lineFont, lineLetterSpacingPx)
     return {
       text,
       width: metrics.width,
       ascent: metrics.ascent,
       descent: metrics.descent,
+      font: lineFont,
+      fontSizePx: lineFontSizePx,
+      letterSpacingPx: lineLetterSpacingPx,
+      offsetX: (offsets[paragraph] ?? 0) - minOffset,
       glyphs: [],
     }
   })
 
   if (lines.length === 0) return { ...EMPTY_BLOCK }
 
-  const firstAscent = lines[0]?.ascent ?? fontSizePx
-  const raw = lines.map((_, index) => firstAscent + index * lineHeightPx)
+  const raw: number[] = []
   let top = Number.POSITIVE_INFINITY
   let bottom = Number.NEGATIVE_INFINITY
   lines.forEach((line, index) => {
-    const baseline = raw[index] ?? 0
+    const previous = lines[index - 1]
+    const advance =
+      index === 0
+        ? 0
+        : Math.max(previous?.fontSizePx ?? fontSizePx, line.fontSizePx ?? fontSizePx) *
+          config.typography.lineHeight
+    const baseline = (raw[index - 1] ?? 0) + advance + (index === 0 ? line.ascent : 0)
+    raw.push(baseline)
     top = Math.min(top, baseline - line.ascent)
     bottom = Math.max(bottom, baseline + line.descent)
   })
@@ -127,7 +168,7 @@ function composeHorizontal(
   return {
     lines,
     baselines: raw.map((baseline) => baseline - top),
-    width: maxOf(lines.map((line) => line.width)),
+    width: maxOf(lines.map((line) => (line.offsetX ?? 0) + line.width)),
     height: bottom - top,
     vertical: false,
     columnWidth: 0,
@@ -213,10 +254,15 @@ function composeBlock(
   safeWidth: number,
   safeHeight: number,
   measure: MeasureFn,
+  canvasWidth: number,
+  sizeScales?: readonly number[],
+  offsetsX?: readonly number[],
 ): { block: TextBlock; font: string; lineHeightPx: number; letterSpacingPx: number } {
   const font = fontString(config, fontSizePx)
   const lineHeightPx = config.typography.lineHeight * fontSizePx
   const letterSpacingPx = letterSpacingPxOf(config, fontSizePx)
+  const scales = sizeScales ?? paragraphs.map((_, index) => lineScaleOf(config, index))
+  const offsets = offsetsX ?? paragraphs.map((_, index) => lineOffsetOf(config, index))
   const block = config.typography.vertical
     ? composeVertical(
         config,
@@ -232,11 +278,11 @@ function composeBlock(
         config,
         paragraphs,
         fontSizePx,
-        lineHeightPx,
-        letterSpacingPx,
-        font,
         safeWidth,
+        canvasWidth,
         measure,
+        scales,
+        offsets,
       )
   return { block, font, lineHeightPx, letterSpacingPx }
 }
@@ -328,7 +374,15 @@ export function fitText(
 
   const build = (ratio: number): FitResult => {
     const fontSizePx = clamp(ratio, MIN_FONT_RATIO, MAX_FONT_RATIO) * shortSide
-    const composed = composeBlock(config, paragraphs, fontSizePx, safeWidth, safeHeight, measure)
+    const composed = composeBlock(
+      config,
+      paragraphs,
+      fontSizePx,
+      safeWidth,
+      safeHeight,
+      measure,
+      width,
+    )
     return {
       fontSizePx,
       lineHeightPx: composed.lineHeightPx,
@@ -362,6 +416,7 @@ export function fitText(
       Number.POSITIVE_INFINITY,
       Number.POSITIVE_INFINITY,
       measure,
+      width,
     ).block
     const byWidth = probe.width > 0 ? safeWidth / probe.width : Number.POSITIVE_INFINITY
     const byHeight = probe.height > 0 ? safeHeight / probe.height : Number.POSITIVE_INFINITY
@@ -436,14 +491,34 @@ export function fitStatus(
   const paragraphs = splitParagraphs(config.text)
   const head = paragraphs.slice(0, 1)
   const rest = paragraphs.slice(1)
+  const primaryScale = config.typography.lineSizeScales[0] ?? 1
+  const secondaryScale = config.typography.lineSizeScales[1] ?? config.layout.scale
+  const primaryOffset = config.typography.lineOffsetsX[0] ?? 0
+  const secondaryOffset = config.typography.lineOffsetsX[1] ?? 0
 
-  const part = (paras: string[], fontSizePx: number): FitResult => {
-    const composed = composeBlock(flat, paras, fontSizePx, box.width, box.height, measure)
-    return {
+  const part = (
+    paras: string[],
+    fontSizePx: number,
+    scale: number,
+    offset: number,
+  ): FitResult => {
+    const composed = composeBlock(
+      flat,
+      paras,
       fontSizePx,
+      box.width,
+      box.height,
+      measure,
+      width,
+      paras.map(() => scale),
+      paras.map(() => offset),
+    )
+    const firstLine = composed.block.lines[0]
+    return {
+      fontSizePx: fontSizePx * scale,
       lineHeightPx: composed.lineHeightPx,
-      letterSpacingPx: composed.letterSpacingPx,
-      font: composed.font,
+      letterSpacingPx: firstLine?.letterSpacingPx ?? composed.letterSpacingPx,
+      font: firstLine?.font ?? composed.font,
       block: composed.block,
       fits: composed.block.width <= box.width + EPS,
       safeWidth: box.width,
@@ -453,9 +528,9 @@ export function fitStatus(
 
   const build = (ratio: number): StatusFit => {
     const primarySize = clamp(ratio, MIN_FONT_RATIO, MAX_FONT_RATIO) * shortSide
-    const primary = part(head, primarySize)
-    const secondary = rest.length > 0 ? part(rest, primarySize * config.layout.scale) : null
-    const gapPx = secondary ? primarySize * STATUS_GAP_RATIO : 0
+    const primary = part(head, primarySize, primaryScale, primaryOffset)
+    const secondary = rest.length > 0 ? part(rest, primarySize, secondaryScale, secondaryOffset) : null
+    const gapPx = secondary ? primarySize * primaryScale * STATUS_GAP_RATIO : 0
     const blockWidth = Math.max(primary.block.width, secondary?.block.width ?? 0)
     const blockHeight = primary.block.height + gapPx + (secondary?.block.height ?? 0)
     return {

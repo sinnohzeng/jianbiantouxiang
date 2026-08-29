@@ -1,7 +1,7 @@
 {
   "app.description": "纯前端的渐变头像生成器。选配色与质感，导出可直接用作群聊、账号与部门标识的图片。",
   "app.name": "渐变头像生成器",
-  "app.sampleText": "飞书效率先锋",
+  "app.sampleText": "飞书\n效率先锋",
   "app.shortName": "渐变头像",
   "app.slogan": "输入几个字，秒出一张柔光质感的渐变头像",
   "app.title": "渐变头像生成器 · Gradient Avatar",

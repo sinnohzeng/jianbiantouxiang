@@ -120,6 +120,7 @@ describe('旧链接兼容', () => {
       ...DEFAULT_CONFIG,
       text: '请假中\n09-01 至 09-07',
       layout: { kind: 'status', scale: 0.35 },
+      typography: { ...DEFAULT_CONFIG.typography, lineSizeScales: [1, 0.35] },
     }
     expect(decodeConfigFromHash(encodeConfigToHash(config))).toEqual(config)
   })

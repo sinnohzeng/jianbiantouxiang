@@ -178,7 +178,7 @@ describe('keys.md 与源语言字典同步', () => {
   const rows = new Map<string, string>(
     [...doc.matchAll(/^\| `([^`]+)` +\| +(.*?) +\|$/gm)].map((match) => [
       match[1] ?? '',
-      (match[2] ?? '').trim(),
+      (match[2] ?? '').trim().replace(/\\n/g, '\n'),
     ]),
   )
 

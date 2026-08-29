@@ -60,7 +60,10 @@ describe('auto 模式闭式解', () => {
 
 describe('auto 模式二分', () => {
   it('两行文字收敛到理论最优附近且不超框', () => {
-    const result = fit({ text: '中文\n换行', typography: { padding: 0.1, lineHeight: 1.15 } })
+    const result = fit({
+      text: '中文\n换行',
+      typography: { padding: 0.1, lineHeight: 1.15, lineSizeScales: [1, 1] },
+    })
     // 理论最优：2.15 × S = 800，S ≈ 372.09
     expect(result.fontSizePx).toBeGreaterThan(371.5)
     expect(result.fontSizePx).toBeLessThanOrEqual(372.1)

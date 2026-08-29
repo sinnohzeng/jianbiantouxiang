@@ -136,11 +136,14 @@ function placeBlock(
       })
     : block.lines.map((line, index) => ({
         text: line.text,
-        x: originX + (block.width - line.width) * factor,
+        x: originX + (block.width - line.width) * factor + (line.offsetX ?? 0),
         y: originY + (block.baselines[index] ?? 0),
         width: line.width,
         ascent: line.ascent,
         descent: line.descent,
+        font: line.font,
+        fontSizePx: line.fontSizePx,
+        letterSpacingPx: line.letterSpacingPx,
         glyphs: [],
       }))
 

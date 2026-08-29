@@ -22,10 +22,28 @@ describe('纯文字用途', () => {
     const result = layout({ text: '中', typography: { sizeMode: 'manual', fontSize: 0.2 } })
     expect(result.safeBox).toEqual(SAFE)
   })
+
+  it('行级字号与水平补偿分别落到每一行', () => {
+    const result = layout({
+      text: '飞书\n效率',
+      typography: {
+        sizeMode: 'manual',
+        fontSize: 0.2,
+        padding: 0.1,
+        lineSizeScales: [1, 0.5],
+        lineOffsetsX: [0, 0.02],
+      },
+    })
+
+    expect(result.lines[0]?.x).toBeCloseTo(300)
+    expect(result.lines[1]?.x).toBeCloseTo(420)
+    expect(fontSizeOf(result.lines[0]?.font ?? '')).toBeCloseTo(200)
+    expect(fontSizeOf(result.lines[1]?.font ?? '')).toBeCloseTo(100)
+  })
 })
 
 describe('状态徽章', () => {
-  /** 首行 200 px，次行 200 × 0.42 = 84 px，行距 200 × 0.18 = 36 px。 */
+  /** 首行 200 px，次行 200 × 0.62 = 124 px，行距 200 × 0.18 = 36 px。 */
   const STATUS: PartialConfig = {
     text: '请假中\n09-01',
     typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1 },
@@ -36,32 +54,32 @@ describe('状态徽章', () => {
     const result = layout(STATUS)
     expect(result.lines.map((line) => line.text)).toEqual(['请假中', '09-01'])
     expect(result.fontSizePx).toBeCloseTo(200)
-    expect(result.lines[0]?.font).toBeUndefined()
-    expect(fontSizeOf(result.lines[1]?.font ?? '')).toBeCloseTo(84)
+    expect(result.lines[0]?.font).toContain('200px')
+    expect(fontSizeOf(result.lines[1]?.font ?? '')).toBeCloseTo(124)
   })
 
   it('整体在安全框里居中，块尺寸等于两块加行距', () => {
     const result = layout(STATUS)
-    // 宽取两块较宽的那个：600 与 252
+    // 宽取两块较宽的那个：600 与 372
     expect(result.box.width).toBeCloseTo(600)
-    // 高是 200 + 36 + 84
-    expect(result.box.height).toBeCloseTo(320)
+    // 高是 200 + 36 + 124
+    expect(result.box.height).toBeCloseTo(360)
     expect(result.box.x).toBeCloseTo(200)
-    expect(result.box.y).toBeCloseTo(340)
+    expect(result.box.y).toBeCloseTo(320)
   })
 
   it('次行短的时候在整体宽度里居中，不靠左', () => {
     const result = layout(STATUS)
     expect(result.lines[0]?.x).toBeCloseTo(200)
-    // 200 + (600 - 252) / 2
-    expect(result.lines[1]?.x).toBeCloseTo(374)
+    // 200 + (600 - 372) / 2
+    expect(result.lines[1]?.x).toBeCloseTo(314)
   })
 
   it('行距按首行字号算，次行压在首行下面', () => {
     const result = layout(STATUS)
-    // 首行基线 340 + 160，次行基线 340 + 200 + 36 + 67.2
-    expect(result.lines[0]?.y).toBeCloseTo(500)
-    expect(result.lines[1]?.y).toBeCloseTo(643.2)
+    // 首行基线 340 + 160，次行基线 340 + 200 + 36 + 99.2
+    expect(result.lines[0]?.y).toBeCloseTo(480)
+    expect(result.lines[1]?.y).toBeCloseTo(655.2)
   })
 
   it('只有一段时退化成一块，没有行距', () => {
@@ -71,8 +89,11 @@ describe('状态徽章', () => {
     expect(result.box.y).toBeCloseTo(400)
   })
 
-  it('scale 直接改次行字号', () => {
-    const result = layout({ ...STATUS, layout: { kind: 'status', scale: 0.6 } })
+  it('第二行字号比例直接改次行字号', () => {
+    const result = layout({
+      ...STATUS,
+      typography: { ...STATUS.typography, lineSizeScales: [1, 0.6] },
+    })
     expect(fontSizeOf(result.lines[1]?.font ?? '')).toBeCloseTo(120)
   })
 

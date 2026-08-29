@@ -180,7 +180,7 @@ describe('composeWith 文字', () => {
 describe('composeWith 自动底板', () => {
   it('像素判定要底板时把 effect 换成胶囊，用户的 config 不动', async () => {
     const h = makeHarness(true)
-    const config = configOf()
+    const config = configOf({ typography: { colorMode: 'auto' } })
     await composeWith(config, 512, 512, h.deps)
 
     expect(h.resolveInk).toHaveBeenCalledWith(expect.anything(), LAYOUT, config)

@@ -21,7 +21,13 @@ import {
 const measure = createStubMeasure()
 const config = makeConfig({
   text: '猪猪',
-  typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, anchor: 'c' },
+  typography: {
+    sizeMode: 'manual',
+    fontSize: 0.2,
+    padding: 0.1,
+    anchor: 'c',
+    colorMode: 'auto',
+  },
 })
 const layout = layoutText(config, 1000, 1000, measure)
 
