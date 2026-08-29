@@ -1,0 +1,22 @@
+node_modules
+dist
+dev-dist
+.screenshots
+test-results
+playwright-report
+package-lock.json
+
+# shadcn 生成的原语，跟随上游，不做本仓格式化
+src/components/ui
+
+# registry 装入的官方技能文档
+.agents/skills
+
+# 长文档由人写，交给编辑器排版，不进 prettier
+README.md
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+SECURITY.md
+LICENSE
+docs
+specs
