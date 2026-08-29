@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { FIT_ITERATIONS, MAX_FONT_RATIO, MIN_FONT_RATIO, fitText, safeArea } from '@/text/fit'
+import {
+  FIT_ITERATIONS,
+  MAX_FONT_RATIO,
+  MIN_FONT_RATIO,
+  fitStatus,
+  fitText,
+  safeArea,
+} from '@/text/fit'
 import type { PartialConfig } from '@/state/config'
 import { createStubMeasure, makeConfig } from './helpers'
 
@@ -227,5 +234,88 @@ describe('自动填满不把词拆开', () => {
       typography: { sizeMode: 'auto', padding: 0.1, autoWrap: false },
     })
     expect(result.block.broke).toBe(false)
+  })
+})
+
+describe('指定区域求解', () => {
+  it('给了 area 就按 area 求解，不再自己算安全框', () => {
+    const config = makeConfig({ text: '渐变头像', typography: { padding: 0.1 } })
+    const half = { x: 100, y: 500, width: 800, height: 200 }
+    const inside = fitText(config, 1000, 1000, measure, half)
+    expect(inside.safeWidth).toBe(800)
+    expect(inside.safeHeight).toBe(200)
+    expect(inside.block.height).toBeLessThanOrEqual(200 + 1e-6)
+    // 同一份配置不给 area 时用的是 800 × 800，字号必然更大
+    expect(fitText(config, 1000, 1000, measure).fontSizePx).toBeGreaterThan(inside.fontSizePx)
+  })
+})
+
+describe('状态徽章求解', () => {
+  const STATUS: PartialConfig = {
+    text: '请假中\n09-01',
+    typography: { padding: 0.1 },
+    layout: { kind: 'status' },
+  }
+
+  function status(overrides: PartialConfig, width = 1000, height = 1000) {
+    return fitStatus(makeConfig(overrides), width, height, measure)
+  }
+
+  it('manual 模式直接用给定字号，次行按 scale 缩', () => {
+    const result = status({
+      ...STATUS,
+      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1 },
+      layout: { kind: 'status', scale: 0.5 },
+    })
+    expect(result.primary.fontSizePx).toBeCloseTo(200)
+    expect(result.secondary?.fontSizePx).toBeCloseTo(100)
+    // 行距只按首行字号算，与 scale 无关
+    expect(result.gapPx).toBeCloseTo(36)
+  })
+
+  it('只有一段时没有次行，也没有行距', () => {
+    const result = status({ ...STATUS, text: '请假中' })
+    expect(result.secondary).toBeNull()
+    expect(result.gapPx).toBe(0)
+    expect(result.height).toBeCloseTo(result.primary.block.height)
+  })
+
+  it('auto 模式把两块加行距一起塞进安全框', () => {
+    const result = status(STATUS)
+    expect(result.fits).toBe(true)
+    expect(result.width).toBeLessThanOrEqual(800 + 1e-6)
+    expect(result.height).toBeLessThanOrEqual(800 + 1e-6)
+    // 撑得足够满：再放大一档就该溢出
+    expect(result.width).toBeGreaterThan(400)
+  })
+
+  it('次行长过首行时整体宽度取次行', () => {
+    const result = status({ ...STATUS, text: '请假\n2026-09-01 至 2026-09-07' })
+    expect(result.secondary?.block.width).toBeGreaterThan(result.primary.block.width)
+    expect(result.width).toBeCloseTo(result.secondary?.block.width ?? 0)
+  })
+
+  it('scale 越大整体越高，首行字号相应变小', () => {
+    const small = status({ ...STATUS, layout: { kind: 'status', scale: 0.2 } })
+    const large = status({ ...STATUS, layout: { kind: 'status', scale: 0.8 } })
+    expect(large.primary.fontSizePx).toBeLessThan(small.primary.fontSizePx)
+    expect(large.fits).toBe(true)
+  })
+
+  it('竖排配置不影响状态徽章，两块都是横排', () => {
+    const result = status({ ...STATUS, typography: { padding: 0.1, vertical: true } })
+    expect(result.primary.block.vertical).toBe(false)
+    expect(result.secondary?.block.vertical).toBe(false)
+  })
+
+  it('空文本不抛错，块尺寸归零', () => {
+    const result = status({ ...STATUS, text: '' })
+    expect(result.width).toBe(0)
+    expect(result.height).toBe(0)
+  })
+
+  it('三段及以上时次行之后的都并进次块', () => {
+    const result = status({ ...STATUS, text: '请假中\n09-01\n找钱猪宝' })
+    expect(result.secondary?.block.lines.map((line) => line.text)).toEqual(['09-01', '找钱猪宝'])
   })
 })

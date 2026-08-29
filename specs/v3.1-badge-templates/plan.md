@@ -58,15 +58,17 @@ src/graphics/
   upload.ts              # 上传消毒与本次会话注册表
   curated.ts             # 约 160 个精选图标的中英文关键词与类目
 src/text/
-  fit.ts / layout.ts     # 按 layout.kind 分派排版
-  status.ts              # 状态徽章的两块堆叠
-  badge.ts               # 图标徽章的图形加文字
+  fit.ts                 # 加 fitStatus：状态徽章的两块堆叠求解
+  layout.ts              # 按 layout.kind 分派，加 layoutStatus 与 layoutBadge
 src/app/panels/
   TextPanel.tsx          # 顶部加用途分段控件，status 下换成两个输入框
   IconPicker.tsx         # 图形与 emoji 选择器，懒加载
 ```
 
 ## 2. 阶段
+
+状态与徽章的求解、落位不另开文件。它们共用 `composeBlock`、二分上下限、`placeBlock` 与 `pillOf`，
+拆出去要把这些内部件全导出，为一张目录草图换来更宽的公开面。两个文件都在三五百行，先不拆。
 
 **阶段一：契约与排版内核。** `config.ts` 加 `layout` 与 normalize；`fit.ts`、`layout.ts` 按 kind 分派；新增 `status.ts` 与 `badge.ts`。图形在这一阶段用一个假的固定尺寸方块占位，不碰网络。单测覆盖：三种 kind 的块尺寸与安全框贴合、`scale` 与 `graphic` 的边界值、缺 `layout` 的旧配置、旧 hash 解码。
 

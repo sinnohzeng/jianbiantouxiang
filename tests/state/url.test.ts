@@ -99,6 +99,50 @@ describe('编解码往返', () => {
   })
 })
 
+describe('旧链接兼容', () => {
+  it('v3.0 的链接没有 layout，解出来是默认版式', () => {
+    // 这是 3.0 时期一条真实形状的载荷：只有当时存在的字段
+    const legacy = encodePayload({
+      v: 3,
+      text: '猪猪家族',
+      style: 'flow',
+      canvas: { shape: 'circle' },
+      typography: { fontSize: 0.55, effect: 'pill' },
+    })
+    const config = decodeConfigFromHash(legacy)
+    expect(config?.text).toBe('猪猪家族')
+    expect(config?.canvas.shape).toBe('circle')
+    expect(config?.layout).toEqual(DEFAULT_CONFIG.layout)
+  })
+
+  it('新版式字段进得了链接，也回得来', () => {
+    const config: AvatarConfig = {
+      ...DEFAULT_CONFIG,
+      text: '请假中\n09-01 至 09-07',
+      layout: {
+        kind: 'status',
+        scale: 0.35,
+        graphic: 0.6,
+        icon: { source: 'builtin', id: 'plane' },
+      },
+    }
+    expect(decodeConfigFromHash(encodeConfigToHash(config))).toEqual(config)
+  })
+
+  it('版式是默认值时不占链接长度', () => {
+    const payload = payloadOf(encodeConfigToHash({ ...DEFAULT_CONFIG, text: '同事' }))
+    expect(payload).toEqual({ text: '同事' })
+  })
+
+  it('链接里的版式同样过一遍夹值', () => {
+    const hacked = encodePayload({ layout: { kind: 'logo', scale: 99, icon: { source: 'x' } } })
+    const config = decodeConfigFromHash(hacked)
+    expect(config?.layout.kind).toBe('logo')
+    expect(config?.layout.scale).toBe(0.8)
+    expect(config?.layout.icon).toEqual(DEFAULT_CONFIG.layout.icon)
+  })
+})
+
 describe('decodeConfigFromHash 容错', () => {
   it.each([
     ['空串', ''],

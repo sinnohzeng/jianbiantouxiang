@@ -8,6 +8,10 @@ export type StyleId = 'mesh' | 'flow' | 'silk' | 'grain'
 export type Shape = 'square' | 'rounded' | 'circle'
 export type TextEffect = 'plain' | 'outline' | 'shadow' | 'glow' | 'pill'
 export type Anchor = 'tl' | 't' | 'tr' | 'l' | 'c' | 'r' | 'bl' | 'b' | 'br'
+/** 用途：画面怎么构成。版式写死在代码里，用户只选用途、填内容，见 specs/v3.1-badge-templates。 */
+export type LayoutKind = 'text' | 'status' | 'logo'
+/** 图形来源。upload 只在本次会话有效，不进分享链接。 */
+export type IconSource = 'none' | 'builtin' | 'emoji' | 'upload'
 
 export interface AvatarConfig {
   v: 3
@@ -46,6 +50,16 @@ export interface AvatarConfig {
     color: string
     pill: { radius: number; padding: number; opacity: number }
   }
+  layout: {
+    kind: LayoutKind
+    scale: number // status：次行相对首行的字号比例 0.2..0.8
+    graphic: number // logo：图形占安全框高度的比例 0.3..0.8
+    icon: {
+      source: IconSource
+      /** builtin 是 lucide 名，emoji 是去掉 FE0F 的码点串，upload 是本次会话的 id */
+      id: string
+    }
+  }
   exportOptions: {
     format: 'jpg' | 'png' | 'webp'
     sizeTarget: 'none' | '1mb' | '2mb'
@@ -63,6 +77,14 @@ export const ALIGNS = ['left', 'center', 'right'] as const
 export const COLOR_MODES = ['auto', 'custom'] as const
 export const EXPORT_FORMATS = ['jpg', 'png', 'webp'] as const
 export const SIZE_TARGETS = ['none', '1mb', '2mb'] as const
+export const LAYOUT_KINDS: readonly LayoutKind[] = ['text', 'status', 'logo']
+export const ICON_SOURCES: readonly IconSource[] = ['none', 'builtin', 'emoji', 'upload']
+
+/** 状态徽章里两块之间的留白，按首行字号算。 */
+export const STATUS_GAP_RATIO = 0.18
+
+/** 图标徽章里图形与文字之间的留白，按安全框高算。 */
+export const BADGE_GAP_RATIO = 0.06
 
 /** 画布边长的合法区间，上限对应桌面导出的 4096。 */
 export const CANVAS_MIN = 64
@@ -105,6 +127,12 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     colorMode: 'auto',
     color: '#ffffff',
     pill: { radius: 0.5, padding: 0.3, opacity: 0.55 },
+  },
+  layout: {
+    kind: 'text',
+    scale: 0.42,
+    graphic: 0.52,
+    icon: { source: 'none', id: '' },
   },
   exportOptions: {
     format: 'jpg',
@@ -187,6 +215,20 @@ export function normalizeHex(value: unknown, fallback: string): string {
   return `#${body}`
 }
 
+/**
+ * 图形来源与标识要一起校验：来源合法但 id 是空串等于没选图形，一律归到 none，
+ * 否则界面上会出现“选了内置图标却画不出东西”的中间态。
+ */
+function normalizeIcon(
+  raw: Record<string, unknown>,
+  fallback: AvatarConfig['layout']['icon'],
+): AvatarConfig['layout']['icon'] {
+  const source = pick(raw.source, ICON_SOURCES, fallback.source)
+  if (source === 'none') return { source: 'none', id: '' }
+  const id = str(raw.id, '').trim()
+  return id === '' ? { source: 'none', id: '' } : { source, id }
+}
+
 function normalizeColors(value: unknown): string[] {
   if (!Array.isArray(value)) return [...DEFAULT_CONFIG.customColors]
   const out: string[] = []
@@ -212,6 +254,8 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
   const tp = isRecord(src.typography) ? src.typography : {}
   const pill = isRecord(tp.pill) ? tp.pill : {}
   const ex = isRecord(src.exportOptions) ? src.exportOptions : {}
+  const lay = isRecord(src.layout) ? src.layout : {}
+  const icon = isRecord(lay.icon) ? lay.icon : {}
 
   return {
     v: 3,
@@ -258,6 +302,12 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
         padding: num(pill.padding, d.typography.pill.padding, 0, 1),
         opacity: num(pill.opacity, d.typography.pill.opacity, 0, 1),
       },
+    },
+    layout: {
+      kind: pick(lay.kind, LAYOUT_KINDS, d.layout.kind),
+      scale: num(lay.scale, d.layout.scale, 0.2, 0.8),
+      graphic: num(lay.graphic, d.layout.graphic, 0.3, 0.8),
+      icon: normalizeIcon(icon, d.layout.icon),
     },
     exportOptions: {
       format: pick(ex.format, EXPORT_FORMATS, d.exportOptions.format),

@@ -1,4 +1,4 @@
-import type { AvatarConfig } from '@/state/config'
+import { STATUS_GAP_RATIO, type AvatarConfig } from '@/state/config'
 import { fontString, letterSpacingPxOf, toGraphemes, type MeasureFn } from './measure'
 import { splitParagraphs, wrapLineParts } from './wrap'
 
@@ -23,6 +23,12 @@ export interface LineMetric {
   descent: number
   /** 竖排时该列逐字的宽度，横排为空数组。 */
   glyphs: GlyphMetric[]
+}
+
+/** 只关心尺寸的方框。Rect 定义在 layout.ts，那边反过来引本文件，这里不绕这个圈。 */
+export interface Box {
+  width: number
+  height: number
 }
 
 export interface TextBlock {
@@ -312,12 +318,14 @@ export function fitText(
   width: number,
   height: number,
   measure: MeasureFn,
+  /** 排版可用的方框。图标徽章把文字挤到下半部分，传的就是那一块。 */
+  area?: Box,
 ): FitResult {
   const typography = config.typography
   const shortSide = Math.max(1, Math.min(width, height))
-  const area = safeArea(config, width, height)
-  const safeWidth = area.width
-  const safeHeight = area.height
+  const box = area ?? safeArea(config, width, height)
+  const safeWidth = box.width
+  const safeHeight = box.height
   const paragraphs = splitParagraphs(config.text)
 
   const build = (ratio: number): FitResult => {
@@ -392,4 +400,102 @@ export function fitText(
   const strict = search(true)
   // 最小字号都得拆词，说明这个词本来就放不下，那就别再为它压字号
   return strict.block.broke ? search(false) : strict
+}
+
+/** 状态徽章的求解结果：首行、次行、两者之间的留白，以及合起来的尺寸。 */
+export interface StatusFit {
+  primary: FitResult
+  /** 次行为空时是 null，画面退化成单行。 */
+  secondary: FitResult | null
+  gapPx: number
+  width: number
+  height: number
+  fits: boolean
+  safeWidth: number
+  safeHeight: number
+}
+
+/**
+ * 状态徽章的排版求解。
+ *
+ * 首行字号与次行字号只有一个自由度：次行恒等于首行乘 `layout.scale`，
+ * 二分只搜首行。两个都放开会有无穷多组解落在安全框里，出图就不稳定了。
+ * 竖排在这个用途下没有意义，强制横排；锚点与偏移同理，版式写死在居中。
+ */
+export function fitStatus(
+  config: AvatarConfig,
+  width: number,
+  height: number,
+  measure: MeasureFn,
+  area?: Box,
+): StatusFit {
+  const shortSide = Math.max(1, Math.min(width, height))
+  const box = area ?? safeArea(config, width, height)
+  const flat: AvatarConfig = {
+    ...config,
+    typography: { ...config.typography, vertical: false },
+  }
+  const paragraphs = splitParagraphs(config.text)
+  const head = paragraphs.slice(0, 1)
+  const rest = paragraphs.slice(1)
+
+  const part = (paras: string[], fontSizePx: number): FitResult => {
+    const composed = composeBlock(flat, paras, fontSizePx, box.width, box.height, measure)
+    return {
+      fontSizePx,
+      lineHeightPx: composed.lineHeightPx,
+      letterSpacingPx: composed.letterSpacingPx,
+      font: composed.font,
+      block: composed.block,
+      fits: composed.block.width <= box.width + EPS,
+      safeWidth: box.width,
+      safeHeight: box.height,
+    }
+  }
+
+  const build = (ratio: number): StatusFit => {
+    const primarySize = clamp(ratio, MIN_FONT_RATIO, MAX_FONT_RATIO) * shortSide
+    const primary = part(head, primarySize)
+    const secondary = rest.length > 0 ? part(rest, primarySize * config.layout.scale) : null
+    const gapPx = secondary ? primarySize * STATUS_GAP_RATIO : 0
+    const blockWidth = Math.max(primary.block.width, secondary?.block.width ?? 0)
+    const blockHeight = primary.block.height + gapPx + (secondary?.block.height ?? 0)
+    return {
+      primary,
+      secondary,
+      gapPx,
+      width: blockWidth,
+      height: blockHeight,
+      fits: blockWidth <= box.width + EPS && blockHeight <= box.height + EPS,
+      safeWidth: box.width,
+      safeHeight: box.height,
+    }
+  }
+
+  if (paragraphs.length === 0 || config.typography.sizeMode === 'manual') {
+    return build(config.typography.fontSize)
+  }
+
+  const broke = (fit: StatusFit): boolean =>
+    fit.primary.block.broke || (fit.secondary?.block.broke ?? false)
+
+  const search = (strict: boolean): StatusFit => {
+    let low = MIN_FONT_RATIO
+    let high = MAX_FONT_RATIO
+    let best = build(MIN_FONT_RATIO)
+    for (let i = 0; i < FIT_ITERATIONS; i += 1) {
+      const mid = (low + high) / 2
+      const candidate = build(mid)
+      if (candidate.fits && !(strict && broke(candidate))) {
+        best = candidate
+        low = mid
+      } else {
+        high = mid
+      }
+    }
+    return best
+  }
+
+  const strict = search(true)
+  return broke(strict) ? search(false) : strict
 }

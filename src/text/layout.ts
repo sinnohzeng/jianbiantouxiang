@@ -1,5 +1,5 @@
-import type { Anchor, AvatarConfig } from '@/state/config'
-import { fitText, safeArea } from './fit'
+import { BADGE_GAP_RATIO, type Anchor, type AvatarConfig } from '@/state/config'
+import { fitStatus, fitText, safeArea, type FitResult } from './fit'
 import { createCanvasMeasure, type MeasureFn } from './measure'
 
 export interface Rect {
@@ -29,6 +29,8 @@ export interface LayoutLine {
   descent: number
   /** 竖排时逐字的位置，横排为空数组。 */
   glyphs: LayoutGlyph[]
+  /** 这一行自己的 canvas font；缺省时用 layout.font。状态徽章的次行比首行小。 */
+  font?: string
 }
 
 export interface PillRect extends Rect {
@@ -52,6 +54,8 @@ export interface TextLayout {
   align: 'left' | 'center' | 'right'
   /** 文字超出安全框，界面据此提示。 */
   overflow: boolean
+  /** 图标徽章下图形的落位；其他用途下是 null。 */
+  graphicBox: Rect | null
 }
 
 const ANCHOR_X: Record<Anchor, number> = {
@@ -90,30 +94,18 @@ function alignFactor(align: 'left' | 'center' | 'right'): number {
 }
 
 /**
- * 排版求解 + 落位。基线用度量得到的 ascent / descent 定，所以是墨迹意义上的居中，
- * 不是 em 框意义上的居中。
+ * 把一个求解好的块落到 (originX, originY)，产出可直接绘制的行。
+ * `fontOverride` 给状态徽章的次行用：它与首行不同号，绘制时要逐行改 ctx.font。
  */
-export function layoutText(
+function placeBlock(
   config: AvatarConfig,
-  width: number,
-  height: number,
-  measure?: MeasureFn,
-): TextLayout {
+  fit: FitResult,
+  originX: number,
+  originY: number,
+  fontOverride?: string,
+): LayoutLine[] {
   const typography = config.typography
-  const fit = fitText(config, width, height, measure ?? getSharedMeasure())
   const block = fit.block
-
-  const safeBox: Rect = safeArea(config, width, height)
-
-  const originX =
-    safeBox.x +
-    (safeBox.width - block.width) * ANCHOR_X[typography.anchor] +
-    typography.offsetX * width
-  const originY =
-    safeBox.y +
-    (safeBox.height - block.height) * ANCHOR_Y[typography.anchor] +
-    typography.offsetY * height
-
   const factor = alignFactor(typography.align)
   const advance = fit.fontSizePx + fit.letterSpacingPx
 
@@ -149,28 +141,161 @@ export function layoutText(
         glyphs: [],
       }))
 
-  const box: Rect = { x: originX, y: originY, width: block.width, height: block.height }
-  const pad = typography.pill.padding * fit.fontSizePx
-  const pillRect: PillRect = {
+  return fontOverride === undefined ? lines : lines.map((line) => ({ ...line, font: fontOverride }))
+}
+
+/** 胶囊底板：把整块文字按 pill.padding 外扩，圆角按短边算。 */
+function pillOf(config: AvatarConfig, box: Rect, fontSizePx: number): PillRect {
+  const pad = config.typography.pill.padding * fontSizePx
+  const rect: PillRect = {
     x: box.x - pad,
     y: box.y - pad,
     width: box.width + pad * 2,
     height: box.height + pad * 2,
     radiusPx: 0,
   }
-  pillRect.radiusPx = typography.pill.radius * Math.min(pillRect.width, pillRect.height)
+  rect.radiusPx = config.typography.pill.radius * Math.min(rect.width, rect.height)
+  return rect
+}
 
+/** 纯文字用途：锚点、偏移、对齐、竖排全都生效，这是 v3 的原有行为。 */
+function layoutPlain(
+  config: AvatarConfig,
+  width: number,
+  height: number,
+  measure: MeasureFn,
+): TextLayout {
+  const typography = config.typography
+  const fit = fitText(config, width, height, measure)
+  const block = fit.block
+  const safeBox: Rect = safeArea(config, width, height)
+
+  const originX =
+    safeBox.x +
+    (safeBox.width - block.width) * ANCHOR_X[typography.anchor] +
+    typography.offsetX * width
+  const originY =
+    safeBox.y +
+    (safeBox.height - block.height) * ANCHOR_Y[typography.anchor] +
+    typography.offsetY * height
+
+  const box: Rect = { x: originX, y: originY, width: block.width, height: block.height }
   return {
-    lines,
+    lines: placeBlock(config, fit, originX, originY),
     fontSizePx: fit.fontSizePx,
     lineHeightPx: fit.lineHeightPx,
     letterSpacingPx: fit.letterSpacingPx,
     font: fit.font,
     box,
     safeBox,
-    pill: pillRect,
+    pill: pillOf(config, box, fit.fontSizePx),
     vertical: block.vertical,
     align: typography.align,
     overflow: !fit.fits,
+    graphicBox: null,
   }
+}
+
+/**
+ * 状态徽章：首行大字压次行小字，整体在安全框里居中。
+ * 锚点与偏移在这个用途下不生效，版式写死才谈得上一批图观感统一。
+ */
+function layoutStatus(
+  config: AvatarConfig,
+  width: number,
+  height: number,
+  measure: MeasureFn,
+): TextLayout {
+  const safeBox: Rect = safeArea(config, width, height)
+  const fit = fitStatus(config, width, height, measure, safeBox)
+
+  const originX = safeBox.x + (safeBox.width - fit.width) / 2
+  const originY = safeBox.y + (safeBox.height - fit.height) / 2
+  // 两块各自在整体宽度里居中，次行短的时候不会靠着左边
+  const headX = originX + (fit.width - fit.primary.block.width) / 2
+  const lines = placeBlock(config, fit.primary, headX, originY)
+
+  if (fit.secondary) {
+    const tailX = originX + (fit.width - fit.secondary.block.width) / 2
+    const tailY = originY + fit.primary.block.height + fit.gapPx
+    lines.push(...placeBlock(config, fit.secondary, tailX, tailY, fit.secondary.font))
+  }
+
+  const box: Rect = { x: originX, y: originY, width: fit.width, height: fit.height }
+  return {
+    lines,
+    fontSizePx: fit.primary.fontSizePx,
+    lineHeightPx: fit.primary.lineHeightPx,
+    letterSpacingPx: fit.primary.letterSpacingPx,
+    font: fit.primary.font,
+    box,
+    safeBox,
+    pill: pillOf(config, box, fit.primary.fontSizePx),
+    vertical: false,
+    align: config.typography.align,
+    overflow: !fit.fits,
+    graphicBox: null,
+  }
+}
+
+/**
+ * 图标徽章：图形占安全框上部，文字排在下部。
+ * 文字为空时图形独占安全框居中，不留一块空白。
+ */
+function layoutBadge(
+  config: AvatarConfig,
+  width: number,
+  height: number,
+  measure: MeasureFn,
+): TextLayout {
+  const safeBox: Rect = safeArea(config, width, height)
+  const hasText = config.text.trim() !== ''
+  const graphicHeight = safeBox.height * config.layout.graphic
+  const gap = hasText ? safeBox.height * BADGE_GAP_RATIO : 0
+
+  const graphicBox: Rect = hasText
+    ? { x: safeBox.x, y: safeBox.y, width: safeBox.width, height: graphicHeight }
+    : safeBox
+  const textArea: Rect = {
+    x: safeBox.x,
+    y: safeBox.y + graphicHeight + gap,
+    width: safeBox.width,
+    height: Math.max(0, safeBox.height - graphicHeight - gap),
+  }
+
+  const fit = fitText(config, width, height, measure, textArea)
+  const originX = textArea.x + (textArea.width - fit.block.width) / 2
+  const originY = textArea.y + (textArea.height - fit.block.height) / 2
+  const box: Rect = { x: originX, y: originY, width: fit.block.width, height: fit.block.height }
+
+  return {
+    lines: hasText ? placeBlock(config, fit, originX, originY) : [],
+    fontSizePx: fit.fontSizePx,
+    lineHeightPx: fit.lineHeightPx,
+    letterSpacingPx: fit.letterSpacingPx,
+    font: fit.font,
+    box,
+    safeBox,
+    pill: pillOf(config, box, fit.fontSizePx),
+    vertical: false,
+    align: config.typography.align,
+    overflow: !fit.fits,
+    graphicBox,
+  }
+}
+
+/**
+ * 排版求解加落位，按用途分派。基线用度量得到的 ascent / descent 定，
+ * 所以是墨迹意义上的居中，不是 em 框意义上的居中。
+ */
+export function layoutText(
+  config: AvatarConfig,
+  width: number,
+  height: number,
+  measure?: MeasureFn,
+): TextLayout {
+  const m = measure ?? getSharedMeasure()
+  if (config.layout.kind === 'status') return layoutStatus(config, width, height, m)
+  if (config.layout.kind === 'logo') return layoutBadge(config, width, height, m)
+  return layoutPlain(config, width, height, m)
 }

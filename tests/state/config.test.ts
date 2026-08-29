@@ -134,6 +134,69 @@ describe('normalizeConfig 夹值与校验', () => {
   })
 })
 
+describe('normalizeConfig 的 layout 子树', () => {
+  it('缺 layout 的旧配置补成默认版式', () => {
+    const config = normalizeConfig({ text: '产品设计部', typography: { fontSize: 0.5 } })
+    expect(config.layout).toEqual(DEFAULT_CONFIG.layout)
+  })
+
+  it('kind 只认三种用途，别的落回 text', () => {
+    expect(normalizeConfig({ layout: { kind: 'status' } }).layout.kind).toBe('status')
+    expect(normalizeConfig({ layout: { kind: 'logo' } }).layout.kind).toBe('logo')
+    expect(normalizeConfig({ layout: { kind: 'badge' } }).layout.kind).toBe('text')
+    expect(normalizeConfig({ layout: { kind: 7 } }).layout.kind).toBe('text')
+  })
+
+  it('scale 夹在 0.2..0.8', () => {
+    expect(normalizeConfig({ layout: { scale: 0 } }).layout.scale).toBe(0.2)
+    expect(normalizeConfig({ layout: { scale: 0.2 } }).layout.scale).toBe(0.2)
+    expect(normalizeConfig({ layout: { scale: 0.8 } }).layout.scale).toBe(0.8)
+    expect(normalizeConfig({ layout: { scale: 9 } }).layout.scale).toBe(0.8)
+    expect(normalizeConfig({ layout: { scale: Number.NaN } }).layout.scale).toBe(
+      DEFAULT_CONFIG.layout.scale,
+    )
+  })
+
+  it('graphic 夹在 0.3..0.8', () => {
+    expect(normalizeConfig({ layout: { graphic: 0 } }).layout.graphic).toBe(0.3)
+    expect(normalizeConfig({ layout: { graphic: 0.3 } }).layout.graphic).toBe(0.3)
+    expect(normalizeConfig({ layout: { graphic: 0.8 } }).layout.graphic).toBe(0.8)
+    expect(normalizeConfig({ layout: { graphic: 2 } }).layout.graphic).toBe(0.8)
+    // num 有意收数字字符串，链接与输入框传上来的都是字符串
+    expect(normalizeConfig({ layout: { graphic: '0.5' } }).layout.graphic).toBe(0.5)
+    expect(normalizeConfig({ layout: { graphic: '大一点' } }).layout.graphic).toBe(
+      DEFAULT_CONFIG.layout.graphic,
+    )
+  })
+
+  it('来源合法但 id 是空串等于没选图形', () => {
+    expect(
+      normalizeConfig({ layout: { icon: { source: 'builtin', id: '' } } }).layout.icon,
+    ).toEqual({ source: 'none', id: '' })
+    expect(
+      normalizeConfig({ layout: { icon: { source: 'emoji', id: '   ' } } }).layout.icon,
+    ).toEqual({ source: 'none', id: '' })
+  })
+
+  it('来源是 none 时把 id 一起清掉，不留半截状态', () => {
+    expect(
+      normalizeConfig({ layout: { icon: { source: 'none', id: '1f600' } } }).layout.icon,
+    ).toEqual({ source: 'none', id: '' })
+  })
+
+  it('合法的来源与 id 原样保留，id 去掉首尾空白', () => {
+    expect(
+      normalizeConfig({ layout: { icon: { source: 'emoji', id: ' 1f600 ' } } }).layout.icon,
+    ).toEqual({ source: 'emoji', id: '1f600' })
+  })
+
+  it('未知来源落回默认，等同没选', () => {
+    expect(
+      normalizeConfig({ layout: { icon: { source: 'sprite', id: 'feishu' } } }).layout.icon,
+    ).toEqual(DEFAULT_CONFIG.layout.icon)
+  })
+})
+
 describe('configHash', () => {
   it('同一配置得到同一哈希', () => {
     expect(configHash(DEFAULT_CONFIG)).toBe(configHash(normalizeConfig({})))
