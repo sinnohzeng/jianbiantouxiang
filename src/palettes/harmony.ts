@@ -1,4 +1,4 @@
-import { clampChroma, fixupHueShorter, formatHex, oklab, oklch, wcagContrast } from 'culori'
+import { clampChroma, fixupHueShorter, formatHex, oklab, oklch, wcagContrast } from './culori'
 import { TEXT_DARK, TEXT_LIGHT } from './color'
 import type { PaletteTone } from './palettes'
 

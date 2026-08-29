@@ -1,9 +1,9 @@
 /**
  * warp 与 grainGradient 用包内自带的噪声贴图作随机源。
  * ShaderMount 在图片没解码完时直接抛错，所以挂载前必须先把它等到位。
+ *
+ * 贴图是一张内联进包的 base64 图片，二十多 KB，跟着首屏走不值当，因此走 import()。
  */
-
-import { getShaderNoiseTexture } from '@paper-design/shaders'
 
 let pending: Promise<HTMLImageElement | undefined> | null = null
 let loaded: HTMLImageElement | undefined
@@ -21,13 +21,18 @@ export function ensureNoiseTexture(): Promise<HTMLImageElement | undefined> {
   if (loaded) return Promise.resolve(loaded)
   if (pending) return pending
 
-  const image = getShaderNoiseTexture()
-  if (!image) return Promise.resolve(undefined)
-
-  pending = decode(image).then(() => {
-    loaded = image.complete && image.naturalWidth > 0 ? image : undefined
-    return loaded
-  })
+  pending = import('./shader-noise')
+    .then(async ({ getShaderNoiseTexture }) => {
+      const image = getShaderNoiseTexture()
+      if (!image) return undefined
+      await decode(image)
+      return image.complete && image.naturalWidth > 0 ? image : undefined
+    })
+    .catch(() => undefined)
+    .then((image) => {
+      loaded = image
+      return image
+    })
   return pending
 }
 

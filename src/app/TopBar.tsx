@@ -65,7 +65,11 @@ export function TopBar() {
 
       <div className="ml-auto flex items-center gap-0.5">
         <DropdownMenu>
-          <DropdownMenuTrigger className={iconButton} aria-label={t('topbar.language')}>
+          <DropdownMenuTrigger
+            className={iconButton}
+            data-slot="language-menu"
+            aria-label={t('topbar.language')}
+          >
             <LanguagesIcon className="size-5" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-auto min-w-40">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clampChroma, displayable, formatHex, oklch } from 'culori'
+import { clampChroma, displayable, formatHex, oklch } from '@/palettes/culori'
 import { harmonize } from '@/palettes/harmony'
 import { contrastRatio } from '@/palettes/color'
 

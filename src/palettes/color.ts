@@ -6,7 +6,7 @@ import {
   rgb,
   wcagContrast,
   wcagLuminance,
-} from 'culori'
+} from './culori'
 
 /** 深色文字用暖近黑，浅色文字用纯白，与配色表里的 text 字段同源。 */
 export const TEXT_DARK = '#141413'
@@ -87,4 +87,26 @@ export function paletteThumbCss(colors: readonly string[]): string {
   const last = colors.length - 1
   const stops = colors.map((color, i) => `${color} ${Math.round((i / last) * 1000) / 10}%`)
   return `linear-gradient(135deg, ${stops.join(', ')})`
+}
+
+/**
+ * 从一段粘贴文本里挑出 hex 颜色，返回规范化的 `#rrggbb` 小写形式。
+ *
+ * 分隔符不限：`#` 与任何非 hex 字符都当分隔，所以带不带井号、逗号、空格、换行、
+ * 甚至 `#aabbcc#ddeeff` 这种连写都能拆开。只认 3 位与 6 位，其余长度直接丢弃，
+ * 免得把 `1024x1024` 这类尺寸文本当成颜色。顺序按出现先后，重复的不去重。
+ */
+export function parseHexList(text: string): string[] {
+  if (typeof text !== 'string') return []
+  const out: string[] = []
+  for (const token of text.split(/[^0-9a-f]+/i)) {
+    if (token.length !== 3 && token.length !== 6) continue
+    const body = token.toLowerCase()
+    out.push(
+      body.length === 3
+        ? `#${body[0]!}${body[0]!}${body[1]!}${body[1]!}${body[2]!}${body[2]!}`
+        : `#${body}`,
+    )
+  }
+  return out
 }

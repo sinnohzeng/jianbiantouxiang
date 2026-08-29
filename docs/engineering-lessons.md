@@ -130,3 +130,42 @@
 - 子智能体用 `git rm` 删文件会把删除暂存进 index，主会话之后任何不带 pathspec 的 `git commit` 都会把它们卷进去。规则：子智能体一律不做 git 操作，删文件用 `rm`；主会话提交前先看 `git status --short` 里有没有 `D ` 前缀。
 - `prettier --write .` 会重排 `README.md`、`docs/`、`specs/` 的散文，`.prettierignore` 要把这些散文目录与生成代码目录都列上。
 - zsh 里未加引号的变量不会按空格拆分，脚本里传多路径要用数组 `paths=(a b c)`，或显式 `bash -c`。
+
+## 阶段 4 收尾（2026-08-29）
+
+### 代码分割：静态引用包入口，等于把整包钉进首屏 chunk
+
+- `@paper-design/shaders` 把 `xxxMeta` 与 `xxxFragmentShader` 放在同一个模块里，`import { warpMeta }` 就会让 rolldown 把 `warp.js` 判给主 chunk，之后再 `import('...')` 拿 shader 源码也拆不出去。
+- 规则：要拆的包，主 chunk 里一个符号都不能静态引用（type-only import 不算）。本仓的做法是包只从 `src/engine/shader-mount.ts`、`shader-noise.ts`、`shaders/*.ts` 三个薄模块进来，全部走 `import()`；`maxColorCount`、`ShaderFitOptions`、`WarpPatterns`、`GrainGradientShapes` 这些常量抄进 `styles.ts` 并注明来源，升级包版本时对照 `dist/` 复核。
+- 别用 `const { X } = await import('包名')` 直接从包入口取：命名空间访问挡住 tree-shaking，整份入口都会进那个 chunk。要拆就先写一个只 `export { X } from '包名'` 的本地模块，再动态 import 它。
+
+### 首屏 JS 不等于 `dist/assets/index-*.js`
+
+- rolldown 会把「入口与懒加载共同依赖」的模块提成独立 chunk，Vite 给这些 chunk 发 `<link rel="modulepreload">`，它们同样在首屏下载。本次 i18n 与字体加载器就各自被提了出去。
+- 量首屏体积要按 `dist/index.html` 里的 entry script 加全部 modulepreload 求 gzip 之和，只看 index chunk 会低估三成。
+
+### culori 按需入口的两个坑
+
+- `wcagLuminance` 内部走 `converter('lrgb')`，`culori/fn` 下必须 `useMode(modeLrgb)`，否则运行时读到 undefined 才报错，单测不注册就发现不了。本仓的注册集中在 `src/palettes/culori.ts`，别的文件不许直接 `import 'culori'`。
+- culori 的 `useMode` 会被 `eslint-plugin-react-hooks` 的 rules-of-hooks 当成 React Hook 拦下。导入时改名（本仓叫 `registerMode`）即可，不要加 eslint-disable。
+
+### React.lazy 只有「真要显示才挂」才省首屏
+
+- 懒组件一挂进树就立刻拉 chunk。导出抽屉与字体选择器都改成打开过一次才挂，之后一直留着，关闭动画与上一次的结果都还在。
+- 这个「挂载闩」不能用 `useEffect` 里同步 setState，`react-hooks/set-state-in-effect` 会报错。本仓把它做成 store 的 `ui.exportMounted`，由 `setUi` 从 `exportOpen` 派生。
+
+### 高光的混合模式在预览与导出之间必须同名
+
+- 预览是 CSS `mix-blend-mode`，导出是画布 `globalCompositeOperation`，两边只有取同一个模式才等价。screen 可结合，`screen(底, screen(灯1, 灯2))` 与逐盏叠加结果一致，所以预览的「先画到透明图层再整层 screen」与导出的「直接逐盏 screen」出的是同一张图。
+- 之前副光用 soft-light 就不成立：soft-light 对底色的响应依赖底色本身，画在透明图层上与画在渐变上不是一回事，预览与导出会差出一层。
+
+### Playwright 的 project 分派与 e2e 的类型环境
+
+- `testDir` 下的文件默认每个 project 都跑一遍，桌面用例会被塞进 iPhone 档。要给每个 project 写 `testMatch`，本仓是 `/(smoke|desktop)\.spec\.ts$/` 与 `/(smoke|mobile)\.spec\.ts$/`。
+- `tsconfig.node.json` 管 `e2e/`，它的 `lib` 只有 ES2023，用 `document` 或 `navigator` 会直接报错，要显式加 `DOM`。
+- 手机档的点击：顶上是 sticky 预览、底下是 fixed 操作条，Playwright 自带的滚动只保证元素进视口，会把目标停在预览底下判成被拦截。`e2e/helpers.ts` 的 `centreBetweenBars` 先量出中间那条可见带再把目标推到带中央，需要点面板里的控件时先过它一道。
+
+### 预览画布读不回像素，e2e 靠探针
+
+- 预览的 ShaderMount 没开 `preserveDrawingBuffer`，`toDataURL` 与 `getImageData` 拿到的是空的，测试没法直接断言画面。
+- 做法是把 `composeAvatar` 与 `encodeCanvas` 包成 `window.__gradientAvatarProbe` 挂出去，只在 `import.meta.env.DEV` 或 URL 带 `?probe=1` 时用 `import()` 装。产品代码一处都不引用它，构建时它是一份独立 chunk，不带参数打开就不会下载。

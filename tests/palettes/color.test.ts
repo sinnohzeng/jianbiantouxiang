@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { displayable, oklch } from 'culori'
+import { displayable, oklch } from '@/palettes/culori'
 import {
   TEXT_DARK,
   TEXT_LIGHT,
@@ -8,6 +8,7 @@ import {
   isLight,
   mixOklch,
   paletteThumbCss,
+  parseHexList,
   relativeLuminance,
 } from '@/palettes/color'
 
@@ -127,5 +128,28 @@ describe('paletteThumbCss', () => {
     const css = paletteThumbCss(['#9CC8F5', '#A5E3F7', '#C9E79A', '#FFD2A0', '#F7B5CC', '#D9B3EA'])
     expect(css).toContain('#9CC8F5 0%')
     expect(css).toContain('#D9B3EA 100%')
+  })
+})
+
+describe('parseHexList', () => {
+  it('带不带井号、逗号、空格、换行都能拆开', () => {
+    expect(parseHexList('#fde68a, #a5f3fc')).toEqual(['#fde68a', '#a5f3fc'])
+    expect(parseHexList('fde68a a5f3fc')).toEqual(['#fde68a', '#a5f3fc'])
+    expect(parseHexList('#fde68a\n#a5f3fc\r\n#c7d2fe')).toEqual(['#fde68a', '#a5f3fc', '#c7d2fe'])
+    expect(parseHexList('#fde68a#a5f3fc')).toEqual(['#fde68a', '#a5f3fc'])
+  })
+
+  it('3 位缩写展开成 6 位，大小写统一成小写', () => {
+    expect(parseHexList('#ABC, #DEF')).toEqual(['#aabbcc', '#ddeeff'])
+  })
+
+  it('长度不是 3 或 6 的片段一概丢弃', () => {
+    expect(parseHexList('1024x1024')).toEqual([])
+    expect(parseHexList('#aabbccdd')).toEqual([])
+    expect(parseHexList('')).toEqual([])
+  })
+
+  it('顺序按出现先后，重复的保留', () => {
+    expect(parseHexList('#111111 #222222 #111111')).toEqual(['#111111', '#222222', '#111111'])
   })
 })

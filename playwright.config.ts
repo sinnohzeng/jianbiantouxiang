@@ -15,9 +15,13 @@ export default defineConfig({
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
   },
+  // 软件渲染下合成 1024 要几秒，默认 30 s 不够
+  timeout: 60_000,
   projects: [
     {
       name: 'desktop',
+      // smoke 两档都跑，desktop.spec 只属于这一档
+      testMatch: /(smoke|desktop)\.spec\.ts$/,
       use: {
         ...devices['Desktop Chrome'],
         browserName: 'chromium',
@@ -27,7 +31,10 @@ export default defineConfig({
     },
     {
       name: 'iphone-15',
+      testMatch: /(smoke|mobile)\.spec\.ts$/,
       use: {
+        // devices['iPhone 15'] 的 defaultBrowserType 是 webkit，必须显式覆盖成 chromium，
+        // 否则 swiftshader 启动参数不生效、WebGL2 不可用
         ...devices['iPhone 15'],
         browserName: 'chromium',
         launchOptions: chromiumLaunch,

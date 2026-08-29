@@ -300,7 +300,12 @@ export function PreviewStage() {
             background: frameStyle.background,
           }}
         >
-          <div ref={mountHostRef} aria-hidden className="absolute inset-0" />
+          <div
+            ref={mountHostRef}
+            data-slot="preview-shader"
+            aria-hidden
+            className="absolute inset-0"
+          />
           <canvas
             ref={highlightRef}
             aria-hidden
@@ -339,7 +344,6 @@ export function PreviewStage() {
               <div className="progress-indeterminate h-full w-1/5 rounded-full bg-white/95" />
             </div>
           ) : null}
-
         </div>
 
         {/* 角标与按钮挂在外层而不是画框里：画框 overflow-hidden 加大圆角，

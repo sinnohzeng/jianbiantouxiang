@@ -17,12 +17,19 @@ export type FontStatus = 'idle' | 'loading' | 'ready' | 'fallback'
 export interface UiState {
   activePanel: ActivePanel
   exportOpen: boolean
+  /**
+   * 导出抽屉打开过没有。抽屉是懒加载的，挂上就等于拉 chunk，
+   * 所以首次打开前不挂；打开过之后一直留在树里，关闭动画与上一次的导出结果才不会丢。
+   * 只由 setUi 从 exportOpen 派生，外部不必自己维护。
+   */
+  exportMounted: boolean
   fontStatus: FontStatus
 }
 
 export const DEFAULT_UI: UiState = {
   activePanel: 'text',
   exportOpen: false,
+  exportMounted: false,
   fontStatus: 'idle',
 }
 
@@ -88,12 +95,30 @@ function nextPaletteId(current: string): string {
   return pool[Math.floor(Math.random() * pool.length)]?.id ?? current
 }
 
+/** 本次会话的初始配置是从哪来的。 */
+export type ConfigSource = 'hash' | 'storage' | 'default'
+
+let configSource: ConfigSource = 'default'
+
+/**
+ * 初始配置来自哪一档。'default' 表示既没有分享链接也没有本机存档，
+ * 这时示例文字才由界面语言决定；另外两档都是用户自己的配置，不能覆盖。
+ */
+export function initialConfigSource(): ConfigSource {
+  return configSource
+}
+
 /** 初始配置优先级：URL hash > localStorage > 默认。链接分享出去要能覆盖本机存档。 */
 export function readInitialConfig(): AvatarConfig {
   const hash = typeof window === 'undefined' ? '' : window.location.hash
   const shared = hash ? decodeConfigFromHash(hash) : null
-  if (shared) return shared
-  return loadPersisted() ?? DEFAULT_CONFIG
+  if (shared) {
+    configSource = 'hash'
+    return shared
+  }
+  const stored = loadPersisted()
+  configSource = stored ? 'storage' : 'default'
+  return stored ?? DEFAULT_CONFIG
 }
 
 function readInitialHistory(): AvatarConfig[] {
@@ -154,7 +179,8 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
   },
 
   setUi: (partial) => {
-    set({ ui: { ...get().ui, ...partial } })
+    const next = { ...get().ui, ...partial }
+    set({ ui: { ...next, exportMounted: next.exportMounted || next.exportOpen } })
   },
 }))
 

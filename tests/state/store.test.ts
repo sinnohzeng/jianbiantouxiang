@@ -279,3 +279,14 @@ describe('防抖同步', () => {
     expect(persisted()).toBeNull()
   })
 })
+
+describe('导出抽屉的挂载闩', () => {
+  it('打开过一次之后 exportMounted 就不再回落', () => {
+    expect(store().ui.exportMounted).toBe(false)
+    store().setUi({ exportOpen: true })
+    expect(store().ui.exportMounted).toBe(true)
+    store().setUi({ exportOpen: false })
+    expect(store().ui.exportOpen).toBe(false)
+    expect(store().ui.exportMounted).toBe(true)
+  })
+})

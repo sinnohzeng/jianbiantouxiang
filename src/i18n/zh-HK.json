@@ -1,6 +1,7 @@
 {
   "app.description": "純前端的漸變頭像產生器。選配色與質感，匯出可直接用作群聊、帳號與部門標識的圖片。",
   "app.name": "漸變頭像產生器",
+  "app.sampleText": "豬豬家族",
   "app.shortName": "漸變頭像",
   "app.slogan": "輸入幾個字，秒出一張柔光質感的漸變頭像",
   "app.title": "漸變頭像產生器 · Gradient Avatar",

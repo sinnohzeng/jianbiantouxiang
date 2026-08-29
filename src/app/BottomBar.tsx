@@ -111,6 +111,7 @@ export function BottomBar() {
           type="button"
           variant="ghost"
           size="icon-lg"
+          data-slot="copy-link-action"
           onClick={onCopyLink}
           aria-label={t('bottombar.copyLink')}
           title={t('bottombar.copyLink')}

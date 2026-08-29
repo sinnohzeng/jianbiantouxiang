@@ -1,6 +1,7 @@
 {
   "app.description": "A browser-only gradient avatar generator. Pick colors and texture, export an image ready for group chats, profiles and team badges.",
   "app.name": "Gradient Avatar",
+  "app.sampleText": "Hello",
   "app.shortName": "Gradient Avatar",
   "app.slogan": "Type a few characters, get a soft-light gradient avatar",
   "app.title": "Gradient Avatar · 渐变头像生成器",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { oklab, wcagContrast } from 'culori'
+import { oklab, wcagContrast } from '@/palettes/culori'
 import {
   DEFAULT_PALETTE_ID,
   PALETTES,

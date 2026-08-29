@@ -6,9 +6,17 @@
 import { clamp } from './math'
 import { mulberry32, rangeFrom } from './seed'
 
-/** 主光用 screen 提亮，副光用 soft-light 补层次，两者叠加不至于过曝。 */
+/**
+ * 两盏灯都用 screen。预览层是 CSS 的 mix-blend-mode: screen，导出是画布的
+ * globalCompositeOperation，只有混合模式一致，两边看到的才是同一张图；
+ * 副光曾经走 soft-light，它在 CSS 与画布上对底色的响应不同，预览与导出会差出一层。
+ * 副光的量本来就比主光小，改成 screen 之后也不至于过曝。
+ */
 const PRIMARY_ALPHA = 0.55
 const SECONDARY_ALPHA = 0.32
+
+/** 预览层的 CSS mix-blend-mode 与这里必须同名，改一处就要改另一处。 */
+const BLEND_MODE = 'screen'
 
 export function drawHighlight(
   ctx: CanvasRenderingContext2D,
@@ -39,7 +47,7 @@ export function drawHighlight(
     gradient.addColorStop(0.7, `rgba(255, 255, 255, ${(alpha * 0.16).toFixed(4)})`)
     gradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
 
-    ctx.globalCompositeOperation = primary ? 'screen' : 'soft-light'
+    ctx.globalCompositeOperation = BLEND_MODE
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, width, height)
   }

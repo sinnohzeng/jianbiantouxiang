@@ -1,15 +1,15 @@
 /**
  * 界面多语言。字典是扁平的点分 key，zh-CN 为源语言，
  * 其余四份用 `typeof zhCN` 约束，少一个 key 就在 typecheck 报错。
+ *
+ * 只有 zh-CN 与 en 静态打进首屏：前者是默认语言，后者是所有字典的兜底。
+ * zh-HK、ja、ko 各自一份 chunk，切过去时先用手上这份渲染一帧，字典到了再重绘。
  */
 
 import { createContext, use, useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import en from './en.json'
-import ja from './ja.json'
-import ko from './ko.json'
 import zhCN from './zh-CN.json'
-import zhHK from './zh-HK.json'
 
 /** 与 `@/palettes` 的 PaletteLocale 同一套取值，配色名可以直接按它取。 */
 export type Locale = 'zh-CN' | 'zh-HK' | 'en' | 'ja' | 'ko'
@@ -32,7 +32,43 @@ export const DEFAULT_LOCALE: Locale = 'zh-CN'
 /** 英文兜底：源语言以外的字典万一漏了 key，先落到 en 再落到 key 本身。 */
 const FALLBACK_LOCALE: Locale = 'en'
 
-const DICTS: Record<Locale, Dict> = { 'zh-CN': zhCN, 'zh-HK': zhHK, en, ja, ko }
+/** 已在手上的字典。异步那三份加载完就补进来，模块级缓存，切回去不再拉一次。 */
+const DICTS: Partial<Record<Locale, Dict>> = { 'zh-CN': zhCN, en }
+
+const LAZY_DICTS: Partial<Record<Locale, () => Promise<{ default: Dict }>>> = {
+  'zh-HK': () => import('./zh-HK.json'),
+  ja: () => import('./ja.json'),
+  ko: () => import('./ko.json'),
+}
+
+/** 取已在手上的字典，没有就给 null，调用方落到英文。 */
+export function dictOf(locale: Locale): Dict | null {
+  return DICTS[locale] ?? null
+}
+
+const inflight = new Map<Locale, Promise<void>>()
+
+/** 取某种语言的字典。已在手上或没有对应 chunk 时立刻 resolve。 */
+export function loadDict(locale: Locale): Promise<void> {
+  if (DICTS[locale]) return Promise.resolve()
+  const existing = inflight.get(locale)
+  if (existing) return existing
+  const loader = LAZY_DICTS[locale]
+  if (!loader) return Promise.resolve()
+
+  const task = loader()
+    .then((module) => {
+      DICTS[locale] = module.default
+    })
+    .catch(() => {
+      // 拉不到就一直用兜底语言，界面不至于白屏
+    })
+    .finally(() => {
+      inflight.delete(locale)
+    })
+  inflight.set(locale, task)
+  return task
+}
 
 export const LOCALE_STORAGE_KEY = 'gradient-avatar:locale'
 
@@ -103,10 +139,16 @@ function format(template: string, params?: TParams): string {
   })
 }
 
-export function translate(locale: Locale, key: LooseKey, params?: TParams): string {
-  const primary: Record<string, string | undefined> = DICTS[locale]
-  const fallback: Record<string, string | undefined> = DICTS[FALLBACK_LOCALE]
+/** 按字典查一条文案。字典还在路上（null）时落到英文，不抛错也不显示裸 key。 */
+function translateWith(dict: Dict | null, key: LooseKey, params?: TParams): string {
+  const primary: Record<string, string | undefined> = dict ?? {}
+  const fallback: Record<string, string | undefined> = DICTS[FALLBACK_LOCALE] ?? {}
   return format(primary[key] ?? fallback[key] ?? key, params)
+}
+
+/** 不带 Provider 的查询入口，供测试与非组件代码用。异步字典未加载时同样落到英文。 */
+export function translate(locale: Locale, key: LooseKey, params?: TParams): string {
+  return translateWith(dictOf(locale), key, params)
 }
 
 interface I18nValue {
@@ -119,13 +161,28 @@ const I18nContext = createContext<I18nValue | null>(null)
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(detectLocale)
+  // 当前语言的字典。异步那三份到货前是 null，界面落到英文
+  const [dict, setDict] = useState<Dict | null>(() => dictOf(locale))
 
   useEffect(() => {
     document.documentElement.lang = locale
   }, [locale])
 
+  // 已在手上时 loadDict 立刻 resolve，setDict 拿到同一个引用，React 自己会短路掉这次渲染
+  useEffect(() => {
+    let cancelled = false
+    void loadDict(locale).then(() => {
+      if (!cancelled) setDict(dictOf(locale))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [locale])
+
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next)
+    // 新字典还没到就先留着手上这份，界面短暂停在旧语言，而不是闪一下英文
+    setDict((current) => dictOf(next) ?? current)
     try {
       globalThis.localStorage?.setItem(LOCALE_STORAGE_KEY, next)
     } catch {
@@ -138,9 +195,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     () => ({
       locale,
       setLocale,
-      t: (key, params) => translate(locale, key, params),
+      t: (key, params) => translateWith(dict, key, params),
     }),
-    [locale, setLocale],
+    [locale, setLocale, dict],
   )
 
   return <I18nContext value={value}>{children}</I18nContext>

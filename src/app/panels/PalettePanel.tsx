@@ -11,6 +11,7 @@ import { SegmentedControl } from '@/components/blocks/segmented-control'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -18,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { paletteThumbCss } from '@/palettes/color'
+import { paletteThumbCss, parseHexList } from '@/palettes/color'
 import { harmonize, type HarmonyScheme } from '@/palettes/harmony'
 import {
   PALETTES,
@@ -52,6 +53,7 @@ export function PalettePanel() {
   const [seedTone, setSeedTone] = useState<PaletteTone>('light')
   const [scheme, setScheme] = useState<HarmonyScheme>('analogous')
   const [plateHint, setPlateHint] = useState(false)
+  const [pasted, setPasted] = useState('')
 
   const visible = useMemo(
     () =>
@@ -170,6 +172,29 @@ export function PalettePanel() {
 
       <PanelSection title={t('panel.palette.custom')} defaultOpen={false}>
         <p className="text-muted-foreground text-xs">{t('panel.palette.custom.hint')}</p>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={`${uid}-paste`}>{t('panel.palette.custom.paste')}</Label>
+          {/* 凑够两个有效色就直接应用，不再多一颗“应用”按钮；不够两个就当用户还在打字 */}
+          <Textarea
+            id={`${uid}-paste`}
+            className="min-h-16 font-mono text-base md:text-base"
+            spellCheck={false}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            placeholder="#fde68a, #a5f3fc"
+            value={pasted}
+            onChange={(event) => {
+              const raw = event.target.value
+              setPasted(raw)
+              const colors = parseHexList(raw)
+              if (colors.length >= CUSTOM_MIN) writeCustom(colors.slice(0, CUSTOM_MAX))
+            }}
+          />
+          <p className="text-muted-foreground text-xs">{t('panel.palette.custom.paste.hint')}</p>
+        </div>
+
         <span
           aria-hidden="true"
           className="border-border block h-11 w-full rounded-lg border"

@@ -85,14 +85,13 @@ describe('drawHighlight', () => {
     expect(stub.fills).toHaveLength(0)
   })
 
-  it('画 1 到 2 盏灯，主光 screen，副光 soft-light', () => {
+  it('画 1 到 2 盏灯，两盏都是 screen，与预览层的 mix-blend-mode 同口径', () => {
     for (let i = 0; i < 40; i += 1) {
       const stub = createStubContext()
       drawHighlight(stub.ctx, 512, 512, 0.6, `light-${i}`)
       expect(stub.fills.length).toBeGreaterThanOrEqual(1)
       expect(stub.fills.length).toBeLessThanOrEqual(2)
-      expect(stub.fills[0]?.composite).toBe('screen')
-      if (stub.fills[1]) expect(stub.fills[1].composite).toBe('soft-light')
+      for (const fill of stub.fills) expect(fill.composite).toBe('screen')
     }
   })
 

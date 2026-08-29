@@ -1,6 +1,7 @@
 {
   "app.description": "브라우저에서만 동작하는 그라데이션 아바타 생성기입니다. 색과 질감을 고르고 단체 채팅이나 프로필용 이미지를 내보내세요.",
   "app.name": "그라데이션 아바타",
+  "app.sampleText": "안녕",
   "app.shortName": "그라데 아바타",
   "app.slogan": "몇 글자만 입력하면 부드러운 빛의 그라데이션 아바타가 완성됩니다",
   "app.title": "그라데이션 아바타 · Gradient Avatar",

@@ -3,7 +3,7 @@
  * 调用方拿到画布后自行释放。
  */
 
-import { ShaderMount } from '@paper-design/shaders'
+import type { ShaderMount } from '@paper-design/shaders'
 import type { AvatarConfig } from '@/state/config'
 import { getRenderCaps } from './caps'
 import { resolveColors } from './colors'
@@ -124,9 +124,14 @@ export async function renderGradient(
   const container = createOffscreenContainer(renderWidth, renderHeight)
   let mount: ShaderMount | null = null
   try {
-    mount = new ShaderMount(
+    // ShaderMount 与 shader 源码都是动态 chunk，导出这条路径本来就异步，多等一次网络无所谓
+    const [{ ShaderMount: Ctor }, fragmentShader] = await Promise.all([
+      import('./shader-mount'),
+      plan.loadFragmentShader(),
+    ])
+    mount = new Ctor(
       container,
-      plan.fragmentShader,
+      fragmentShader,
       uniforms,
       { preserveDrawingBuffer: true, antialias: false },
       0,

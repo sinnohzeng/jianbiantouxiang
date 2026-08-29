@@ -118,6 +118,18 @@ describe('PalettePanel', () => {
     expect(config().palette).toBe(target!.value)
   })
 
+  it('粘贴 hex 列表就落到自定义配色', () => {
+    const { container } = mount(<PalettePanel />)
+    // 自定义分组默认折叠，先展开再拿里面的粘贴框
+    fireEvent.click(screen.getByRole('button', { name: /自定义|Custom|カスタム|사용자/ }))
+    const paste = container.querySelector('textarea')
+    expect(paste).not.toBeNull()
+
+    fireEvent.change(paste!, { target: { value: '#FDE68A, #a5f3fc\n#c7d2fe' } })
+    expect(config().palette).toBe('custom')
+    expect(config().customColors).toEqual(['#fde68a', '#a5f3fc', '#c7d2fe'])
+  })
+
   it('明暗筛选能收窄网格', () => {
     const { container } = mount(<PalettePanel />)
     const total = container.querySelectorAll('input[data-group="palette"]').length

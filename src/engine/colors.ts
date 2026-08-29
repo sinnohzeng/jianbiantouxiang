@@ -22,3 +22,30 @@ export function resolveColors(config: AvatarConfig): string[] {
 
   return [...NEUTRAL_RAMP]
 }
+
+/**
+ * hex 转 shader 的 vec4 颜色（0 到 1 的 RGBA）。
+ *
+ * 这段口径与 @paper-design/shaders 的 getShaderColorFromString 的 hex 分支一致，
+ * 自己写一份是为了让整包 shader 代码留在动态 chunk 里：只要首屏静态引用它一个符号，
+ * 包的入口模块就会被并进主 chunk，四段 GLSL 与 ShaderMount 也就跟着回来了。
+ * 传进来的颜色全部先过 usable / normalizeHex，非法值按中性灰兜底。
+ */
+export function toShaderColor(hex: string): [number, number, number, number] {
+  const raw = typeof hex === 'string' ? hex.trim().replace(/^#/, '') : ''
+  const full =
+    raw.length === 3 || raw.length === 4
+      ? raw
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : raw
+  const rgba = full.length === 6 ? `${full}ff` : full
+  if (!/^[0-9a-f]{8}$/i.test(rgba)) return [0.5, 0.5, 0.5, 1]
+  return [
+    parseInt(rgba.slice(0, 2), 16) / 255,
+    parseInt(rgba.slice(2, 4), 16) / 255,
+    parseInt(rgba.slice(4, 6), 16) / 255,
+    parseInt(rgba.slice(6, 8), 16) / 255,
+  ]
+}

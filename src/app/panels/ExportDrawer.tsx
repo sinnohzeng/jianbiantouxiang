@@ -188,7 +188,7 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
           ) : null}
 
           {done ? (
-            <div className="flex flex-col gap-2">
+            <div data-slot="export-result" className="flex flex-col gap-2">
               <p className="text-sm">{t('export.done', { name: done.filename })}</p>
               <p className="text-muted-foreground text-xs">
                 {t('export.result', {
@@ -217,7 +217,13 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
         </div>
 
         <DrawerFooter className="gap-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <Button type="button" className="h-12 w-full" disabled={busy} onClick={() => void run()}>
+          <Button
+            type="button"
+            data-slot="export-run"
+            className="h-12 w-full"
+            disabled={busy}
+            onClick={() => void run()}
+          >
             {busy ? (
               <Loader2Icon aria-hidden="true" className="animate-spin motion-reduce:animate-none" />
             ) : (

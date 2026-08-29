@@ -11,7 +11,7 @@ import ja from '@/i18n/ja.json'
 import ko from '@/i18n/ko.json'
 import zhCN from '@/i18n/zh-CN.json'
 import zhHK from '@/i18n/zh-HK.json'
-import { LOCALES, translate, type Locale } from '@/i18n'
+import { LOCALES, dictOf, loadDict, translate, type Locale } from '@/i18n'
 import { STYLE_LIST } from '@/engine/styles'
 
 const DICTS: Record<Locale, Record<string, string>> = {
@@ -86,5 +86,23 @@ describe('用到的 key 都在字典里', () => {
 
   it('字典里没有的 key 原样返回，不抛错', () => {
     expect(translate('zh-CN', 'not.a.real.key')).toBe('not.a.real.key')
+  })
+})
+
+describe('字典按需加载', () => {
+  it('未加载的语言先落到英文，loadDict 之后才是本语言', async () => {
+    // zh-CN 与 en 静态打包，其余三份是独立 chunk，本用例走的就是那条路径
+    expect(dictOf('ko')).toBeNull()
+    expect(translate('ko', 'app.name')).toBe(en['app.name'])
+
+    await loadDict('ko')
+
+    expect(dictOf('ko')).not.toBeNull()
+    expect(translate('ko', 'app.name')).toBe(ko['app.name'])
+  })
+
+  it('静态那两份一开始就在手上', () => {
+    expect(dictOf('zh-CN')).not.toBeNull()
+    expect(dictOf('en')).not.toBeNull()
   })
 })

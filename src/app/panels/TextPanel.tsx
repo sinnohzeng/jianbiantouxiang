@@ -3,7 +3,7 @@
  * 分组用可折叠区块，基础与排版默认展开，效果收起，手机上一屏能看完前两组。
  */
 
-import { useId, useMemo, useState } from 'react'
+import { Suspense, useId, useMemo, useState } from 'react'
 import { AlignCenterIcon, AlignLeftIcon, AlignRightIcon, TypeIcon } from 'lucide-react'
 import { PanelSection } from '@/components/blocks/panel-section'
 import { SegmentedControl, type SegmentedOption } from '@/components/blocks/segmented-control'
@@ -18,7 +18,7 @@ import { ANCHORS, TEXT_EFFECTS, type Anchor, type TextEffect } from '@/state/con
 import { useAvatarStore } from '@/state/store'
 import { cn } from '@/lib/utils'
 import { weightsOf } from './font-entries'
-import { FontPicker } from './FontPicker'
+import { FontPickerLazy } from './lazy'
 
 type Align = 'left' | 'center' | 'right'
 type SizeMode = 'auto' | 'manual'
@@ -47,6 +47,8 @@ export function TextPanel() {
   const setConfig = useAvatarStore((state) => state.setConfig)
   const setTypography = useAvatarStore((state) => state.setTypography)
   const [fontOpen, setFontOpen] = useState(false)
+  // 字体选择器是懒加载的，挂上就等于拉 chunk，所以只在用户点开之后才挂
+  const [fontMounted, setFontMounted] = useState(false)
 
   const type = config.typography
   const weights = useMemo(() => weightsOf(type.fontFamily), [type.fontFamily])
@@ -82,12 +84,20 @@ export function TextPanel() {
             type="button"
             variant="outline"
             className="h-11 w-full justify-between px-3"
-            onClick={() => setFontOpen(true)}
+            onClick={() => {
+              setFontMounted(true)
+              setFontOpen(true)
+            }}
           >
             <span className="truncate">{type.fontFamily}</span>
             <TypeIcon aria-hidden="true" />
           </Button>
-          <FontPicker open={fontOpen} onOpenChange={setFontOpen} />
+          {/* 打开过一次就一直挂着，关闭动画才有得放；没打开过就不拉那份 chunk */}
+          {fontMounted ? (
+            <Suspense fallback={null}>
+              <FontPickerLazy open={fontOpen} onOpenChange={setFontOpen} />
+            </Suspense>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-1.5">

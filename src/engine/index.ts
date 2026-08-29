@@ -1,12 +1,12 @@
 /**
- * 引擎对外出口。mount 与 render 会带进 @paper-design/shaders，
- * 需要代码分割的调用方直接从具体模块导入，别走这个桶文件。
+ * 引擎对外出口。@paper-design/shaders 只从 shader-mount、shader-noise 与 shaders/*
+ * 三处进来，全部走 import()，所以这个桶文件本身不会把 WebGL 代码拖进首屏。
  */
 
 export { getRenderCaps, hasWebGL2, resetRenderCaps } from './caps'
 export type { RenderCaps } from './caps'
 
-export { resolveColors } from './colors'
+export { resolveColors, toShaderColor } from './colors'
 
 export { cssFallbackBackground, fallbackLayers, rgba } from './css-fallback'
 export type { FallbackLayer } from './css-fallback'
@@ -20,6 +20,7 @@ export type { GradientMount } from './mount'
 
 export { ensureNoiseTexture, loadedNoiseTexture } from './noise-texture'
 export { renderGradient } from './render'
+export { loadFragmentShader } from './shader-source'
 
 export {
   hashSeed,

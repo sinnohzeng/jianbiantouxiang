@@ -44,14 +44,20 @@ function inRange(uniforms: ShaderMountUniforms, key: string, min: number, max: n
 }
 
 describe('STYLES 表', () => {
-  it('四种 style 齐全且各挂一段 shader 源码', () => {
+  it('四种 style 齐全，各自能按需取到一段 shader 源码', async () => {
     expect(STYLE_LIST.map((style) => style.id)).toEqual(['mesh', 'flow', 'silk', 'grain'])
     for (const id of STYLE_IDS) {
       const style = getStyle(id)
       expect(style.id).toBe(id)
-      expect(style.fragmentShader).toContain('#version 300 es')
+      // shader 源码走 import()，这里顺带守住四个动态模块确实存在且导出对得上
+      await expect(style.loadFragmentShader()).resolves.toContain('#version 300 es')
       expect(style.maxColors).toBeGreaterThanOrEqual(7)
     }
+  })
+
+  it('四段 shader 各不相同，动态入口没接错', async () => {
+    const sources = await Promise.all(STYLE_LIST.map((style) => style.loadFragmentShader()))
+    expect(new Set(sources).size).toBe(STYLE_LIST.length)
   })
 
   it('每种 style 都暴露五个滑杆，区间与配置契约一致', () => {
