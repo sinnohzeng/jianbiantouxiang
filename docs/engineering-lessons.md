@@ -274,3 +274,21 @@ warp 在浅配色上会揉成锡纸，折痕两侧色差本来就小，swirl 一
 把配置喂进去，`page.reload()` 之后截图（只改 hash 是同文档导航，应用只在模块初始化时读一次 hash）。
 
 **失效条件。** 绘制层改成由排版层直接产出绘制指令（不再靠字段传话）之后，这条不再适用。
+
+## v3.1.1 直接导出与行级排版（2026-08-29）
+
+### 这轮跑通的工作范式
+
+- SDD 按可回滚的薄切片推进：先提交规约与验收，再提交契约与消费端测试，然后是排版内核、界面、导出交互，最后文档与记忆。每一片都能独立解释“造什么、怎么造、怎么证明”，不要把默认值、内核、UI 与 e2e 塞进一个不可审查的大提交。
+- 改默认值时同步迁移测试口径：测试自动取色就显式 `colorMode: 'auto'`，测试统一字号就显式 `lineSizeScales: [1, 1]`。默认值是产品行为，不是测试夹具的隐形前提。
+- 行级排版只存比例，不存像素。`lineSizeScales` 乘在基准字号上，`lineOffsetsX` 用画布宽度比例，同一配置在 512、1024、2048 下自然等比；自动填满则必须重新按每行字号度量整块包络，不能先按统一字号求完再“事后缩放”。
+
+### 图片剪贴板：Promise 必须在手势里交给 ClipboardItem
+
+Safari 的 Async Clipboard 要求 `navigator.clipboard.write` 在用户手势内发起。画布合成与 PNG 编码可能耗时数秒，如果先 `await blob` 再 `new ClipboardItem`，手势已经失效。正确做法是同步创建 `new ClipboardItem({ 'image/png': blobPromise })`，把 Promise 本身交进去；浏览器会等 Promise 完成。
+
+2026-08-29 复核 MDN 与 Clipboard API 实践后的另外两条口径：`canvas.toBlob` 遇到不支持的 MIME 会静默回落 PNG，所以 WebP 仍要按返回类型探测；文件分享前要用真实 `File` 调 `navigator.canShare`，只有 `navigator.share` 不代表支持 files。本项目当前主路径是直接下载与复制图片，不自动弹分享面板。
+
+### Playwright preview 服务的是 dist，不是源码
+
+`npm run e2e` 的 webServer 是 `vite preview`，它只服务上一次 `npm run build` 的 `dist`。这轮给导出提示加了 `data-slot` 后直接跑 e2e，页面里当然找不到新属性，误判成功能缺陷。规则是：改完源码先 `npm run build`，再跑基于 preview 的 e2e；想测源码热更新就用 `npm run dev` 起另一个 webServer，不要混用两种口径。

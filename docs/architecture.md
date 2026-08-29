@@ -1,6 +1,6 @@
 # 架构
 
-渐变头像生成器是一个纯前端静态站：一份可序列化的 `AvatarConfig` 驱动 WebGL 渲染与 2D 合成，产出一张位图并落到磁盘或系统分享面板。
+渐变头像生成器是一个纯前端静态站：一份可序列化的 `AvatarConfig` 驱动 WebGL 渲染与 2D 合成，产出一张位图并落到磁盘或图片剪贴板。
 
 ## 技术栈
 
@@ -33,7 +33,7 @@
 | `src/text/` | 文字量测、换行、自动填满、排版、绘制、自动取色 |
 | `src/palettes/` | 26 套内置配色、OKLCH 色彩工具、种子色和谐生成 |
 | `src/fonts/` | 精选清单、fontsource 目录缓存、css2 与镜像加载链、本地上传注册 |
-| `src/export/` | 画布合成、编码与体积二分、下载、系统分享、文件名 |
+| `src/export/` | 画布合成、编码与体积二分、导出动作、下载、图片剪贴板、文件名 |
 | `src/state/` | `AvatarConfig` 契约、zustand store、URL 编解码、本地存档、历史 |
 | `src/i18n/` | 五份扁平字典与 Provider |
 | `src/hooks/` | 媒体查询与防抖 |
@@ -53,7 +53,7 @@
 | `highlight` | 2D 合成阶段的柔白高光强度 | 合成 |
 | `palette`、`customColors` | 内置配色 id 或 `custom`，自定义时给 2 到 6 个 hex | 配色、引擎 |
 | `canvas` | 宽高、形状、圆角比例 | 合成、导出 |
-| `typography` | 字体与来源、字重、字号模式与字号、边距、行高、字间距、对齐、锚点、偏移、竖排、自动换行、文字效果与强度、取色模式与颜色、胶囊底参数 | 文字、字体 |
+| `typography` | 字体与来源、字重、字号模式与字号、行级字号比例与水平补偿、边距、行高、字间距、对齐、锚点、偏移、竖排、自动换行、文字效果与强度、取色模式与颜色、胶囊底参数 | 文字、字体 |
 | `exportOptions` | 格式、体积档、底色 | 编码 |
 
 同一模块另外导出三个函数。`DEFAULT_CONFIG` 是默认值的唯一定义处；`normalizeConfig` 把任意局部输入补成完整配置，数值按区间夹值、枚举做合法性校验，任何输入都不抛错；`configHash` 对键排序后做 FNV-1a，用作历史去重与渲染去重的标记。
@@ -90,7 +90,7 @@ flowchart TD
     draw["drawText"]
     mask["形状遮罩 · destination-in"]
     enc["encodeCanvas · 质量二分"]
-    out["downloadBlob / shareBlob"]
+    out["downloadBlob / copyImageToClipboard"]
     compose --> grad --> high --> layout --> pick --> draw --> mask --> enc --> out
   end
 
@@ -122,6 +122,8 @@ flowchart TD
 ## 文字排版
 
 `fitText` 找出能让整块文字装进安全框的最大字号。单段且不再换行时块尺寸随字号线性变化，用一次探针测量直接算出比例；其余情况在 `MIN_FONT_RATIO` 到 `MAX_FONT_RATIO` 之间二分 12 轮，因为换行本身能换来更大的字号，一步到位会把结果卡死在单行。
+
+横排的每一行可以乘自己的 `lineSizeScales`，也能按 `lineOffsetsX` 做水平视觉补偿。求解时每行先按自己的字号度量，自动填满以这些行的实际包络为准；绘制层按行设置 `ctx.font`，描边、投影、发光的尺度也随之按行走。自动换行产生的续行沿用源段落的行级参数，显式换行才进入下一个行级索引。
 
 安全框由 `typography.padding` 从画布四边扣出，量宽一律走 canvas `measureText`，CJK 逐字换行、拉丁按词换行。竖排把每一列当成一行处理，列宽全列统一。
 
@@ -210,6 +212,6 @@ PWA 由 `vite-plugin-pwa` 生成 manifest 与 service worker，注册方式是�
 
 - 没有 WebGL2 的浏览器会拿到静态近似图。预览是多层 CSS `radial-gradient`，导出是同源同种子的 2D 近似，两者构图一致，界面明确提示。
 - 导出尺寸受设备限制。`caps.ts` 同时探测 WebGL 上限与 2D 画布面积上限，取较小值，超出时按上限渲染再放大，导出面板显示本机的最高原生边长。探测结果缓存 7 天。
-- 微信内置浏览器拦截 `a[download]`，导出时改为提示长按图片保存。其余移动端优先走 Web Share，不可用时回落下载。
+- 主“导出”按钮直接触发浏览器下载；导出抽屉提供“下载”与“复制图片”两个显式动作。微信内置浏览器拦截 `a[download]`，那里改为提示长按图片保存。
 - WebP 只在 `toBlob('image/webp')` 实际返回 `image/webp` 的浏览器里提供，不引入 WASM 编码器。PNG 无损，体积不可控，靠界面提示。
 - 上传的字体只在本次会话有效，不写盘、不进链接、不进存档。

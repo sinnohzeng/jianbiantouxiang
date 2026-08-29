@@ -1,6 +1,6 @@
 ---
 name: project-v3-rewrite
-description: 2026-08-29 完成的 v3 重构与 v3.1 状态徽章的分工方式、验收口径、推迟范围与后续维护约定
+description: 2026-08-29 完成的 v3 重构、v3.1 状态徽章与 v3.1.1 直接导出行级排版的分工方式、验收口径、推迟范围与后续维护约定
 metadata:
   type: project
 ---
@@ -35,3 +35,19 @@ plan.md 开头有一张「落地范围」表，spec.md 里标了「v3.2」的小
   `docs/engineering-lessons.md` 的「契约里加了字段，不等于有人读它」。v3.1 就栽在这里。
 - 视觉类改动收工前跑一遍真实浏览器。起 `npm run dev`，用 `#c=<base64url(配置差异)>` 喂配置，
   `page.reload()` 之后截图（只改 hash 是同文档导航，应用只在模块初始化时读一次 hash）。
+
+## v3.1.1（2026-08-29 深夜）
+
+直接导出与行级排版已落地，规约在 `specs/v3.1.1-direct-export-line-controls/`。
+默认值是方形画布、白色文字、两行「飞书 / 效率先锋」，第二行字号 0.62 倍。
+
+**Why:** 用户要“点导出就下载”、复制与下载拆成显式按钮，并且能逐行调字号与视觉补偿；
+这类默认值和交互变化必须在规约里先定验收，不然 e2e 会继续守护旧口径。
+
+**How to apply:**
+- 主“导出”按钮走 `createExportArtifact` 后直接 `downloadBlob`；旁边设置图标才打开导出抽屉。
+- 复制图片固定 PNG，且必须把 `createClipboardBlob(config)` 的 Promise 同步交给 `ClipboardItem`，
+  不能先 await 成 Blob，否则 Safari 会判定用户手势失效。
+- 行级参数在 `typography.lineSizeScales` 与 `lineOffsetsX`；旧 `status` 链接靠
+  `normalizeConfig` 把 `layout.scale` 迁移到第二行，别删这条兼容逻辑。
+- `npm run e2e` 使用 `vite preview`，改源码后必须先 `npm run build`，否则测试的是旧 `dist`。

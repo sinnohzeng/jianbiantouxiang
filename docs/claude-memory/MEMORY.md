@@ -1,3 +1,3 @@
 # 项目记忆索引
 
-- [v3 重构进行中](project-v3-rewrite.md) — 2026-08-29 起按 specs/v3-gradient-avatar 推进，阶段与验收条件
+- [v3 重构与后续迭代](project-v3-rewrite.md) - v3、v3.1、v3.1.1 的阶段、验收条件、兼容策略与工程范式

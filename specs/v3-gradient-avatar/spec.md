@@ -2,6 +2,9 @@
 
 状态：已定稿，2026-08-29。技术路线依据见 `docs/research/2026-08-29-ai-gradient-technique-survey.md`，决策记录见 `docs/adr/`。
 
+> 2026-08-29 的 v3.1.1 已调整默认画布、默认文字颜色、默认示例与导出入口；当前产品口径以
+> `specs/v3.1.1-direct-export-line-controls/spec.md` 与 ADR-0005 为准。
+
 ## 1. 产品定位
 
 一个部署在 Cloudflare Pages 的纯前端工具站：输入几个字，秒出一张 OpenAI 发布图那种柔光质感的渐变头像，主要用于群聊头像、账号头像、部门标识。手机端是第一使用场景，桌面端是精修场景。
