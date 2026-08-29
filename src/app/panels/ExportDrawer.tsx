@@ -2,10 +2,14 @@
  * 导出抽屉：格式、体积档、设备上限提示与导出动作。
  * 手机能用系统分享就走分享面板（可以直接分享进微信设头像），否则回落下载；
  * 微信内置浏览器拦 a[download]，只把结果画成 img 让用户长按保存。
+ *
+ * 探测到不支持 WebP 编码时不止把选项摘掉，还要把配置里的 format 复位：
+ * 分享链接会把 format=webp 带到别人的浏览器上，不复位就会导出一个内容是 PNG 的 .webp。
  */
 
 import { useCallback, useEffect, useState } from 'react'
 import { DownloadIcon, LinkIcon, Loader2Icon } from 'lucide-react'
+import { copyText } from '@/app/clipboard'
 import { SegmentedControl, type SegmentedOption } from '@/components/blocks/segmented-control'
 import { Button } from '@/components/ui/button'
 import {
@@ -56,7 +60,8 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
   const setExportOptions = useAvatarStore((state) => state.setExportOptions)
   const pushHistory = useAvatarStore((state) => state.pushHistory)
 
-  const [webp, setWebp] = useState(false)
+  // null 表示还没探测完，这时既不给 WebP 选项也不复位，免得白闪一下
+  const [webp, setWebp] = useState<boolean | null>(null)
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState<Done | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -64,12 +69,17 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
   useEffect(() => {
     let alive = true
     void supportsWebP().then((ok) => {
-      if (alive) setWebp(ok)
+      if (!alive) return
+      setWebp(ok)
+      // toBlob 遇到不支持的 MIME 会静默改吐 PNG，留着 webp 就是一个扩展名对不上内容的文件
+      if (!ok && useAvatarStore.getState().config.exportOptions.format === 'webp') {
+        setExportOptions({ format: 'png' })
+      }
     })
     return () => {
       alive = false
     }
-  }, [])
+  }, [setExportOptions])
 
   // 换了新结果或组件卸载时释放上一张预览图占的 object URL
   useEffect(() => {
@@ -87,7 +97,7 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
   const formatOptions: SegmentedOption<Format>[] = [
     { value: 'jpg', label: t('export.format.jpg') },
     { value: 'png', label: t('export.format.png') },
-    ...(webp ? [{ value: 'webp' as const, label: t('export.format.webp') }] : []),
+    ...(webp === true ? [{ value: 'webp' as const, label: t('export.format.webp') }] : []),
   ]
 
   const sizeOptions: SegmentedOption<SizeTarget>[] = SIZE_TARGETS.map((value) => ({
@@ -98,10 +108,9 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
   const copyLink = useCallback(() => {
     flushConfigSync()
     const url = typeof window === 'undefined' ? '' : window.location.href
-    void navigator.clipboard
-      ?.writeText(url)
-      .then(() => setNotice('common.copied'))
-      .catch(() => setNotice('common.copyFailed'))
+    // 走共用 helper：navigator.clipboard 为 undefined 时可选链会把 then 与 catch 一起短路，
+    // 界面上一个字都不会变
+    void copyText(url).then((ok) => setNotice(ok ? 'common.copied' : 'common.copyFailed'))
   }, [])
 
   const run = useCallback(async () => {
@@ -125,6 +134,8 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
       } else if (canShareFiles()) {
         const result = await shareBlob(encoded.blob, filename, config.text)
         setNotice(`export.${result}`)
+        // 分享被取消时什么都没落地，不能既说“已取消分享”又说“已导出 xxx”，也不该记进最近生成
+        if (result === 'cancelled') return
       } else {
         downloadBlob(encoded.blob, filename)
         setNotice('export.downloaded')

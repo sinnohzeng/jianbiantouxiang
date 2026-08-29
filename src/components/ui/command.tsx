@@ -47,17 +47,27 @@ function CommandDialog({
 }) {
   return (
     <Dialog {...props}>
-      <DialogHeader className="sr-only">
-        <DialogTitle>{title}</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
-      </DialogHeader>
       <DialogContent
         className={cn(
-          "top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0",
+          // 本仓在 shadcn 生成的基类上打了两处补丁，重新生成后要再打一遍。
+          // 一是高度：top-1/3 配上调用方给列表的 max-h-[60vh]，底边落在 93vh 开外，
+          // 弹层是 fixed，页面滚不回来，矮视口（手机横屏）下底部整段看不到。
+          // 这里改成弹性列并封顶，列表随之收缩滚动，底边永远留 1rem。
+          // 二是矮视口：低于 640 px 高时不再压在三分之一处，改成贴顶 1rem，把可视高度让给列表。
+          "top-1/3 flex max-h-[calc(66.6667dvh_-_1rem)] translate-y-0 flex-col overflow-hidden rounded-xl! p-0 [@media(max-height:640px)]:top-4 [@media(max-height:640px)]:max-h-[calc(100dvh_-_2rem)]",
           className
         )}
         showCloseButton={showCloseButton}
       >
+        {/*
+          标题与描述必须留在 Popup 内部：放在 Dialog.Root 下会被无条件渲染，
+          对话框关掉之后这两个 sr-only 节点仍留在面板的文档流里，
+          屏幕阅读器按标题导航会读到一个对应不上任何控件的二级标题。
+        */}
+        <DialogHeader className="sr-only">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
         {children}
       </DialogContent>
     </Dialog>

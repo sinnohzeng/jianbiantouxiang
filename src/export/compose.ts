@@ -2,7 +2,7 @@ import { drawHighlight } from '@/engine/highlight'
 import { renderGradient } from '@/engine/render'
 import { loadFontForConfig } from '@/fonts/loader'
 import type { AvatarConfig } from '@/state/config'
-import { needsPlate, pickTextColor } from '@/text/auto-color'
+import { resolveInk } from '@/text/auto-color'
 import { drawText } from '@/text/draw'
 import { layoutText, type TextLayout } from '@/text/layout'
 import { composeWith, type ComposeDeps } from './compose-core'
@@ -16,8 +16,7 @@ const deps: ComposeDeps<TextLayout> = {
   renderGradient,
   drawHighlight,
   layoutText,
-  pickTextColor,
-  needsPlate,
+  resolveInk,
   drawText,
 }
 

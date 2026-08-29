@@ -2,6 +2,8 @@
  * v3 的共享配置契约。所有模块围绕这份类型写，之后只允许增字段，不允许改语义。
  */
 
+import type { Locale } from '@/i18n'
+
 export type StyleId = 'mesh' | 'flow' | 'silk' | 'grain'
 export type Shape = 'square' | 'rounded' | 'circle'
 export type TextEffect = 'plain' | 'outline' | 'shadow' | 'glow' | 'pill'
@@ -83,6 +85,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
   customColors: [],
   canvas: { width: 1024, height: 1024, shape: 'rounded', radius: 0.2 },
   typography: {
+    // 契约基线，也是 normalizeConfig 的兜底值。首次进入实际用哪套字体按界面语言定，见 LOCALE_DEFAULT_FONT
     fontFamily: 'Noto Sans SC',
     fontSource: 'google',
     fontWeight: 700,
@@ -108,6 +111,24 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     sizeTarget: '1mb',
     bgColor: '#ffffff',
   },
+}
+
+/**
+ * 界面语言对应的默认字体，对齐 spec §54：默认配置只有字体跟着语言变，其余字段一视同仁。
+ *
+ * 五个 family 都在 CURATED_FONTS 里，且都覆盖 DEFAULT_CONFIG 的 700 字重。
+ * 不能一律用 Noto Sans SC：它的 subset 只有 chinese-simplified 与拉丁系，谚文不在切片里，
+ * 韩文界面拿它渲染会被判成加载失败，整块掉回系统字体，字体按钮上写的名字与画面对不上。
+ *
+ * 谁来用它：src/App.tsx 的 LocaleDefaults，只在配置来自默认值这一档接管。
+ * 分享链接与本机存档都是用户自己的配置，一个字段都不能按语言改，见 store 的 readInitialConfig。
+ */
+export const LOCALE_DEFAULT_FONT: Record<Locale, string> = {
+  'zh-CN': 'Noto Sans SC',
+  'zh-HK': 'Noto Sans TC',
+  en: 'Inter',
+  ja: 'Noto Sans JP',
+  ko: 'Noto Sans KR',
 }
 
 type DeepPartial<T> = T extends readonly unknown[]

@@ -1,20 +1,30 @@
 /**
- * 离屏渲染：把一份配置画成指定像素尺寸的 2D 画布，供导出与缩略图使用。
+ * 离屏渲染：把一份配置画成指定像素尺寸的 2D 画布，供导出与取色探针使用。
  * 调用方拿到画布后自行释放。
  */
 
 import type { ShaderMount } from '@paper-design/shaders'
 import type { AvatarConfig } from '@/state/config'
-import { getRenderCaps } from './caps'
+import { getRenderCaps, revalidateWebGL2 } from './caps'
 import { resolveColors } from './colors'
 import { fallbackLayers, rgba } from './css-fallback'
+import type { FallbackOptions } from './fallback'
+import { notifyFallback } from './fallback'
 import { applyFilmGrain } from './film-grain'
+import { releaseGlCanvas } from './gl-context'
 import { ensureNoiseTexture } from './noise-texture'
 import { planRender } from './styles'
 import { resolveSeed } from './seed'
 
 /** 等待 ResizeObserver 把画布尺寸定下来的上限。 */
 const SIZE_TIMEOUT_MS = 2000
+
+/** 尺寸没等到时抛这个，好和建挂载失败分开报给调用方。 */
+class CanvasSizeTimeout extends Error {
+  constructor() {
+    super('renderGradient: 等不到画布尺寸')
+  }
+}
 
 function nextTick(): Promise<void> {
   return new Promise((resolve) => {
@@ -48,11 +58,18 @@ function createOffscreenContainer(width: number, height: number): HTMLDivElement
   return container
 }
 
-async function waitForCanvasSize(canvas: HTMLCanvasElement, expected: number): Promise<void> {
+/** 尺寸在上限内定下来返回 true；超时返回 false，此时画布还停在 HTML 默认的 300×150。 */
+async function waitForCanvasSize(
+  canvas: HTMLCanvasElement,
+  width: number,
+  height: number,
+): Promise<boolean> {
   const deadline = Date.now() + SIZE_TIMEOUT_MS
-  while (canvas.width !== expected && Date.now() < deadline) {
+  while (canvas.width !== width || canvas.height !== height) {
+    if (Date.now() >= deadline) return false
     await nextTick()
   }
+  return true
 }
 
 /** 无 WebGL2 时的 2D 近似，与 CSS 兜底同源同种子，构图一致。 */
@@ -86,11 +103,13 @@ function paintFallback(
 /**
  * 渲染一张 width×height 的渐变底图。目标超过设备上限时按上限渲染再放大，
  * 因此任何尺寸都能出图，只是超限部分损失锐度。
+ * 用不上 shader 时画 2D 近似，并把原因报给 options.onFallback，不静默出图。
  */
 export async function renderGradient(
   config: AvatarConfig,
   width: number,
   height: number,
+  options: FallbackOptions = {},
 ): Promise<HTMLCanvasElement> {
   const outWidth = Math.max(1, Math.round(width))
   const outHeight = Math.max(1, Math.round(height))
@@ -107,52 +126,64 @@ export async function renderGradient(
 
   if (!caps.webgl2) {
     paintFallback(ctx, config, colors, outWidth, outHeight)
-    return canvas
-  }
+    notifyFallback(options, 'no-webgl2')
+  } else {
+    const limit = Math.max(64, caps.maxSize)
+    const shrink = Math.min(1, limit / Math.max(outWidth, outHeight))
+    const renderWidth = Math.max(1, Math.round(outWidth * shrink))
+    const renderHeight = Math.max(1, Math.round(outHeight * shrink))
 
-  const limit = Math.max(64, caps.maxSize)
-  const shrink = Math.min(1, limit / Math.max(outWidth, outHeight))
-  const renderWidth = Math.max(1, Math.round(outWidth * shrink))
-  const renderHeight = Math.max(1, Math.round(outHeight * shrink))
+    const uniforms = { ...plan.uniforms }
+    if (plan.needsNoiseTexture) {
+      const texture = await ensureNoiseTexture()
+      if (texture) uniforms.u_noiseTexture = texture
+    }
 
-  const uniforms = { ...plan.uniforms }
-  if (plan.needsNoiseTexture) {
-    const texture = await ensureNoiseTexture()
-    if (texture) uniforms.u_noiseTexture = texture
-  }
+    const container = createOffscreenContainer(renderWidth, renderHeight)
+    let mount: ShaderMount | null = null
+    let glCanvas: HTMLCanvasElement | null = null
+    try {
+      // ShaderMount 与 shader 源码都是动态 chunk，导出这条路径本来就异步，多等一次网络无所谓
+      const [{ ShaderMount: Ctor }, fragmentShader] = await Promise.all([
+        import('./shader-mount'),
+        plan.loadFragmentShader(),
+      ])
+      mount = new Ctor(
+        container,
+        fragmentShader,
+        uniforms,
+        { preserveDrawingBuffer: true, antialias: false },
+        0,
+        plan.frame,
+        // 容器每 1 CSS px 对应 1 个目标像素，maxPixelCount 再把设备像素比抵掉，
+        // 得到的画布正好是 renderWidth × renderHeight
+        1,
+        renderWidth * renderHeight,
+      )
+      glCanvas = mount.canvasElement
+      // 后台标签页里 ResizeObserver 不投递，画布会停在默认的 300×150。
+      // 那时候画出来的是一张比例与分辨率都不对的拉伸图，宁可退到 2D 近似也不能悄悄给出去
+      if (!(await waitForCanvasSize(glCanvas, renderWidth, renderHeight))) {
+        throw new CanvasSizeTimeout()
+      }
+      // frame 决定静态画面，显式再渲一次保证拿到的是这一帧
+      mount.setFrame(plan.frame)
 
-  const container = createOffscreenContainer(renderWidth, renderHeight)
-  let mount: ShaderMount | null = null
-  try {
-    // ShaderMount 与 shader 源码都是动态 chunk，导出这条路径本来就异步，多等一次网络无所谓
-    const [{ ShaderMount: Ctor }, fragmentShader] = await Promise.all([
-      import('./shader-mount'),
-      plan.loadFragmentShader(),
-    ])
-    mount = new Ctor(
-      container,
-      fragmentShader,
-      uniforms,
-      { preserveDrawingBuffer: true, antialias: false },
-      0,
-      plan.frame,
-      // 容器每 1 CSS px 对应 1 个目标像素，maxPixelCount 再把设备像素比抵掉，
-      // 得到的画布正好是 renderWidth × renderHeight
-      1,
-      renderWidth * renderHeight,
-    )
-    await waitForCanvasSize(mount.canvasElement, renderWidth)
-    // frame 决定静态画面，显式再渲一次保证拿到的是这一帧
-    mount.setFrame(plan.frame)
-
-    ctx.imageSmoothingEnabled = true
-    ctx.imageSmoothingQuality = 'high'
-    ctx.drawImage(mount.canvasElement, 0, 0, outWidth, outHeight)
-  } catch {
-    paintFallback(ctx, config, colors, outWidth, outHeight)
-  } finally {
-    mount?.dispose()
-    container.remove()
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      ctx.drawImage(glCanvas, 0, 0, outWidth, outHeight)
+    } catch (error) {
+      // 探测说有 WebGL2 却建不出来：复核一次，确认没有就改掉缓存，下次进页面才有提示
+      if (!(error instanceof CanvasSizeTimeout)) revalidateWebGL2()
+      paintFallback(ctx, config, colors, outWidth, outHeight)
+      notifyFallback(options, error instanceof CanvasSizeTimeout ? 'size-timeout' : 'mount-failed')
+    } finally {
+      mount?.dispose()
+      // dispose 既不丢上下文也不缩画布，不显式还回去就得等 GC。
+      // 浏览器的上下文上限是硬的，顶掉的往往是页面上常驻的预览
+      releaseGlCanvas(glCanvas)
+      container.remove()
+    }
   }
 
   if (!plan.hasShaderGrain) {

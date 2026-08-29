@@ -5,9 +5,12 @@
  * 中间一张 2D 画布画高光（CSS mix-blend-mode 走 screen，与导出的合成顺序对齐），
  * 上面一张 2D 画布画文字。形状裁切交给 CSS，不在预览里做像素级遮罩。
  *
+ * shader 画布的上下文可能被浏览器判掉（显存吃紧、GPU 复位、后台标签页回收），
+ * 丢了之后 setUniforms 全是空操作、画面再也不动，所以挂载处监听 webglcontextlost 整块重建。
+ *
  * 自动文字色要读“文字下方的画面”，而 WebGL 画布没开 preserveDrawingBuffer 读不回来，
  * 所以另开一条低分辨率探针：用导出同一条 renderGradient 路径画 128 px 的小图，
- * 在上面取色并判断要不要加底板。探针比预览多防抖一档，拖滑杆时不会每帧起一次 WebGL。
+ * 在上面取色并判断要不要加底板。探针走的是尾沿防抖，比预览再多等一档，拖滑杆时不会每帧起一次 WebGL。
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -25,28 +28,36 @@ import { fetchCatalog } from '@/fonts/catalog'
 import type { FontEntry } from '@/fonts/catalog'
 import { getCuratedByFamily } from '@/fonts/curated'
 import { loadFontForConfig, quoteFamily } from '@/fonts/loader'
-import { INK_LIGHT, needsPlate, pickTextColor } from '@/text/auto-color'
+import { INK_LIGHT, resolveInk } from '@/text/auto-color'
 import { drawText } from '@/text/draw'
 import { effectiveConfig } from '@/text/effective'
+import { safeArea } from '@/text/fit'
 import { layoutText } from '@/text/layout'
-import { useDebounced } from '@/hooks/use-debounced'
+import { probeKey } from '@/app/probe-key'
+import { useThrottled } from '@/app/use-throttled'
 import { useIsMobile } from '@/hooks/use-media'
 import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 import type { AvatarConfig } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 
-/** 配置停 80 ms 再推给 shader，拖滑杆时不至于每帧重建 uniforms。 */
-const PREVIEW_DEBOUNCE_MS = 80
+/**
+ * 推给 shader 的节流档。拖滑杆时最多每 80 ms 重建一次 uniforms，
+ * 但拖动过程中一直在放行，松手前画面不会冻住；停手后再补最后一帧。
+ */
+const PREVIEW_THROTTLE_MS = 80
 
 /** 取色探针再多等一档：它要起一次离屏 WebGL，比 setUniforms 贵得多。 */
 const PROBE_DELAY_MS = 220
 
-/** 探针短边像素。够 pickTextColor 的 64×64 采样，又不至于拖慢。 */
+/** 探针短边像素。够 resolveInk 的 64×64 采样，又不至于拖慢。 */
 const PROBE_SHORT_SIDE = 128
 
 /** 预览画布的像素比上限，2 已经足够，再高只是白白多画像素。 */
 const MAX_PREVIEW_DPR = 2
+
+/** 上下文丢失后最多重建几次。反复丢说明这台设备扛不住，再重建也是白搭。 */
+const MAX_CONTEXT_RESTARTS = 3
 
 interface ProbeResult {
   color: string
@@ -81,10 +92,7 @@ async function probeInk(config: AvatarConfig): Promise<ProbeResult | null> {
     drawHighlight(ctx, probeWidth, probeHeight, config.highlight, resolveSeed(config))
 
     const layout = layoutText(config, probeWidth, probeHeight)
-    return {
-      color: pickTextColor(ctx, layout, config),
-      plate: needsPlate(ctx, layout, config),
-    }
+    return resolveInk(ctx, layout, config)
   } catch {
     return null
   } finally {
@@ -119,6 +127,7 @@ export function PreviewStage() {
   const gradientRef = useRef<GradientMount | null>(null)
   const initialConfigRef = useRef(config)
   const toastedRef = useRef(new Set<string>())
+  const probeChain = useRef<Promise<unknown>>(Promise.resolve())
 
   const [box, setBox] = useState({ width: 0, height: 0 })
   const [guide, setGuide] = useState(false)
@@ -128,7 +137,11 @@ export function PreviewStage() {
   const [fontTick, setFontTick] = useState(0)
 
   const caps = useMemo(() => getRenderCaps(), [])
-  const preview = useDebounced(config, PREVIEW_DEBOUNCE_MS)
+  const preview = useThrottled(config, PREVIEW_THROTTLE_MS)
+  const safeGuide = useMemo(
+    () => safeArea(preview, box.width, box.height),
+    [preview, box.width, box.height],
+  )
   // 字体状态放 store，面板与预览看同一份，不必各存一份局部状态
   const fontLoading = useAvatarStore((state) => state.ui.fontStatus === 'loading')
 
@@ -142,10 +155,35 @@ export function PreviewStage() {
   useEffect(() => {
     const host = mountHostRef.current
     if (!host) return
-    const mount = createGradientMount(host, initialConfigRef.current)
-    gradientRef.current = mount
+
+    let restarts = 0
+    let timer: ReturnType<typeof setTimeout> | null = null
+
+    /**
+     * 上下文一丢，后续 setUniforms 与 setFrame 全是空操作，画面停在最后一帧，
+     * 界面上却看不出任何异常。这里整块重建，旧画布随 dispose 一起摘掉。
+     * webglcontextlost 不冒泡，监听挂在宿主上走捕获阶段，画布是异步建出来的也接得住。
+     */
+    const onContextLost = (event: Event): void => {
+      // 按规范先 preventDefault，浏览器才把这次丢失当成页面已经接手
+      event.preventDefault()
+      if (restarts >= MAX_CONTEXT_RESTARTS || timer !== null) return
+      restarts += 1
+      // 退出事件派发再重建，别在浏览器还在处理丢失的当口拆画布
+      timer = setTimeout(() => {
+        timer = null
+        gradientRef.current?.dispose()
+        gradientRef.current = createGradientMount(host, useAvatarStore.getState().config)
+      }, 0)
+    }
+
+    host.addEventListener('webglcontextlost', onContextLost, true)
+    gradientRef.current = createGradientMount(host, initialConfigRef.current)
+
     return () => {
-      mount.dispose()
+      host.removeEventListener('webglcontextlost', onContextLost, true)
+      if (timer !== null) clearTimeout(timer)
+      gradientRef.current?.dispose()
       gradientRef.current = null
     }
   }, [])
@@ -210,22 +248,36 @@ export function PreviewStage() {
     }
   }, [preview.text, fontFamily, fontWeight, fontLoading])
 
+  // preview 每次都是新对象，探针只认与取色相关的那部分，改导出格式不该起一次离屏渲染
+  const previewRef = useRef(preview)
+  useEffect(() => {
+    previewRef.current = preview
+  }, [preview])
+
+  const probeSignature = useMemo(() => probeKey(preview), [preview])
+
   // 自动文字色与底板判定
   useEffect(() => {
-    if (colorMode !== 'auto' || preview.text.trim() === '') return
+    if (colorMode !== 'auto' || previewRef.current.text.trim() === '') return
     let cancelled = false
+    // 串到上一次探针后面。防抖只挡得住还没起跑的那次，已经在跑的探针照样占着一个离屏
+    // WebGL 上下文；连着改配置时它们会并行堆起来，浏览器一旦超过并发上限，
+    // 被判掉的往往是常驻预览那个上下文。这里保证同时最多一个在跑、一个在排队。
     const timer = setTimeout(() => {
-      void probeInk(preview).then((result) => {
-        if (cancelled || !result) return
-        setAutoInk(result.color)
-        setAutoPlate(result.plate)
-      })
+      probeChain.current = probeChain.current
+        .catch(() => {})
+        .then(() => (cancelled ? null : probeInk(previewRef.current)))
+        .then((result) => {
+          if (cancelled || !result) return
+          setAutoInk(result.color)
+          setAutoPlate(result.plate)
+        })
     }, PROBE_DELAY_MS)
     return () => {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [preview, colorMode])
+  }, [probeSignature, colorMode])
 
   // 高光与文字。放进 rAF 画，既不挤占布局这一帧，也让排版结果的回写落在回调里
   useEffect(() => {
@@ -325,22 +377,24 @@ export function PreviewStage() {
                   transform: 'translate(-50%, -50%)',
                 }}
               />
+              {/* 安全框按形状收过，圆形下比边距画出来的方框小一圈，取的是排版真正用的那个框 */}
               <div
                 className="absolute border border-dashed border-white/60 mix-blend-difference"
                 style={{
-                  inset: `${preview.typography.padding * 100}%`,
+                  left: `${safeGuide.x}px`,
+                  top: `${safeGuide.y}px`,
+                  width: `${safeGuide.width}px`,
+                  height: `${safeGuide.height}px`,
                   borderRadius: '4px',
                 }}
               />
             </div>
           ) : null}
 
+          {/* 这条进度条只是装饰：它在 role="img" 的子树里，辅助技术会把整棵子树剥掉，
+              播报交给画框外面那条常驻的 role="status" */}
           {fontLoading ? (
-            <div
-              role="status"
-              aria-label={t('preview.font.loading')}
-              className="absolute inset-x-0 top-0 h-1 overflow-hidden bg-white/25"
-            >
+            <div aria-hidden className="absolute inset-x-0 top-0 h-1 overflow-hidden bg-white/25">
               <div className="progress-indeterminate h-full w-1/5 rounded-full bg-white/95" />
             </div>
           ) : null}
@@ -374,10 +428,17 @@ export function PreviewStage() {
       </div>
 
       <div className="flex min-h-5 w-full max-w-full flex-col items-center gap-1 text-center">
+        {/* live region 要常驻，内容从空变成有字才播报得出来；
+            它也必须待在 role="img" 之外，img 的子树整棵不进无障碍树 */}
+        <p role="status" className="sr-only">
+          {fontLoading ? t('preview.font.loading') : ''}
+        </p>
         {!caps.webgl2 ? (
-          <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
-            <TriangleAlertIcon className="size-3.5" aria-hidden />
-            <span>{`${t('preview.webgl.title')}. ${t('preview.webgl.desc')}`}</span>
+          /* 两句各自成句，不在源码里拼标点：中日韩用不了 ASCII 句点，ja 的下半句本身就带全角句号 */
+          <p className="text-muted-foreground flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 text-xs">
+            <TriangleAlertIcon className="size-3.5 shrink-0" aria-hidden />
+            <span>{t('preview.webgl.title')}</span>
+            <span>{t('preview.webgl.desc')}</span>
           </p>
         ) : null}
         {overflow ? <p className="text-destructive text-xs">{t('preview.overflow')}</p> : null}

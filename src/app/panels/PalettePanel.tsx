@@ -241,7 +241,10 @@ export function PalettePanel() {
 
       <PanelSection title={t('panel.palette.seed')} defaultOpen={false}>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="palette-seed-1">{t('panel.palette.seed.base')}</Label>
+          {/* ColorField 内部那个 input[type=color] 的 id 是 useId 生成的，外面拿不到，
+              所以这里不写 htmlFor：可访问名由 ColorField 自己的 aria-label 给，
+              与同文件里其余几处 ColorField 的写法一致 */}
+          <Label>{t('panel.palette.seed.base')}</Label>
           <ColorField
             label={t('panel.palette.seed.base')}
             hexLabel={t('panel.common.hex')}

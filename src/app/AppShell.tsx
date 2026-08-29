@@ -4,12 +4,20 @@
  *
  * 桌面（≥ 1024 px）：左预览右面板列，面板列自己滚，操作条钉在列底。
  * 手机：预览 sticky 在顶栏下，分段控件切面板，操作条固定在屏幕底并让出 safe-area。
+ *
+ * 整棵树外面套一层错误边界，两个懒加载岛各自再套一层：chunk 拉不到时
+ * React 会在 render 阶段重新抛出，没有边界接住就整页白屏，连刷新的入口都没有。
  */
 
-import { Suspense, useMemo } from 'react'
+import { Suspense, useEffect, useMemo } from 'react'
 import { ImageIcon, PaletteIcon, SparklesIcon, TypeIcon } from 'lucide-react'
 import { AmbientBackground } from '@/app/AmbientBackground'
 import { BottomBar } from '@/app/BottomBar'
+import {
+  ErrorBoundary,
+  reloadOnceForChunkError,
+  reloadOnceForModuleError,
+} from '@/app/error-boundary'
 import { PreviewStage } from '@/app/PreviewStage'
 import { SegmentedTabs, type SegmentedItem } from '@/app/SegmentedTabs'
 import { TopBar } from '@/app/TopBar'
@@ -24,13 +32,24 @@ import { useAvatarStore, type ActivePanel } from '@/state/store'
 
 const PANEL_ID = 'panel'
 
-export function AppShell() {
+function AppShellBody() {
   const t = useT()
   const activePanel = useAvatarStore((state) => state.ui.activePanel)
   const exportOpen = useAvatarStore((state) => state.ui.exportOpen)
   // 打开过一次就一直为真，抽屉从此留在树里；没打开过就不拉那份 chunk
   const exportMounted = useAvatarStore((state) => state.ui.exportMounted)
+  // 只订阅有没有历史：0 到 1 才重渲，后面每加一格都重渲整个外壳就得不偿失了
+  const hasHistory = useAvatarStore((state) => state.history.length > 0)
   const setUi = useAvatarStore((state) => state.setUi)
+
+  // 重新部署后旧 chunk 名会失效，抢在 React 抛错之前刷一次去取新版本
+  useEffect(() => {
+    const onPreloadError = (): void => {
+      reloadOnceForChunkError()
+    }
+    window.addEventListener('vite:preloadError', onPreloadError)
+    return () => window.removeEventListener('vite:preloadError', onPreloadError)
+  }, [])
 
   const items = useMemo<SegmentedItem<ActivePanel>[]>(
     () => [
@@ -95,9 +114,16 @@ export function AppShell() {
             {activePanel === 'palette' ? <PalettePanel /> : null}
             {activePanel === 'style' ? <StylePanel /> : null}
             {activePanel === 'canvas' ? <CanvasPanel /> : null}
-            <Suspense fallback={null}>
-              <HistoryStripLazy />
-            </Suspense>
+            {/* 空态就一行字，为它拉一份 chunk 不值当；有历史了才挂懒加载的那份 */}
+            {hasHistory ? (
+              <ErrorBoundary>
+                <Suspense fallback={null}>
+                  <HistoryStripLazy />
+                </Suspense>
+              </ErrorBoundary>
+            ) : (
+              <p className="text-muted-foreground px-1 py-2 text-xs">{t('history.empty')}</p>
+            )}
           </div>
 
           <BottomBar />
@@ -105,13 +131,23 @@ export function AppShell() {
       </main>
 
       {exportMounted ? (
-        <Suspense fallback={null}>
-          <ExportDrawerLazy
-            open={exportOpen}
-            onOpenChange={(open) => setUi({ exportOpen: open })}
-          />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={null}>
+            <ExportDrawerLazy
+              open={exportOpen}
+              onOpenChange={(open) => setUi({ exportOpen: open })}
+            />
+          </Suspense>
+        </ErrorBoundary>
       ) : null}
     </div>
+  )
+}
+
+export function AppShell() {
+  return (
+    <ErrorBoundary onError={reloadOnceForModuleError}>
+      <AppShellBody />
+    </ErrorBoundary>
   )
 }

@@ -37,6 +37,7 @@ export {
 export type { FontUploadErrorCode, UploadedFont } from './upload'
 export {
   FontUploadError,
+  MAX_UPLOADED_FONTS,
   MAX_UPLOAD_BYTES,
   UPLOAD_EXTENSIONS,
   UPLOAD_FAMILY_SUFFIX,
@@ -44,5 +45,6 @@ export {
   getUploadedFont,
   listUploadedFonts,
   registerUploadedFont,
+  removeUploadedFont,
   uploadFamilyName,
 } from './upload'

@@ -55,6 +55,8 @@ const inflight = new Map<string, Promise<FontLoadResult>>()
 /** 已就绪的结果，命中后不再走网络。 */
 const settled = new Map<string, FontLoadResult>()
 const readyFamilies = new Set<string>()
+/** 每个 family|weight 已经 document.fonts.load 过的字符，用来判断样本里有没有新字。 */
+const loadedChars = new Map<string, Set<string>>()
 
 export function isFontReady(family: string): boolean {
   return readyFamilies.has(family)
@@ -66,6 +68,7 @@ export function resetFontLoaderState(): void {
   inflight.clear()
   settled.clear()
   readyFamilies.clear()
+  loadedChars.clear()
 }
 
 /** family 含空格或非标识符字符时必须加引号，否则 CSS 解析会截断。 */
@@ -98,11 +101,24 @@ export function nearestWeight(available: readonly number[], want: number): numbe
   return best
 }
 
+/** 配置文字去掉空白并去重后的字符表，顺序即首次出现的顺序。 */
+function uniqueChars(text: string): string[] {
+  return [...new Set([...text].filter((c) => c.trim().length > 0))]
+}
+
 function sampleText(text: string): string {
-  const chars = [...text].filter((c) => c.trim().length > 0)
-  const unique = [...new Set(chars)].slice(0, SAMPLE_LIMIT).join('')
+  const unique = uniqueChars(text).slice(0, SAMPLE_LIMIT).join('')
   // 空文字时也要触发一次加载，用拉丁与 CJK 各一个字符探测
   return unique || 'Aa中'
+}
+
+function markLoaded(key: string, chars: Iterable<string>): void {
+  let set = loadedChars.get(key)
+  if (!set) {
+    set = new Set<string>()
+    loadedChars.set(key, set)
+  }
+  for (const c of chars) set.add(c)
 }
 
 function withTimeout<T>(task: Promise<T>, ms: number, fallback: T): Promise<T> {
@@ -183,6 +199,39 @@ async function activate(
   return faces.length > 0
 }
 
+/**
+ * 补齐样本里还没加载过的字形。
+ * css2 对 CJK 按 unicode-range 切片下发，新字所在的分片必须再 load 一次才会去拉；
+ * 首次探测又只取了前 SAMPLE_LIMIT 个字，超出的同样没拉过。
+ * 超时或失败不记账，下一次调用还会重试。
+ */
+async function ensureGlyphs(
+  key: string,
+  family: string,
+  weight: number,
+  chars: readonly string[],
+  timeoutMs: number,
+): Promise<void> {
+  const set = globalThis.document?.fonts
+  if (!set) return
+  const loaded = loadedChars.get(key)
+  const missing = loaded ? chars.filter((c) => !loaded.has(c)) : [...chars]
+  if (missing.length === 0) return
+
+  const font = `${weight} 32px ${quoteFamily(family)}`
+  for (let i = 0; i < missing.length; i += SAMPLE_LIMIT) {
+    const chunk = missing.slice(i, i + SAMPLE_LIMIT)
+    // 包一层 async，把部分环境里 load 的同步抛错也收进 withTimeout 的回退
+    const probe = (async () => {
+      await set.load(font, chunk.join(''))
+      return true
+    })()
+    const ok = await withTimeout(probe, timeoutMs, false)
+    if (!ok) return
+    markLoaded(key, chunk)
+  }
+}
+
 /** 目录条目优先用调用方给的（来自 fetchCatalog），退到精选清单，再退到按 family 猜 id。 */
 function resolveEntry(
   family: string,
@@ -220,6 +269,8 @@ async function loadGoogleFont(
 /**
  * 按配置加载字体。system 不需要网络；upload 查本地注册表；
  * google 走 css2 → cdn.jsdelivr.net → gcore.jsdelivr.net，每档超时 timeoutMs。
+ * 缓存只按 family|weight 命中，本次文字里的新字仍要补一次 document.fonts.load，
+ * 否则改完文字立刻导出会拿到回退字形。
  */
 export function loadFontForConfig(
   config: AvatarConfig,
@@ -231,6 +282,7 @@ export function loadFontForConfig(
     return Promise.resolve({ family: fontFamily, source: 'system', ok: true })
   }
   if (fontSource === 'upload') {
+    // 上传字体是整份文件注册进 document.fonts，没有分片，不需要按文字补拉
     const found = getUploadedFont(fontFamily)
     return Promise.resolve(
       found
@@ -240,30 +292,36 @@ export function loadFontForConfig(
   }
 
   const key = `${fontFamily}|${fontWeight}`
+  const timeoutMs = opts?.timeoutMs ?? DEFAULT_FONT_TIMEOUT_MS
+  const chars = uniqueChars(config.text)
+
   const done = settled.get(key)
-  if (done) return Promise.resolve(done)
-  const running = inflight.get(key)
-  if (running) return running
+  if (done) {
+    return ensureGlyphs(key, fontFamily, fontWeight, chars, timeoutMs).then(() => done)
+  }
 
-  const task = loadGoogleFont(
-    fontFamily,
-    fontWeight,
-    sampleText(config.text),
-    opts?.timeoutMs ?? DEFAULT_FONT_TIMEOUT_MS,
-    opts?.entry,
-  )
-    .then((result) => {
-      // 失败不写 settled，换网络环境后可以重试
-      if (result.ok) {
-        settled.set(key, result)
-        readyFamilies.add(result.family)
-      }
-      return result
-    })
-    .finally(() => {
-      inflight.delete(key)
-    })
+  let task = inflight.get(key)
+  if (!task) {
+    const sample = sampleText(config.text)
+    task = loadGoogleFont(fontFamily, fontWeight, sample, timeoutMs, opts?.entry)
+      .then((result) => {
+        // 失败不写 settled，换网络环境后可以重试
+        if (result.ok) {
+          settled.set(key, result)
+          readyFamilies.add(result.family)
+          markLoaded(key, sample)
+        }
+        return result
+      })
+      .finally(() => {
+        inflight.delete(key)
+      })
+    inflight.set(key, task)
+  }
 
-  inflight.set(key, task)
-  return task
+  // 共享 inflight 的调用文字可能不同，各自再补齐自己样本里的字
+  return task.then(async (result) => {
+    if (result.ok) await ensureGlyphs(key, fontFamily, fontWeight, chars, timeoutMs)
+    return result
+  })
 }

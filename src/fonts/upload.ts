@@ -6,6 +6,11 @@
 export const UPLOAD_FAMILY_SUFFIX = '-upload'
 export const MAX_UPLOAD_BYTES = 30 * 1024 * 1024
 export const UPLOAD_EXTENSIONS: readonly string[] = ['ttf', 'otf', 'woff', 'woff2']
+/**
+ * 注册表常驻上限。CJK 字体单份常有十几 MB，注册表只增不减会一路占到关标签页；
+ * 超出后按最久未用摘掉，手机上导出时的画布分配才有余量。
+ */
+export const MAX_UPLOADED_FONTS = 3
 
 export type FontUploadErrorCode =
   'unsupported-extension' | 'too-large' | 'unsupported-environment' | 'decode-failed'
@@ -48,24 +53,52 @@ export function uploadFamilyName(fileName: string): string {
   return `${base || 'font'}${UPLOAD_FAMILY_SUFFIX}`
 }
 
+/** 从 document.fonts 摘除单个 face，已被浏览器回收时静默跳过。 */
+function detach(item: UploadedFont): void {
+  try {
+    globalThis.document?.fonts?.delete(item.face)
+  } catch {
+    // 已被浏览器回收时忽略
+  }
+}
+
+/** Map 按插入序迭代，重新插一次就把这份挪到队尾，队首即最久未用。 */
+function touch(family: string, item: UploadedFont): void {
+  registry.delete(family)
+  registry.set(family, item)
+}
+
+/** 超出常驻上限时从队首淘汰，keep 是本次刚注册的，任何情况下都不淘汰。 */
+function evictOverflow(keep: string): void {
+  while (registry.size > MAX_UPLOADED_FONTS) {
+    const oldest = registry.keys().next().value
+    if (oldest === undefined || oldest === keep) return
+    removeUploadedFont(oldest)
+  }
+}
+
 export function getUploadedFont(family: string): UploadedFont | undefined {
-  return registry.get(family)
+  const found = registry.get(family)
+  if (found) touch(family, found)
+  return found
 }
 
 export function listUploadedFonts(): UploadedFont[] {
   return [...registry.values()]
 }
 
+/** 摘除单个上传字体，返回是否命中。给字体选择器的删除入口用。 */
+export function removeUploadedFont(family: string): boolean {
+  const found = registry.get(family)
+  if (!found) return false
+  detach(found)
+  registry.delete(family)
+  return true
+}
+
 /** 清空注册表并从 document.fonts 摘除，供测试与“重置”入口使用。 */
 export function clearUploadedFonts(): void {
-  const set = globalThis.document?.fonts
-  for (const item of registry.values()) {
-    try {
-      set?.delete(item.face)
-    } catch {
-      // 已被浏览器回收时忽略
-    }
-  }
+  for (const item of registry.values()) detach(item)
   registry.clear()
 }
 
@@ -104,13 +137,11 @@ export async function registerUploadedFont(file: File): Promise<{ family: string
 
   const previous = registry.get(family)
   if (previous) {
-    try {
-      set.delete(previous.face)
-    } catch {
-      // 同 clearUploadedFonts
-    }
+    detach(previous)
+    registry.delete(family)
   }
   set.add(face)
   registry.set(family, { family, fileName: file.name, bytes: file.size, face })
+  evictOverflow(family)
   return { family }
 }

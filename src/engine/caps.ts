@@ -146,3 +146,18 @@ export function resetRenderCaps(): void {
     // 同 writeCache
   }
 }
+
+/**
+ * 探测说有 WebGL2 但运行期真建不出上下文时复核一次。
+ * 只重探 WebGL 这一半：2D 面积探测要一路试到 8192²，很贵，也与这次失败无关。
+ * 复核仍然失败就把缓存改成不支持，下次进页面直接走兜底并给出提示，
+ * 而不是继续拿七天前的探测结果当真。返回复核后 WebGL2 是否仍可用。
+ */
+export function revalidateWebGL2(): boolean {
+  if (probeWebGL() > 0) return true
+  const maxSize = memoryCache?.maxSize ?? readCache()?.maxSize ?? CONSERVATIVE_MAX_SIZE
+  const caps: RenderCaps = { webgl2: false, maxSize }
+  memoryCache = caps
+  writeCache(caps)
+  return false
+}

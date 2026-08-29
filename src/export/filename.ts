@@ -19,10 +19,12 @@ function isDroppable(ch: string): boolean {
  * 清空后回落到 avatar，保证任何输入都能得到一个可落盘的名字。
  */
 export function buildFilename(config: AvatarConfig, ext: string): string {
+  // 顺序按 spec §3.5：先清洗再截断。反过来的话被删掉的空白与非法字符
+  // 会白占 12 个名额，“AI 研究院 2026 年度”只剩前半截，全是空格时更是直接退化成 avatar。
   // 按码点切分，避免把 emoji 与增补平面汉字劈成半个代理对
   const cleaned = [...config.text]
-    .slice(0, MAX_CHARS)
     .filter((ch) => !isDroppable(ch))
+    .slice(0, MAX_CHARS)
     .join('')
     // 首尾的点会让 macOS 当成隐藏文件、让 Windows 直接拒收
     .replace(/^\.+|\.+$/g, '')

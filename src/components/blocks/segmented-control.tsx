@@ -47,7 +47,10 @@ export function SegmentedControl<T extends string>({
       {options.map((option) => (
         <label
           key={option.value}
-          className="relative flex min-h-11 flex-1 cursor-pointer items-center justify-center has-disabled:cursor-not-allowed has-disabled:opacity-50"
+          // flex-1 的项默认 min-width:auto，缩不到内容的最小宽度以下，
+          // 长单词（en 下的 Monochromatic）会把整组撑出容器，body 又是 overflow-x:hidden，
+          // 撑出去的部分既滚不到也看不见。min-w-0 加内层 truncate 一起兜住
+          className="relative flex min-h-11 min-w-0 flex-1 cursor-pointer items-center justify-center has-disabled:cursor-not-allowed has-disabled:opacity-50"
         >
           <input
             type="radio"
@@ -64,13 +67,21 @@ export function SegmentedControl<T extends string>({
           />
           <span
             className={cn(
-              'text-muted-foreground flex h-full w-full items-center justify-center gap-1.5 rounded-md px-2 text-sm font-medium transition-colors',
+              // 未选中态不用 text-muted-foreground：浅色主题下它压在 bg-muted 上只有 4.38:1，
+              // 14 px 正文不达 WCAG AA 的 4.5:1。前景色压到 65% 后浅色 5.17:1、深色 6.20:1，
+              // 深色的观感几乎不变（明度 0.715 到 0.740），只把浅色那一档补上来
+              'text-foreground/65 flex h-full w-full min-w-0 items-center justify-center gap-1.5 rounded-md px-2 text-sm font-medium transition-colors',
               'peer-hover:text-foreground peer-checked:bg-background peer-checked:text-foreground peer-checked:shadow-xs',
               'peer-focus-visible:ring-ring/50 peer-focus-visible:ring-3',
               'motion-reduce:transition-none',
             )}
           >
-            {option.icon ?? option.label}
+            {option.icon ?? (
+              // 窄屏放不下就截断并给出省略号，完整文案挂 title
+              <span className="truncate" title={option.label}>
+                {option.label}
+              </span>
+            )}
           </span>
         </label>
       ))}

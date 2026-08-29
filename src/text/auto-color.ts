@@ -22,9 +22,8 @@ export const PLATE_MIN_CONTRAST = 3
  */
 const CUSTOM_SPLIT = 0.5
 
-/** 采样点上限，取 64×64，够稳定又不会在 4096 导出时拖慢一拍。 */
-const MAX_SAMPLES = 4096
-const MAX_SAMPLE_ROWS = 64
+/** 采样画布的边长。64×64 与原来的采样点数同量级，一次回读只有 16 KB。 */
+const SAMPLE_SIZE = 64
 
 function parseHex(hex: string): [number, number, number] {
   const raw = hex.trim().replace('#', '')
@@ -80,42 +79,64 @@ function clampRegion(rect: Rect, canvasWidth: number, canvasHeight: number): Rec
 }
 
 /**
+ * 新建一张采样用的小画布。合成路径的上下文来自 `src/export/canvas.ts`，没开
+ * willReadFrequently，是 GPU 后备存储，在它上面反复回读每次都要同步等一次；
+ * 缩到小画布上读，回读发生在这张显式声明会频繁回读的画布上，与预览探针口径一致。
+ */
+function createSampleContext(width: number, height: number): CanvasRenderingContext2D | null {
+  if (typeof document === 'undefined') return null
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  if (!ctx) return null
+  // 大比例缩图要的是区域平均，低质量插值会在 4096 缩到 64 时漏掉大片像素
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  return ctx
+}
+
+/**
  * 取文字包围盒下方像素的平均相对亮度。
- * 逐行读取而不是整块读：4096 导出时整块 ImageData 会瞬时吃掉几十 MB。
+ * 先把包围盒缩到 64×64 再一次读完，不在全分辨率画布上回读：
+ * 整块直接读，4096 导出时 ImageData 会瞬时吃掉几十 MB；
+ * 逐行读又要在没开 willReadFrequently 的上下文上往返几十次，一次合成几百 KB。
+ * 采到的是缩图后的区域平均值，与原来 64×64 点采样的口径基本等价。
  */
 function sampleLuminance(
   ctx: CanvasRenderingContext2D,
   layout: TextLayout,
   config: AvatarConfig,
 ): number {
-  const canvas = ctx.canvas
-  const region = clampRegion(layout.box, canvas.width, canvas.height)
+  const source = ctx.canvas
+  const region = clampRegion(layout.box, source.width, source.height)
   if (!region) return 0.5
 
-  const [bgR, bgG, bgB] = parseHex(config.exportOptions.bgColor)
-  const rows = Math.max(1, Math.min(region.height, MAX_SAMPLE_ROWS))
-  const cols = Math.max(1, Math.min(region.width, Math.floor(MAX_SAMPLES / rows)))
+  const width = Math.min(region.width, SAMPLE_SIZE)
+  const height = Math.min(region.height, SAMPLE_SIZE)
+  const sample = createSampleContext(width, height)
+  // 宿主没有 DOM 或拿不到 2D 上下文时无从采样，退回中性灰
+  if (!sample) return 0.5
 
+  let data: Uint8ClampedArray
+  try {
+    sample.drawImage(source, region.x, region.y, region.width, region.height, 0, 0, width, height)
+    data = sample.getImageData(0, 0, width, height).data
+  } catch {
+    // 画布被跨源图片污染时读不出像素，退回中性灰。
+    return 0.5
+  }
+
+  const [bgR, bgG, bgB] = parseHex(config.exportOptions.bgColor)
   let sum = 0
   let count = 0
-  for (let row = 0; row < rows; row += 1) {
-    const offset = Math.min(region.height - 1, Math.floor(((row + 0.5) * region.height) / rows))
-    let data: Uint8ClampedArray
-    try {
-      data = ctx.getImageData(region.x, region.y + offset, region.width, 1).data
-    } catch {
-      // 画布被跨源图片污染时读不出像素，退回中性灰。
-      return 0.5
-    }
-    for (let col = 0; col < cols; col += 1) {
-      const index = Math.min(region.width - 1, Math.floor(((col + 0.5) * region.width) / cols)) * 4
-      const alpha = (data[index + 3] ?? 255) / 255
-      const r = (data[index] ?? 0) * alpha + bgR * (1 - alpha)
-      const g = (data[index + 1] ?? 0) * alpha + bgG * (1 - alpha)
-      const b = (data[index + 2] ?? 0) * alpha + bgB * (1 - alpha)
-      sum += luminanceOf(r, g, b)
-      count += 1
-    }
+  for (let i = 0; i + 3 < data.length; i += 4) {
+    const alpha = (data[i + 3] ?? 255) / 255
+    const r = (data[i] ?? 0) * alpha + bgR * (1 - alpha)
+    const g = (data[i + 1] ?? 0) * alpha + bgG * (1 - alpha)
+    const b = (data[i + 2] ?? 0) * alpha + bgB * (1 - alpha)
+    sum += luminanceOf(r, g, b)
+    count += 1
   }
 
   return count > 0 ? sum / count : 0.5
@@ -137,24 +158,28 @@ function decide(
   return { color, contrast: ratioOf(relativeLuminance(color), luminance) }
 }
 
-/**
- * 自动文字色。colorMode 为 custom 时直接返回用户选的颜色。
- */
-export function pickTextColor(
-  ctx: CanvasRenderingContext2D,
-  layout: TextLayout,
-  config: AvatarConfig,
-): string {
-  if (config.typography.colorMode === 'custom') return config.typography.color
-  return decide(ctx, layout, config).color
+/** 自动文字色的结论：用哪个颜色，以及要不要补胶囊底板。 */
+export interface InkDecision {
+  color: string
+  /** 选定的文字色在实际画面上到不了 3:1，界面据此自动开胶囊底板。 */
+  plate: boolean
 }
 
-/** 选定的文字色在实际画面上到不了 3:1 时建议开胶囊底板，由界面决定是否自动打开。 */
-export function needsPlate(
+/**
+ * 一次采样定下文字色与底板。
+ *
+ * 颜色与底板是同一次判定的两个结果，分成两个入口的话每个都要自己回读一遍像素，
+ * 合成与预览探针都会白采一次；更要紧的是两次采样之间任何差异都会让二者对不上。
+ * colorMode 为 custom 时直接用用户选的颜色，底板也不代劳。
+ */
+export function resolveInk(
   ctx: CanvasRenderingContext2D,
   layout: TextLayout,
   config: AvatarConfig,
-): boolean {
-  if (config.typography.colorMode === 'custom') return false
-  return decide(ctx, layout, config).contrast < PLATE_MIN_CONTRAST
+): InkDecision {
+  if (config.typography.colorMode === 'custom') {
+    return { color: config.typography.color, plate: false }
+  }
+  const { color, contrast } = decide(ctx, layout, config)
+  return { color, plate: contrast < PLATE_MIN_CONTRAST }
 }

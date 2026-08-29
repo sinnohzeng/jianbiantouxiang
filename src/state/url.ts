@@ -60,14 +60,27 @@ export function encodeConfigToHash(config: AvatarConfig): string {
   return HASH_PREFIX + toBase64Url(JSON.stringify(isRecord(payload) ? payload : {}))
 }
 
+/** hash 里那段配置载荷，没有这个参数时是 undefined。 */
+function configEntryOf(hash: string): string | undefined {
+  if (typeof hash !== 'string') return undefined
+  const query = hash.startsWith('#') ? hash.slice(1) : hash
+  return query.split('&').find((part) => part.startsWith(`${HASH_PARAM}=`))
+}
+
+/**
+ * hash 里带着配置载荷、却读不出配置：链接在传播途中被截断或改写了。
+ * 与「压根没有配置参数」区分开，后者只是页面上的普通锚点，不该报错。
+ */
+export function hasBrokenConfigHash(hash: string): boolean {
+  return configEntryOf(hash) !== undefined && decodeConfigFromHash(hash) === null
+}
+
 /**
  * 解码 hash。任何一环出问题都返回 null，让调用方回落到 localStorage 或默认配置：
  * 少前缀、base64 坏、JSON 坏、载荷不是对象、版本号不是 3。
  */
 export function decodeConfigFromHash(hash: string): AvatarConfig | null {
-  if (typeof hash !== 'string') return null
-  const query = hash.startsWith('#') ? hash.slice(1) : hash
-  const entry = query.split('&').find((part) => part.startsWith(`${HASH_PARAM}=`))
+  const entry = configEntryOf(hash)
   if (entry === undefined) return null
 
   const json = fromBase64Url(entry.slice(HASH_PARAM.length + 1))

@@ -227,6 +227,74 @@ function composeBlock(
 }
 
 /**
+ * 画布形状对文字安全框的收缩系数：把边距算出来的方框按原比例缩到四角正好压在遮罩边界上。
+ *
+ * 遮罩是圆角矩形（圆形即圆角拉满那一档），约束只在角上：
+ * 角点越过圆心 (cx, cy) 所在的那一格之后，要满足到圆心的距离不超过圆角半径。
+ * 方框本来就没碰到圆角就返回 1，方角与常规圆角走的都是这一支，几何原样不动。
+ */
+function shapeFitScale(
+  config: AvatarConfig,
+  width: number,
+  height: number,
+  halfW: number,
+  halfH: number,
+): number {
+  const { shape, radius } = config.canvas
+  const short = Math.min(width, height)
+  let r: number
+  let cx: number
+  let cy: number
+  if (shape === 'circle') {
+    // 非正方形画布上遮罩是内接圆不是椭圆，见 compose-core 的 clipShape
+    r = short / 2
+    cx = 0
+    cy = 0
+  } else if (shape === 'rounded') {
+    r = Math.min(radius * short, short / 2)
+    if (r <= 0) return 1
+    cx = width / 2 - r
+    cy = height / 2 - r
+  } else {
+    return 1
+  }
+
+  const dx = halfW - cx
+  const dy = halfH - cy
+  if (dx <= 0 || dy <= 0) return 1
+  if (dx * dx + dy * dy <= r * r) return 1
+
+  // (t·halfW - cx)² + (t·halfH - cy)² = r²，取较大的根就是角点正好落在圆弧上的那一档
+  const a = halfW * halfW + halfH * halfH
+  if (a <= 0) return 1
+  const b = -2 * (halfW * cx + halfH * cy)
+  const c = cx * cx + cy * cy - r * r
+  const disc = b * b - 4 * a * c
+  if (disc < 0) return 1
+  return clamp((-b + Math.sqrt(disc)) / (2 * a), 0, 1)
+}
+
+/**
+ * 文字安全框：先按边距内缩，再收进遮罩里。
+ *
+ * 只按边距算的方框四角会落在圆形遮罩外面，圆形头像上多行文字的首尾字会被直接切掉。
+ * 所以这一步按原比例把方框缩到四角贴着圆弧，圆角矩形同理，方角与小圆角不受影响。
+ */
+export function safeArea(
+  config: AvatarConfig,
+  width: number,
+  height: number,
+): { x: number; y: number; width: number; height: number } {
+  const { padding } = config.typography
+  const halfW = Math.max(0, (width * (1 - 2 * padding)) / 2)
+  const halfH = Math.max(0, (height * (1 - 2 * padding)) / 2)
+  const scale = shapeFitScale(config, width, height, halfW, halfH)
+  const w = halfW * 2 * scale
+  const h = halfH * 2 * scale
+  return { x: (width - w) / 2, y: (height - h) / 2, width: w, height: h }
+}
+
+/**
  * 排版求解：manual 直接用给定字号，auto 在 [0.04, 0.92] × 短边内二分 12 轮找最大可行字号。
  * 单段文字先用闭式解一步到位，校验通过就不再二分。
  */
@@ -238,8 +306,9 @@ export function fitText(
 ): FitResult {
   const typography = config.typography
   const shortSide = Math.max(1, Math.min(width, height))
-  const safeWidth = Math.max(0, width * (1 - 2 * typography.padding))
-  const safeHeight = Math.max(0, height * (1 - 2 * typography.padding))
+  const area = safeArea(config, width, height)
+  const safeWidth = area.width
+  const safeHeight = area.height
   const paragraphs = splitParagraphs(config.text)
 
   const build = (ratio: number): FitResult => {

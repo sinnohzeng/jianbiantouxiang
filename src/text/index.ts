@@ -17,11 +17,4 @@ export type { FitResult, GlyphMetric, LineMetric, TextBlock } from './fit'
 export { layoutText } from './layout'
 export type { LayoutGlyph, LayoutLine, PillRect, Rect, TextLayout } from './layout'
 export { drawText } from './draw'
-export {
-  INK_DARK,
-  INK_LIGHT,
-  PLATE_MIN_CONTRAST,
-  WCAG_AA,
-  needsPlate,
-  pickTextColor,
-} from './auto-color'
+export { INK_DARK, INK_LIGHT, PLATE_MIN_CONTRAST, WCAG_AA, resolveInk } from './auto-color'

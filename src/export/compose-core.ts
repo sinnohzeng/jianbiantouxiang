@@ -19,9 +19,12 @@ export interface ComposeDeps<L> {
     seed: string,
   ): void
   layoutText(config: AvatarConfig, width: number, height: number): L
-  pickTextColor(ctx: CanvasRenderingContext2D, layout: L, config: AvatarConfig): string
-  /** 两个候选文字色都到不了 WCAG 4.5 时为真，合成据此自动补一层胶囊底板。 */
-  needsPlate(ctx: CanvasRenderingContext2D, layout: L, config: AvatarConfig): boolean
+  /** 一次采样定下文字色与要不要补胶囊底板，见 text/auto-color 的 resolveInk。 */
+  resolveInk(
+    ctx: CanvasRenderingContext2D,
+    layout: L,
+    config: AvatarConfig,
+  ): { color: string; plate: boolean }
   drawText(ctx: CanvasRenderingContext2D, layout: L, config: AvatarConfig, color: string): void
 }
 
@@ -40,33 +43,42 @@ export async function composeWith<L>(
   await deps.loadFontForConfig(config)
 
   const gradient = await deps.renderGradient(config, width, height)
-  const canvas = createCanvas(width, height)
-  const ctx = get2d(canvas)
+  // 中途抛错时这两张全尺寸画布都得当场释放：8192 导出一张就是 256 MB，
+  // 而调用方拿不到它们的引用，只能在这里收拾，否则重试时内存压力比第一次还大
+  let canvas: HTMLCanvasElement | null = null
+  try {
+    canvas = createCanvas(width, height)
+    const ctx = get2d(canvas)
 
-  // 渐变理论上铺满整张画布，底色只是兜底，防止引擎限幅后留下未绘制的边
-  ctx.fillStyle = config.exportOptions.bgColor
-  ctx.fillRect(0, 0, width, height)
-  ctx.drawImage(gradient, 0, 0, width, height)
-  releaseCanvas(gradient)
+    // 渐变理论上铺满整张画布，底色只是兜底，防止引擎限幅后留下未绘制的边
+    ctx.fillStyle = config.exportOptions.bgColor
+    ctx.fillRect(0, 0, width, height)
+    ctx.drawImage(gradient, 0, 0, width, height)
+    // 顺利画完就立刻释放，别让它占着显存熬过绘字与遮罩；下面 finally 里那次是抛错兜底，
+    // 重复把 1×1 再置成 1×1 没有副作用
+    releaseCanvas(gradient)
 
-  // 种子派生规则归引擎所有，这里必须调 resolveSeed，
-  // 否则空白种子下高光与渐变会用两串不同的随机数
-  deps.drawHighlight(ctx, width, height, config.highlight, resolveSeed(config))
+    // 种子派生规则归引擎所有，这里必须调 resolveSeed，
+    // 否则空白种子下高光与渐变会用两串不同的随机数
+    deps.drawHighlight(ctx, width, height, config.highlight, resolveSeed(config))
 
-  if (config.text.trim() !== '') {
-    const layout = deps.layoutText(config, width, height)
-    // 底板判定与预览走同一条路径：都读高光之后的像素，两边不会一个有底板一个没有。
-    // effect 不参与排版，补上底板之后不必重新量一遍
-    const target = effectiveConfig(config, deps.needsPlate(ctx, layout, config))
-    const color =
-      target.typography.colorMode === 'auto'
-        ? deps.pickTextColor(ctx, layout, target)
-        : target.typography.color
-    deps.drawText(ctx, layout, target, color)
+    if (config.text.trim() !== '') {
+      const layout = deps.layoutText(config, width, height)
+      // 底板判定与预览走同一条路径：都读高光之后的像素，两边不会一个有底板一个没有。
+      // effect 不参与排版，补上底板之后不必重新量一遍
+      const ink = deps.resolveInk(ctx, layout, config)
+      const target = effectiveConfig(config, ink.plate)
+      deps.drawText(ctx, layout, target, ink.color)
+    }
+
+    applyShapeMask(ctx, config, width, height)
+    return canvas
+  } catch (error) {
+    if (canvas) releaseCanvas(canvas)
+    throw error
+  } finally {
+    releaseCanvas(gradient)
   }
-
-  applyShapeMask(ctx, config, width, height)
-  return canvas
 }
 
 /**

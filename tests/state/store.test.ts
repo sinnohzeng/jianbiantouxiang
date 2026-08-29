@@ -109,13 +109,7 @@ describe('randomize', () => {
     expect(store().config.palette).toBe(DEFAULT_CONFIG.palette)
   })
 
-  it('randomizeAll 把内置配色换成同 tone 的另一套并换质感', () => {
-    store().randomizeAll()
-    expect(store().config.palette).toBe('frost')
-    expect(store().config.style).not.toBe(DEFAULT_CONFIG.style)
-  })
-
-  it('自定义配色不被顶掉', () => {
+  it('randomize 不碰自定义配色', () => {
     useAvatarStore.setState({
       config: { ...DEFAULT_CONFIG, palette: 'custom', customColors: ['#112233', '#445566'] },
     })
@@ -124,10 +118,49 @@ describe('randomize', () => {
     expect(store().config.customColors).toEqual(['#112233', '#445566'])
   })
 
-  it('配色 id 不认识时保持原样', () => {
+  it('randomize 不碰不认识的配色 id', () => {
     useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, palette: '不存在' } })
     store().randomize()
     expect(store().config.palette).toBe('不存在')
+  })
+})
+
+describe('randomizeAll', () => {
+  it('把内置配色换成同 tone 的另一套并换质感', () => {
+    store().randomizeAll()
+    expect(store().config.palette).toBe('frost')
+    expect(store().config.style).not.toBe(DEFAULT_CONFIG.style)
+  })
+
+  it('自定义配色下也真的换一套内置配色，自定义色留在配置里', () => {
+    useAvatarStore.setState({
+      config: { ...DEFAULT_CONFIG, palette: 'custom', customColors: ['#112233', '#445566'] },
+    })
+    store().randomizeAll()
+    const { config } = store()
+    expect(['aurora', 'frost', 'midnight']).toContain(config.palette)
+    expect(config.customColors).toEqual(['#112233', '#445566'])
+  })
+
+  it('配色 id 不认识时换成内置配色', () => {
+    useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, palette: '不存在' } })
+    store().randomizeAll()
+    expect(['aurora', 'frost', 'midnight']).toContain(store().config.palette)
+  })
+
+  it('同 tone 只剩当前这一套时跨 tone 换，不会原地不动', () => {
+    useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, palette: 'midnight' } })
+    store().randomizeAll()
+    expect(['aurora', 'frost']).toContain(store().config.palette)
+  })
+
+  it('连续点十次，每次都换掉当前配色', () => {
+    useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, palette: 'custom' } })
+    for (let i = 0; i < 10; i += 1) {
+      const before = store().config.palette
+      store().randomizeAll()
+      expect(store().config.palette).not.toBe(before)
+    }
   })
 })
 
@@ -167,10 +200,12 @@ describe('history 动作', () => {
     expect(store().config.text).toBe('一')
   })
 
-  it('reset 回到默认配置', () => {
+  it('reset 回到默认配置，且是 DEFAULT_CONFIG 本身', () => {
     store().setConfig({ text: '改过的' })
     store().reset()
     expect(store().config).toEqual(DEFAULT_CONFIG)
+    // 引用相等是对外契约：App 的 LocaleDefaults 据此认出“回到默认档”，重新按语言下发文字与字体
+    expect(store().config).toBe(DEFAULT_CONFIG)
   })
 })
 
@@ -197,6 +232,11 @@ describe('初始化优先级', () => {
 
   it('两者都没有时用默认配置', () => {
     expect(readInitialConfig()).toEqual(DEFAULT_CONFIG)
+  })
+
+  it('默认档给的是 DEFAULT_CONFIG 本身', () => {
+    // App 的 LocaleDefaults 靠这份引用判断“配置还是默认档”，决定要不要按语言下发字体
+    expect(readInitialConfig()).toBe(DEFAULT_CONFIG)
   })
 
   it('新建的 store 实例按同一优先级取初值与历史', async () => {

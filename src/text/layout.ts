@@ -1,5 +1,5 @@
 import type { Anchor, AvatarConfig } from '@/state/config'
-import { fitText } from './fit'
+import { fitText, safeArea } from './fit'
 import { createCanvasMeasure, type MeasureFn } from './measure'
 
 export interface Rect {
@@ -103,12 +103,7 @@ export function layoutText(
   const fit = fitText(config, width, height, measure ?? getSharedMeasure())
   const block = fit.block
 
-  const safeBox: Rect = {
-    x: width * typography.padding,
-    y: height * typography.padding,
-    width: fit.safeWidth,
-    height: fit.safeHeight,
-  }
+  const safeBox: Rect = safeArea(config, width, height)
 
   const originX =
     safeBox.x +

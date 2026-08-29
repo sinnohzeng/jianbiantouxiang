@@ -1,6 +1,9 @@
 /**
  * 画布面板：尺寸预设与自定义宽高、形状与圆角、导出底色。
  * 宽高输入框保持 16 px 字号，iOS 上聚焦不会把整页放大。
+ *
+ * 换形状不动边距。圆形遮罩带来的收缩由 text/fit 的 safeArea 按几何算，
+ * 不必在这里替用户改边距滑杆。
  */
 
 import { CircleIcon, SquareIcon } from 'lucide-react'

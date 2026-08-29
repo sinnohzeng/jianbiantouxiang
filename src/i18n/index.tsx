@@ -72,7 +72,11 @@ export function loadDict(locale: Locale): Promise<void> {
 
 export const LOCALE_STORAGE_KEY = 'gradient-avatar:locale'
 
-/** URL 上的语言参数，方便把某一语言的链接直接发出去。 */
+/**
+ * URL 上的语言参数，方便把某一语言的链接直接发出去。
+ * 它只是一次性入口：首屏认下之后由 `consumeLocaleQuery` 写进 localStorage 并从地址栏摘掉，
+ * 免得它一直压过用户在顶栏选的语言，也免得跟着分享链接传给下一个人。
+ */
 export const LOCALE_QUERY_KEY = 'lang'
 
 function isLocale(value: unknown): value is Locale {
@@ -106,6 +110,41 @@ function readQueryLocale(): Locale | null {
   }
 }
 
+/**
+ * 把 lang 参数从地址栏摘掉，其余查询串与 hash 原样保留，返回它原本带的语言。
+ * 用 replaceState 而不是跳转，浏览器历史里不会多出一条。
+ */
+function stripLocaleQuery(): Locale | null {
+  if (typeof window === 'undefined') return null
+  const carried = readQueryLocale()
+  try {
+    const params = new URLSearchParams(window.location.search)
+    if (!params.has(LOCALE_QUERY_KEY)) return carried
+    params.delete(LOCALE_QUERY_KEY)
+    const query = params.toString()
+    const { pathname, hash } = window.location
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${pathname}${query ? `?${query}` : ''}${hash}`,
+    )
+  } catch {
+    // 禁用 replaceState 的嵌入环境里摘不掉，本次会话仍按 URL 上这份语言走
+  }
+  return carried
+}
+
+/**
+ * 消费掉 URL 上的 ?lang=：认下它带的语言写进 localStorage，再把参数摘掉。
+ * 这样用户在顶栏切过语言之后刷新不会被链接里的旧值顶回去，
+ * 复制出去的分享链接（`buildShareUrl` 与 store 的 replaceState 都原样带 search）也不再钉语言。
+ */
+export function consumeLocaleQuery(): Locale | null {
+  const carried = stripLocaleQuery()
+  if (carried) writeStoredLocale(carried)
+  return carried
+}
+
 function readStoredLocale(): Locale | null {
   try {
     const value = globalThis.localStorage?.getItem(LOCALE_STORAGE_KEY)
@@ -113,6 +152,14 @@ function readStoredLocale(): Locale | null {
   } catch {
     // 无痕模式下读 localStorage 也会抛
     return null
+  }
+}
+
+function writeStoredLocale(locale: Locale): void {
+  try {
+    globalThis.localStorage?.setItem(LOCALE_STORAGE_KEY, locale)
+  } catch {
+    // 存不下就只在本次会话生效
   }
 }
 
@@ -168,6 +215,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = locale
   }, [locale])
 
+  // ?lang= 只当一次性入口：首屏认过就从地址栏摘掉，别压过用户后来的选择，也别跟着分享链接走
+  useEffect(() => {
+    consumeLocaleQuery()
+  }, [])
+
   // 已在手上时 loadDict 立刻 resolve，setDict 拿到同一个引用，React 自己会短路掉这次渲染
   useEffect(() => {
     let cancelled = false
@@ -183,11 +235,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     setLocaleState(next)
     // 新字典还没到就先留着手上这份，界面短暂停在旧语言，而不是闪一下英文
     setDict((current) => dictOf(next) ?? current)
-    try {
-      globalThis.localStorage?.setItem(LOCALE_STORAGE_KEY, next)
-    } catch {
-      // 存不下就只在本次会话生效
-    }
+    // 地址栏里若还留着 ?lang=，一并摘掉，用户这次选的才是最新状态
+    stripLocaleQuery()
+    writeStoredLocale(next)
     if (typeof document !== 'undefined') document.documentElement.lang = next
   }, [])
 

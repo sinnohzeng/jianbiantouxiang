@@ -196,14 +196,23 @@ describe('loadFontForConfig 网络降级', () => {
 })
 
 describe('loadFontForConfig 去重', () => {
-  it('并发调用共享同一个 Promise，只注入一次', async () => {
+  it('并发调用共享同一次网络加载，只注入一次', async () => {
     route = () => 'load'
     const cfg = config({ fontFamily: 'Inter', fontWeight: 700 })
-    const a = loadFontForConfig(cfg)
-    const b = loadFontForConfig(cfg)
+    const [a, b] = await Promise.all([loadFontForConfig(cfg), loadFontForConfig(cfg)])
     expect(a).toBe(b)
-    await Promise.all([a, b])
     expect(hrefs).toHaveLength(1)
+    expect(fontsLoad).toHaveBeenCalledOnce()
+  })
+
+  it('并发调用文字不同时，各自补齐自己的新字', async () => {
+    route = () => 'load'
+    await Promise.all([
+      loadFontForConfig(config({ fontFamily: 'Inter' }, 'AB')),
+      loadFontForConfig(config({ fontFamily: 'Inter' }, '中')),
+    ])
+    expect(hrefs).toHaveLength(1)
+    expect(fontsLoad.mock.calls.map((call) => call[1])).toEqual(['AB', '中'])
   })
 
   it('成功后再调用走内存缓存', async () => {
@@ -213,6 +222,51 @@ describe('loadFontForConfig 去重', () => {
     await loadFontForConfig(cfg)
     expect(hrefs).toHaveLength(1)
     expect(fontsLoad).toHaveBeenCalledOnce()
+  })
+
+  it('缓存命中后遇到新字仍补一次 load，只补差集', async () => {
+    route = () => 'load'
+    await loadFontForConfig(config({ fontFamily: 'Inter' }, 'AB'))
+    expect(fontsLoad).toHaveBeenCalledOnce()
+
+    await loadFontForConfig(config({ fontFamily: 'Inter' }, 'A B 中文'))
+    expect(hrefs).toHaveLength(1)
+    expect(fontsLoad).toHaveBeenCalledTimes(2)
+    expect(fontsLoad.mock.calls[1]).toEqual(['700 32px Inter', '中文'])
+
+    // 补过的字进了账，同一段文字不再重复 load
+    await loadFontForConfig(config({ fontFamily: 'Inter' }, '中文AB'))
+    expect(fontsLoad).toHaveBeenCalledTimes(2)
+  })
+
+  it('首次探测被 64 字上限截断时，剩下的字随后补齐', async () => {
+    route = () => 'load'
+    const text = Array.from({ length: 80 }, (_, i) => String.fromCodePoint(0x4e00 + i)).join('')
+    await loadFontForConfig(config({ fontFamily: 'Inter' }, text))
+    expect(fontsLoad).toHaveBeenCalledTimes(2)
+    expect(fontsLoad.mock.calls[0]?.[1]).toBe(text.slice(0, 64))
+    expect(fontsLoad.mock.calls[1]?.[1]).toBe(text.slice(64))
+  })
+
+  it('补拉超时不记账，下次调用还会重试', async () => {
+    route = () => 'load'
+    await loadFontForConfig(config({ fontFamily: 'Inter' }, 'AB'))
+
+    fontsLoad.mockImplementation(() => new Promise(() => {}))
+    const cfg = config({ fontFamily: 'Inter' }, 'AB中')
+    await expect(loadFontForConfig(cfg, { timeoutMs: 20 })).resolves.toMatchObject({ ok: true })
+    expect(fontsLoad).toHaveBeenCalledTimes(2)
+
+    fontsLoad.mockImplementation(async () => [{}])
+    await loadFontForConfig(cfg, { timeoutMs: 20 })
+    expect(fontsLoad).toHaveBeenCalledTimes(3)
+    expect(fontsLoad.mock.calls[2]).toEqual(['700 32px Inter', '中'])
+  })
+
+  it('加载失败回系统字体时不补拉', async () => {
+    route = () => 'error'
+    await loadFontForConfig(config({ fontFamily: 'Inter' }, 'AB'), { timeoutMs: 20 })
+    expect(fontsLoad).not.toHaveBeenCalled()
   })
 
   it('失败不写缓存，重试会重新注入', async () => {

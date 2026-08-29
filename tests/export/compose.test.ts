@@ -17,10 +17,9 @@ interface Harness {
   order: string[]
   gradient: HTMLCanvasElement
   drawText: ReturnType<typeof vi.fn>
-  pickTextColor: ReturnType<typeof vi.fn>
+  resolveInk: ReturnType<typeof vi.fn>
   layoutText: ReturnType<typeof vi.fn>
   drawHighlight: ReturnType<typeof vi.fn>
-  needsPlate: ReturnType<typeof vi.fn>
 }
 
 function makeHarness(plate = false): Harness {
@@ -35,13 +34,12 @@ function makeHarness(plate = false): Harness {
     order.push('layoutText')
     return LAYOUT
   })
-  const pickTextColor = vi.fn(() => {
-    order.push('pickTextColor')
-    return '#123456'
-  })
-  const needsPlate = vi.fn(() => {
-    order.push('needsPlate')
-    return plate
+  // 真实现自己处理 custom：颜色直接用配置里的，也不判底板，替身照这个口径来
+  const resolveInk = vi.fn((_ctx: unknown, _layout: unknown, config: AvatarConfig) => {
+    order.push('resolveInk')
+    return config.typography.colorMode === 'custom'
+      ? { color: config.typography.color, plate: false }
+      : { color: '#123456', plate }
   })
   const drawText = vi.fn(() => {
     order.push('drawText')
@@ -58,12 +56,11 @@ function makeHarness(plate = false): Harness {
     }),
     drawHighlight,
     layoutText,
-    pickTextColor,
-    needsPlate,
+    resolveInk,
     drawText,
   }
 
-  return { deps, order, gradient, drawText, pickTextColor, layoutText, drawHighlight, needsPlate }
+  return { deps, order, gradient, drawText, resolveInk, layoutText, drawHighlight }
 }
 
 function configOf(partial: PartialConfig = {}): AvatarConfig {
@@ -85,7 +82,7 @@ function opsOfOutput(): Op[] {
 }
 
 describe('composeWith 流程', () => {
-  it('按 字体 → 渐变 → 高光 → 排版 → 底板 → 取色 → 绘字 的顺序调用依赖', async () => {
+  it('按 字体 → 渐变 → 高光 → 排版 → 取色 → 绘字 的顺序调用依赖', async () => {
     const h = makeHarness()
     await composeWith(configOf(), 512, 512, h.deps)
 
@@ -94,8 +91,7 @@ describe('composeWith 流程', () => {
       'renderGradient',
       'drawHighlight',
       'layoutText',
-      'needsPlate',
-      'pickTextColor',
+      'resolveInk',
       'drawText',
     ])
   })
@@ -148,11 +144,18 @@ describe('composeWith 文字', () => {
     const config = configOf({ typography: { colorMode: 'auto' } })
     await composeWith(config, 512, 512, h.deps)
 
-    expect(h.pickTextColor).toHaveBeenCalledWith(expect.anything(), LAYOUT, config)
+    expect(h.resolveInk).toHaveBeenCalledWith(expect.anything(), LAYOUT, config)
     expect(h.drawText).toHaveBeenCalledWith(expect.anything(), LAYOUT, config, '#123456')
   })
 
-  it('自定义色不走取色，直接用配置里的颜色', async () => {
+  it('取色只调一次，颜色与底板出自同一次采样', async () => {
+    const h = makeHarness(true)
+    await composeWith(configOf(), 512, 512, h.deps)
+
+    expect(h.resolveInk).toHaveBeenCalledTimes(1)
+  })
+
+  it('自定义色直接用配置里的颜色', async () => {
     const h = makeHarness()
     await composeWith(
       configOf({ typography: { colorMode: 'custom', color: '#0a0a0a' } }),
@@ -161,7 +164,6 @@ describe('composeWith 文字', () => {
       h.deps,
     )
 
-    expect(h.pickTextColor).not.toHaveBeenCalled()
     expect(h.drawText.mock.calls[0]?.[3]).toBe('#0a0a0a')
   })
 
@@ -181,7 +183,7 @@ describe('composeWith 自动底板', () => {
     const config = configOf()
     await composeWith(config, 512, 512, h.deps)
 
-    expect(h.needsPlate).toHaveBeenCalledWith(expect.anything(), LAYOUT, config)
+    expect(h.resolveInk).toHaveBeenCalledWith(expect.anything(), LAYOUT, config)
     expect(h.drawText.mock.calls[0]?.[2]).toMatchObject({ typography: { effect: 'pill' } })
     expect(config.typography.effect).toBe('plain')
   })
@@ -263,5 +265,34 @@ describe('composeWith 形状遮罩', () => {
     await composeWith(configOf({ canvas: { shape: 'rounded', radius: 0 } }), 512, 512, h.deps)
 
     expect(opNames(opsOfOutput())).not.toContain('set:globalCompositeOperation')
+  })
+})
+
+describe('composeWith 中途失败的画布释放', () => {
+  it('拿不到输出画布的 2D 上下文时，渐变画布当场释放', async () => {
+    const h = makeHarness()
+    const nullContext = function (): null {
+      return null
+    } as unknown as HTMLCanvasElement['getContext']
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(nullContext)
+
+    await expect(composeWith(configOf(), 4096, 4096, h.deps)).rejects.toThrow(
+      '无法获取 2D 画布上下文',
+    )
+    // 4096 的渐变画布是 64 MB，抛错就丢下不管的话，用户重试时内存压力更大
+    expect(h.gradient.width).toBe(1)
+    expect(h.gradient.height).toBe(1)
+  })
+
+  it('绘制途中抛错时，渐变与输出两张画布都释放', async () => {
+    const h = makeHarness()
+    h.drawHighlight.mockImplementation(() => {
+      throw new Error('高光炸了')
+    })
+
+    await expect(composeWith(configOf(), 4096, 4096, h.deps)).rejects.toThrow('高光炸了')
+    // 调用方拿不到内部画布的引用，它只能在 composeWith 里释放
+    expect(registry.entries[0]?.canvas.width).toBe(1)
+    expect(h.gradient.width).toBe(1)
   })
 })

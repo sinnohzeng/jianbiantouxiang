@@ -1,32 +1,124 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { toast } from 'sonner'
 import { Toaster } from '@/components/ui/sonner'
 import { AppShell } from '@/app/AppShell'
 import { useTheme } from '@/app/theme'
-import { I18nProvider, LOCALES, translate, useT } from '@/i18n'
-import { initialConfigSource, useAvatarStore } from '@/state/store'
+import { getCuratedByFamily, nearestWeight } from '@/fonts'
+import { I18nProvider, dictOf, useLocale, useT, type Locale } from '@/i18n'
+import { DEFAULT_CONFIG, type PartialConfig } from '@/state/config'
+import { initialConfigSource, initialHashBroken, useAvatarStore } from '@/state/store'
 
-/** 这段文字是不是某种语言的默认示例。是的话说明用户还没动过，可以跟着语言换。 */
-function isSampleText(text: string): boolean {
-  return LOCALES.some((locale) => translate(locale, 'app.sampleText') === text)
+/**
+ * 界面语言对应的默认字体，见 spec §3.3。
+ *
+ * 字形不对不止是难看。loader 用 `document.fonts.load` 探测是否就绪，
+ * FontFaceSet 会按 unicode-range 过滤，Noto Sans SC 的切片不覆盖谚文，
+ * 韩文示例配简体字体会拿到空数组，被判成加载失败并弹回落提示。
+ */
+const LOCALE_FONT_FAMILY: Record<Locale, string> = {
+  'zh-CN': 'Noto Sans SC',
+  'zh-HK': 'Noto Sans TC',
+  en: 'Inter',
+  ja: 'Noto Sans JP',
+  ko: 'Noto Sans KR',
+}
+
+const OWNED_DEFAULTS = {
+  text: DEFAULT_CONFIG.text,
+  fontFamily: DEFAULT_CONFIG.typography.fontFamily,
+} as const
+
+/**
+ * 示例文字与默认字体随界面语言走。
+ *
+ * 接管有三条边界。
+ *
+ * 一、只在配置来自默认值时接管，分享链接与本机存档都是用户自己的内容，一个字都不能改。
+ *
+ * 二、用 ref 记住自己写进去的那份，当前值一旦不是自己写的就说明用户动过手，本次会话不再接管。
+ * 不能拿“当前文字是不是某种语言的示例”当判据：`initialConfigSource()` 整场都是 `default`，
+ * 用户手打 Hello 会被立刻顶回本语言的示例，这个词根本打不进去。
+ * `reset()` 把整份配置换回 `DEFAULT_CONFIG` 本身，按引用能认出来，那一档重新开始跟随。
+ *
+ * 三、懒加载语言的字典没到货时 `t` 落到英文，这一轮整个跳过，
+ * 否则示例文字先被写成 Hello 再改成目标语言，白闪一次也白写一次 store。
+ * 文字与字体一起写，字体探测的样本才始终和文字同一种语言。
+ */
+export function LocaleDefaults() {
+  const t = useT()
+  const { locale } = useLocale()
+  const config = useAvatarStore((state) => state.config)
+  const setConfig = useAvatarStore((state) => state.setConfig)
+  const owned = useRef({ ...OWNED_DEFAULTS })
+  const released = useRef({ text: false, font: false })
+
+  useEffect(() => {
+    const { text, typography } = config
+
+    if (config === DEFAULT_CONFIG) {
+      // reset() 回到默认档，之前的“用户动过手”作废
+      owned.current = { ...OWNED_DEFAULTS }
+      released.current = { text: false, font: false }
+    }
+
+    const fromUser = initialConfigSource() !== 'default'
+    if (fromUser || text !== owned.current.text) released.current.text = true
+    if (fromUser || typography.fontSource !== 'google') released.current.font = true
+    if (typography.fontFamily !== owned.current.fontFamily) released.current.font = true
+    if (released.current.text && released.current.font) return
+
+    // 字典还在路上，等它到货再一次写完
+    if (dictOf(locale) === null) return
+
+    const patch: PartialConfig = {}
+
+    if (!released.current.text) {
+      const sample = t('app.sampleText')
+      if (sample !== text) {
+        owned.current.text = sample
+        patch.text = sample
+      }
+    }
+
+    if (!released.current.font) {
+      const family = LOCALE_FONT_FAMILY[locale]
+      if (family !== typography.fontFamily) {
+        const entry = getCuratedByFamily(family)
+        owned.current.fontFamily = family
+        patch.typography = {
+          fontFamily: family,
+          fontWeight: entry
+            ? nearestWeight(entry.weights, typography.fontWeight)
+            : typography.fontWeight,
+        }
+      }
+    }
+
+    if (patch.text !== undefined || patch.typography !== undefined) setConfig(patch)
+  }, [config, locale, t, setConfig])
+
+  return null
 }
 
 /**
- * 默认示例文字随界面语言走。
+ * 分享链接读不出来时提示一次。
  *
- * 只在配置来自默认值时接管：分享链接与本机存档都是用户自己的内容，一个字都不能改。
- * 判据是“当前文字仍是某种语言的示例”，所以用户一旦自己打过字就再也不会被顶掉。
+ * 链接里带着配置载荷却解不开，多半是在聊天窗口或邮件里被截断了。
+ * 不说一声的话，用户看到的是自己本机的旧配置，而几百毫秒后的一次 replaceState
+ * 就把坏载荷换成了他自己的，现场都没了，他只会以为对方压根没把图做上去。
  */
-function SampleText() {
+function ShareLinkNotice() {
   const t = useT()
-  const text = useAvatarStore((state) => state.config.text)
-  const setConfig = useAvatarStore((state) => state.setConfig)
+  const { locale } = useLocale()
+  const shown = useRef(false)
 
   useEffect(() => {
-    if (initialConfigSource() !== 'default') return
-    const sample = t('app.sampleText')
-    if (sample === text || !isSampleText(text)) return
-    setConfig({ text: sample })
-  }, [t, text, setConfig])
+    if (shown.current || !initialHashBroken()) return
+    // 字典还在路上，等它到货再弹，否则提示先闪一次英文
+    if (dictOf(locale) === null) return
+    shown.current = true
+    toast(t('share.invalid'))
+  }, [locale, t])
 
   return null
 }
@@ -58,7 +150,8 @@ function Shell() {
   return (
     <>
       <DocumentMeta />
-      <SampleText />
+      <LocaleDefaults />
+      <ShareLinkNotice />
       <AppShell />
       {/* 手机上底部被操作条占着，提示统一从顶部下来 */}
       <Toaster position="top-center" theme={resolved} closeButton />

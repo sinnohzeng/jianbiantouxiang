@@ -3,13 +3,16 @@
  * 三处进来，全部走 import()，所以这个桶文件本身不会把 WebGL 代码拖进首屏。
  */
 
-export { getRenderCaps, hasWebGL2, resetRenderCaps } from './caps'
+export { getRenderCaps, hasWebGL2, resetRenderCaps, revalidateWebGL2 } from './caps'
 export type { RenderCaps } from './caps'
 
 export { resolveColors, toShaderColor } from './colors'
 
 export { cssFallbackBackground, fallbackLayers, rgba } from './css-fallback'
 export type { FallbackLayer } from './css-fallback'
+
+export { notifyFallback } from './fallback'
+export type { FallbackOptions, FallbackReason } from './fallback'
 
 export { applyFilmGrain } from './film-grain'
 export { drawHighlight } from './highlight'

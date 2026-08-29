@@ -9,7 +9,7 @@ import {
 } from '@/state/config'
 import { HISTORY_MAX, pushHistory as pushHistoryEntry } from '@/state/history'
 import { loadPersisted, loadPersistedState, savePersisted } from '@/state/persist'
-import { decodeConfigFromHash, encodeConfigToHash } from '@/state/url'
+import { decodeConfigFromHash, encodeConfigToHash, hasBrokenConfigHash } from '@/state/url'
 
 export type ActivePanel = 'text' | 'palette' | 'style' | 'canvas'
 export type FontStatus = 'idle' | 'loading' | 'ready' | 'fallback'
@@ -86,11 +86,19 @@ function randomSeed(): string {
   return text.padEnd(10, '0').slice(0, 10)
 }
 
-/** 换一套同 tone 的内置配色。当前是自定义配色或未知 id 时保持不动，别改用户自己调的颜色。 */
+/**
+ * 换一套内置配色，只给「随机配色 + 质感」用，必定换掉当前这套。
+ *
+ * 深浅是 spec §3.2 里的一等筛选维度，用户挑了浅色系就不该被随机翻成深色，所以优先在同 tone 内换。
+ * 当前是自定义配色或未知 id 时没有 tone 可依，改从全部内置配色里挑：菜单写了换配色就得真的换。
+ * customColors 原样留在配置里，用户在配色面板一键切回自己的颜色，上一版也已经进了「最近生成」。
+ */
 function nextPaletteId(current: string): string {
   const active = PALETTES.find((item) => item.id === current)
-  if (!active) return current
-  const pool = PALETTES.filter((item) => item.tone === active.tone && item.id !== current)
+  const others = PALETTES.filter((item) => item.id !== current)
+  const sameTone = active ? others.filter((item) => item.tone === active.tone) : []
+  // 同 tone 只剩当前这一套时跨 tone 挑，宁可翻深浅也别让按钮看起来没反应
+  const pool = sameTone.length > 0 ? sameTone : others
   if (pool.length === 0) return current
   return pool[Math.floor(Math.random() * pool.length)]?.id ?? current
 }
@@ -108,6 +116,19 @@ export function initialConfigSource(): ConfigSource {
   return configSource
 }
 
+let brokenHash = false
+
+/**
+ * 打开页面时那条分享链接带着配置却读不出来。
+ *
+ * 界面要据此提示一次：不然用户点进来看到的是自己本机的旧配置，
+ * 而 300 ms 后的一次 replaceState 还会把链接里那段坏载荷换成他自己的，
+ * 现场就没了，他只会以为对方发的链接没做上去。
+ */
+export function initialHashBroken(): boolean {
+  return brokenHash
+}
+
 /** 初始配置优先级：URL hash > localStorage > 默认。链接分享出去要能覆盖本机存档。 */
 export function readInitialConfig(): AvatarConfig {
   const hash = typeof window === 'undefined' ? '' : window.location.hash
@@ -116,6 +137,7 @@ export function readInitialConfig(): AvatarConfig {
     configSource = 'hash'
     return shared
   }
+  brokenHash = hasBrokenConfigHash(hash)
   const stored = loadPersisted()
   configSource = stored ? 'storage' : 'default'
   return stored ?? DEFAULT_CONFIG
@@ -157,6 +179,7 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
   randomizeAll: () => {
     const config = get().config
     const styles: StyleId[] = ['mesh', 'flow', 'silk', 'grain']
+    // 从当前质感以外的三种里挑，与配色同一口径：点一下必须看得出变化
     const others = styles.filter((s) => s !== config.style)
     const style = others[Math.floor(Math.random() * others.length)] ?? config.style
     set({
@@ -175,6 +198,8 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
   },
 
   reset: () => {
+    // 必须是 DEFAULT_CONFIG 本身，不能换成等值的新对象：
+    // src/App.tsx 的 LocaleDefaults 靠这份引用认出“回到默认档”，好让示例文字与默认字体重新跟随语言
     set({ config: DEFAULT_CONFIG })
   },
 

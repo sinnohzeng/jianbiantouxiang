@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_CONFIG, normalizeConfig, type AvatarConfig } from '@/state/config'
-import { buildShareUrl, decodeConfigFromHash, encodeConfigToHash } from '@/state/url'
+import {
+  buildShareUrl,
+  decodeConfigFromHash,
+  encodeConfigToHash,
+  hasBrokenConfigHash,
+} from '@/state/url'
 
 /** 把 hash 还原成载荷对象，用来断言“默认值不进链接”。 */
 function payloadOf(hash: string): Record<string, unknown> {
@@ -132,5 +137,26 @@ describe('decodeConfigFromHash 容错', () => {
     expect(decoded?.canvas.width).toBe(8192)
     expect(decoded?.highlight).toBe(DEFAULT_CONFIG.highlight)
     expect(decoded?.typography.fontSize).toBe(0.04)
+  })
+})
+
+describe('hasBrokenConfigHash', () => {
+  it('载荷在传输中被截断时算坏链接', () => {
+    const hash = encodeConfigToHash({ ...DEFAULT_CONFIG, text: '同事' })
+    expect(hasBrokenConfigHash(hash.slice(0, hash.length - 8))).toBe(true)
+  })
+
+  it('版本对不上的链接也算坏链接', () => {
+    expect(hasBrokenConfigHash(encodePayload({ v: 2, text: '旧链接' }))).toBe(true)
+  })
+
+  it('没有配置参数只是普通锚点，不算坏', () => {
+    expect(hasBrokenConfigHash('')).toBe(false)
+    expect(hasBrokenConfigHash('#readme')).toBe(false)
+    expect(hasBrokenConfigHash('#lang=en')).toBe(false)
+  })
+
+  it('读得出来的链接不算坏', () => {
+    expect(hasBrokenConfigHash(encodeConfigToHash(DEFAULT_CONFIG))).toBe(false)
   })
 })

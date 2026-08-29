@@ -7,7 +7,7 @@ export interface EncodeResult {
   blob: Blob
   /** 实际使用的质量，PNG 恒为 1。 */
   quality: number
-  /** 是否落在体积目标内，false 时界面提示降分辨率。 */
+  /** 是否落在体积目标内，false 时界面提示降分辨率。PNG 无损、体积档不适用，恒为 true。 */
   hitTarget: boolean
 }
 
@@ -19,6 +19,12 @@ const MIME: Record<EncodeOptions['format'], string> = {
 
 /** 起编质量：JPG 0.85 与 WebP 0.9 在 1024 尺寸下肉眼无损。 */
 const DEFAULT_QUALITY: Record<'jpg' | 'webp', number> = { jpg: 0.85, webp: 0.9 }
+
+/**
+ * 「不限制」档的起编质量。spec §3.5 只给 JPG 定了这一档的质量 92，
+ * WebP 那条写的是质量 0.9，不跟着抬。
+ */
+const UNLIMITED_QUALITY: Record<'jpg' | 'webp', number> = { jpg: 0.92, webp: 0.9 }
 
 /** 再低画质就开始出块状伪影，宁可报告没达标也不继续压。 */
 const QUALITY_MIN = 0.6
@@ -69,17 +75,21 @@ export async function encodeCanvas(
   canvas: EncodableCanvas,
   opts: EncodeOptions,
 ): Promise<EncodeResult> {
-  const target = TARGET_BYTES[opts.sizeTarget]
-
   if (opts.format === 'png') {
+    // PNG 无损，没有质量可压，体积档对它不适用（spec §3.5 给 PNG 的提示是分辨率那条）。
+    // 这里恒报达标，否则界面会弹出一条“压到质量下限仍超出目标体积”的假警告：
+    // 那个二分过程在 PNG 上从未发生，体积档控件也已经禁用，用户无从消除它。
     const blob = await canvasToBlob(canvas, MIME.png)
-    return { blob, quality: 1, hitTarget: blob.size <= target }
+    return { blob, quality: 1, hitTarget: true }
   }
 
+  const target = TARGET_BYTES[opts.sizeTarget]
+  const quality =
+    opts.sizeTarget === 'none' ? UNLIMITED_QUALITY[opts.format] : DEFAULT_QUALITY[opts.format]
   // JPG 没有 alpha 通道，圆角与圆形的透明外区不铺底色会被编码成黑边
   const source = opts.format === 'jpg' ? flatten(canvas, opts.bgColor) : canvas
   try {
-    return await encodeLossy(source, MIME[opts.format], DEFAULT_QUALITY[opts.format], target)
+    return await encodeLossy(source, MIME[opts.format], quality, target)
   } finally {
     if (source !== canvas) releaseCanvas(source)
   }

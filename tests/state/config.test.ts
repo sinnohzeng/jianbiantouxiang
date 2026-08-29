@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_CONFIG, configHash, normalizeConfig } from '@/state/config'
+import { CURATED_FONTS } from '@/fonts/curated'
+import { LOCALES } from '@/i18n'
+import { DEFAULT_CONFIG, LOCALE_DEFAULT_FONT, configHash, normalizeConfig } from '@/state/config'
 
 describe('normalizeConfig 补默认', () => {
   it('空输入返回一份完整默认配置', () => {
@@ -152,5 +154,44 @@ describe('configHash', () => {
     expect(configHash(normalizeConfig({ text: '别的字' }))).not.toBe(base)
     expect(configHash(normalizeConfig({ styleParams: { grain: 0.9 } }))).not.toBe(base)
     expect(configHash(normalizeConfig({ canvas: { width: 2048 } }))).not.toBe(base)
+  })
+})
+
+describe('LOCALE_DEFAULT_FONT', () => {
+  it('五种界面语言各有一套默认字体', () => {
+    expect(LOCALE_DEFAULT_FONT).toEqual({
+      'zh-CN': 'Noto Sans SC',
+      'zh-HK': 'Noto Sans TC',
+      en: 'Inter',
+      ja: 'Noto Sans JP',
+      ko: 'Noto Sans KR',
+    })
+    for (const locale of LOCALES) {
+      expect(LOCALE_DEFAULT_FONT[locale], locale).toBeTruthy()
+    }
+  })
+
+  it('默认字体都在精选清单里，且带默认字重', () => {
+    for (const family of Object.values(LOCALE_DEFAULT_FONT)) {
+      const entry = CURATED_FONTS.find((item) => item.family === family)
+      expect(entry, family).toBeDefined()
+      expect(entry?.weights, family).toContain(DEFAULT_CONFIG.typography.fontWeight)
+    }
+  })
+
+  it('每种语言的默认字体带对应 subset，字形不会掉回系统字体', () => {
+    const subsetsOf = (family: string): string[] =>
+      CURATED_FONTS.find((item) => item.family === family)?.subsets ?? []
+    expect(subsetsOf(LOCALE_DEFAULT_FONT.ko)).toContain('korean')
+    expect(subsetsOf(LOCALE_DEFAULT_FONT.ja)).toContain('japanese')
+    expect(subsetsOf(LOCALE_DEFAULT_FONT['zh-HK'])).toContain('chinese-traditional')
+    expect(subsetsOf(LOCALE_DEFAULT_FONT['zh-CN'])).toContain('chinese-simplified')
+    expect(subsetsOf(LOCALE_DEFAULT_FONT.en)).toContain('latin')
+    // 韩文界面配简体字体正是原来的缺陷：谚文不在它的切片里
+    expect(subsetsOf(LOCALE_DEFAULT_FONT['zh-CN'])).not.toContain('korean')
+  })
+
+  it('简体中文那份与 DEFAULT_CONFIG 一致，默认档不必额外写一次 store', () => {
+    expect(LOCALE_DEFAULT_FONT['zh-CN']).toBe(DEFAULT_CONFIG.typography.fontFamily)
   })
 })

@@ -60,12 +60,13 @@ describe('encodeCanvas PNG', () => {
     expect(result.hitTarget).toBe(true)
   })
 
-  it('超过目标体积也不二分，只报告没达标', async () => {
+  it('超过目标体积既不二分也不报没达标：PNG 没有质量可压，体积档对它不适用', async () => {
     stubToBlob(() => 4 * ONE_MB)
     const result = await encodeCanvas(sourceCanvas(), options({ format: 'png' }))
 
     expect(calls).toHaveLength(1)
-    expect(result.hitTarget).toBe(false)
+    // 报 false 会让导出面板弹出“压到质量下限仍超出目标体积”，而这个二分过程根本没发生
+    expect(result.hitTarget).toBe(true)
   })
 
   it('不限制体积时恒为达标', async () => {
@@ -80,14 +81,22 @@ describe('encodeCanvas PNG', () => {
 })
 
 describe('encodeCanvas JPG', () => {
-  it('不限制体积时按默认质量 0.85 编一次', async () => {
+  it('不限制体积时按 spec §3.5 的质量 0.92 编一次', async () => {
     stubToBlob((q) => Math.round(3_000_000 * (q ?? 1)))
     const result = await encodeCanvas(sourceCanvas(), options({ sizeTarget: 'none' }))
 
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('image/jpeg')
-    expect(result.quality).toBe(0.85)
+    expect(calls[0]?.quality).toBe(0.92)
+    expect(result.quality).toBe(0.92)
     expect(result.hitTarget).toBe(true)
+  })
+
+  it('有体积目标时仍从默认质量 0.85 起编', async () => {
+    stubToBlob((q) => Math.round(3_000_000 * (q ?? 1)))
+    await encodeCanvas(sourceCanvas(), options({ sizeTarget: '2mb' }))
+
+    expect(calls[0]?.quality).toBe(0.85)
   })
 
   it('编码前把透明区铺成底色', async () => {
@@ -156,7 +165,7 @@ describe('encodeCanvas JPG', () => {
 })
 
 describe('encodeCanvas WebP', () => {
-  it('默认质量 0.9 且保留透明，不铺底色', async () => {
+  it('不限制体积档也用 0.9，不跟着 JPG 抬到 0.92；且保留透明，不铺底色', async () => {
     stubToBlob(() => 100)
     const source = sourceCanvas()
     const result = await encodeCanvas(source, options({ format: 'webp', sizeTarget: 'none' }))

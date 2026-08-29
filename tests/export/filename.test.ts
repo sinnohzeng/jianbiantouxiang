@@ -24,6 +24,17 @@ describe('buildFilename', () => {
     expect(buildFilename(configOf('产品/设计:部 A\n B'), 'jpg')).toBe('产品设计部AB_1024x1024.jpg')
   })
 
+  it('先清洗再数 12 个字，空白不占名额', () => {
+    // “AI 研究院 2026 年度”含 3 个空格，共 14 个码点；先截断的话只剩 AI研究院2026
+    expect(buildFilename(configOf('AI 研究院 2026 年度'), 'jpg')).toBe(
+      'AI研究院2026年度_1024x1024.jpg',
+    )
+  })
+
+  it('前 12 个码点全是空白或非法字符时不退化成 avatar', () => {
+    expect(buildFilename(configOf('/ / / / / / 猪猪家族'), 'png')).toBe('猪猪家族_1024x1024.png')
+  })
+
   it('文字为空回落到 avatar', () => {
     expect(buildFilename(configOf(''), 'webp')).toBe('avatar_1024x1024.webp')
   })

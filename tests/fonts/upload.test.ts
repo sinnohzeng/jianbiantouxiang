@@ -2,11 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   FontUploadError,
+  MAX_UPLOADED_FONTS,
   MAX_UPLOAD_BYTES,
   clearUploadedFonts,
   getUploadedFont,
   listUploadedFonts,
   registerUploadedFont,
+  removeUploadedFont,
   uploadFamilyName,
 } from '@/fonts/upload'
 
@@ -139,5 +141,55 @@ describe('注册表', () => {
     clearUploadedFonts()
     expect(listUploadedFonts()).toHaveLength(0)
     expect(removed).toHaveLength(1)
+  })
+
+  it('removeUploadedFont 摘除单个，未命中返回 false', async () => {
+    const { family } = await registerUploadedFont(fontFile('Sample.ttf'))
+    expect(removeUploadedFont(family)).toBe(true)
+    expect(getUploadedFont(family)).toBeUndefined()
+    expect(removed).toHaveLength(1)
+    expect(removeUploadedFont(family)).toBe(false)
+    expect(removeUploadedFont('Ghost-upload')).toBe(false)
+    expect(removed).toHaveLength(1)
+  })
+})
+
+describe('注册表上限', () => {
+  it('常驻上限为 3', () => {
+    expect(MAX_UPLOADED_FONTS).toBe(3)
+  })
+
+  it('超出上限时淘汰最久未用的一份并从 document.fonts 摘除', async () => {
+    for (const name of ['A.ttf', 'B.ttf', 'C.ttf']) {
+      await registerUploadedFont(fontFile(name))
+    }
+    expect(listUploadedFonts()).toHaveLength(MAX_UPLOADED_FONTS)
+    expect(removed).toHaveLength(0)
+
+    await registerUploadedFont(fontFile('D.ttf'))
+    expect(listUploadedFonts().map((f) => f.family)).toEqual(['B-upload', 'C-upload', 'D-upload'])
+    expect(getUploadedFont('A-upload')).toBeUndefined()
+    expect(removed).toHaveLength(1)
+  })
+
+  it('取用过的一份不算最久未用', async () => {
+    for (const name of ['A.ttf', 'B.ttf', 'C.ttf']) {
+      await registerUploadedFont(fontFile(name))
+    }
+    expect(getUploadedFont('A-upload')).toBeTruthy()
+
+    await registerUploadedFont(fontFile('D.ttf'))
+    expect(listUploadedFonts().map((f) => f.family)).toEqual(['C-upload', 'A-upload', 'D-upload'])
+  })
+
+  it('同名重传不触发淘汰', async () => {
+    for (const name of ['A.ttf', 'B.ttf', 'C.ttf']) {
+      await registerUploadedFont(fontFile(name))
+    }
+    await registerUploadedFont(fontFile('C.ttf', 4096))
+    expect(listUploadedFonts().map((f) => f.family)).toEqual(['A-upload', 'B-upload', 'C-upload'])
+    // 只摘掉被覆盖的那份旧 face
+    expect(removed).toHaveLength(1)
+    expect(getUploadedFont('C-upload')?.bytes).toBe(4096)
   })
 })

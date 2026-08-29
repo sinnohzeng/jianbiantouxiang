@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FIT_ITERATIONS, MAX_FONT_RATIO, MIN_FONT_RATIO, fitText } from '@/text/fit'
+import { FIT_ITERATIONS, MAX_FONT_RATIO, MIN_FONT_RATIO, fitText, safeArea } from '@/text/fit'
 import type { PartialConfig } from '@/state/config'
 import { createStubMeasure, makeConfig } from './helpers'
 
@@ -123,5 +123,68 @@ describe('竖排', () => {
     })
     expect(result.block.lines).toHaveLength(1)
     expect(result.fits).toBe(false)
+  })
+})
+
+describe('安全框跟着画布形状收', () => {
+  const padded: PartialConfig = { typography: { padding: 0.1 } }
+
+  it('方角只按边距内缩', () => {
+    const area = safeArea(makeConfig({ ...padded, canvas: { shape: 'square' } }), 1000, 1000)
+    expect(area).toEqual({ x: 100, y: 100, width: 800, height: 800 })
+  })
+
+  it('圆形收到内接正方形，四角不再越出圆弧', () => {
+    const area = safeArea(makeConfig({ ...padded, canvas: { shape: 'circle' } }), 1000, 1000)
+    const side = 1000 / Math.SQRT2
+    expect(area.width).toBeCloseTo(side)
+    expect(area.height).toBeCloseTo(side)
+    expect(area.x).toBeCloseTo((1000 - side) / 2)
+    // 角点到圆心的距离不超过半径，允许一点浮点误差
+    const dx = area.width / 2
+    const dy = area.height / 2
+    expect(Math.hypot(dx, dy)).toBeLessThanOrEqual(500 + 1e-6)
+  })
+
+  it('非正方形画布上圆形按内接圆收，保持原方框比例', () => {
+    const area = safeArea(makeConfig({ ...padded, canvas: { shape: 'circle' } }), 1200, 800)
+    expect(Math.hypot(area.width / 2, area.height / 2)).toBeCloseTo(400)
+    expect(area.width / area.height).toBeCloseTo(1200 / 800)
+    expect(area.x + area.width / 2).toBeCloseTo(600)
+    expect(area.y + area.height / 2).toBeCloseTo(400)
+  })
+
+  it('常规圆角够不着方框四角，几何原样不动', () => {
+    const area = safeArea(
+      makeConfig({ ...padded, canvas: { shape: 'rounded', radius: 0.2 } }),
+      1000,
+      1000,
+    )
+    expect(area).toEqual({ x: 100, y: 100, width: 800, height: 800 })
+  })
+
+  it('圆角拉满等价于圆形', () => {
+    const round = safeArea(
+      makeConfig({ ...padded, canvas: { shape: 'rounded', radius: 0.5 } }),
+      1000,
+      1000,
+    )
+    const circle = safeArea(makeConfig({ ...padded, canvas: { shape: 'circle' } }), 1000, 1000)
+    expect(round.width).toBeCloseTo(circle.width)
+    expect(round.height).toBeCloseTo(circle.height)
+  })
+
+  it('边距拉到上限 0.3 时圆形仍够宽，不做多余收缩', () => {
+    const area = safeArea(
+      makeConfig({ typography: { padding: 0.3 }, canvas: { shape: 'circle' } }),
+      1000,
+      1000,
+    )
+    expect(area).toEqual({ x: 300, y: 300, width: 400, height: 400 })
+  })
+
+  it('画布尺寸为零时不出负数', () => {
+    const area = safeArea(makeConfig({ ...padded, canvas: { shape: 'circle' } }), 0, 0)
+    expect(area).toEqual({ x: 0, y: 0, width: 0, height: 0 })
   })
 })
