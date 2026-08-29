@@ -12,7 +12,7 @@ v2 参照 Justin Jay Wang 的方法，用多层 `<radialGradient>` 配 transform
 - 引擎改为 WebGL2 fragment shader，使用 `@paper-design/shaders`（Apache-2.0，零依赖，0.0.80）的 `ShaderMount` 与其 `staticMeshGradient`、`meshGradient`、`warp`、`grainGradient` 四个 shader，项目自建薄封装负责种子映射、离屏渲染与限幅。
 - 静态输出靠 `speed = 0` 加确定性的 `frame` / `positions` 种子；同一配置在同一设备像素级一致。
 - 光感在 2D 合成阶段用径向白光 screen 混合叠加，文字、形状遮罩也在 2D 阶段完成。
-- 不支持 WebGL2 时给 CSS 多层 `radial-gradient` 的静态近似，只预览不导出。
+- 不支持 WebGL2 时给 CSS 多层 `radial-gradient` 的静态近似，预览与导出都用这张近似图并明确提示。
 
 ## 后果
 
