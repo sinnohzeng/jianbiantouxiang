@@ -66,6 +66,16 @@ async function main() {
           written.push(full)
         }
 
+        // 导出抽屉的打开态：文案随浏览器语言变，按 data-slot 点更稳
+        const exportButton = page.locator('[data-slot="export-action"]')
+        if ((await exportButton.count()) > 0) {
+          await exportButton.first().click()
+          await page.waitForTimeout(600)
+          const drawer = path.join(OUT_DIR, `${base}-export.png`)
+          await page.screenshot({ path: drawer })
+          written.push(drawer)
+        }
+
         await context.close()
       }
     }

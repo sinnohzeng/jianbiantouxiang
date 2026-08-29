@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   CATALOG_CACHE_KEY,
@@ -11,6 +11,7 @@ import {
   toFontEntry,
 } from '@/fonts/catalog'
 import { CURATED_FONTS } from '@/fonts/curated'
+import { memoryStorage as store } from '../setup'
 
 const RAW = [
   {
@@ -55,34 +56,9 @@ function okResponse(body: unknown): Response {
   return { ok: true, status: 200, json: async () => body } as unknown as Response
 }
 
-/**
- * vitest 跑在 Node 24 上时 globalThis.localStorage 被运行时自身的实验实现占位，
- * jsdom 的那份注入不进来，所以这里自备一个内存 Storage。
- */
-function memoryStorage(): Storage {
-  const map = new Map<string, string>()
-  return {
-    get length() {
-      return map.size
-    },
-    clear: () => map.clear(),
-    getItem: (k: string) => map.get(k) ?? null,
-    key: (i: number) => [...map.keys()][i] ?? null,
-    removeItem: (k: string) => void map.delete(k),
-    setItem: (k: string, v: string) => void map.set(k, v),
-  }
-}
-
-let store: Storage
-
 function seedCache(at: number, fonts: FontEntry[]): void {
   store.setItem(CATALOG_CACHE_KEY, JSON.stringify({ at, fonts }))
 }
-
-beforeEach(() => {
-  store = memoryStorage()
-  vi.stubGlobal('localStorage', store)
-})
 
 afterEach(() => {
   vi.unstubAllGlobals()

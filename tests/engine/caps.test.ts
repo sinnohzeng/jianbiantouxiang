@@ -1,29 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getRenderCaps, hasWebGL2, resetRenderCaps } from '@/engine/caps'
+import { memoryStorage as localStorage } from '../setup'
 
 const CACHE_KEY = 'gradient-avatar:caps:v1'
 
-/** 这套 jsdom 不带 localStorage，缓存分支要自己搭一个内存实现来验。 */
-function createMemoryStorage() {
-  const map = new Map<string, string>()
-  return {
-    get length() {
-      return map.size
-    },
-    key: (index: number) => [...map.keys()][index] ?? null,
-    getItem: (key: string) => map.get(key) ?? null,
-    setItem: (key: string, value: string) => void map.set(key, value),
-    removeItem: (key: string) => void map.delete(key),
-    clear: () => map.clear(),
-  }
-}
-
-let localStorage: ReturnType<typeof createMemoryStorage>
-
 describe('getRenderCaps', () => {
   beforeEach(() => {
-    localStorage = createMemoryStorage()
-    vi.stubGlobal('localStorage', localStorage)
     resetRenderCaps()
   })
 
@@ -94,7 +76,7 @@ describe('getRenderCaps', () => {
   })
 
   it('宿主根本没有 localStorage 时照常返回结果', () => {
-    vi.unstubAllGlobals()
+    vi.stubGlobal('localStorage', undefined)
     resetRenderCaps()
     expect(globalThis.localStorage).toBeUndefined()
     expect(getRenderCaps()).toEqual({ webgl2: false, maxSize: 2048 })

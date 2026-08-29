@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_CONFIG, type AvatarConfig } from '@/state/config'
 import {
   PERSIST_KEY,
@@ -7,17 +7,11 @@ import {
   loadPersistedState,
   savePersisted,
 } from '@/state/persist'
-import { installLocalStorage } from './helpers'
-
-const store = installLocalStorage()
+import { memoryStorage as store } from '../setup'
 
 function withText(text: string): AvatarConfig {
   return { ...DEFAULT_CONFIG, text }
 }
-
-beforeEach(() => {
-  store.clear()
-})
 
 afterEach(() => {
   vi.restoreAllMocks()

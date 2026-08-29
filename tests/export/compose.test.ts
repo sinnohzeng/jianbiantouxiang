@@ -20,9 +20,10 @@ interface Harness {
   pickTextColor: ReturnType<typeof vi.fn>
   layoutText: ReturnType<typeof vi.fn>
   drawHighlight: ReturnType<typeof vi.fn>
+  needsPlate: ReturnType<typeof vi.fn>
 }
 
-function makeHarness(): Harness {
+function makeHarness(plate = false): Harness {
   const order: string[] = []
   // 渐变画布只被 drawImage 与释放动到，用一个最小的替身即可
   const gradient = { width: 2048, height: 2048 } as HTMLCanvasElement
@@ -37,6 +38,10 @@ function makeHarness(): Harness {
   const pickTextColor = vi.fn(() => {
     order.push('pickTextColor')
     return '#123456'
+  })
+  const needsPlate = vi.fn(() => {
+    order.push('needsPlate')
+    return plate
   })
   const drawText = vi.fn(() => {
     order.push('drawText')
@@ -54,10 +59,11 @@ function makeHarness(): Harness {
     drawHighlight,
     layoutText,
     pickTextColor,
+    needsPlate,
     drawText,
   }
 
-  return { deps, order, gradient, drawText, pickTextColor, layoutText, drawHighlight }
+  return { deps, order, gradient, drawText, pickTextColor, layoutText, drawHighlight, needsPlate }
 }
 
 function configOf(partial: PartialConfig = {}): AvatarConfig {
@@ -79,7 +85,7 @@ function opsOfOutput(): Op[] {
 }
 
 describe('composeWith 流程', () => {
-  it('按 字体 → 渐变 → 高光 → 排版 → 取色 → 绘字 的顺序调用依赖', async () => {
+  it('按 字体 → 渐变 → 高光 → 排版 → 底板 → 取色 → 绘字 的顺序调用依赖', async () => {
     const h = makeHarness()
     await composeWith(configOf(), 512, 512, h.deps)
 
@@ -88,6 +94,7 @@ describe('composeWith 流程', () => {
       'renderGradient',
       'drawHighlight',
       'layoutText',
+      'needsPlate',
       'pickTextColor',
       'drawText',
     ])
@@ -165,6 +172,43 @@ describe('composeWith 文字', () => {
     expect(h.layoutText).not.toHaveBeenCalled()
     expect(h.drawText).not.toHaveBeenCalled()
     expect(h.order).toEqual(['loadFontForConfig', 'renderGradient', 'drawHighlight'])
+  })
+})
+
+describe('composeWith 自动底板', () => {
+  it('像素判定要底板时把 effect 换成胶囊，用户的 config 不动', async () => {
+    const h = makeHarness(true)
+    const config = configOf()
+    await composeWith(config, 512, 512, h.deps)
+
+    expect(h.needsPlate).toHaveBeenCalledWith(expect.anything(), LAYOUT, config)
+    expect(h.drawText.mock.calls[0]?.[2]).toMatchObject({ typography: { effect: 'pill' } })
+    expect(config.typography.effect).toBe('plain')
+  })
+
+  it('不要底板时原样把 config 交给取色与绘字', async () => {
+    const h = makeHarness(false)
+    const config = configOf()
+    await composeWith(config, 512, 512, h.deps)
+
+    expect(h.drawText.mock.calls[0]?.[2]).toBe(config)
+  })
+
+  it('用户自己选了效果就不覆盖', async () => {
+    const h = makeHarness(true)
+    const config = configOf({ typography: { effect: 'outline' } })
+    await composeWith(config, 512, 512, h.deps)
+
+    expect(h.drawText.mock.calls[0]?.[2]).toBe(config)
+  })
+
+  it('自定义文字色时底板判定不改配置', async () => {
+    const h = makeHarness(true)
+    const config = configOf({ typography: { colorMode: 'custom', color: '#0a0a0a' } })
+    await composeWith(config, 512, 512, h.deps)
+
+    expect(h.drawText.mock.calls[0]?.[2]).toBe(config)
+    expect(h.drawText.mock.calls[0]?.[3]).toBe('#0a0a0a')
   })
 })
 

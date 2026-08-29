@@ -11,7 +11,7 @@ import {
   stopConfigSync,
   useAvatarStore,
 } from '@/state/store'
-import { installLocalStorage } from './helpers'
+import { memoryStorage as storage } from '../setup'
 
 // 只用到 id 与 tone，给三套固定数据让“换同 tone 配色”有唯一解
 vi.mock('@/palettes/palettes', () => ({
@@ -22,12 +22,10 @@ vi.mock('@/palettes/palettes', () => ({
   ],
 }))
 
-const storage = installLocalStorage()
 const store = () => useAvatarStore.getState()
 
 beforeEach(() => {
   stopConfigSync()
-  storage.clear()
   window.history.replaceState(null, '', '/')
   useAvatarStore.setState({ config: DEFAULT_CONFIG, history: [], ui: { ...DEFAULT_UI } })
 })

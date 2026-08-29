@@ -1,13 +1,14 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-@import '@fontsource-variable/geist';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: 'Geist Variable', sans-serif;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Noto Sans CJK SC', 'Helvetica Neue', Arial, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,83 +49,152 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * 中性色整体偏暖（色相 70 到 90，色度压在 0.012 以内）：
+ * 头像本体是高饱和渐变，外壳越冷越容易和画面抢眼。
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --background: oklch(0.985 0.004 85);
+  --foreground: oklch(0.215 0.008 75);
+  --card: oklch(0.997 0.002 85);
+  --card-foreground: oklch(0.215 0.008 75);
+  --popover: oklch(0.997 0.002 85);
+  --popover-foreground: oklch(0.215 0.008 75);
+  --primary: oklch(0.27 0.012 70);
+  --primary-foreground: oklch(0.985 0.004 85);
+  --secondary: oklch(0.955 0.006 85);
+  --secondary-foreground: oklch(0.27 0.012 70);
+  --muted: oklch(0.955 0.006 85);
+  --muted-foreground: oklch(0.545 0.012 78);
+  --accent: oklch(0.935 0.01 82);
+  --accent-foreground: oklch(0.27 0.012 70);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --border: oklch(0.9 0.007 82);
+  --input: oklch(0.9 0.007 82);
+  --ring: oklch(0.705 0.018 75);
+  --chart-1: oklch(0.72 0.11 55);
+  --chart-2: oklch(0.68 0.09 200);
+  --chart-3: oklch(0.62 0.1 290);
+  --chart-4: oklch(0.75 0.1 150);
+  --chart-5: oklch(0.55 0.02 80);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.975 0.005 85);
+  --sidebar-foreground: oklch(0.215 0.008 75);
+  --sidebar-primary: oklch(0.27 0.012 70);
+  --sidebar-primary-foreground: oklch(0.985 0.004 85);
+  --sidebar-accent: oklch(0.935 0.01 82);
+  --sidebar-accent-foreground: oklch(0.27 0.012 70);
+  --sidebar-border: oklch(0.9 0.007 82);
+  --sidebar-ring: oklch(0.705 0.018 75);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.165 0.006 75);
+  --foreground: oklch(0.955 0.005 85);
+  --card: oklch(0.215 0.007 75);
+  --card-foreground: oklch(0.955 0.005 85);
+  --popover: oklch(0.215 0.007 75);
+  --popover-foreground: oklch(0.955 0.005 85);
+  --primary: oklch(0.92 0.008 85);
+  --primary-foreground: oklch(0.225 0.008 75);
+  --secondary: oklch(0.285 0.008 78);
+  --secondary-foreground: oklch(0.955 0.005 85);
+  --muted: oklch(0.285 0.008 78);
+  --muted-foreground: oklch(0.715 0.012 80);
+  --accent: oklch(0.315 0.01 78);
+  --accent-foreground: oklch(0.955 0.005 85);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.585 0.015 78);
+  --chart-1: oklch(0.75 0.11 55);
+  --chart-2: oklch(0.72 0.09 200);
+  --chart-3: oklch(0.68 0.1 290);
+  --chart-4: oklch(0.78 0.1 150);
+  --chart-5: oklch(0.7 0.02 80);
+  --sidebar: oklch(0.195 0.006 75);
+  --sidebar-foreground: oklch(0.955 0.005 85);
+  --sidebar-primary: oklch(0.92 0.008 85);
+  --sidebar-primary-foreground: oklch(0.225 0.008 75);
+  --sidebar-accent: oklch(0.315 0.01 78);
+  --sidebar-accent-foreground: oklch(0.955 0.005 85);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.585 0.015 78);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+
   html {
     @apply font-sans;
+    -webkit-text-size-adjust: 100%;
   }
+
+  body {
+    @apply bg-background text-foreground;
+    /* 手机上底栏与抽屉都贴着屏幕边，横向滚动一律不允许出现 */
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
+  }
+
+  /* iOS 聚焦时字号小于 16 px 会自动放大页面 */
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1rem);
+  }
+}
+
+@layer components {
+  /* 触控目标下限，手机上的图标按钮与列表项统一挂这个类 */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 环境光晕的极慢漂移。prefers-reduced-motion 下由上面的全局规则冻结在首帧 */
+@keyframes ambient-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, -4%, 0) scale(1.1);
+  }
+}
+
+.ambient-blob {
+  animation: ambient-drift 26s ease-in-out infinite;
+}
+
+/* 字体加载的不确定进度条。reduced-motion 下由全局规则停在起点，仍能看出“有事在做” */
+@keyframes progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+.progress-indeterminate {
+  animation: progress-slide 1.4s ease-in-out infinite;
 }

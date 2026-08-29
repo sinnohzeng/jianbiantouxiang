@@ -1,5 +1,6 @@
 import { resolveSeed } from '@/engine/seed'
 import type { AvatarConfig } from '@/state/config'
+import { effectiveConfig } from '@/text/effective'
 import { createCanvas, get2d, releaseCanvas } from './canvas'
 
 /**
@@ -19,6 +20,8 @@ export interface ComposeDeps<L> {
   ): void
   layoutText(config: AvatarConfig, width: number, height: number): L
   pickTextColor(ctx: CanvasRenderingContext2D, layout: L, config: AvatarConfig): string
+  /** 两个候选文字色都到不了 WCAG 4.5 时为真，合成据此自动补一层胶囊底板。 */
+  needsPlate(ctx: CanvasRenderingContext2D, layout: L, config: AvatarConfig): boolean
   drawText(ctx: CanvasRenderingContext2D, layout: L, config: AvatarConfig, color: string): void
 }
 
@@ -52,11 +55,14 @@ export async function composeWith<L>(
 
   if (config.text.trim() !== '') {
     const layout = deps.layoutText(config, width, height)
+    // 底板判定与预览走同一条路径：都读高光之后的像素，两边不会一个有底板一个没有。
+    // effect 不参与排版，补上底板之后不必重新量一遍
+    const target = effectiveConfig(config, deps.needsPlate(ctx, layout, config))
     const color =
-      config.typography.colorMode === 'auto'
-        ? deps.pickTextColor(ctx, layout, config)
-        : config.typography.color
-    deps.drawText(ctx, layout, config, color)
+      target.typography.colorMode === 'auto'
+        ? deps.pickTextColor(ctx, layout, target)
+        : target.typography.color
+    deps.drawText(ctx, layout, target, color)
   }
 
   applyShapeMask(ctx, config, width, height)

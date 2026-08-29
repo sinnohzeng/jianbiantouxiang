@@ -1,0 +1,253 @@
+# i18n key 清单
+
+字典是扁平的点分 key，源语言 zh-CN，其余四份由 `typeof zhCN` 约束，缺 key 会在 typecheck 报错。
+
+配色名与家族名不进字典：`@/palettes` 的 `PALETTES[i].name[locale]` 与 `PALETTE_FAMILIES[i].name[locale]` 已经带五语，直接按 `useLocale()` 取。
+
+| key                               | zh-CN                                                                            |
+| --------------------------------- | -------------------------------------------------------------------------------- |
+| `app.description`                 | 纯前端的渐变头像生成器。选配色与质感，导出可直接用作群聊、账号与部门标识的图片。 |
+| `app.name`                        | 渐变头像生成器                                                                   |
+| `app.shortName`                   | 渐变头像                                                                         |
+| `app.slogan`                      | 输入几个字，秒出一张柔光质感的渐变头像                                           |
+| `app.title`                       | 渐变头像生成器 · Gradient Avatar                                                 |
+| `bottombar.actions`               | 主要操作                                                                         |
+| `bottombar.copyLink`              | 复制链接                                                                         |
+| `bottombar.export`                | 导出                                                                             |
+| `bottombar.random`                | 随机                                                                             |
+| `bottombar.random.hint`           | 只换种子，配色与质感不变                                                         |
+| `bottombar.randomAll`             | 随机配色与质感                                                                   |
+| `bottombar.share`                 | 分享                                                                             |
+| `common.add`                      | 添加                                                                             |
+| `common.all`                      | 全部                                                                             |
+| `common.apply`                    | 应用                                                                             |
+| `common.back`                     | 返回                                                                             |
+| `common.cancel`                   | 取消                                                                             |
+| `common.close`                    | 关闭                                                                             |
+| `common.confirm`                  | 确定                                                                             |
+| `common.copied`                   | 链接已复制                                                                       |
+| `common.copy`                     | 复制                                                                             |
+| `common.copyFailed`               | 复制失败，请手动复制地址栏里的链接                                               |
+| `common.custom`                   | 自定义                                                                           |
+| `common.default`                  | 默认                                                                             |
+| `common.empty`                    | 暂时没有内容                                                                     |
+| `common.failed`                   | 出错了                                                                           |
+| `common.loading`                  | 加载中                                                                           |
+| `common.more`                     | 更多                                                                             |
+| `common.off`                      | 关                                                                               |
+| `common.on`                       | 开                                                                               |
+| `common.remove`                   | 移除                                                                             |
+| `common.reset`                    | 重置                                                                             |
+| `common.retry`                    | 重试                                                                             |
+| `export.bg`                       | 底色                                                                             |
+| `export.bg.hint`                  | JPG 与圆角外的区域用这个颜色填充                                                 |
+| `export.cancelled`                | 已取消分享                                                                       |
+| `export.caps`                     | 本设备最高原生 {size} px，更大的尺寸先按上限渲染再放大                           |
+| `export.copyLink`                 | 复制链接                                                                         |
+| `export.desc`                     | 选好格式与体积，直接下载或分享                                                   |
+| `export.dimensions`               | 当前尺寸 {width}×{height}                                                        |
+| `export.done`                     | 已导出 {name}                                                                    |
+| `export.download`                 | 下载                                                                             |
+| `export.downloaded`               | 已开始下载                                                                       |
+| `export.failed`                   | 导出失败，换个尺寸或格式再试                                                     |
+| `export.filename`                 | 文件名                                                                           |
+| `export.format`                   | 格式                                                                             |
+| `export.format.jpg`               | JPG                                                                              |
+| `export.format.png`               | PNG                                                                              |
+| `export.format.pngHint`           | PNG 无损，4096 以上体积会很大                                                    |
+| `export.format.webp`              | WebP                                                                             |
+| `export.format.webpMissing`       | 当前浏览器不支持 WebP 编码                                                       |
+| `export.preview`                  | 导出结果                                                                         |
+| `export.result`                   | {size}，质量 {quality}                                                           |
+| `export.share`                    | 分享                                                                             |
+| `export.shared`                   | 已发起分享                                                                       |
+| `export.size`                     | 体积                                                                             |
+| `export.size.1mb`                 | 1 MB 以内                                                                        |
+| `export.size.2mb`                 | 2 MB 以内                                                                        |
+| `export.size.hint`                | 用二分搜索压到目标体积，质量下限 0.6                                             |
+| `export.size.none`                | 不限制                                                                           |
+| `export.title`                    | 导出                                                                             |
+| `export.tooLarge`                 | 压到质量下限仍超出目标体积，建议降低分辨率                                       |
+| `export.wechat`                   | 微信里长按图片可以保存到相册                                                     |
+| `export.working`                  | 正在合成                                                                         |
+| `font.all`                        | 全部字体                                                                         |
+| `font.category`                   | 分类                                                                             |
+| `font.category.all`               | 全部                                                                             |
+| `font.category.display`           | 展示                                                                             |
+| `font.category.handwriting`       | 手写                                                                             |
+| `font.category.monospace`         | 等宽                                                                             |
+| `font.category.other`             | 其他                                                                             |
+| `font.category.sans-serif`        | 无衬线                                                                           |
+| `font.category.serif`             | 衬线                                                                             |
+| `font.curated`                    | 精选                                                                             |
+| `font.curated.jp`                 | 精选日文                                                                         |
+| `font.curated.kr`                 | 精选韩文                                                                         |
+| `font.curated.latin`              | 精选拉丁                                                                         |
+| `font.curated.sc`                 | 精选简体中文                                                                     |
+| `font.curated.tc`                 | 精选繁体中文                                                                     |
+| `font.empty`                      | 没有匹配的字体                                                                   |
+| `font.loading`                    | 正在取字体列表                                                                   |
+| `font.more`                       | 结果太多，继续输入以缩小范围                                                     |
+| `font.recent`                     | 最近使用                                                                         |
+| `font.search`                     | 搜索字体名称                                                                     |
+| `font.system`                     | 系统字体                                                                         |
+| `font.title`                      | 选字体                                                                           |
+| `font.upload`                     | 上传字体                                                                         |
+| `font.upload.badExt`              | 不支持这种字体格式                                                               |
+| `font.upload.failed`              | 字体文件读不出来，换一个再试                                                     |
+| `font.upload.hint`                | 支持 TTF、OTF、WOFF、WOFF2，只在当前会话有效，分享出去对方看不到                 |
+| `font.upload.tooLarge`            | 字体文件太大，请换一个更小的                                                     |
+| `history.empty`                   | 随机或导出之后会出现在这里                                                       |
+| `history.item`                    | 第 {index} 版                                                                    |
+| `history.restore`                 | 回到这一版                                                                       |
+| `history.title`                   | 最近生成                                                                         |
+| `locale.en`                       | English                                                                          |
+| `locale.ja`                       | 日本語                                                                           |
+| `locale.ko`                       | 한국어                                                                           |
+| `locale.zh-CN`                    | 简体中文                                                                         |
+| `locale.zh-HK`                    | 繁體中文                                                                         |
+| `panel.canvas.height`             | 高                                                                               |
+| `panel.canvas.preset.avatar`      | 头像                                                                             |
+| `panel.canvas.preset.banner`      | 横幅                                                                             |
+| `panel.canvas.preset.custom`      | 自定义                                                                           |
+| `panel.canvas.preset.portrait`    | 竖版                                                                             |
+| `panel.canvas.radius`             | 圆角比例                                                                         |
+| `panel.canvas.range`              | 边长范围 {min} 到 {max} px                                                       |
+| `panel.canvas.shape`              | 形状                                                                             |
+| `panel.canvas.shape.circle`       | 圆形                                                                             |
+| `panel.canvas.shape.rounded`      | 圆角                                                                             |
+| `panel.canvas.shape.square`       | 方形                                                                             |
+| `panel.canvas.size`               | 尺寸                                                                             |
+| `panel.canvas.swap`               | 交换宽高                                                                         |
+| `panel.canvas.title`              | 画布                                                                             |
+| `panel.canvas.width`              | 宽                                                                               |
+| `panel.common.edit`               | 编辑{name}                                                                       |
+| `panel.common.hex`                | 十六进制色值                                                                     |
+| `panel.palette.builtin`           | 内置配色                                                                         |
+| `panel.palette.custom`            | 自定义配色                                                                       |
+| `panel.palette.custom.add`        | 添加颜色                                                                         |
+| `panel.palette.custom.colorAt`    | 第 {index} 个颜色                                                                |
+| `panel.palette.custom.hexAt`      | 第 {index} 个颜色的十六进制值                                                    |
+| `panel.palette.custom.hint`       | 2 到 6 个颜色，顺序即渐变顺序                                                    |
+| `panel.palette.custom.paste`      | 粘贴 hex 列表                                                                    |
+| `panel.palette.custom.paste.hint` | 每行一个，也可以用逗号或空格分隔                                                 |
+| `panel.palette.custom.remove`     | 移除颜色                                                                         |
+| `panel.palette.custom.removeAt`   | 移除第 {index} 个颜色                                                            |
+| `panel.palette.empty`             | 没有匹配的配色                                                                   |
+| `panel.palette.family`            | 家族                                                                             |
+| `panel.palette.family.all`        | 全部家族                                                                         |
+| `panel.palette.seed`              | 种子色生成                                                                       |
+| `panel.palette.seed.analogous`    | 类比                                                                             |
+| `panel.palette.seed.apply`        | 填入配色                                                                         |
+| `panel.palette.seed.base`         | 主色                                                                             |
+| `panel.palette.seed.mono`         | 同色相                                                                           |
+| `panel.palette.seed.plate`        | 这套颜色和文字的对比度偏低，建议在文字样式里开胶囊底                             |
+| `panel.palette.seed.scheme`       | 方案                                                                             |
+| `panel.palette.seed.second`       | 辅色（可留空）                                                                   |
+| `panel.palette.seed.split`        | 分裂互补                                                                         |
+| `panel.palette.seed.tone`         | 明暗                                                                             |
+| `panel.palette.title`             | 配色                                                                             |
+| `panel.palette.tone`              | 明暗筛选                                                                         |
+| `panel.palette.tone.all`          | 全部                                                                             |
+| `panel.palette.tone.dark`         | 深色系                                                                           |
+| `panel.palette.tone.light`        | 浅色系                                                                           |
+| `panel.style.highlight`           | 光感                                                                             |
+| `panel.style.highlight.hint`      | 模拟光透过玻璃的通透感，设为 0 可关掉                                            |
+| `panel.style.params`              | 参数                                                                             |
+| `panel.style.pick`                | 选质感                                                                           |
+| `panel.style.seed`                | 种子                                                                             |
+| `panel.style.seed.copy`           | 复制种子                                                                         |
+| `panel.style.seed.hint`           | 同一个种子在任何设备上都得到同一张图                                             |
+| `panel.style.seed.new`            | 换个种子                                                                         |
+| `panel.style.title`               | 质感                                                                             |
+| `panel.tabs.label`                | 参数分组                                                                         |
+| `panel.text.align`                | 对齐                                                                             |
+| `panel.text.align.center`         | 居中                                                                             |
+| `panel.text.align.left`           | 左对齐                                                                           |
+| `panel.text.align.right`          | 右对齐                                                                           |
+| `panel.text.anchor`               | 锚点                                                                             |
+| `panel.text.anchor.b`             | 下中                                                                             |
+| `panel.text.anchor.bl`            | 左下                                                                             |
+| `panel.text.anchor.br`            | 右下                                                                             |
+| `panel.text.anchor.c`             | 正中                                                                             |
+| `panel.text.anchor.hint`          | 文字块在安全区里的落点                                                           |
+| `panel.text.anchor.l`             | 左中                                                                             |
+| `panel.text.anchor.r`             | 右中                                                                             |
+| `panel.text.anchor.t`             | 上中                                                                             |
+| `panel.text.anchor.tl`            | 左上                                                                             |
+| `panel.text.anchor.tr`            | 右上                                                                             |
+| `panel.text.autoWrap`             | 自动换行                                                                         |
+| `panel.text.autoWrap.hint`        | 按安全区宽度换行，中日韩逐字、拉丁按词                                           |
+| `panel.text.color`                | 文字颜色                                                                         |
+| `panel.text.color.auto`           | 自动                                                                             |
+| `panel.text.color.auto.hint`      | 按文字下方画面的明度选白或深灰，并保证对比度达标                                 |
+| `panel.text.color.custom`         | 自定义                                                                           |
+| `panel.text.content`              | 文字内容                                                                         |
+| `panel.text.effect`               | 文字样式                                                                         |
+| `panel.text.effect.glow`          | 发光                                                                             |
+| `panel.text.effect.outline`       | 描边                                                                             |
+| `panel.text.effect.pill`          | 胶囊底                                                                           |
+| `panel.text.effect.plain`         | 纯色                                                                             |
+| `panel.text.effect.shadow`        | 投影                                                                             |
+| `panel.text.effectStrength`       | 强度                                                                             |
+| `panel.text.font`                 | 字体                                                                             |
+| `panel.text.fontSize`             | 字号                                                                             |
+| `panel.text.fontWeight`           | 字重                                                                             |
+| `panel.text.group.basic`          | 基础                                                                             |
+| `panel.text.group.effect`         | 效果                                                                             |
+| `panel.text.group.type`           | 排版                                                                             |
+| `panel.text.letterSpacing`        | 字间距                                                                           |
+| `panel.text.lineHeight`           | 行高                                                                             |
+| `panel.text.offsetX`              | 水平偏移                                                                         |
+| `panel.text.offsetY`              | 垂直偏移                                                                         |
+| `panel.text.padding`              | 边距                                                                             |
+| `panel.text.pill.opacity`         | 胶囊透明度                                                                       |
+| `panel.text.pill.padding`         | 胶囊内边距                                                                       |
+| `panel.text.pill.radius`          | 胶囊圆角                                                                         |
+| `panel.text.placeholder`          | 输入文字，支持换行                                                               |
+| `panel.text.seed`                 | 种子                                                                             |
+| `panel.text.seed.clear`           | 清除种子                                                                         |
+| `panel.text.seed.placeholder`     | 自动（按文字派生）                                                               |
+| `panel.text.seed.random`          | 随机种子                                                                         |
+| `panel.text.sizeMode`             | 字号模式                                                                         |
+| `panel.text.sizeMode.auto`        | 自动填满                                                                         |
+| `panel.text.sizeMode.manual`      | 手动                                                                             |
+| `panel.text.title`                | 文字                                                                             |
+| `panel.text.vertical`             | 竖排                                                                             |
+| `preview.font.fallback`           | 字体没加载成功，已回落系统字体                                                   |
+| `preview.font.loading`            | 字体加载中                                                                       |
+| `preview.font.upload`             | 该字体是对方本地上传的，已回落系统字体                                           |
+| `preview.label`                   | 预览                                                                             |
+| `preview.overflow`                | 文字超出安全区                                                                   |
+| `preview.plate.badge`             | 已自动加底板                                                                     |
+| `preview.plate.hint`              | 文字与背景对比度不够，预览与导出都会垫一层半透明底板                             |
+| `preview.safeArea`                | 安全区参考线                                                                     |
+| `preview.safeArea.hint`           | 显示圆形裁切范围，用来确认头像被裁圆后文字还在里面                               |
+| `preview.webgl.desc`              | 已回落到静态近似渐变，构图与真实效果会有出入                                     |
+| `preview.webgl.title`             | 这个浏览器不支持 WebGL2                                                          |
+| `style.flow.desc`                 | 色带互相牵引，像被搅动过的液体                                                   |
+| `style.flow.intensity`            | 变形                                                                             |
+| `style.flow.name`                 | 流动                                                                             |
+| `style.flow.softness`             | 顺滑度                                                                           |
+| `style.grain.desc`                | 噪声推开色带，接近胶片扫描的质地                                                 |
+| `style.grain.intensity`           | 色带强度                                                                         |
+| `style.grain.name`                | 颗粒                                                                             |
+| `style.grain.softness`            | 柔和度                                                                           |
+| `style.mesh.desc`                 | 大块柔和色团，最接近发布图那种通透感，默认就用它                                 |
+| `style.mesh.intensity`            | 起伏                                                                             |
+| `style.mesh.name`                 | 柔光                                                                             |
+| `style.mesh.softness`             | 柔和度                                                                           |
+| `style.param.grain`               | 颗粒                                                                             |
+| `style.param.rotation`            | 旋转                                                                             |
+| `style.param.scale`               | 比例                                                                             |
+| `style.silk.desc`                 | 带折痕的绸缎面，光沿褶皱走                                                       |
+| `style.silk.intensity`            | 褶皱强度                                                                         |
+| `style.silk.name`                 | 丝绸                                                                             |
+| `style.silk.softness`             | 柔和度                                                                           |
+| `theme.dark`                      | 深色                                                                             |
+| `theme.light`                     | 浅色                                                                             |
+| `theme.system`                    | 跟随系统                                                                         |
+| `topbar.github`                   | 在 GitHub 上查看源码                                                             |
+| `topbar.language`                 | 界面语言                                                                         |
+| `topbar.menu`                     | 更多操作                                                                         |
+| `topbar.theme`                    | 主题                                                                             |
