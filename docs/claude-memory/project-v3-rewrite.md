@@ -1,12 +1,17 @@
 ---
 name: project-v3-rewrite
-description: 2026-08-29 启动的 v3 重构（React + WebGL shader 引擎 + Google Fonts），阶段划分、验收条件与分工约定
+description: 2026-08-29 完成的 v3 重构（React + WebGL shader 引擎 + Google Fonts）的分工方式、验收口径与后续维护约定
 metadata:
   type: project
 ---
 
-2026-08-29 启动 v3 重构，规约在 `specs/v3-gradient-avatar/spec.md`，实施计划在同目录 `plan.md`，四份 ADR 在 `docs/adr/`，调研沉淀在 `docs/research/2026-08-29-ai-gradient-technique-survey.md`。
+2026-08-29 用一天完成 v3 重构：规约 `specs/v3-gradient-avatar/spec.md`、计划 `plan.md`、四份 ADR、调研沉淀 `docs/research/2026-08-29-ai-gradient-technique-survey.md`。阶段顺序是脚手架 → 六个核心库并行 → 界面两智能体并行 → 收尾（体积、e2e）→ 视觉调参 → 六维审查 → 文档，每阶段主会话验证后单独提交。
 
-**Why:** 用户要求对标 OpenAI 风格柔和渐变、文字排版可配、Google Fonts 动态加载、导出体积可控、手机端好用，并明确不留历史包袱、技术决策由我拍板、机械实现交给 Opus 5 子智能体。
+**Why:** 用户要求对标 OpenAI 风格柔光渐变、文字排版可配、Google Fonts 动态加载、导出体积可控、手机端好用；技术决策由主会话拍板，机械实现交给 Opus 子智能体；不留历史包袱。
 
-**How to apply:** 阶段顺序为脚手架 → 核心库（engine / text / palettes / fonts / export / state 六个目录并行）→ 界面（shell 与 panels 两个智能体）→ 集成与设备模拟截图核查 → 审查 → 文档与发布；每阶段由主会话验证后单独提交。验收条件见 spec §6。付费 registry 密钥在 `.env.local` 与 `~/.zshenv`，任何文件与输出不得出现明文。相关：[[reference-paid-registries]]。
+**How to apply:**
+- 改引擎参数前先跑样张：`scratchpad/contact` 那套管线（`composeAvatar` 逐格渲染拼图）随会话消失，仓库里等价做法是 `scripts/screenshots.mjs` 加临时 vite 入口；判定用 std luma、可见停靠色数与文字对比度，不只看单张。
+- 视觉验收看 `docs/assets/samples/`，交互验收跑 `npm run e2e`（桌面 + iPhone 15）与 `npm run screenshots` 后用 Read 看图。
+- 子智能体一律不做 git 操作、不 cat `.env.local`；主会话提交前看 `git status --short` 有无 `D ` 前缀。
+- 付费 registry 用 `./node_modules/.bin/shadcn`，密钥只在 `.env.local` 与 `~/.zshenv`，任何文件与输出不得出现明文。跨项目细节见全局记忆 `reference_shadcn_cli_env_gotchas.md`。
+- 常驻文档只写现状；变更进 `CHANGELOG.md`，踩坑进 `docs/engineering-lessons.md`。

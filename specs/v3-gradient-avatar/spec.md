@@ -21,12 +21,13 @@
 
 - 引擎是 WebGL2 fragment shader，通过 `@paper-design/shaders`（Apache-2.0）的 `ShaderMount` 驱动，项目自建薄封装，不使用 `@paper-design/shaders-react`。
 - 四种质感（style）：
-  | style                | 底层 shader          | 种子映射的参数                                                                                   | 面向用户的滑杆                       |
-  | -------------------- | -------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------ |
-  | `mesh`（柔光，默认） | `staticMeshGradient` | `positions` 0–100、`waveX/Y` 与 shift、`rotation`                                                | 柔和度（mixing）、起伏（wave）、颗粒 |
-  | `flow`（流动）       | `meshGradient`       | `frame`、`distortion`、`swirl`、`rotation`                                                       | 变形、涡旋、颗粒                     |
-  | `silk`（丝绸）       | `warp`               | `frame`、`rotation`、`scale`                                                                     | 褶皱强度、比例、颗粒                 |
-  | `grain`（颗粒）      | `grainGradient`      | `frame`、`shape`（wave / dots / truchet / corners / ripple / blob / sphere，以包内类型定义为准） | 形状、颗粒                           |
+  | style                | 底层 shader          | 种子映射的参数                                                    | 面向用户的滑杆                                     |
+  | -------------------- | -------------------- | ----------------------------------------------------------------- | -------------------------------------------------- |
+  | `mesh`（柔光，默认） | `staticMeshGradient` | `positions`、`waveX/Y` 与 shift                                   | 四种质感统一暴露五个滑杆：强度、柔和度、颗粒、缩放、旋转。同一个滑杆在不同质感下映射到各自的 uniform，标签随质感变 |
+  | `flow`（流动）       | `meshGradient`       | `frame`、`distortion`、`swirl`                                    |                                                    |
+  | `silk`（丝绸）       | `warp`               | `frame`、`shape`（`stripes` 为主，少量 `checks`）、`shapeScale`   |                                                    |
+  | `grain`（颗粒）      | `grainGradient`      | `frame`、`shape`（`wave` / `ripple` / `corners` 三种）            |                                                    |
+- shader 形状池与参数区间以实测为准：`grain` 的 `blob` 与 `sphere` 在头像尺寸下出平色或硬边圆球，`silk` 的 `edge` 压成平淡线性渐变，都不进池；`grain` 的每种形状自带缩放倍率，否则单格色带撑满画面只剩底色。`silk` 在浅色配色上按平均明度压制扭曲与漩涡，避免出锡纸脊线。
 - 种子 → 参数的映射用 mulberry32 之类的确定性 PRNG；同一 seed + 同一配置在同一设备上像素级一致，跨 GPU 允许亚像素差异。种子默认由文字内容哈希得出，可手动改、可随机。
 - 每种质感都暴露一个“颗粒”参数（`grainMixer` 与 `grainOverlay` 联动），默认低值，让画面有胶片感但不脏。
 - 光感层：在 2D 合成阶段叠一层可调强度的柔白高光（径向渐变，screen 混合），默认 0.25，用于模拟“光透过玻璃”的通透感。可关。
@@ -48,7 +49,7 @@
   - 手动：字号以画布短边百分比表示，范围 4 %–92 %。
 - 排版参数（全部可调，全部有合理默认）：行高 0.85–2.0（默认 1.15；单行时行高不影响排版）、字间距 -0.1–0.5 em（默认 0，2 到 4 个 CJK 字的短文字自动填满时用 0.05 em 作为起点）、字重（按当前字体可用字重）、对齐（左 / 中 / 右）、锚点（九宫格）加微调偏移、竖排开关（CJK）。
 - 文字样式：纯色；描边；投影 / 发光（强度可调）；胶囊底（半透明圆角矩形，圆角与内边距可调）。
-- 文字颜色：自动（按文字区域下方像素的平均明度选白或深灰，并保证 WCAG 2 对比度 ≥ 4.5）或自定义。
+- 文字颜色：自动或自定义。自动的规则分两路：内置配色直接用配色表里设计好的文字色，保证同一配色下每块文字颜色一致；自定义配色按文字区域下方像素的相对亮度取白或近黑（阈值 0.5）。两种情况都再算一次 WCAG 2 对比度，低于 3.0（大字门槛）时自动垫一层胶囊底板。
 - 字体：
   - 默认：按界面语言选 Noto Sans SC / TC / JP / KR，英文默认 Inter。
   - Google Fonts 全库动态加载：字体列表来自 fontsource API（`https://api.fontsource.org/v1/fonts`），本地缓存 7 天，另内置一份精选清单（含全部 Google Fonts 上的中文字体：Noto Sans / Serif SC 与 TC、ZCOOL KuaiLe、ZCOOL QingKe HuangYou、ZCOOL XiaoWei、Ma Shan Zheng、Long Cang、Zhi Mang Xing、Liu Jian Mao Cao、WDXL Lubrifont SC）作为离线兜底与推荐。
@@ -69,7 +70,7 @@
 - JPG 体积控制：目标 1 MB（默认）与上限 2048 KB 两个档位，另有“不限制（质量 92）”；用二分搜索质量达到目标，质量下限 0.6，达不到则提示降分辨率。
 - WebP：质量 0.9，同样支持目标体积；启动时用 1×1 画布探测 `toBlob('image/webp')` 的返回类型，Safari 一类不支持的浏览器直接隐藏该选项，不引入 WASM 编码器。
 - PNG：无损；分辨率 ≥ 4096 时提示体积可能很大。
-- 文件名：`<文字>_<宽>x<高>.<ext>`，文字为空时用 `avatar`（纯 ASCII，避免各平台文件名编码问题）。
+- 文件名：`<文字>_<宽>x<高>.<ext>`，文字保留原样（含中文）只去掉文件名非法字符并截断到 12 个字符，为空时用 `avatar`。
 - 移动端优先走 Web Share API（`navigator.share({ files })`，可直接分享到微信），不支持时回落下载。
 - 导出前把当前配置写入 URL hash，导出面板提供“复制链接”。
 

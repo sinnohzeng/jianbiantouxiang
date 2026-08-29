@@ -1,282 +1,109 @@
-# 贡献指南
+# 参与开发
 
-## 开发环境搭建
+模块划分与数据流见 `docs/architecture.md`，这份只写约定。
 
-### 前置要求
+## 环境
 
-- **Node.js** 18 或更高版本
-- **npm**（随 Node.js 一起安装）
-
-### 安装步骤
+Node.js 24 以上，npm 随 Node 安装。克隆后 `npm install` 即可，构建与测试都不需要任何密钥。
 
 ```bash
-git clone <repo-url>
-cd gradient-background-generator
+git clone https://github.com/sinnohzeng/gradient-avatar.git
+cd gradient-avatar
 npm install
+npm run dev
 ```
 
-### 验证安装
+## 命令
+
+| 命令 | 做什么 |
+| --- | --- |
+| `npm run dev` | 开发服务器，<http://localhost:5173> |
+| `npm run build` | 先 `tsc -b` 再 `vite build`，产物在 `dist/` |
+| `npm run preview` | 预览构建产物，端到端与截图脚本都打这个地址 |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc -b --noEmit` |
+| `npm test` | Vitest 单跑一遍 |
+| `npm run test:watch` | Vitest 监听模式 |
+| `npm run e2e` | Playwright，桌面 1440 与 iPhone 15 两组 |
+| `npm run screenshots` | 三个设备各截深浅两套主题到 `.screenshots/` |
+| `npm run format` | Prettier 写回 |
+| `npm run format:check` | Prettier 只检查 |
+
+提交前至少跑 `npm run lint && npm run typecheck && npm test && npm run build`，CI 跑的就是这四步。
+
+## 目录约定
+
+新文件按职责放进对应目录，不在 `src/` 根下堆散文件。
+
+| 放什么 | 放哪 |
+| --- | --- |
+| 纯逻辑 | `src/engine/`、`src/text/`、`src/palettes/`、`src/fonts/`、`src/export/`、`src/state/` 六个库目录之一 |
+| 页面结构与面板 | `src/app/` 与 `src/app/panels/` |
+| shadcn 原语 | `src/components/ui/`，由 CLI 生成，不手改 |
+| 跨面板复用的组合件 | `src/components/blocks/` |
+| 单测 | `tests/`，目录与文件名跟 `src/` 对齐 |
+| 端到端 | `e2e/`，文件名决定跑在哪一档 |
+
+每个库目录有一个 `index.ts` 作为对外出口，跨目录引用走出口，不深挖到内部文件。
+
+## 提交
+
+Conventional Commits，类型用英文，描述用中文，一行说清这次做了什么。
+
+```
+feat: 配色面板支持粘贴 hex 列表
+fix: 竖排文字在圆形画布上被裁掉一列
+docs: 补齐字体加载链的说明
+```
+
+常用类型：`feat`、`fix`、`refactor`、`perf`、`test`、`docs`、`chore`、`build`、`ci`。
+
+提交信息不带任何署名或协作者尾注。
+
+## 代码约定
+
+- TypeScript strict，另开 `noUncheckedIndexedAccess`。取数组元素与可选字段要显式处理 `undefined`，不用非空断言绕过。
+- 模块内引用用相对路径，跨目录一律用 `@/` 别名，不写 `../../`。
+- 格式交给 Prettier：单引号、不加分号、行宽 100、尾随逗号。`src/components/ui`、`docs/`、`specs/` 与根目录的长文档都在 `.prettierignore` 里，改这些文件不必也不要跑格式化。
+- 新组件按这个顺序找：先看 `src/components/ui/` 的 shadcn 原语够不够用，不够就去付费 registry 找可借鉴的范式并按本仓需要改造，都不合适才自己写。`src/components/blocks/` 里的件都在文件头注明了范式来源。
+- 界面文案一律走 i18n key，源码里不出现硬编码的中文或英文文案。key 是扁平的点分命名，一级前缀就是区域，现有的是 `app`、`panel`、`style`、`preview`、`export`、`font`、`topbar`、`bottombar`、`history`、`theme`、`locale`、`common`。加 key 要同时改五份字典，少一份 typecheck 就报错。配色名与家族名不进字典，它们在 `src/palettes/palettes.ts` 里自带五语。
+- 触控目标不小于 44 px，输入类控件字号不小于 16 px，后者是为了避开 iOS 聚焦时的自动缩放。
+- 装饰性动画要读 `prefers-reduced-motion`。用 `usePrefersReducedMotion()` 或 CSS 媒体查询，做法是把时长归零而不是移除元素，布局才不会跟着跳。
+
+## 付费 registry
+
+`components.json` 启用了 `@shadcnblocks`、`@reactbits-starter`、`@reactbits-pro` 三个付费 registry。装进来的件就是仓库里的普通源码，CI 与 Cloudflare 构建都不需要密钥；只有再从 registry 拉新件时才要密钥。
+
+用项目里的 CLI，不要用 npx：
 
 ```bash
-# 运行测试
-npm test
-
-# 生成一个测试图片
-node generate.js --name "测试"
-
-# 启动 Web 预览
-npm run preview
+./node_modules/.bin/shadcn add @reactbits-pro/mobile-4
 ```
 
-## 项目结构说明
+`npx shadcn` 会把本机 `~/.npmrc` 的 `allow-scripts` 以环境变量传给子进程，项目级 `npm install` 不接受这个选项，直接报错。走 devDependencies 里的那份还顺带锁住了 CLI 版本。
 
-```
-gradient-background-generator/
-├── generate.js            CLI 入口脚本
-├── package.json           项目配置（ESM, scripts, 依赖）
-├── config/
-│   └── default.json       默认配置（SSOT）
-├── src/
-│   ├── core/              共享核心模块（浏览器 + Node.js 通用）
-│   │   ├── svg-builder.js     主入口，组装 SVG
-│   │   ├── gradient.js        渐变算法
-│   │   ├── palettes.js        配色方案定义
-│   │   ├── text-layout.js     文字排版方案
-│   │   ├── color-utils.js     OKLCH 颜色工具
-│   │   └── utils.js           通用工具函数
-│   └── cli/               CLI 专用模块
-│       ├── index.js           命令行参数与流程
-│       ├── png-export.js      SVG 转 PNG
-│       ├── file-reader.js     输入文件解析
-│       └── overview.js        总览 HTML 生成
-├── web/                   Web 预览界面
-├── tests/                 测试文件
-│   ├── utils.test.js
-│   ├── color-utils.test.js
-│   ├── palettes.test.js
-│   ├── gradient.test.js
-│   ├── text-layout.test.js
-│   ├── svg-builder.test.js
-│   └── reproducibility.test.js
-├── examples/              示例文件
-├── docs/                  文档
-└── output/                默认输出目录
-```
+密钥只放 `.env.local`，它已在 `.gitignore` 里。不要把密钥写进 `components.json`、命令行历史或任何提交。
 
-## 代码规范
+已经 `view` 过源码的候选件与它们的可借鉴之处记在 `docs/engineering-lessons.md`，动手前先翻一遍，省一轮枚举。
 
-### ESM 模块
+## 测试
 
-项目使用原生 ES Module。`package.json` 中设置了 `"type": "module"`。
+- 新增或改动纯逻辑要带 Vitest 用例，放进 `tests/` 下的同名目录。合成、编码、字体加载这类有外部依赖的模块把依赖抽成参数，用例不必拉起 WebGL 与网络。
+- 改动界面要跑 `npm run e2e`，再跑 `npm run screenshots` 并逐张看图。截图脚本打的是 `npm run preview` 的地址，先构建再截。
+- 端到端断言画面走 `window.__gradientAvatarProbe`，它只在开发模式或 URL 带 `?probe=1` 时装。要断言导出产物就用探针的 `encode()`，不要去猜下载文件的落点。
+- 新增 i18n key 后跑一遍 `npm test`，`tests/i18n/keys.test.ts` 会扫源码核对五份字典。
 
-- 使用 `import`/`export`，不使用 `require`/`module.exports`
-- 文件扩展名必须为 `.js`，import 路径必须包含扩展名
+## 文档
 
-```javascript
-// 正确
-import { buildSVG } from './svg-builder.js';
+| 写什么 | 写哪 |
+| --- | --- |
+| 现状：模块、数据流、约定、边界 | `README.md`、`docs/architecture.md`、这份文件 |
+| 变更叙事：这个版本加了什么、改了什么、去掉了什么 | `CHANGELOG.md` |
+| 决策：为什么选这条路线，否决了什么 | `docs/adr/` |
+| 踩坑：非显然的失败与它的判据 | `docs/engineering-lessons.md` |
+| 规约与实施计划：造什么、怎么造 | `specs/<feature>/` |
+| 调研：外部事实与出处 | `docs/research/` |
 
-// 错误
-const { buildSVG } = require('./svg-builder');
-```
+常驻文档只写现状。不要在 `README.md` 或 `architecture.md` 里写“本次改了什么”“相比上一版”，那些进 `CHANGELOG.md`。
 
-### JSDoc + @ts-check
-
-项目采用 **JSDoc 类型注解 + `@ts-check`** 方案，不使用 TypeScript 编译步骤。
-
-每个源文件顶部应包含 `// @ts-check`，所有导出函数必须有 JSDoc 类型注解：
-
-```javascript
-// @ts-check
-
-/**
- * 函数说明。
- * @param {string} name - 参数说明
- * @param {number} [size=800] - 可选参数
- * @returns {string} 返回值说明
- */
-export function myFunction(name, size = 800) {
-  // ...
-}
-```
-
-使用 `@typedef` 定义复杂类型：
-
-```javascript
-/**
- * @typedef {Object} MyConfig
- * @property {string} name
- * @property {number} [size]
- */
-```
-
-### 代码风格
-
-- 使用 2 空格缩进
-- 字符串使用单引号
-- 函数和变量使用 camelCase
-- 常量对象使用 UPPER_SNAKE_CASE（如 `PALETTES`、`CJK_FONT_PATHS`）
-- `core/` 模块中不能引入 Node.js 特有 API
-
-## 测试规范
-
-项目使用 [vitest](https://vitest.dev/) 作为测试框架。
-
-### 运行测试
-
-```bash
-# 运行所有测试
-npm test
-
-# 监听模式（开发时推荐）
-npm run test:watch
-```
-
-### 测试文件命名
-
-测试文件放在 `tests/` 目录下，命名格式为 `<模块名>.test.js`。每个 `src/core/` 模块对应一个测试文件。
-
-### 编写测试
-
-```javascript
-import { describe, it, expect } from 'vitest';
-import { myFunction } from '../src/core/my-module.js';
-
-describe('myFunction', () => {
-  it('应该返回预期结果', () => {
-    const result = myFunction('input');
-    expect(result).toBe('expected');
-  });
-
-  it('应该处理边界情况', () => {
-    expect(() => myFunction('')).toThrow();
-  });
-});
-```
-
-### 可复现性测试
-
-项目包含 `tests/reproducibility.test.js`，验证相同输入（名称 + 种子）始终生成相同的 SVG 输出。添加新功能时请确保不破坏这一特性。
-
-## 如何添加新配色方案
-
-配色方案定义在 `src/core/palettes.js` 的 `PALETTES` 对象中。
-
-### 步骤
-
-1. **编辑 `src/core/palettes.js`**，在 `PALETTES` 对象中添加新条目：
-
-```javascript
-const PALETTES = {
-  // ... 现有方案 ...
-
-  midnight: {
-    name: 'midnight',
-    label: '午夜深蓝',
-    colors: ['#191970', '#000080', '#4169E1', '#6495ED', '#B0C4DE'],
-    background: '#0A0A2A',
-  },
-};
-```
-
-2. **（可选）添加别名映射**。如果希望支持关键词别名，在 `hintToPaletteName()` 函数的 `map` 对象中添加：
-
-```javascript
-const map = {
-  // ... 现有映射 ...
-  midnight: 'midnight',
-  night: 'midnight',    // 别名
-  dark: 'midnight',     // 别名
-};
-```
-
-3. **添加测试**。在 `tests/palettes.test.js` 中添加对应测试用例，确保新方案能正确解析。
-
-4. **验证效果**：
-
-```bash
-node generate.js --name "测试" --palette midnight
-```
-
-### 配色方案设计指南
-
-- `colors` 数组包含 4-7 个 hex 颜色，用于渐变色标
-- `background` 是基础背景色，通常选择颜色中较深的一个
-- `label` 是中文显示名，用于 Web 预览界面
-- 颜色之间应有足够的对比度和色相差异，以产生丰富的渐变效果
-- 使用 OKLCH 颜色空间思考：确保颜色在感知上均匀分布
-
-## 如何添加新文字排版方案
-
-文字排版方案定义在 `src/core/text-layout.js` 中。
-
-### 步骤
-
-1. **编辑 `src/core/text-layout.js`**，添加新的排版函数：
-
-```javascript
-/**
- * Generate my-style layout SVG elements.
- *
- * @param {string} name
- * @param {number} size
- * @param {TextConfig} [config={}]
- * @param {() => number} [rng]
- * @returns {string}
- */
-export function myStyleLayout(name, size, config = {}, rng) {
-  const escaped = escapeXml(name);
-  const fontSize = config.fontSize || autoFontSize(name);
-
-  // 返回 SVG 元素字符串
-  return `
-  <text x="${size / 2}" y="${size / 2}" ...>${escaped}</text>`;
-}
-```
-
-2. **在 `layoutText()` 路由函数中注册**：
-
-```javascript
-export function layoutText(style, name, size, config = {}, rng) {
-  switch (style) {
-    case 'pill': return pillLayout(name, size, config);
-    case 'overlay': return overlayLayout(name, size, config);
-    case 'vertical': return verticalLayout(name, size, config);
-    case 'artistic': return artisticLayout(name, size, config, rng);
-    case 'my-style': return myStyleLayout(name, size, config, rng);  // 新增
-    default: return pillLayout(name, size, config);
-  }
-}
-```
-
-3. **更新 CLI 验证**。在 `src/cli/index.js` 的 `validateConfig()` 中添加新样式名到 `validStyles` 数组：
-
-```javascript
-const validStyles = ['pill', 'overlay', 'vertical', 'artistic', 'my-style'];
-```
-
-4. **添加测试**。在 `tests/text-layout.test.js` 中添加对应测试用例。
-
-5. **验证效果**：
-
-```bash
-node generate.js --name "测试" --text-style my-style
-```
-
-### 排版方案设计指南
-
-- 函数签名应与现有方案保持一致：`(name, size, config?, rng?) => string`
-- 返回值是 SVG 元素字符串（不包含外层 `<svg>` 标签）
-- 使用 `escapeXml()` 处理文字内容
-- 使用 `autoFontSize()` 作为默认字号，允许 `config.fontSize` 覆盖
-- 如果需要随机效果，使用传入的 `rng` 参数（确保可复现性）
-- 字体族使用文件顶部定义的 `FONT_FAMILY` 常量
-
-## 提交 Pull Request
-
-1. 确保所有测试通过：`npm test`
-2. 确保新功能有对应的测试覆盖
-3. 确保 `core/` 模块中没有引入 Node.js 特有 API
-4. 提交信息建议使用中文，简明描述变更内容
-
-> 源码中的 JSDoc 注解是类型信息的唯一来源。修改函数签名时请同步更新 JSDoc。
+需要多文件改动的新功能先写规约再写计划再动手，一句话能描述的改动直接做。
