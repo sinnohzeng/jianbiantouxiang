@@ -16,7 +16,7 @@ import { memoryStorage as storage } from '../setup'
 // 只用到 id 与 tone，给三套固定数据让“换同 tone 配色”有唯一解
 vi.mock('@/palettes/palettes', () => ({
   PALETTES: [
-    { id: 'glacier', tone: 'light' },
+    { id: 'aurora', tone: 'light' },
     { id: 'frost', tone: 'light' },
     { id: 'midnight', tone: 'dark' },
   ],

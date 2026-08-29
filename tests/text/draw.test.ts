@@ -9,9 +9,9 @@ const measure = createStubMeasure()
 function render(overrides: PartialConfig, color = '#FFFFFF') {
   const config = makeConfig(overrides)
   const layout = layoutText(config, 1000, 1000, measure)
-  const { ctx, calls } = createStubContext()
+  const { ctx, calls, paints } = createStubContext()
   drawText(ctx, layout, config, color)
-  return { ctx, calls, layout }
+  return { ctx, calls, paints, layout }
 }
 
 const BASE: PartialConfig = {
@@ -61,6 +61,21 @@ describe('文字样式', () => {
     expect(calls).toContain('roundRect')
   })
 
+  it('pill 底板取文字色的反色，白字配深底板、深字配白底板', () => {
+    const onWhiteInk = render(
+      { ...BASE, typography: { ...BASE.typography, effect: 'pill' } },
+      '#FFFFFF',
+    )
+    expect(onWhiteInk.paints[0]?.op).toBe('fill')
+    expect(onWhiteInk.paints[0]?.fillStyle).toBe('#141413')
+
+    const onDarkInk = render(
+      { ...BASE, typography: { ...BASE.typography, effect: 'pill' } },
+      '#141413',
+    )
+    expect(onDarkInk.paints[0]?.fillStyle).toBe('#FFFFFF')
+  })
+
   it('glow 画三遍字，最后一遍不带阴影', () => {
     const { ctx, calls } = render({
       ...BASE,
@@ -68,6 +83,20 @@ describe('文字样式', () => {
     })
     expect(calls.filter((call) => call === 'fillText:猪猪')).toHaveLength(3)
     expect(ctx.shadowBlur).toBe(0)
+  })
+
+  it('glow 的光晕：浅色字用自己的颜色，深色字改用白光', () => {
+    const light = render(
+      { ...BASE, typography: { ...BASE.typography, effect: 'glow', effectStrength: 1 } },
+      '#7DD3FC',
+    )
+    expect(light.paints[0]?.shadowColor).toBe('#7DD3FC')
+
+    const dark = render(
+      { ...BASE, typography: { ...BASE.typography, effect: 'glow', effectStrength: 1 } },
+      '#141413',
+    )
+    expect(dark.paints[0]?.shadowColor).toBe('#FFFFFF')
   })
 
   it('shadow 留下模糊与偏移', () => {

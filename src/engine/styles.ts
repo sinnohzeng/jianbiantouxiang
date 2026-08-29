@@ -6,6 +6,7 @@
  */
 
 import type { ShaderMountUniforms } from '@paper-design/shaders'
+import { averageLightness } from '@/palettes/color'
 import type { AvatarConfig, StyleId } from '@/state/config'
 import { toShaderColor } from './colors'
 import { clamp, lerp, round } from './math'
@@ -83,11 +84,36 @@ const FALLBACK_COLORS = ['#c7d2fe', '#fbcfe8', '#a5f3fc'] as const
 /**
  * grain 的 7 种形状只取 3 种：dots 与 truchet 是图案不是渐变；blob 的色团常落在画面外，
  * 实测出一整张平色；sphere 是硬边圆球，跟头像的柔光取向冲突。
+ *
+ * zoom 是各形状自带的缩放倍率，乘在用户的 scale 上。grainGradient 的图案尺度是按大画面调的，
+ * 头像这种几百像素的方图里一个色带就铺满整张，于是只剩 colors[0] 一片平色。
+ * 320px 实测（见 docs/engineering-lessons.md）：wave 与 corners 要压到 0.45、ripple 要压到 0.30，
+ * 五个停靠色才都进得来；三种形状的图案尺度差一倍以上，共用一个倍率必然有一种塌掉。
  */
-const GRAIN_SHAPE_POOL = ['wave', 'ripple', 'corners'] as const
+const GRAIN_SHAPE_POOL = [
+  { shape: 'wave', zoom: 0.45 },
+  { shape: 'ripple', zoom: 0.3 },
+  { shape: 'corners', zoom: 0.45 },
+] as const
 
 /** silk 的底纹以 stripes 为主，它才出绸缎折痕；edge 只有一条分界，压成平淡的线性渐变，不收。 */
 const WARP_SHAPE_POOL = ['stripes', 'stripes', 'stripes', 'checks'] as const
+
+/**
+ * silk 在浅配色上会揉成锡纸：折痕两侧的色差本来就小，swirl 一叠就把最浅的停靠色推到纯白，
+ * 剩下的全是硬脊线。压制按配色的 OKLCH 平均明度线性给量，0.75 以下不动，0.90 以上给满。
+ * 这两个数是照配色表卡的：出问题的 cloud-white 0.869、graphite-mist 0.858、peach 0.908、
+ * mint 0.904、champagne 0.801、blush 0.836 都落在带内，出彩的 sunset 0.717、neon-tide 0.486、
+ * aurora-violet 0.580 在带外，折痕原样保留。
+ */
+const SILK_LIGHT_FLOOR = 0.75
+const SILK_LIGHT_CEIL = 0.9
+
+/** 明度压制系数：0 表示不压，1 表示压到底。 */
+function silkLightPressure(colors: readonly string[]): number {
+  const lightness = averageLightness(colors)
+  return clamp((lightness - SILK_LIGHT_FLOOR) / (SILK_LIGHT_CEIL - SILK_LIGHT_FLOOR), 0, 1)
+}
 
 /** 动画类 shader 的静态取帧范围，单位毫秒。 */
 const FRAME_SPAN = 20000
@@ -149,19 +175,20 @@ const meshStyle: StyleDefinition = {
   buildUniforms(config, rng, colors) {
     const { intensity, softness, grain } = config.styleParams
     const sizing = sizingUniforms(config, rng)
-    const wave = lerp(0.05, 0.7, intensity)
+    // waveX/waveY 的合法区间就是 0..1，滑杆铺满它才有得调；0.7 封顶时半程之后几乎看不出变化
+    const wave = lerp(0.05, 1, intensity)
     const shaderColors = toShaderColors(colors, MAX_COLORS.mesh)
     return {
       ...sizing,
       u_colors: shaderColors,
       u_colorsCount: shaderColors.length,
       u_positions: round(rangeFrom(rng, 0, 100)),
-      u_waveX: round(clamp(wave * rangeFrom(rng, 0.7, 1.3), 0, 1)),
-      u_waveY: round(clamp(wave * rangeFrom(rng, 0.7, 1.3), 0, 1)),
+      u_waveX: round(clamp(wave * rangeFrom(rng, 0.75, 1.15), 0.02, 1)),
+      u_waveY: round(clamp(wave * rangeFrom(rng, 0.75, 1.15), 0.02, 1)),
       u_waveXShift: round(rng()),
       u_waveYShift: round(rng()),
-      // mixing 低于 0.35 会出硬条纹，柔光质感的下限就卡在这里
-      u_mixing: round(lerp(0.35, 1, softness)),
+      // 0.15 是可辨的硬边界，再低会出锯齿状色阶；0.95 已经是完全糊开，留 0.05 余量给抗锯齿
+      u_mixing: round(lerp(0.15, 0.95, softness)),
       ...grainUniforms(grain),
     }
   },
@@ -192,9 +219,9 @@ const flowStyle: StyleDefinition = {
       ...sizing,
       u_colors: shaderColors,
       u_colorsCount: shaderColors.length,
-      u_distortion: round(lerp(0.1, 0.9, intensity)),
+      u_distortion: round(lerp(0.1, 1, intensity)),
       // 契约里 softness 对 flow 的语义是 1 - swirl
-      u_swirl: round(lerp(0.8, 0.05, softness)),
+      u_swirl: round(lerp(0.95, 0.1, softness)),
       ...grainUniforms(grain),
     }
   },
@@ -221,19 +248,24 @@ const silkStyle: StyleDefinition = {
     const { intensity, softness } = config.styleParams
     const sizing = sizingUniforms(config, rng)
     const shaderColors = toShaderColors(colors, MAX_COLORS.silk)
+    const pressure = silkLightPressure(colors)
+    // 压得越狠，折痕越少、过渡越糊
+    const damp = lerp(1, 0.4, pressure)
+    const softFloor = lerp(0.5, 0.9, pressure)
     return {
       ...sizing,
       u_colors: shaderColors,
       u_colorsCount: shaderColors.length,
       u_proportion: round(rangeFrom(rng, 0.4, 0.6)),
-      u_softness: round(lerp(0.35, 1, softness)),
+      u_softness: round(lerp(softFloor, 1, softness)),
       u_shape: WARP_PATTERNS[pickFrom(rng, WARP_SHAPE_POOL)],
-      // 底纹越密越像布纹噪点，头像要的是大褶皱，所以只取小值
-      u_shapeScale: round(rangeFrom(rng, 0.12, 0.38)),
-      // 折痕强度参照柔和渐变而不是大理石纹，上限压到 0.45
-      u_distortion: round(lerp(0.05, 0.45, intensity)),
-      u_swirl: round(clamp(lerp(0.1, 0.7, intensity) * rangeFrom(rng, 0.8, 1.2), 0, 1)),
-      u_swirlIterations: intFrom(rng, 3, 8),
+      // 底纹越密越像布纹噪点，头像要的是大褶皱，所以只取小值；上限从 0.38 收到 0.28 才不出细密脊线
+      u_shapeScale: round(rangeFrom(rng, 0.1, 0.28)),
+      // 折痕强度参照柔和渐变而不是大理石纹，浅配色靠 damp 单独往回收
+      u_distortion: round(lerp(0.05, 0.5, intensity) * damp),
+      u_swirl: round(clamp(lerp(0.1, 0.75, intensity) * rangeFrom(rng, 0.85, 1.15) * damp, 0, 1)),
+      // 迭代次数是锡纸的主因：每多一层就多一道脊线，浅配色最多给到 4 层
+      u_swirlIterations: intFrom(rng, 3, 7 - Math.round(3 * pressure)),
     }
   },
   buildFrame(_config, rng) {
@@ -260,16 +292,22 @@ const grainStyle: StyleDefinition = {
     const sizing = sizingUniforms(config, rng)
     const shaderColors = toShaderColors(colors, MAX_COLORS.grain)
     const back = shaderColors[0] ?? toShaderColor(FALLBACK_COLORS[0])
+    const picked = pickFrom(rng, GRAIN_SHAPE_POOL)
+    const scale = clamp(config.styleParams.scale, 0.01, 4) * picked.zoom
     return {
       ...sizing,
+      u_scale: round(clamp(scale, 0.01, 4)),
       u_colorBack: back,
       u_colors: shaderColors,
       u_colorsCount: shaderColors.length,
-      u_softness: round(lerp(0.25, 1, softness)),
-      // 色带靠噪声推开，给足行程颜色才走得动
-      u_intensity: round(lerp(0.25, 1, intensity)),
-      u_noise: round(lerp(0.05, 0.6, grain)),
-      u_shape: GRAIN_SHAPES[pickFrom(rng, GRAIN_SHAPE_POOL)],
+      // 0.1 是几乎硬边的色阶，0.9 已经完全糊开：这一段实测把可见色数从 7 个拉到 25 个
+      u_softness: round(lerp(0.1, 0.9, softness)),
+      // intensity 在这个 shader 里是把色带边界推歪的噪声量，不是色带行程：
+      // 0.03 是干净的同心色带，0.85 已经把边界揉成絮状，再往上 fwidth 会抬起来把平滑参数一起吃掉
+      u_intensity: round(lerp(0.03, 0.85, intensity)),
+      // u_noise 直接加在 shape 上，量大了会把整片推到最亮的停靠色，0.3 是不翻白的上限
+      u_noise: round(lerp(0.02, 0.3, grain)),
+      u_shape: GRAIN_SHAPES[picked.shape],
     }
   },
   buildFrame(_config, rng) {

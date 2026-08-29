@@ -7,6 +7,13 @@ import { STYLES, STYLE_LIST, getStyle, planRender } from '@/engine/styles'
 
 const COLORS = ['#dbeafe', '#c7d2fe', '#e9d5ff', '#fbcfe8', '#fde68a', '#a5f3fc']
 
+/** 一浅一深两套色，用来验 silk 的明度压制。 */
+const LIGHT_COLORS = ['#F0EEE9', '#E3DACC', '#D8DEE6', '#BFD3E7', '#B0AEA5']
+const DARK_COLORS = ['#111827', '#1E2A4A', '#2B3A67', '#3B4C8C', '#5865F2']
+
+/** grain 三种形状各自的缩放倍率，与 styles.ts 里的 GRAIN_SHAPE_POOL 对应。 */
+const GRAIN_ZOOMS = [0.45, 0.3]
+
 /** 用固定种子造配置，保证这套遍历本身是可复现的。 */
 function sweepConfigs(count: number): AvatarConfig[] {
   const rng = mulberry32('styles-sweep')
@@ -133,7 +140,8 @@ describe('uniforms 落在 shader 的合法区间', () => {
     for (const config of configs) {
       const { uniforms } = planRender(config, COLORS)
       expect(num(uniforms, 'u_fit')).toBe(2)
-      inRange(uniforms, 'u_scale', 0.5, 2)
+      // grain 会在用户的 scale 上再乘一个形状缩放，所以这里只卡 shader 的合法区间
+      inRange(uniforms, 'u_scale', 0.01, 4)
       inRange(uniforms, 'u_rotation', 0, 360)
       inRange(uniforms, 'u_originX', 0, 1)
       inRange(uniforms, 'u_originY', 0, 1)
@@ -171,7 +179,7 @@ describe('uniforms 落在 shader 的合法区间', () => {
       inRange(uniforms, 'u_waveY', 0, 1)
       inRange(uniforms, 'u_waveXShift', 0, 1)
       inRange(uniforms, 'u_waveYShift', 0, 1)
-      inRange(uniforms, 'u_mixing', 0.35, 1)
+      inRange(uniforms, 'u_mixing', 0.15, 0.95)
       inRange(uniforms, 'u_grainMixer', 0, 0.55)
       inRange(uniforms, 'u_grainOverlay', 0, 0.3)
     }
@@ -180,8 +188,8 @@ describe('uniforms 落在 shader 的合法区间', () => {
   it('flow 的 meshGradient 参数合法，softness 与 swirl 反向', () => {
     for (const config of configs) {
       const { uniforms } = planRender({ ...config, style: 'flow' }, COLORS)
-      inRange(uniforms, 'u_distortion', 0.1, 0.9)
-      inRange(uniforms, 'u_swirl', 0.05, 0.8)
+      inRange(uniforms, 'u_distortion', 0.1, 1)
+      inRange(uniforms, 'u_swirl', 0.1, 0.95)
       inRange(uniforms, 'u_grainMixer', 0, 0.55)
       inRange(uniforms, 'u_grainOverlay', 0, 0.3)
     }
@@ -208,30 +216,55 @@ describe('uniforms 落在 shader 的合法区间', () => {
     for (const config of configs) {
       const { uniforms } = planRender({ ...config, style: 'silk' }, COLORS)
       inRange(uniforms, 'u_proportion', 0.4, 0.6)
-      inRange(uniforms, 'u_softness', 0.35, 1)
+      inRange(uniforms, 'u_softness', 0.5, 1)
       // checks 0 与 stripes 1，edge 出的是平淡线性渐变，不在候选里
       expect([0, 1]).toContain(num(uniforms, 'u_shape'))
-      inRange(uniforms, 'u_shapeScale', 0.12, 0.38)
-      inRange(uniforms, 'u_distortion', 0.05, 0.45)
+      inRange(uniforms, 'u_shapeScale', 0.1, 0.28)
+      inRange(uniforms, 'u_distortion', 0.02, 0.5)
       inRange(uniforms, 'u_swirl', 0, 1)
       const iterations = num(uniforms, 'u_swirlIterations')
       expect(Number.isInteger(iterations)).toBe(true)
       expect(iterations).toBeGreaterThanOrEqual(3)
-      expect(iterations).toBeLessThanOrEqual(8)
+      expect(iterations).toBeLessThanOrEqual(7)
     }
   })
 
   it('grain 的 grainGradient 参数合法，形状取自柔和的那几种', () => {
     for (const config of configs) {
       const { uniforms } = planRender({ ...config, style: 'grain' }, COLORS)
-      inRange(uniforms, 'u_softness', 0.25, 1)
-      inRange(uniforms, 'u_intensity', 0.25, 1)
-      inRange(uniforms, 'u_noise', 0.05, 0.6)
+      inRange(uniforms, 'u_softness', 0.1, 0.9)
+      inRange(uniforms, 'u_intensity', 0.03, 0.85)
+      inRange(uniforms, 'u_noise', 0.02, 0.3)
       // 只留 wave 1、corners 4、ripple 5
       expect([1, 4, 5]).toContain(num(uniforms, 'u_shape'))
       const back = uniforms.u_colorBack as number[]
       expect(back).toHaveLength(4)
     }
+  })
+
+  it('grain 把图案按形状压小，非 grain 的 style 原样用用户的 scale', () => {
+    for (const config of configs) {
+      const scale = config.styleParams.scale
+      for (const style of STYLE_IDS) {
+        const { uniforms } = planRender({ ...config, style }, COLORS)
+        const value = num(uniforms, 'u_scale')
+        if (style === 'grain') {
+          // 一格色带铺满整张头像是 grain 塌成平色的根因，缩放倍率是解法
+          expect(GRAIN_ZOOMS.map((zoom) => Math.round(scale * zoom * 1e4) / 1e4)).toContain(value)
+        } else {
+          expect(value).toBeCloseTo(scale, 3)
+        }
+      }
+    }
+  })
+
+  it('silk 在浅配色上自动收敛折痕，深配色不受影响', () => {
+    const base = { ...DEFAULT_CONFIG, style: 'silk' as const, seed: 'silk-pressure' }
+    const light = planRender(base, LIGHT_COLORS).uniforms
+    const dark = planRender(base, DARK_COLORS).uniforms
+    expect(num(light, 'u_distortion')).toBeLessThan(num(dark, 'u_distortion'))
+    expect(num(light, 'u_swirl')).toBeLessThan(num(dark, 'u_swirl'))
+    expect(num(light, 'u_softness')).toBeGreaterThan(num(dark, 'u_softness'))
   })
 
   it('滑杆推到两端也不越界', () => {

@@ -26,14 +26,34 @@ export function makeConfig(overrides: PartialConfig = {}): AvatarConfig {
   return normalizeConfig(overrides)
 }
 
+/** 每次落笔时的画笔状态，用来断言底板色与光晕色。 */
+export interface PaintState {
+  op: 'fill' | 'fillText' | 'strokeText'
+  fillStyle: string
+  strokeStyle: string
+  shadowColor: string
+  globalAlpha: number
+}
+
 export interface StubContext {
   ctx: CanvasRenderingContext2D
   calls: string[]
+  paints: PaintState[]
 }
 
 /** 记录调用顺序的假 2D 上下文，用来断言绘制顺序与逐字绘制。 */
 export function createStubContext(): StubContext {
   const calls: string[] = []
+  const paints: PaintState[] = []
+  const snap = (op: PaintState['op']): void => {
+    paints.push({
+      op,
+      fillStyle: stub.fillStyle,
+      strokeStyle: stub.strokeStyle,
+      shadowColor: stub.shadowColor,
+      globalAlpha: stub.globalAlpha,
+    })
+  }
   const stub = {
     canvas: { width: 1000, height: 1000 },
     font: '',
@@ -57,12 +77,21 @@ export function createStubContext(): StubContext {
     moveTo: () => calls.push('moveTo'),
     arcTo: () => calls.push('arcTo'),
     roundRect: () => calls.push('roundRect'),
-    fill: () => calls.push('fill'),
-    fillText: (text: string) => calls.push(`fillText:${text}`),
-    strokeText: (text: string) => calls.push(`strokeText:${text}`),
+    fill: () => {
+      snap('fill')
+      calls.push('fill')
+    },
+    fillText: (text: string) => {
+      snap('fillText')
+      calls.push(`fillText:${text}`)
+    },
+    strokeText: (text: string) => {
+      snap('strokeText')
+      calls.push(`strokeText:${text}`)
+    },
     measureText: (text: string) => ({ width: text.length * 10 }),
   }
-  return { ctx: stub as unknown as CanvasRenderingContext2D, calls }
+  return { ctx: stub as unknown as CanvasRenderingContext2D, calls, paints }
 }
 
 /** 返回纯色像素的假上下文，用于自动文字色的采样。 */

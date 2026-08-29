@@ -79,7 +79,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     rotation: 0,
   },
   highlight: 0.25,
-  palette: 'glacier',
+  palette: 'aurora',
   customColors: [],
   canvas: { width: 1024, height: 1024, shape: 'rounded', radius: 0.2 },
   typography: {
@@ -101,7 +101,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     effectStrength: 0.5,
     colorMode: 'auto',
     color: '#ffffff',
-    pill: { radius: 0.5, padding: 0.3, opacity: 0.35 },
+    pill: { radius: 0.5, padding: 0.3, opacity: 0.55 },
   },
   exportOptions: {
     format: 'jpg',

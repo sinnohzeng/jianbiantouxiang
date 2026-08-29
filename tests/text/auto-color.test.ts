@@ -41,16 +41,31 @@ describe('色彩计算', () => {
 })
 
 describe('pickTextColor', () => {
-  it('深色背景选白字', () => {
-    expect(pickTextColor(createSolidContext(16, 16, 16), layout, config)).toBe(INK_LIGHT)
-  })
-
-  it('浅色背景选深灰', () => {
+  it('内置浅配色一律用配色表里的深字，底再暗也不翻面', () => {
+    expect(pickTextColor(createSolidContext(16, 16, 16), layout, config)).toBe(INK_DARK)
     expect(pickTextColor(createSolidContext(240, 240, 240), layout, config)).toBe(INK_DARK)
   })
 
-  it('中灰按对比度取深灰', () => {
-    expect(pickTextColor(createSolidContext(128, 128, 128), layout, config)).toBe(INK_DARK)
+  it('内置深配色一律用白字', () => {
+    const dark = makeConfig({ ...config, palette: 'aurora-violet' })
+    expect(pickTextColor(createSolidContext(16, 16, 16), layout, dark)).toBe(INK_LIGHT)
+    expect(pickTextColor(createSolidContext(200, 200, 200), layout, dark)).toBe(INK_LIGHT)
+  })
+
+  it('同一配色下亮度差很多的两块文字取到同一个颜色', () => {
+    const bright = pickTextColor(createSolidContext(250, 250, 250), layout, config)
+    const dim = pickTextColor(createSolidContext(30, 30, 30), layout, config)
+    expect(bright).toBe(dim)
+  })
+
+  it('custom 配色按区域相对亮度取白字或深字', () => {
+    const custom = makeConfig({
+      ...config,
+      palette: 'custom',
+      customColors: ['#112233', '#445566'],
+    })
+    expect(pickTextColor(createSolidContext(160, 160, 160), layout, custom)).toBe(INK_LIGHT)
+    expect(pickTextColor(createSolidContext(220, 220, 220), layout, custom)).toBe(INK_DARK)
   })
 
   it('自定义模式直接返回用户选的颜色', () => {
@@ -62,7 +77,12 @@ describe('pickTextColor', () => {
   })
 
   it('半透明像素按导出底色合成', () => {
-    const onWhite = makeConfig({ ...config, exportOptions: { bgColor: '#ffffff' } })
+    const onWhite = makeConfig({
+      ...config,
+      palette: 'custom',
+      customColors: ['#112233', '#445566'],
+      exportOptions: { bgColor: '#ffffff' },
+    })
     expect(pickTextColor(createSolidContext(0, 0, 0, 0), layout, onWhite)).toBe(INK_DARK)
   })
 
@@ -78,13 +98,19 @@ describe('pickTextColor', () => {
 })
 
 describe('needsPlate', () => {
-  it('黑白都够对比度时不建议底板', () => {
+  it('浅配色的深字压在深底上时建议底板', () => {
     expect(needsPlate(createSolidContext(255, 255, 255), layout, config)).toBe(false)
-    expect(needsPlate(createSolidContext(0, 0, 0), layout, config)).toBe(false)
+    expect(needsPlate(createSolidContext(0, 0, 0), layout, config)).toBe(true)
   })
 
-  it('中间亮度两个候选都不达标时建议底板', () => {
-    expect(needsPlate(createSolidContext(122, 122, 122), layout, config)).toBe(true)
+  it('深配色的白字压在亮底上时建议底板', () => {
+    const dark = makeConfig({ ...config, palette: 'aurora-violet' })
+    expect(needsPlate(createSolidContext(0, 0, 0), layout, dark)).toBe(false)
+    expect(needsPlate(createSolidContext(230, 230, 230), layout, dark)).toBe(true)
+  })
+
+  it('对比度刚好过 3 就不建议底板', () => {
+    expect(needsPlate(createSolidContext(122, 122, 122), layout, config)).toBe(false)
   })
 
   it('自定义颜色由用户负责，不给建议', () => {

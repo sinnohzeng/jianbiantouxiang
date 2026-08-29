@@ -119,10 +119,11 @@ describe('附录 A 的 17 套色值原样入库', () => {
 })
 
 describe('getPalette 与 paletteColors', () => {
-  it('默认配色 glacier 存在，且与 DEFAULT_CONFIG 对得上', () => {
-    expect(getPalette('glacier')).toBeDefined()
-    expect(DEFAULT_PALETTE_ID).toBe('glacier')
-    expect(DEFAULT_CONFIG.palette).toBe('glacier')
+  it('兜底配色与默认配色都在表里', () => {
+    // DEFAULT_PALETTE_ID 是 id 查不到时的兜底，DEFAULT_CONFIG.palette 是首屏出的那套，两者不必同一个
+    expect(getPalette(DEFAULT_PALETTE_ID)).toBeDefined()
+    expect(getPalette(DEFAULT_CONFIG.palette)).toBeDefined()
+    expect(DEFAULT_CONFIG.palette).toBe('aurora')
   })
 
   it('查不到的 id 返回 undefined', () => {

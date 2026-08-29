@@ -1,3 +1,4 @@
+import { getPalette } from '@/palettes/palettes'
 import type { AvatarConfig } from '@/state/config'
 import type { Rect, TextLayout } from './layout'
 
@@ -7,6 +8,19 @@ export const INK_DARK = '#141413'
 
 /** WCAG 2 的正文对比度门槛。 */
 export const WCAG_AA = 4.5
+
+/**
+ * 建议开底板的对比度门槛。用 3.0 而不是 4.5：文字在头像上是大号字，
+ * WCAG 对大字的门槛本来就是 3.0；按 4.5 卡会让半数配色默认糊上一层底板。
+ */
+export const PLATE_MIN_CONTRAST = 3
+
+/**
+ * custom 配色的明暗分界，比的是文字区域的相对亮度。
+ * 不再拿白字与深字的对比度互比：那个比法的分界点在 0.179，
+ * 高光一压亮区域就翻面，同一张图里几块文字会取到不同颜色。
+ */
+const CUSTOM_SPLIT = 0.5
 
 /** 采样点上限，取 64×64，够稳定又不会在 4096 导出时拖慢一拍。 */
 const MAX_SAMPLES = 4096
@@ -107,16 +121,24 @@ function sampleLuminance(
   return count > 0 ? sum / count : 0.5
 }
 
-function candidates(luminance: number): { color: string; contrast: number }[] {
-  return [
-    { color: INK_LIGHT, contrast: ratioOf(relativeLuminance(INK_LIGHT), luminance) },
-    { color: INK_DARK, contrast: ratioOf(relativeLuminance(INK_DARK), luminance) },
-  ]
+/**
+ * 自动文字色的决定：内置配色直接用配色表里的设计值，同一配色下每块文字都是同一个颜色，
+ * 高光、颗粒、种子都改不动它；只有 custom 配色才落到像素判定。
+ * 对比度一律拿实际画面的亮度算，用来决定要不要补底板。
+ */
+function decide(
+  ctx: CanvasRenderingContext2D,
+  layout: TextLayout,
+  config: AvatarConfig,
+): { color: string; contrast: number } {
+  const luminance = sampleLuminance(ctx, layout, config)
+  const palette = getPalette(config.palette)
+  const color = palette ? palette.text : luminance < CUSTOM_SPLIT ? INK_LIGHT : INK_DARK
+  return { color, contrast: ratioOf(relativeLuminance(color), luminance) }
 }
 
 /**
- * 自动文字色：按文字区域的平均亮度在白与深灰之间选对比度更高的一个。
- * colorMode 为 custom 时直接返回用户选的颜色。
+ * 自动文字色。colorMode 为 custom 时直接返回用户选的颜色。
  */
 export function pickTextColor(
   ctx: CanvasRenderingContext2D,
@@ -124,19 +146,15 @@ export function pickTextColor(
   config: AvatarConfig,
 ): string {
   if (config.typography.colorMode === 'custom') return config.typography.color
-  const [light, dark] = candidates(sampleLuminance(ctx, layout, config))
-  if (!light || !dark) return INK_LIGHT
-  return light.contrast >= dark.contrast ? light.color : dark.color
+  return decide(ctx, layout, config).color
 }
 
-/** 两个候选色都达不到 4.5 时建议开胶囊底板，由界面决定是否自动打开。 */
+/** 选定的文字色在实际画面上到不了 3:1 时建议开胶囊底板，由界面决定是否自动打开。 */
 export function needsPlate(
   ctx: CanvasRenderingContext2D,
   layout: TextLayout,
   config: AvatarConfig,
 ): boolean {
   if (config.typography.colorMode === 'custom') return false
-  const [light, dark] = candidates(sampleLuminance(ctx, layout, config))
-  if (!light || !dark) return false
-  return Math.max(light.contrast, dark.contrast) < WCAG_AA
+  return decide(ctx, layout, config).contrast < PLATE_MIN_CONTRAST
 }

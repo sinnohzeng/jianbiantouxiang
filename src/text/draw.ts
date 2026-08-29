@@ -1,5 +1,5 @@
 import type { AvatarConfig } from '@/state/config'
-import { INK_DARK, INK_LIGHT, contrastRatio, isLightColor } from './auto-color'
+import { INK_DARK, INK_LIGHT, isLightColor } from './auto-color'
 import type { LayoutLine, PillRect, TextLayout } from './layout'
 import { cssPx, toGraphemes } from './measure'
 
@@ -12,13 +12,12 @@ function inkOpposite(color: string): string {
   return isLightColor(color) ? INK_DARK : INK_LIGHT
 }
 
-/** 底板取导出底色，若与文字色撞了就换成对侧的中性色。 */
-function plateColor(config: AvatarConfig, textColor: string): string {
-  const background = config.exportOptions.bgColor
-  const opposite = inkOpposite(textColor)
-  return contrastRatio(background, textColor) >= contrastRatio(opposite, textColor)
-    ? background
-    : opposite
+/**
+ * 光晕颜色：浅色字用自己的颜色发光，深色字改用白光。
+ * 深色字配同色光晕会在字周围堆出一圈脏晕，越强越脏，白光反而把字托起来。
+ */
+function glowColor(textColor: string): string {
+  return isLightColor(textColor) ? textColor : INK_LIGHT
 }
 
 function roundRectPath(ctx: CanvasRenderingContext2D, rect: PillRect): void {
@@ -94,6 +93,10 @@ function applyLetterSpacing(ctx: CanvasRenderingContext2D, layout: TextLayout): 
   return true
 }
 
+/**
+ * 底板一律取文字色的反色：深字配白底板、白字配黑底板。
+ * 跟着导出底色走的老做法在浅配色上会画出一块白底白字的隐形底板。
+ */
 function drawPlate(
   ctx: CanvasRenderingContext2D,
   layout: TextLayout,
@@ -103,7 +106,7 @@ function drawPlate(
   const { pill } = config.typography
   ctx.save()
   ctx.globalAlpha = pill.opacity
-  ctx.fillStyle = plateColor(config, textColor)
+  ctx.fillStyle = inkOpposite(textColor)
   roundRectPath(ctx, layout.pill)
   ctx.fill()
   ctx.restore()
@@ -143,8 +146,8 @@ export function drawText(
     ctx.shadowBlur = layout.fontSizePx * 0.16 * effectStrength
     ctx.shadowOffsetY = layout.fontSizePx * 0.05 * effectStrength
   } else if (effect === 'glow') {
-    // 同色两层外发光：先大范围铺一层弥散，再补一层近距离的亮边。
-    ctx.shadowColor = color
+    // 两层外发光：先大范围铺一层弥散，再补一层近距离的亮边。
+    ctx.shadowColor = glowColor(color)
     ctx.shadowBlur = layout.fontSizePx * 0.45 * effectStrength
     paintAll(ctx, layout, 'fill', nativeSpacing)
     ctx.shadowBlur = layout.fontSizePx * 0.18 * effectStrength
