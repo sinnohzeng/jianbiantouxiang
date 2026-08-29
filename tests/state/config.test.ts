@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { CURATED_FONTS } from '@/fonts/curated'
 import { LOCALES } from '@/i18n'
-import { DEFAULT_CONFIG, LOCALE_DEFAULT_FONT, configHash, normalizeConfig } from '@/state/config'
+import {
+  DEFAULT_CONFIG,
+  LINE_OVERRIDE_MAX,
+  LOCALE_DEFAULT_FONT,
+  configHash,
+  normalizeConfig,
+} from '@/state/config'
 
 describe('normalizeConfig 补默认', () => {
   it('空输入返回一份完整默认配置', () => {
@@ -24,6 +30,15 @@ describe('normalizeConfig 补默认', () => {
 
   it('v 恒为 3', () => {
     expect(normalizeConfig({ v: 2 }).v).toBe(3)
+  })
+
+  it('默认是方形、白色文字与两行示例', () => {
+    expect(DEFAULT_CONFIG.canvas.shape).toBe('square')
+    expect(DEFAULT_CONFIG.text).toBe('飞书\n效率先锋')
+    expect(DEFAULT_CONFIG.typography.colorMode).toBe('custom')
+    expect(DEFAULT_CONFIG.typography.color).toBe('#ffffff')
+    expect(DEFAULT_CONFIG.typography.lineSizeScales).toEqual([1, 0.62])
+    expect(DEFAULT_CONFIG.typography.lineOffsetsX).toEqual([0, 0])
   })
 })
 
@@ -73,7 +88,7 @@ describe('normalizeConfig 夹值与校验', () => {
       exportOptions: { format: 'gif', sizeTarget: '10mb' },
     })
     expect(config.style).toBe('mesh')
-    expect(config.canvas.shape).toBe('rounded')
+    expect(config.canvas.shape).toBe('square')
     expect(config.typography.anchor).toBe('c')
     expect(config.typography.align).toBe('center')
     expect(config.typography.effect).toBe('glow')
@@ -155,6 +170,33 @@ describe('normalizeConfig 的 layout 子树', () => {
     expect(normalizeConfig({ layout: { scale: Number.NaN } }).layout.scale).toBe(
       DEFAULT_CONFIG.layout.scale,
     )
+  })
+
+  it('行级字号与水平补偿夹值、补默认并限制长度', () => {
+    const config = normalizeConfig({
+      typography: {
+        lineSizeScales: [0.1, 2.5, 'bad'],
+        lineOffsetsX: [-0.4, 0.3, 1],
+      },
+    })
+    expect(config.typography.lineSizeScales).toEqual([0.2, 2, 1])
+    expect(config.typography.lineOffsetsX).toEqual([-0.25, 0.25, 0.25])
+
+    const huge = normalizeConfig({
+      typography: {
+        lineSizeScales: Array.from({ length: 30 }, () => 1),
+        lineOffsetsX: Array.from({ length: 30 }, () => 0),
+      },
+    })
+    expect(huge.typography.lineSizeScales).toHaveLength(LINE_OVERRIDE_MAX)
+    expect(huge.typography.lineOffsetsX).toHaveLength(LINE_OVERRIDE_MAX)
+  })
+
+  it('旧状态徽章链接的 layout.scale 迁移到第二行字号', () => {
+    const config = normalizeConfig({
+      layout: { kind: 'status', scale: 0.3 },
+    })
+    expect(config.typography.lineSizeScales[1]).toBe(0.3)
   })
 })
 

@@ -50,6 +50,10 @@ export interface AvatarConfig {
     effectStrength: number // 0..1
     colorMode: 'auto' | 'custom'
     color: string
+    /** 显式行相对基准字号的乘数；自动换行的续行沿用源段落的值。 */
+    lineSizeScales: number[]
+    /** 显式行的水平视觉补偿，按画布宽度比例。 */
+    lineOffsetsX: number[]
     pill: { radius: number; padding: number; opacity: number }
   }
   layout: {
@@ -75,6 +79,9 @@ export const EXPORT_FORMATS = ['jpg', 'png', 'webp'] as const
 export const SIZE_TARGETS = ['none', '1mb', '2mb'] as const
 export const LAYOUT_KINDS: readonly LayoutKind[] = ['text', 'status']
 
+/** 行级参数最多保存 12 档，防止坏链接把状态与 URL 无限撑大。 */
+export const LINE_OVERRIDE_MAX = 12
+
 /** 状态徽章里两块之间的留白，按首行字号算。 */
 export const STATUS_GAP_RATIO = 0.18
 
@@ -84,7 +91,7 @@ export const CANVAS_MAX = 8192
 
 export const DEFAULT_CONFIG: AvatarConfig = {
   v: 3,
-  text: '飞书效率先锋',
+  text: '飞书\n效率先锋',
   seed: '',
   style: 'mesh',
   styleParams: {
@@ -97,7 +104,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
   highlight: 0.25,
   palette: 'aurora',
   customColors: [],
-  canvas: { width: 1024, height: 1024, shape: 'rounded', radius: 0.2 },
+  canvas: { width: 1024, height: 1024, shape: 'square', radius: 0.2 },
   typography: {
     // 契约基线，也是 normalizeConfig 的兜底值。首次进入实际用哪套字体按界面语言定，见 LOCALE_DEFAULT_FONT
     fontFamily: 'Noto Sans SC',
@@ -116,13 +123,15 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     autoWrap: true,
     effect: 'glow',
     effectStrength: 0.5,
-    colorMode: 'auto',
+    colorMode: 'custom',
     color: '#ffffff',
+    lineSizeScales: [1, 0.62],
+    lineOffsetsX: [0, 0],
     pill: { radius: 0.5, padding: 0.3, opacity: 0.55 },
   },
   layout: {
     kind: 'text',
-    scale: 0.42,
+    scale: 0.62,
   },
   exportOptions: {
     format: 'jpg',
@@ -217,6 +226,21 @@ function normalizeColors(value: unknown): string[] {
   return out
 }
 
+function normalizeNumberArray(
+  value: unknown,
+  fallback: readonly number[],
+  missing: number,
+  min: number,
+  max: number,
+): number[] {
+  if (!Array.isArray(value)) return [...fallback]
+  const out: number[] = []
+  for (let index = 0; index < Math.min(value.length, LINE_OVERRIDE_MAX); index += 1) {
+    out.push(num(value[index], fallback[index] ?? missing, min, max))
+  }
+  return out.length > 0 ? out : [...fallback]
+}
+
 /**
  * 把任意局部输入补成完整配置：缺字段补默认，数值按注释里的区间夹值，
  * 枚举与数组做合法性校验。任何输入都不会抛错。
@@ -231,6 +255,18 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
   const pill = isRecord(tp.pill) ? tp.pill : {}
   const ex = isRecord(src.exportOptions) ? src.exportOptions : {}
   const lay = isRecord(src.layout) ? src.layout : {}
+  const lineSizeScales = normalizeNumberArray(
+    tp.lineSizeScales,
+    d.typography.lineSizeScales,
+    1,
+    0.2,
+    2,
+  )
+  // v3.1 的状态徽章只有 layout.scale 一个自由度。旧链接缺行级数组时，
+  // 把第二行迁移成同一个值，不能因为契约扩了就把用户调好的比例打回默认。
+  if (!Array.isArray(tp.lineSizeScales) && lay.kind === 'status') {
+    lineSizeScales[1] = num(lay.scale, d.layout.scale, 0.2, 0.8)
+  }
 
   return {
     v: 3,
@@ -272,6 +308,14 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
       effectStrength: num(tp.effectStrength, d.typography.effectStrength, 0, 1),
       colorMode: pick(tp.colorMode, COLOR_MODES, d.typography.colorMode),
       color: normalizeHex(tp.color, d.typography.color),
+      lineSizeScales,
+      lineOffsetsX: normalizeNumberArray(
+        tp.lineOffsetsX,
+        d.typography.lineOffsetsX,
+        0,
+        -0.25,
+        0.25,
+      ),
       pill: {
         radius: num(pill.radius, d.typography.pill.radius, 0, 0.5),
         padding: num(pill.padding, d.typography.pill.padding, 0, 1),
