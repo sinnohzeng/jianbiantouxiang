@@ -99,3 +99,34 @@
 1. React Bits Pro 的 App UI block 全部 default export，根节点带 `h-full min-h-[Npx]`，接进自己的布局前要先给父容器确定高度，否则整块塌成 0 高。
 2. 这批件的动效一律先读 `useReducedMotion()`，reduce 为真时把 duration 归零而不是移除元素，可访问性与布局稳定性都照顾到了。本项目的 `prefers-reduced-motion` 处理照这个口径。
 3. shadcnblocks 的 component 级件多是 shadcn 原语的示例组合，原语已装的情况下可以只借结构不 `add`；React Bits Pro 的 block 才是真正的新代码，装完要 `grep "^export"` 确认导出形态再 import。
+
+## 脚手架阶段踩坑（2026-08-29）
+
+### `npx shadcn` 在本机报 `EALLOWSCRIPTS`
+
+- 症状：`npx shadcn@latest init / add` 内部再调 `npm install` 时报 `EALLOWSCRIPTS: --allow-scripts is not allowed in project-scoped installs`。
+- 原因：本机 `~/.npmrc` 有 `allow-scripts` 配置，`npx` 把它以 `npm_config_allow_scripts` 环境变量传给子进程，子进程里的项目级 `npm install` 不接受这个选项。
+- 规则：把 `shadcn` 装进 devDependencies，用 `./node_modules/.bin/shadcn` 调用，顺带锁定 CLI 版本。CI 与其他机器不受影响。
+
+### shadcn CLI 4 的 `init` 参数
+
+- CLI 4 已没有 `--base-color`，改成 preset：`-p nova`（还有 vega、maia、lyra、mira、luma、sera、rhea）。`nova` 落到 `components.json` 的是 `style: base-nova`、`baseColor: neutral`、`cssVariables: true`，底层 Base UI。
+- nova preset 会把 `--font-sans` 设成 Geist 并 import `@fontsource-variable/geist`，中文界面要在 `src/index.css` 里换掉这条 import 与字体栈，否则 76 KB 的拉丁字体白白打进产物。
+- `@shadcnblocks` 的 registry URL 是 `https://www.shadcnblocks.com/r/{name}`，不带 `.json`；`@reactbits-*` 是 `https://pro.reactbits.dev/api/r/<starter|pro>/{name}.json`。
+
+### TypeScript 6 与生成代码
+
+- TS 6 起 `baseUrl` 弃用且直接报 TS5101，`tsconfig` 只留 `paths`。
+- `noUnusedLocals` / `noUnusedParameters` 会被 shadcn 生成的 `src/components/ui/*.tsx` 里未使用的 import 卡住，未使用符号交给 ESLint 的 `@typescript-eslint/no-unused-vars`，`src/components/ui` 在 eslint 与 prettier 里都忽略。
+- `typescript-eslint@8.68` 的 peer 上限是 TS `<6.1`，本仓锁 TS 6.0.x，不上 TS 7。
+
+### Playwright 设备模拟
+
+- `devices['iPhone 15']` 的 `defaultBrowserType` 是 webkit，project 里要显式 `browserName: 'chromium'`，否则 swiftshader 启动参数不生效、WebGL 不可用。
+- headless chromium 跑 WebGL 要加 `--use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist`。
+
+### 多智能体并行时的 git 纪律
+
+- 子智能体用 `git rm` 删文件会把删除暂存进 index，主会话之后任何不带 pathspec 的 `git commit` 都会把它们卷进去。规则：子智能体一律不做 git 操作，删文件用 `rm`；主会话提交前先看 `git status --short` 里有没有 `D ` 前缀。
+- `prettier --write .` 会重排 `README.md`、`docs/`、`specs/` 的散文，`.prettierignore` 要把这些散文目录与生成代码目录都列上。
+- zsh 里未加引号的变量不会按空格拆分，脚本里传多路径要用数组 `paths=(a b c)`，或显式 `bash -c`。

@@ -37,7 +37,7 @@ describe('normalizeConfig 夹值与校验', () => {
     expect(config.styleParams.intensity).toBe(0)
     expect(config.styleParams.scale).toBe(2)
     expect(config.styleParams.rotation).toBe(0)
-    expect(config.canvas.width).toBe(4096)
+    expect(config.canvas.width).toBe(8192)
     expect(config.canvas.height).toBe(64)
     expect(config.canvas.radius).toBe(0.5)
     expect(config.typography.fontSize).toBe(0.04)

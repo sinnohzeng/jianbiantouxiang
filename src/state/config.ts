@@ -64,7 +64,7 @@ export const SIZE_TARGETS = ['none', '1mb', '2mb'] as const
 
 /** 画布边长的合法区间，上限对应桌面导出的 4096。 */
 export const CANVAS_MIN = 64
-export const CANVAS_MAX = 4096
+export const CANVAS_MAX = 8192
 
 export const DEFAULT_CONFIG: AvatarConfig = {
   v: 3,
