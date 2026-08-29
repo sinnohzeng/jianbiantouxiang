@@ -188,3 +188,44 @@ describe('安全框跟着画布形状收', () => {
     expect(area).toEqual({ x: 0, y: 0, width: 0, height: 0 })
   })
 })
+
+describe('自动填满不把词拆开', () => {
+  it('宁可退一档字号，也不把拉丁词从中间断开', () => {
+    const result = fit({
+      text: '猪猪家族\n钱猪宝\nGRADIENT',
+      typography: { sizeMode: 'auto', padding: 0.1, autoWrap: true },
+    })
+    const texts = result.block.lines.map((line) => line.text)
+    expect(texts).toContain('GRADIENT')
+    expect(result.block.broke).toBe(false)
+    expect(result.fits).toBe(true)
+  })
+
+  it('词本身就放不下时照旧拆，不为它把字号压到下限', () => {
+    const result = fit({
+      text: 'SUPERCALIFRAGILISTIC',
+      typography: { sizeMode: 'auto', padding: 0.3, autoWrap: true },
+    })
+    expect(result.block.broke).toBe(true)
+    expect(result.block.lines.length).toBeGreaterThan(1)
+    // 退化到下限就说明兜底没生效
+    expect(result.fontSizePx).toBeGreaterThan(MIN_FONT_RATIO * 1000 + 1)
+  })
+
+  it('中文逐字换行不算拆词', () => {
+    const result = fit({
+      text: '渐变头像生成器渐变头像生成器',
+      typography: { sizeMode: 'auto', padding: 0.1, autoWrap: true },
+    })
+    expect(result.block.broke).toBe(false)
+    expect(result.block.lines.length).toBeGreaterThan(1)
+  })
+
+  it('关掉自动换行时不涉及拆词', () => {
+    const result = fit({
+      text: 'GRADIENT',
+      typography: { sizeMode: 'auto', padding: 0.1, autoWrap: false },
+    })
+    expect(result.block.broke).toBe(false)
+  })
+})

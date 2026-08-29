@@ -123,15 +123,43 @@ export function wrapLine(
   font: string,
   letterSpacingPx: number,
 ): string[] {
-  if (line === '') return ['']
+  return wrapLineParts(line, maxWidth, measure, font, letterSpacingPx).lines
+}
+
+/** 换行结果，外加「有没有把一个词硬拆开」。 */
+export interface WrapParts {
+  lines: string[]
+  /** 某个原子（拉丁词）宽过安全区，只能拆成字素才放得下。自动填满据此回避这一档字号。 */
+  broke: boolean
+}
+
+/**
+ * 同 `wrapLine`，另外报告有没有把词硬拆开。
+ * 拉丁词被从中间断开在头像上很扎眼，自动填满宁可退一档字号也不要这个结果。
+ */
+export function wrapLineParts(
+  line: string,
+  maxWidth: number,
+  measure: MeasureFn,
+  font: string,
+  letterSpacingPx: number,
+): WrapParts {
+  if (line === '') return { lines: [''], broke: false }
   const widthOf = (text: string) => measure(text, font, letterSpacingPx).width
-  if (!Number.isFinite(maxWidth) || maxWidth <= 0) return [line]
-  if (widthOf(line) <= maxWidth) return [line]
+  if (!Number.isFinite(maxWidth) || maxWidth <= 0) return { lines: [line], broke: false }
+  if (widthOf(line) <= maxWidth) return { lines: [line], broke: false }
 
   const atoms: string[] = []
+  let broke = false
   for (const atom of toAtoms(line)) {
-    if (widthOf(atom) > maxWidth) atoms.push(...toGraphemes(atom))
-    else atoms.push(atom)
+    if (widthOf(atom) <= maxWidth) {
+      atoms.push(atom)
+      continue
+    }
+    const graphemes = toGraphemes(atom)
+    // 单个字素本来就超宽时拆不动，那不算把词拆开
+    if (graphemes.length > 1) broke = true
+    atoms.push(...graphemes)
   }
 
   const lines: string[] = []
@@ -153,5 +181,5 @@ export function wrapLine(
   const tail = current.trimEnd()
   if (tail !== '') lines.push(tail)
 
-  return lines.length > 0 ? applyKinsoku(lines) : [line]
+  return { lines: lines.length > 0 ? applyKinsoku(lines) : [line], broke }
 }

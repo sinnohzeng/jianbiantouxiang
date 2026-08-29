@@ -1,6 +1,6 @@
 import type { AvatarConfig } from '@/state/config'
 import { fontString, letterSpacingPxOf, toGraphemes, type MeasureFn } from './measure'
-import { splitParagraphs, toAtoms, wrapLine } from './wrap'
+import { splitParagraphs, wrapLineParts } from './wrap'
 
 /** 自动填满的搜索区间，与 config 里 fontSize 的取值范围一致。 */
 export const MIN_FONT_RATIO = 0.04
@@ -26,6 +26,8 @@ export interface LineMetric {
 }
 
 export interface TextBlock {
+  /** 换行时把某个拉丁词硬拆开了。自动填满据此回避这一档字号。 */
+  broke: boolean
   /** 横排为行，竖排为列。 */
   lines: LineMetric[]
   /** 每行基线相对块顶部的偏移；竖排为每列首字的基线偏移。 */
@@ -56,6 +58,7 @@ const EMPTY_BLOCK: TextBlock = {
   height: 0,
   vertical: false,
   columnWidth: 0,
+  broke: false,
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -81,9 +84,12 @@ function composeHorizontal(
   measure: MeasureFn,
 ): TextBlock {
   const wrapped: string[] = []
+  let broke = false
   for (const paragraph of paragraphs) {
     if (config.typography.autoWrap) {
-      wrapped.push(...wrapLine(paragraph, safeWidth, measure, font, letterSpacingPx))
+      const parts = wrapLineParts(paragraph, safeWidth, measure, font, letterSpacingPx)
+      wrapped.push(...parts.lines)
+      broke ||= parts.broke
     } else {
       wrapped.push(paragraph)
     }
@@ -119,6 +125,7 @@ function composeHorizontal(
     height: bottom - top,
     vertical: false,
     columnWidth: 0,
+    broke,
   }
 }
 
@@ -187,6 +194,8 @@ function composeVertical(
     width: Math.max(0, (lines.length - 1) * lineHeightPx) + columnWidth,
     height,
     vertical: true,
+    // 竖排逐字排列，没有「词」可拆
+    broke: false,
     columnWidth,
   }
 }
@@ -333,10 +342,10 @@ export function fitText(
   let high = MAX_FONT_RATIO
 
   // 还能继续换行时不能走闭式解：拆成多行往往能换来更大的字号，一步到位反而把结果卡死在单行。
+  // 横排的判据不能只看有几个词：一个超长的拉丁词也能拆成字素换行，
+  // 按「只有一个词就不可换行」算，它会被钉死在单行放得下的那个字号上，白白小一大截。
   const only = paragraphs[0] ?? ''
-  const wrappable =
-    typography.autoWrap &&
-    (typography.vertical ? toGraphemes(only).length > 1 : toAtoms(only).length > 1)
+  const wrappable = typography.autoWrap && toGraphemes(only).length > 1
 
   if (paragraphs.length === 1 && !wrappable) {
     // 单段且不再换行时，块尺寸随字号线性变化，按探针尺寸算出比例再验证一次。
@@ -359,17 +368,28 @@ export function fitText(
     }
   }
 
-  let low = MIN_FONT_RATIO
-  let best = build(MIN_FONT_RATIO)
-  for (let i = 0; i < FIT_ITERATIONS; i += 1) {
-    const mid = (low + high) / 2
-    const candidate = build(mid)
-    if (candidate.fits) {
-      best = candidate
-      low = mid
-    } else {
-      high = mid
+  /**
+   * 二分找最大可行字号。`strict` 那一轮把「拆过词」也算不可行：
+   * 拉丁词从中间断开在头像上很扎眼，退一档字号换个完整的词更好看。
+   */
+  const search = (strict: boolean): FitResult => {
+    let low = MIN_FONT_RATIO
+    let bound = high
+    let best = build(MIN_FONT_RATIO)
+    for (let i = 0; i < FIT_ITERATIONS; i += 1) {
+      const mid = (low + bound) / 2
+      const candidate = build(mid)
+      if (candidate.fits && !(strict && candidate.block.broke)) {
+        best = candidate
+        low = mid
+      } else {
+        bound = mid
+      }
     }
+    return best
   }
-  return best
+
+  const strict = search(true)
+  // 最小字号都得拆词，说明这个词本来就放不下，那就别再为它压字号
+  return strict.block.broke ? search(false) : strict
 }
