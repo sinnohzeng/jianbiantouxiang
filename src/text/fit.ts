@@ -115,13 +115,7 @@ function composeHorizontal(
       const lineFontSizePx = fontSizePx * (sizeScales[paragraphIndex] ?? 1)
       const lineFont = fontString(config, lineFontSizePx)
       const lineLetterSpacingPx = letterSpacingPxOf(config, lineFontSizePx)
-      const parts = wrapLineParts(
-        paragraph,
-        maxWidth,
-        measure,
-        lineFont,
-        lineLetterSpacingPx,
-      )
+      const parts = wrapLineParts(paragraph, maxWidth, measure, lineFont, lineLetterSpacingPx)
       wrapped.push(...parts.lines.map((text) => ({ text, paragraph: paragraphIndex })))
       broke ||= parts.broke
     } else {
@@ -496,12 +490,7 @@ export function fitStatus(
   const primaryOffset = config.typography.lineOffsetsX[0] ?? 0
   const secondaryOffset = config.typography.lineOffsetsX[1] ?? 0
 
-  const part = (
-    paras: string[],
-    fontSizePx: number,
-    scale: number,
-    offset: number,
-  ): FitResult => {
+  const part = (paras: string[], fontSizePx: number, scale: number, offset: number): FitResult => {
     const composed = composeBlock(
       flat,
       paras,
@@ -529,7 +518,8 @@ export function fitStatus(
   const build = (ratio: number): StatusFit => {
     const primarySize = clamp(ratio, MIN_FONT_RATIO, MAX_FONT_RATIO) * shortSide
     const primary = part(head, primarySize, primaryScale, primaryOffset)
-    const secondary = rest.length > 0 ? part(rest, primarySize, secondaryScale, secondaryOffset) : null
+    const secondary =
+      rest.length > 0 ? part(rest, primarySize, secondaryScale, secondaryOffset) : null
     const gapPx = secondary ? primarySize * primaryScale * STATUS_GAP_RATIO : 0
     const blockWidth = Math.max(primary.block.width, secondary?.block.width ?? 0)
     const blockHeight = primary.block.height + gapPx + (secondary?.block.height ?? 0)
