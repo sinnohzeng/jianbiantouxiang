@@ -14,8 +14,8 @@ test('预览挂着 WebGL 画布，合成结果不是一张平色', async ({ page
   await expect(canvas).toBeVisible()
 
   const stats = await probeStats(page)
-  // 默认是圆角方形，四角被遮罩清成透明，所以不能按满幅断言
-  expect(stats.opaque).toBeGreaterThan(stats.width * stats.height * 0.8)
+  // 默认是方形，四角不应再被遮罩清成透明
+  expect(stats.opaque).toBe(stats.width * stats.height)
   // 平色的话去重后只有一两个值，这里要的是真渐变
   expect(stats.colors).toBeGreaterThan(16)
 })
@@ -26,11 +26,7 @@ test('点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => {
 
   const download = page.waitForEvent('download')
   await page.locator('[data-slot="export-action"]').click()
-  await page.locator('[data-slot="export-run"]').click()
 
-  await expect(page.locator('[data-slot="export-result"]')).toBeVisible({
-    timeout: PROBE_TIMEOUT_MS,
-  })
   const file = await download
   expect(file.suggestedFilename()).toMatch(/\.jpg$/)
 
@@ -40,6 +36,26 @@ test('点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => {
   expect(encoded.bytes).toBeGreaterThan(0)
   expect(encoded.bytes).toBeLessThanOrEqual(1024 * 1024)
   expect(encoded.hitTarget).toBe(true)
+})
+
+test('导出抽屉能把 PNG 复制到剪贴板', async ({ context, page }) => {
+  test.setTimeout(PROBE_TIMEOUT_MS)
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await openApp(page)
+
+  await page.locator('[data-slot="export-options"]').click()
+  await page.locator('[data-slot="export-copy"]').click()
+
+  await expect(page.locator('[data-slot="export-notice"]')).toHaveText('图片已复制', {
+    timeout: PROBE_TIMEOUT_MS,
+  })
+  const copied = await page.evaluate(async () => {
+    const [item] = await navigator.clipboard.read()
+    if (!item || !item.types.includes('image/png')) return false
+    const blob = await item.getType('image/png')
+    return blob.size > 0
+  })
+  expect(copied).toBe(true)
 })
 
 test('改文字后复制的链接在新页面打开，文字一致', async ({ context, page }) => {

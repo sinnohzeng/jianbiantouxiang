@@ -17,6 +17,7 @@
 | `bottombar.actions`               | 主要操作                                                                         |
 | `bottombar.copyLink`              | 复制链接                                                                         |
 | `bottombar.export`                | 导出                                                                             |
+| `bottombar.exportOptions`         | 导出选项                                                                         |
 | `bottombar.random`                | 随机                                                                             |
 | `bottombar.random.hint`           | 只换种子，配色与质感不变                                                         |
 | `bottombar.randomAll`             | 随机配色与质感                                                                   |
@@ -24,11 +25,14 @@
 | `common.copyFailed`               | 复制失败，请手动复制地址栏里的链接                                               |
 | `export.bg`                       | 底色                                                                             |
 | `export.bg.hint`                  | JPG 与圆角外的区域用这个颜色填充                                                 |
-| `export.cancelled`                | 已取消分享                                                                       |
 | `export.caps`                     | 本设备最高原生 {size} px，更大的尺寸先按上限渲染再放大                           |
-| `export.copyLink`                 | 复制链接                                                                         |
+| `export.copyFailed`               | 复制图片失败，请改用下载                                                         |
+| `export.copyImage`                | 复制图片                                                                         |
+| `export.copySuccess`              | 图片已复制                                                                       |
+| `export.copyUnsupported`          | 当前浏览器不支持复制图片，请使用下载                                             |
 | `export.dimensions`               | 当前尺寸 {width}×{height}                                                        |
 | `export.done`                     | 已导出 {name}                                                                    |
+| `export.download`                 | 下载                                                                             |
 | `export.downloaded`               | 已开始下载                                                                       |
 | `export.failed`                   | 导出失败，换个尺寸或格式再试                                                     |
 | `export.format`                   | 格式                                                                             |
@@ -38,7 +42,6 @@
 | `export.format.webp`              | WebP                                                                             |
 | `export.preview`                  | 导出结果                                                                         |
 | `export.result`                   | {size}，质量 {quality}                                                           |
-| `export.shared`                   | 已发起分享                                                                       |
 | `export.size`                     | 体积                                                                             |
 | `export.size.1mb`                 | ≤ 1 MB                                                                           |
 | `export.size.2mb`                 | ≤ 2 MB                                                                           |

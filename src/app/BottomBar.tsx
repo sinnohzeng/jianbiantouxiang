@@ -6,8 +6,15 @@
  * 所以按钮都允许收缩、文案 truncate，宽松的最小宽度只在桌面档给。
  */
 
-import { useCallback } from 'react'
-import { ChevronUpIcon, DownloadIcon, Link2Icon, ShuffleIcon } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import {
+  ChevronUpIcon,
+  DownloadIcon,
+  Link2Icon,
+  Loader2Icon,
+  SettingsIcon,
+  ShuffleIcon,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { copyText } from '@/app/clipboard'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -19,6 +26,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
+import { createExportArtifact } from '@/export/action'
+import { downloadBlob } from '@/export/download'
+import { isWeChat } from '@/export/share'
+import { releaseCanvas } from '@/export/canvas'
 import { flushConfigSync, useAvatarStore } from '@/state/store'
 import { buildShareUrl } from '@/state/url'
 
@@ -28,6 +39,7 @@ export function BottomBar() {
   const randomizeAll = useAvatarStore((state) => state.randomizeAll)
   const pushHistory = useAvatarStore((state) => state.pushHistory)
   const setUi = useAvatarStore((state) => state.setUi)
+  const [exporting, setExporting] = useState(false)
 
   const onShuffle = useCallback(() => {
     randomize()
@@ -49,7 +61,31 @@ export function BottomBar() {
     })
   }, [t])
 
-  const onExport = useCallback(() => {
+  const onExport = useCallback(async () => {
+    if (exporting) return
+    // 微信会拦 a[download]，那里只能打开抽屉展示长按保存兜底
+    if (isWeChat()) {
+      setUi({ exportOpen: true })
+      return
+    }
+
+    setExporting(true)
+    flushConfigSync()
+    let artifact: Awaited<ReturnType<typeof createExportArtifact>> | null = null
+    try {
+      artifact = await createExportArtifact(useAvatarStore.getState().config)
+      downloadBlob(artifact.blob, artifact.filename)
+      pushHistory()
+      toast.success(t('export.downloaded'))
+    } catch {
+      toast.error(t('export.failed'))
+    } finally {
+      if (artifact) releaseCanvas(artifact.canvas)
+      setExporting(false)
+    }
+  }, [exporting, pushHistory, setUi, t])
+
+  const onExportOptions = useCallback(() => {
     setUi({ exportOpen: true })
   }, [setUi])
 
@@ -112,16 +148,36 @@ export function BottomBar() {
           <Link2Icon aria-hidden />
         </Button>
 
-        <Button
-          type="button"
-          size="lg"
-          data-slot="export-action"
-          onClick={onExport}
-          className="tap-target ml-auto min-w-0 flex-1 lg:min-w-28 lg:flex-none"
-        >
-          <DownloadIcon aria-hidden />
-          <span className="truncate">{t('bottombar.export')}</span>
-        </Button>
+        <div className="ml-auto flex min-w-0 flex-1 lg:flex-none">
+          <Button
+            type="button"
+            size="lg"
+            data-slot="export-action"
+            disabled={exporting}
+            onClick={() => void onExport()}
+            className="tap-target min-w-0 flex-1 rounded-r-none pr-2 lg:min-w-28 lg:flex-none"
+          >
+            {exporting ? (
+              <Loader2Icon aria-hidden className="animate-spin motion-reduce:animate-none" />
+            ) : (
+              <DownloadIcon aria-hidden />
+            )}
+            <span className="truncate">
+              {exporting ? t('export.working') : t('bottombar.export')}
+            </span>
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            data-slot="export-options"
+            onClick={onExportOptions}
+            aria-label={t('bottombar.exportOptions')}
+            title={t('bottombar.exportOptions')}
+            className="tap-target border-background/60 rounded-l-none border-l px-2"
+          >
+            <SettingsIcon aria-hidden className="size-4" />
+          </Button>
+        </div>
       </div>
     </div>
   )

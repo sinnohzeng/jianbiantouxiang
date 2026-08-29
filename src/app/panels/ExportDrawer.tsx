@@ -8,8 +8,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react'
-import { DownloadIcon, LinkIcon, Loader2Icon } from 'lucide-react'
-import { copyText } from '@/app/clipboard'
+import { ClipboardCopyIcon, DownloadIcon, Loader2Icon } from 'lucide-react'
 import { SegmentedControl, type SegmentedOption } from '@/components/blocks/segmented-control'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,12 +21,12 @@ import {
 } from '@/components/ui/drawer'
 import { Label } from '@/components/ui/label'
 import { getRenderCaps } from '@/engine/caps'
+import { createClipboardBlob, createExportArtifact } from '@/export/action'
 import { releaseCanvas } from '@/export/canvas'
-import { composeAvatar } from '@/export/compose'
+import { copyImageToClipboard, supportsClipboardImage } from '@/export/clipboard'
 import { downloadBlob } from '@/export/download'
-import { encodeCanvas, supportsWebP } from '@/export/encode'
-import { buildFilename } from '@/export/filename'
-import { canShareFiles, isWeChat, shareBlob } from '@/export/share'
+import { supportsWebP } from '@/export/encode'
+import { isWeChat } from '@/export/share'
 import { useT } from '@/i18n'
 import { SIZE_TARGETS, type AvatarConfig } from '@/state/config'
 import { flushConfigSync, useAvatarStore } from '@/state/store'
@@ -105,14 +104,6 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
     label: t(`export.size.${value}`),
   }))
 
-  const copyLink = useCallback(() => {
-    flushConfigSync()
-    const url = typeof window === 'undefined' ? '' : window.location.href
-    // 走共用 helper：navigator.clipboard 为 undefined 时可选链会把 then 与 catch 一起短路，
-    // 界面上一个字都不会变
-    void copyText(url).then((ok) => setNotice(ok ? 'common.copied' : 'common.copyFailed'))
-  }, [])
-
   const run = useCallback(async () => {
     if (busy) return
     setBusy(true)
@@ -120,42 +111,57 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
     setDone(null)
     flushConfigSync()
 
-    let canvas: HTMLCanvasElement | null = null
+    let artifact: Awaited<ReturnType<typeof createExportArtifact>> | null = null
     try {
-      // 自动底板由 composeAvatar 在读到像素之后自己补，这里不再预判
-      canvas = await composeAvatar(config, width, height)
-      const encoded = await encodeCanvas(canvas, config.exportOptions)
-      const filename = buildFilename(config, config.exportOptions.format)
+      artifact = await createExportArtifact(config)
 
       let previewUrl: string | null = null
       if (isWeChat()) {
-        previewUrl = URL.createObjectURL(encoded.blob)
+        previewUrl = URL.createObjectURL(artifact.blob)
         setNotice('export.wechat')
-      } else if (canShareFiles()) {
-        const result = await shareBlob(encoded.blob, filename, config.text)
-        setNotice(`export.${result}`)
-        // 分享被取消时什么都没落地，不能既说“已取消分享”又说“已导出 xxx”，也不该记进最近生成
-        if (result === 'cancelled') return
       } else {
-        downloadBlob(encoded.blob, filename)
+        downloadBlob(artifact.blob, artifact.filename)
         setNotice('export.downloaded')
       }
 
       setDone({
-        filename,
-        bytes: encoded.blob.size,
-        quality: encoded.quality,
-        hitTarget: encoded.hitTarget,
+        filename: artifact.filename,
+        bytes: artifact.blob.size,
+        quality: artifact.quality,
+        hitTarget: artifact.hitTarget,
         previewUrl,
       })
       pushHistory()
     } catch {
       setNotice('export.failed')
     } finally {
-      if (canvas) releaseCanvas(canvas)
+      if (artifact) releaseCanvas(artifact.canvas)
       setBusy(false)
     }
-  }, [busy, config, height, pushHistory, width])
+  }, [busy, config, pushHistory])
+
+  const copyImage = useCallback(async () => {
+    if (busy) return
+    if (!supportsClipboardImage()) {
+      setNotice('export.copyUnsupported')
+      return
+    }
+
+    setBusy(true)
+    setNotice(null)
+    setDone(null)
+    flushConfigSync()
+    try {
+      // Promise 必须在用户手势内交给 ClipboardItem，Safari 才允许稍后完成合成
+      const copied = await copyImageToClipboard(createClipboardBlob(config))
+      setNotice(copied ? 'export.copySuccess' : 'export.copyFailed')
+      if (copied) pushHistory()
+    } catch {
+      setNotice('export.copyFailed')
+    } finally {
+      setBusy(false)
+    }
+  }, [busy, config, pushHistory])
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
@@ -221,13 +227,13 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
           ) : null}
 
           {notice ? (
-            <p role="status" className="text-muted-foreground text-xs">
+            <p role="status" data-slot="export-notice" className="text-muted-foreground text-xs">
               {t(notice)}
             </p>
           ) : null}
         </div>
 
-        <DrawerFooter className="gap-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <DrawerFooter className="grid gap-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:grid-cols-2">
           <Button
             type="button"
             data-slot="export-run"
@@ -240,11 +246,22 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
             ) : (
               <DownloadIcon aria-hidden="true" />
             )}
-            {busy ? t('export.working') : t('export.title')}
+            {busy ? t('export.working') : t('export.download')}
           </Button>
-          <Button type="button" variant="outline" className="h-11 w-full" onClick={copyLink}>
-            <LinkIcon aria-hidden="true" />
-            {t('export.copyLink')}
+          <Button
+            type="button"
+            variant="outline"
+            data-slot="export-copy"
+            className="h-12 w-full"
+            disabled={busy}
+            onClick={() => void copyImage()}
+          >
+            {busy ? (
+              <Loader2Icon aria-hidden="true" className="animate-spin motion-reduce:animate-none" />
+            ) : (
+              <ClipboardCopyIcon aria-hidden="true" />
+            )}
+            {t('export.copyImage')}
           </Button>
         </DrawerFooter>
       </DrawerContent>

@@ -19,7 +19,8 @@ test('预览挂着 WebGL 画布，合成结果不是一张平色，且没有横�
   expect(overflowsX).toBe(false)
 
   const stats = await probeStats(page)
-  expect(stats.opaque).toBeGreaterThan(stats.width * stats.height * 0.8)
+  // 默认是方形，四角不应再被遮罩清成透明
+  expect(stats.opaque).toBe(stats.width * stats.height)
   expect(stats.colors).toBeGreaterThan(16)
 })
 
@@ -27,14 +28,10 @@ test('底栏点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => 
   test.setTimeout(PROBE_TIMEOUT_MS)
   await openApp(page)
 
-  // 底栏与抽屉都在最上层，不会被 sticky 预览压住，这两下不用手动滚
+  // 底栏在最上层，不用手动滚；主按钮直接触发下载
   const download = page.waitForEvent('download')
   await page.locator('[data-slot="export-action"]').click()
-  await page.locator('[data-slot="export-run"]').click()
 
-  await expect(page.locator('[data-slot="export-result"]')).toBeVisible({
-    timeout: PROBE_TIMEOUT_MS,
-  })
   const file = await download
   expect(file.suggestedFilename()).toMatch(/\.jpg$/)
 
