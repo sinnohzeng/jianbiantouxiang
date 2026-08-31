@@ -279,33 +279,22 @@ export function TextPanel() {
           />
         </div>
 
-        <SliderField
-          label={t('panel.text.fontSize')}
-          editLabel={t('panel.common.edit', { name: t('panel.text.fontSize') })}
-          value={type.fontSize}
-          min={0.04}
-          max={0.92}
-          step={0.005}
-          scale={100}
-          unit="%"
-          disabled={type.sizeMode === 'auto'}
-          onChange={(fontSize) => setTypography({ fontSize })}
-        />
-
         {freeform && !type.vertical && lineCount > 1
           ? Array.from({ length: lineCount }, (_, index) => (
               <div key={index} className="flex flex-col gap-2">
                 <SliderField
-                  label={t('panel.text.lineSize', { index: index + 1 })}
+                  label={`${t('panel.text.lineSize', { index: index + 1 })} · ${paragraphs[index] ?? ''}`}
                   editLabel={t('panel.common.edit', {
                     name: t('panel.text.lineSize', { index: index + 1 }),
                   })}
+                  showInput
                   value={type.lineSizeScales[index] ?? 1}
                   min={0.2}
                   max={2}
                   step={0.01}
-                  precision={2}
-                  unit="×"
+                  scale={100}
+                  precision={0}
+                  unit="%"
                   onChange={(scale) =>
                     setTypography({
                       lineSizeScales: withLineValue(type.lineSizeScales, index, scale, 1),
@@ -333,6 +322,19 @@ export function TextPanel() {
               </div>
             ))
           : null}
+
+        <SliderField
+          label={t('panel.text.fontSize')}
+          editLabel={t('panel.common.edit', { name: t('panel.text.fontSize') })}
+          value={type.fontSize}
+          min={0.04}
+          max={0.92}
+          step={0.005}
+          scale={100}
+          unit="%"
+          disabled={type.sizeMode === 'auto'}
+          onChange={(fontSize) => setTypography({ fontSize })}
+        />
 
         <SliderField
           label={t('panel.text.padding')}

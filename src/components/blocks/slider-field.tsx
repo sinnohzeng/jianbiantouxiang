@@ -26,6 +26,8 @@ export interface SliderFieldProps {
   onChange: (value: number) => void
   disabled?: boolean
   className?: string
+  /** 常驻数值输入，适合需要精确修改的行级参数。 */
+  showInput?: boolean
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -49,6 +51,7 @@ export function SliderField({
   onChange,
   disabled = false,
   className,
+  showInput = false,
 }: SliderFieldProps) {
   const labelId = useId()
   // draft 为 null 就是没在编辑。不另存一份同步态，省掉一个只为对齐外部值的 effect
@@ -71,16 +74,17 @@ export function SliderField({
   return (
     <div className={cn('flex flex-col gap-1', className)}>
       <div className="flex min-h-11 items-center justify-between gap-2">
-        <span id={labelId} className="text-sm font-medium">
+        <span id={labelId} className="truncate text-sm font-medium">
           {label}
         </span>
-        {draft !== null ? (
+        {draft !== null || showInput ? (
           <Input
             ref={inputRef}
             className="h-11 w-24 text-right"
             inputMode="decimal"
-            value={draft}
+            value={draft ?? toDisplay(value, scale, precision)}
             aria-label={editLabel}
+            onFocus={() => setDraft(toDisplay(value, scale, precision))}
             onChange={(event) => setDraft(event.target.value)}
             onBlur={commit}
             onKeyDown={(event) => {

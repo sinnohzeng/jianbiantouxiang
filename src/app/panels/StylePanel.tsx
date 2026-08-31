@@ -3,6 +3,7 @@
  * 卡片缩略图用引擎的 CSS 近似层画，配色跟着当前配置走，选之前就能看出差别。
  *
  * 种子那一组按 spec §3.1 三件都给齐：手动改（输入框，留空即按文字派生）、随机、复制。
+ * 顺序放在质感选择之前，换种子是最高频动作，不该藏在面板底部。
  */
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
@@ -95,6 +96,41 @@ export function StylePanel() {
 
   return (
     <div className="flex flex-col">
+      <PanelSection title={t('panel.style.seed')}>
+        {/* 手动填种子：留空就回到按文字派生，同事发来的种子串也有地方粘 */}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={`${uid}-seed`}>{t('panel.style.seed')}</Label>
+          <Input
+            id={`${uid}-seed`}
+            className="h-11 font-mono"
+            spellCheck={false}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            value={config.seed}
+            onChange={(event) => setConfig({ seed: event.target.value })}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <code className="bg-muted flex h-11 flex-1 items-center rounded-lg px-3 font-mono text-sm">
+            {shortHash}
+          </code>
+          <Button
+            type="button"
+            variant="outline"
+            className="size-11"
+            aria-label={t('panel.style.seed.copy')}
+            onClick={copySeed}
+          >
+            {copied ? <CheckIcon aria-hidden="true" /> : <CopyIcon aria-hidden="true" />}
+          </Button>
+        </div>
+        <Button type="button" variant="outline" className="h-11" onClick={randomize}>
+          <ShuffleIcon aria-hidden="true" />
+          {t('panel.style.seed.new')}
+        </Button>
+        <p className="text-muted-foreground text-xs">{t('panel.style.seed.hint')}</p>
+      </PanelSection>
       <PanelSection title={t('panel.style.pick')}>
         <RadioCardGroup<StyleId>
           name="style"
@@ -139,42 +175,6 @@ export function StylePanel() {
           unit="%"
           onChange={(highlight) => setConfig({ highlight })}
         />
-      </PanelSection>
-
-      <PanelSection title={t('panel.style.seed')}>
-        {/* 手动填种子：留空就回到按文字派生，同事发来的种子串也有地方粘 */}
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`${uid}-seed`}>{t('panel.style.seed')}</Label>
-          <Input
-            id={`${uid}-seed`}
-            className="h-11 font-mono"
-            spellCheck={false}
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            value={config.seed}
-            onChange={(event) => setConfig({ seed: event.target.value })}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <code className="bg-muted flex h-11 flex-1 items-center rounded-lg px-3 font-mono text-sm">
-            {shortHash}
-          </code>
-          <Button
-            type="button"
-            variant="outline"
-            className="size-11"
-            aria-label={t('panel.style.seed.copy')}
-            onClick={copySeed}
-          >
-            {copied ? <CheckIcon aria-hidden="true" /> : <CopyIcon aria-hidden="true" />}
-          </Button>
-        </div>
-        <Button type="button" variant="outline" className="h-11" onClick={randomize}>
-          <ShuffleIcon aria-hidden="true" />
-          {t('panel.style.seed.new')}
-        </Button>
-        <p className="text-muted-foreground text-xs">{t('panel.style.seed.hint')}</p>
       </PanelSection>
     </div>
   )

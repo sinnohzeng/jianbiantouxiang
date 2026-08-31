@@ -196,14 +196,40 @@ describe('TextPanel', () => {
     })
 
     const ranges = container.querySelectorAll<HTMLInputElement>('input[type="range"]')
-    // 字号之后是两行各自的字号与水平补偿，第二行那一组在第 3、4 个滑杆
-    const lineSize = ranges[3]!
-    const lineOffset = ranges[4]!
+    // 行级控件已移动到全局字号之前；第 2 行的字号与水平补偿在第 3、4 个滑杆
+    const lineSize = ranges[2]!
+    const lineOffset = ranges[3]!
     fireEvent.change(lineSize, { target: { value: '0.7' } })
     fireEvent.change(lineOffset, { target: { value: '0.02' } })
 
     expect(config().typography.lineSizeScales).toEqual([1, 0.7])
     expect(config().typography.lineOffsetsX).toEqual([0, 0.02])
+  })
+
+  it('行级字号控件在全局字号之前，且数值输入常驻可直接修改', () => {
+    const { container } = mount(<TextPanel />)
+    fireEvent.change(container.querySelector('textarea')!, {
+      target: { value: '飞书\n效率先锋' },
+    })
+
+    const firstLine = screen.getByRole('textbox', { name: /Edit Line 1 size/ })
+    const secondLine = screen.getByRole('textbox', { name: /Edit Line 2 size/ })
+    expect((firstLine as HTMLInputElement).value).toBe('100')
+    expect((secondLine as HTMLInputElement).value).toBe('62')
+
+    fireEvent.focus(firstLine)
+    fireEvent.change(firstLine, { target: { value: '80' } })
+    fireEvent.blur(firstLine)
+
+    expect(config().typography.lineSizeScales).toEqual([0.8, 0.62])
+  })
+
+  it('质感面板的种子区在质感选择之前', () => {
+    mount(<StylePanel />)
+
+    const seed = screen.getByRole('button', { name: 'Seed' })
+    const style = screen.getByRole('button', { name: 'Texture' })
+    expect(seed.compareDocumentPosition(style) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
   })
 })
 
@@ -255,10 +281,8 @@ describe('StylePanel', () => {
     expect(config().style).toBe('silk')
 
     const before = config().seed
-    const buttons = screen.getAllByRole('button')
-    const shuffle = buttons.at(-1)
-    expect(shuffle).toBeDefined()
-    fireEvent.click(shuffle!)
+    const shuffle = screen.getByRole('button', { name: 'New seed' })
+    fireEvent.click(shuffle)
     expect(config().seed).not.toBe(before)
   })
 
