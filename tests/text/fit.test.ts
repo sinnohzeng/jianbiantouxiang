@@ -108,7 +108,13 @@ describe('竖排', () => {
   it('按安全区高度分列，列数向上取整', () => {
     const result = fit({
       text: '一二三四五六',
-      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, vertical: true },
+      typography: {
+        sizeMode: 'manual',
+        fontSize: 0.2,
+        padding: 0.1,
+        lineHeight: 1.15,
+        vertical: true,
+      },
     })
     // 字号 200，字距 0：一列最多 (800 - 160 - 40) / 200 + 1 = 4 个字
     expect(result.block.vertical).toBe(true)

@@ -19,7 +19,10 @@ const SAFE = { x: 100, y: 100, width: 800, height: 800 }
 
 describe('纯文字用途', () => {
   it('安全框按边距与圆角算，圆角 20 % 下不收缩', () => {
-    const result = layout({ text: '中', typography: { sizeMode: 'manual', fontSize: 0.2 } })
+    const result = layout({
+      text: '中',
+      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, lineHeight: 1.15 },
+    })
     expect(result.safeBox).toEqual(SAFE)
   })
 

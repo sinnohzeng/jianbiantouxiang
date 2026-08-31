@@ -32,9 +32,7 @@ describe('probeKey', () => {
     expect(
       probeKey({ ...base, exportOptions: { ...base.exportOptions, bgColor: '#000000' } }),
     ).not.toBe(before)
-    expect(probeKey({ ...base, typography: { ...base.typography, padding: 0.15 } })).not.toBe(
-      before,
-    )
+    expect(probeKey({ ...base, typography: { ...base.typography, padding: 0.2 } })).not.toBe(before)
   })
 
   it('同一份配置换个对象引用，key 不变', () => {

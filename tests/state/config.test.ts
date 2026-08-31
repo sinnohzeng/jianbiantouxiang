@@ -32,13 +32,21 @@ describe('normalizeConfig 补默认', () => {
     expect(normalizeConfig({ v: 2 }).v).toBe(3)
   })
 
-  it('默认是方形、白色文字与两行示例', () => {
+  it('默认是方形、白色文字、15% 边距、1.03 行高与两行示例', () => {
     expect(DEFAULT_CONFIG.canvas.shape).toBe('square')
     expect(DEFAULT_CONFIG.text).toBe('飞书\n效率先锋')
     expect(DEFAULT_CONFIG.typography.colorMode).toBe('custom')
     expect(DEFAULT_CONFIG.typography.color).toBe('#ffffff')
+    expect(DEFAULT_CONFIG.typography.padding).toBe(0.15)
+    expect(DEFAULT_CONFIG.typography.lineHeight).toBe(1.03)
     expect(DEFAULT_CONFIG.typography.lineSizeScales).toEqual([1, 0.62])
     expect(DEFAULT_CONFIG.typography.lineOffsetsX).toEqual([0, 0])
+  })
+
+  it('显式给出的旧默认值不会被新默认值覆盖', () => {
+    const config = normalizeConfig({ typography: { padding: 0.1, lineHeight: 1.15 } })
+    expect(config.typography.padding).toBe(0.1)
+    expect(config.typography.lineHeight).toBe(1.15)
   })
 })
 
