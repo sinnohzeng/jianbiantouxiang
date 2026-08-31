@@ -113,7 +113,7 @@ flowchart TD
 | `mesh` 柔光 | `staticMeshGradient` | 强度映射到 `u_waveX` 与 `u_waveY`，柔和度映射到 `u_mixing`，两者铺满全程 |
 | `flow` 流动 | `meshGradient` | 强度映射到 `u_distortion`，柔和度映射到 `u_swirl` 的补，构图由 `frame` 定 |
 | `silk` 丝绸 | `warp` | 底纹以 stripes 为主，浅配色按 OKLCH 平均明度线性压制 `u_distortion` 与 `u_swirl` |
-| `grain` 颗粒 | `grainGradient` | 形状池只取 wave、ripple、corners 三种，各带一个缩放倍率乘在用户的比例上 |
+| `grain` 颗粒 | `grainGradient` | 形状池只取 wave 与 corners，去掉会出同心圆的 ripple；两种形状共用 0.45 的缩放倍率 |
 
 包内的四组常量抄进 `styles.ts` 并注明来源，不从包里 import：`meta` 与 shader 源码同在一个模块，静态引用 `meta` 会把那段 GLSL 拖进首屏 chunk。升级包版本时对照 `dist/` 复核这四组值。
 
@@ -123,9 +123,9 @@ flowchart TD
 
 `fitText` 找出能让整块文字装进安全框的最大字号。单段且不再换行时块尺寸随字号线性变化，用一次探针测量直接算出比例；其余情况在 `MIN_FONT_RATIO` 到 `MAX_FONT_RATIO` 之间二分 12 轮，因为换行本身能换来更大的字号，一步到位会把结果卡死在单行。
 
-横排的每一行可以乘自己的 `lineSizeScales`，也能按 `lineOffsetsX` 做水平视觉补偿。求解时每行先按自己的字号度量，自动填满以这些行的实际包络为准；绘制层按行设置 `ctx.font`，描边、投影、发光的尺度也随之按行走。自动换行产生的续行沿用源段落的行级参数，显式换行才进入下一个行级索引。
+横排的每一行可以乘自己的 `lineSizeScales`，也能按 `lineOffsetsX` 做水平视觉补偿。求解时每行先按自己的字号度量，自动填满以这些行的实际包络为准；绘制层按行设置 `ctx.font`，描边、投影、发光的尺度也随之按行走。自动换行产生的续行沿用源段落的行级参数，显式换行才进入下一个行级索引。文字面板把这两组行级控件放在全局字号之前，行级字号还带一个常驻数值框，可直接输入百分比。
 
-安全框由 `typography.padding` 从画布四边扣出，量宽一律走 canvas `measureText`，CJK 逐字换行、拉丁按词换行。竖排把每一列当成一行处理，列宽全列统一。
+安全框由 `typography.padding` 从画布四边扣出，默认值 0.15；`typography.lineHeight` 默认 1.03。量宽一律走 canvas `measureText`，CJK 逐字换行、拉丁按词换行。竖排把每一列当成一行处理，列宽全列统一。
 
 自动文字色分两档。内置配色直接用配色表里的 `text` 设计值，同一配色下每块文字都是同一个颜色，高光、颗粒与种子都改不动它。自定义配色没有设计值，走像素判定，门槛是文字区域相对亮度 0.5，低于此取白字。
 
@@ -160,7 +160,7 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 单个 zustand store 持有 `config`、`history` 与 `ui` 三段。面板只调 `setConfig` 一类的动作，动作内部逐层深合并再过一遍 `normalizeConfig`。
 
-初始配置的优先级是 URL hash、localStorage、默认值，链接分享出去要能覆盖本机存档。`initialConfigSource()` 记下它来自哪一档，默认示例文字只在 `default` 这一档才跟随界面语言。
+初始配置的优先级是 URL hash、localStorage、默认值，链接分享出去要能覆盖本机存档。`initialConfigSource()` 记下它来自哪一档，默认示例文字只在 `default` 这一档才跟随界面语言。URL hash 只编码与当前默认值的差异，所以修改默认值会改变省略该字段的旧链接；显式字段始终按用户给的值渲染。
 
 状态变更后攒 300 ms 写一次，同时落 localStorage 与 `history.replaceState`。用 `replaceState` 而不是给 `location.hash` 赋值，后者每次调参都会往浏览器历史里塞一条。导出前调 `flushConfigSync()` 立刻落盘，别让用户复制到旧链接。
 

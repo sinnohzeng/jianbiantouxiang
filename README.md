@@ -8,9 +8,9 @@
 
 ## 它做什么
 
-- **四种质感**：柔光（mesh）、流动（flow）、丝绸（silk）、颗粒（grain），由 WebGL2 片元着色器实时渲染。同一配置在同一设备上每次输出一致，换个种子就是一张新图。不支持 WebGL2 的浏览器会回落到静态近似渐变，导出得到的也是这张近似图。
+- **四种质感**：柔光（mesh）、流动（flow）、丝绸（silk）、颗粒（grain），由 WebGL2 片元着色器实时渲染。同一配置在同一设备上每次输出一致，换个种子就是一张新图；颗粒质感的随机形状池已去掉同心圆，保留波纹与角块。不支持 WebGL2 的浏览器会回落到静态近似渐变，导出得到的也是这张近似图。
 - **26 套配色**：按家族分组，浅色深色都有；也可以自定义 2 到 6 个颜色，或给一两个种子色，由 OKLCH 算法生成整套。
-- **文字排版**：自动填满或手动字号，每一行还能单独调字号比例与水平视觉补偿；行高、字间距、字重、对齐、九宫格锚点、竖排都能调；五种文字效果（纯色、描边、投影、发光、胶囊底）；默认白色文字，也可切自动取色并保留对比度兜底。
+- **文字排版**：自动填满或手动字号，默认边距 15%、行高 1.03；每一行的字号比例与水平视觉补偿前置展示，字号框可直接输入百分比；行高、字间距、字重、对齐、九宫格锚点、竖排都能调；五种文字效果（纯色、描边、投影、发光、胶囊底）；默认白色文字，也可切自动取色并保留对比度兜底。
 - **字体**：Google Fonts 全库按需加载，中文字体按 unicode-range 切片只拉用到的字，Noto Sans SC 整包 1.1 MB，实际只下载其中几十 KB；也能上传本地 TTF、OTF、WOFF、WOFF2。
 - **画布与导出**：64 到 8192 像素，默认方形，也可切圆角或圆形；JPG（默认压到 1 MB 以内）、PNG、WebP；点主按钮直接触发浏览器下载，导出选项里另有“复制图片”按钮；微信内置浏览器里改为长按图片保存。
 - **分享与历史**：全部参数编码在网址里，复制链接就能复现；本地保留最近 8 次结果。
@@ -73,7 +73,7 @@ v3 是整体重写。v2 的 SVG 多层径向渐变、SVG 导出与命令行工�
 
 Gradient Avatar turns a few characters into a soft, luminous gradient avatar, entirely in the browser. Try it at <https://jianbian.zixuan.net>.
 
-What it does: four WebGL2 textures (mesh, flow, silk, grain); 26 palettes plus OKLCH palette generation from one or two seed colors; any Google Font, with CJK fonts loaded as unicode-range slices; auto-fit typography with per-line size and nudge controls plus five text effects; one-click browser download and PNG clipboard copy; JPG, PNG and WebP export with a file-size target; shareable URLs; five UI languages; installable as a PWA.
+What it does: four WebGL2 textures (mesh, flow, silk, and grain without circular ripple seeds); 26 palettes plus OKLCH palette generation from one or two seed colors; any Google Font, with CJK fonts loaded as unicode-range slices; auto-fit typography with 15% padding, 1.03 line height, and per-line size and nudge controls; one-click browser download and PNG clipboard copy; JPG, PNG, and WebP export with a file-size target; shareable URLs; five UI languages; installable as a PWA.
 
 Development: `npm install && npm run dev` (Node 24+). Deploy to Cloudflare Pages with `npm run build` and output directory `dist`.
 

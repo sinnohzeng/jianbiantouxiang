@@ -1,6 +1,6 @@
 ---
 name: project-v3-rewrite
-description: 2026-08-29 完成的 v3 重构、v3.1 状态徽章与 v3.1.1 直接导出行级排版的分工方式、验收口径、推迟范围与后续维护约定
+description: 2026-08-29 至 2026-08-31 的 v3 重构、v3.1 状态徽章、v3.1.1 直接导出行级排版与 v3.1.2 默认值/颗粒调整的分工方式、验收口径、推迟范围与后续维护约定
 metadata:
   type: project
 ---
@@ -51,3 +51,16 @@ plan.md 开头有一张「落地范围」表，spec.md 里标了「v3.2」的小
 - 行级参数在 `typography.lineSizeScales` 与 `lineOffsetsX`；旧 `status` 链接靠
   `normalizeConfig` 把 `layout.scale` 迁移到第二行，别删这条兼容逻辑。
 - `npm run e2e` 使用 `vite preview`，改源码后必须先 `npm run build`，否则测试的是旧 `dist`。
+
+## v3.1.2（2026-08-31）
+
+默认值与交互微调已落地，规约在 `specs/v3.1.2-defaults-and-grain/`。
+默认画布仍是方形；文字边距 15%、行高 1.03；种子区前置；颗粒形状池去掉 ripple；行级字号控件前置且带常驻数值输入。
+
+**Why:** 用户反馈圆角默认、边距、行高、种子入口、颗粒画圈和行级字号可发现性都需要立刻调整；导出默认下载已经在 v3.1.1 落地，不需要重复改。
+
+**How to apply:**
+- 改默认值时，默认值、显式旧值兼容用例、README、architecture、CHANGELOG 与 spec 要同轮更新。
+- URL hash 只编码与当前默认值的差异；省略字段的旧链接会跟随新默认值，显式字段不会。
+- 颗粒形状池保留 wave 与 corners，别把 ripple 加回来；它是同心圆观感的直接来源。
+- 行级字号只做前置与常驻输入，不扩展成自由排版，也不把所有滑杆都改成常驻输入。

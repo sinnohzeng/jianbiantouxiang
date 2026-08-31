@@ -5,6 +5,20 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [3.1.2] - 2026-08-31
+
+### 变更
+
+- **默认文字参数**：边距改为 15%，行高改为 1.03；画布默认保持方形
+- **质感面板**：种子输入、哈希、复制与换种子整体前置到质感选择之前
+- **颗粒质感**：随机形状池去掉 ripple，不再出现同心圆；保留 wave 与 corners
+- **行级字号**：控件前置到全局字号之前，数值框常驻可见，可直接输入百分比
+
+### 验证
+
+- `npm run lint`、`npm run typecheck`、`npm test`、`npm run build`、`npm run e2e` 全绿
+- `npm run screenshots` 覆盖桌面、iPhone 15 与 iPhone SE 的深浅主题
+
 ## [3.1.1] - 2026-08-29
 
 ### 新增

@@ -91,6 +91,7 @@ docs: 补齐字体加载链的说明
 - 新增或改动纯逻辑要带 Vitest 用例，放进 `tests/` 下的同名目录。合成、编码、字体加载这类有外部依赖的模块把依赖抽成参数，用例不必拉起 WebGL 与网络。
 - 改动界面要跑 `npm run e2e`，再跑 `npm run screenshots` 并逐张看图。截图脚本打的是 `npm run preview` 的地址，先构建再截。
 - 端到端断言画面走 `window.__gradientAvatarProbe`，它只在开发模式或 URL 带 `?probe=1` 时装。要断言导出产物就用探针的 `encode()`，不要去猜下载文件的落点。
+- 改默认值要同步更新 `DEFAULT_CONFIG`、对应 spec、README、architecture、CHANGELOG 和测试；还要补一条显式旧值的用例。URL hash 只编码与当前默认值的差异，省略字段的旧链接会按新默认值渲染。
 - 新增 i18n key 后跑一遍 `npm test`，`tests/i18n/keys.test.ts` 会扫源码核对五份字典。
 
 ## 文档
