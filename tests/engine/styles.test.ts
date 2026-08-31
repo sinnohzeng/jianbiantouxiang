@@ -11,8 +11,8 @@ const COLORS = ['#dbeafe', '#c7d2fe', '#e9d5ff', '#fbcfe8', '#fde68a', '#a5f3fc'
 const LIGHT_COLORS = ['#F0EEE9', '#E3DACC', '#D8DEE6', '#BFD3E7', '#B0AEA5']
 const DARK_COLORS = ['#111827', '#1E2A4A', '#2B3A67', '#3B4C8C', '#5865F2']
 
-/** grain 三种形状各自的缩放倍率，与 styles.ts 里的 GRAIN_SHAPE_POOL 对应。 */
-const GRAIN_ZOOMS = [0.45, 0.3]
+/** grain 两种形状共享同一个缩放倍率，与 styles.ts 里的 GRAIN_SHAPE_POOL 对应。 */
+const GRAIN_ZOOMS = [0.45]
 
 /** 用固定种子造配置，保证这套遍历本身是可复现的。 */
 function sweepConfigs(count: number): AvatarConfig[] {
@@ -235,8 +235,8 @@ describe('uniforms 落在 shader 的合法区间', () => {
       inRange(uniforms, 'u_softness', 0.1, 0.9)
       inRange(uniforms, 'u_intensity', 0.03, 0.85)
       inRange(uniforms, 'u_noise', 0.02, 0.3)
-      // 只留 wave 1、corners 4、ripple 5
-      expect([1, 4, 5]).toContain(num(uniforms, 'u_shape'))
+      // 只留 wave 1 与 corners 4，ripple 5 会出同心圆
+      expect([1, 4]).toContain(num(uniforms, 'u_shape'))
       const back = uniforms.u_colorBack as number[]
       expect(back).toHaveLength(4)
     }

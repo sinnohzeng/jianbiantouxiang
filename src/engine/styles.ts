@@ -82,17 +82,16 @@ export interface StyleRenderPlan {
 const FALLBACK_COLORS = ['#c7d2fe', '#fbcfe8', '#a5f3fc'] as const
 
 /**
- * grain 的 7 种形状只取 3 种：dots 与 truchet 是图案不是渐变；blob 的色团常落在画面外，
- * 实测出一整张平色；sphere 是硬边圆球，跟头像的柔光取向冲突。
+ * grain 的 7 种形状只取 2 种：dots 与 truchet 是图案不是渐变；blob 的色团常落在画面外，
+ * 实测出一整张平色；sphere 是硬边圆球；ripple 会出同心圆，随机种子一换就容易被认成画圈。
  *
  * zoom 是各形状自带的缩放倍率，乘在用户的 scale 上。grainGradient 的图案尺度是按大画面调的，
  * 头像这种几百像素的方图里一个色带就铺满整张，于是只剩 colors[0] 一片平色。
- * 320px 实测（见 docs/engineering-lessons.md）：wave 与 corners 要压到 0.45、ripple 要压到 0.30，
- * 五个停靠色才都进得来；三种形状的图案尺度差一倍以上，共用一个倍率必然有一种塌掉。
+ * 320px 实测（见 docs/engineering-lessons.md）：wave 与 corners 要压到 0.45，
+ * 五个停靠色才都进得来。
  */
 const GRAIN_SHAPE_POOL = [
   { shape: 'wave', zoom: 0.45 },
-  { shape: 'ripple', zoom: 0.3 },
   { shape: 'corners', zoom: 0.45 },
 ] as const
 
