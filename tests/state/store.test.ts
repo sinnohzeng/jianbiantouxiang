@@ -176,7 +176,7 @@ describe('history 动作', () => {
     store().pushHistory()
     store().setConfig({ text: '二' })
     store().pushHistory()
-    expect(store().history.map((item) => item.text)).toEqual(['二', '一'])
+    expect(store().history.map((item) => item.config.text)).toEqual(['二', '一'])
   })
 
   it('重复 push 同一配置只留一条', () => {
@@ -191,7 +191,7 @@ describe('history 动作', () => {
       store().pushHistory()
     }
     expect(store().history).toHaveLength(8)
-    expect(store().history[0]?.text).toBe('第10')
+    expect(store().history[0]?.config.text).toBe('第10')
   })
 
   it('restore 回到指定历史，越界索引不动', () => {
@@ -308,13 +308,15 @@ describe('初始化优先级', () => {
   })
 
   it('新建的 store 实例按同一优先级取初值与历史', async () => {
-    savePersisted({ ...DEFAULT_CONFIG, text: '存档' }, [{ ...DEFAULT_CONFIG, text: '历史' }])
+    savePersisted({ ...DEFAULT_CONFIG, text: '存档' }, [
+      { config: { ...DEFAULT_CONFIG, text: '历史' } },
+    ])
     window.history.replaceState(null, '', encodeConfigToHash({ ...DEFAULT_CONFIG, text: '链接' }))
     vi.resetModules()
     const fresh = await import('@/state/store')
     fresh.stopConfigSync()
     expect(fresh.useAvatarStore.getState().config.text).toBe('链接')
-    expect(fresh.useAvatarStore.getState().history.map((item) => item.text)).toEqual(['历史'])
+    expect(fresh.useAvatarStore.getState().history.map((item) => item.config.text)).toEqual(['历史'])
   })
 })
 

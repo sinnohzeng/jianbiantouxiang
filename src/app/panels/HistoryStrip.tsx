@@ -1,6 +1,7 @@
 /**
  * 最近生成条：横向滚动的 8 格缩略图。
- * 缩略图用配色的 CSS 渐变加文字首字占位，不重新跑一遍渲染，滚动时不掉帧。
+ * 有缩略图时直接显示导出同链路渲染出的 96 px JPEG；旧存档没有缩略图时
+ * 才用配色的 CSS 渐变加文字首字占位。
  */
 
 import { paletteThumbCss } from '@/palettes/color'
@@ -25,25 +26,37 @@ export function HistoryStrip() {
   }
 
   return (
-    <div role="group" aria-label={t('history.title')} className="flex gap-2 overflow-x-auto pb-1">
+    <div
+      role="group"
+      data-slot="history-strip"
+      aria-label={t('history.title')}
+      className="flex gap-2 overflow-x-auto pb-1"
+    >
       {history.map((entry, index) => (
         <button
-          key={`${index}-${entry.seed}-${entry.palette}`}
+          key={`${index}-${entry.config.seed}-${entry.config.palette}`}
           type="button"
           aria-label={t('history.item', { index: index + 1 })}
           onClick={() => restore(index)}
+          data-slot="history-item"
           className={cn(
             'border-border hover:border-foreground/40 focus-visible:ring-ring/50 relative size-14 shrink-0 overflow-hidden rounded-xl border transition-colors focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none',
-            entry.canvas.shape === 'circle' && 'rounded-full',
+            entry.config.canvas.shape === 'circle' && 'rounded-full',
           )}
-          style={{ backgroundImage: paletteThumbCss(paletteColors(entry)) }}
+          style={
+            entry.thumb ? undefined : { backgroundImage: paletteThumbCss(paletteColors(entry.config)) }
+          }
         >
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 flex items-center justify-center text-base font-semibold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]"
-          >
-            {initial(entry.text)}
-          </span>
+          {entry.thumb ? (
+            <img src={entry.thumb} alt="" className="absolute inset-0 size-full object-cover" />
+          ) : (
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 flex items-center justify-center text-base font-semibold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]"
+            >
+              {initial(entry.config.text)}
+            </span>
+          )}
         </button>
       ))}
     </div>

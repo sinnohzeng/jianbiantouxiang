@@ -30,6 +30,7 @@ import { createExportArtifact } from '@/export/action'
 import { downloadBlob } from '@/export/download'
 import { isWeChat } from '@/export/share'
 import { releaseCanvas } from '@/export/canvas'
+import { queueHistoryThumbnail } from '@/app/history-thumb'
 import { flushConfigSync, useAvatarStore } from '@/state/store'
 import { buildShareUrl } from '@/state/url'
 
@@ -44,11 +45,13 @@ export function BottomBar() {
   const onShuffle = useCallback(() => {
     randomize()
     pushHistory()
+    queueHistoryThumbnail()
   }, [randomize, pushHistory])
 
   const onShuffleAll = useCallback(() => {
     randomizeAll()
     pushHistory()
+    queueHistoryThumbnail()
   }, [randomizeAll, pushHistory])
 
   const onCopyLink = useCallback(() => {
@@ -76,6 +79,7 @@ export function BottomBar() {
       artifact = await createExportArtifact(useAvatarStore.getState().config)
       downloadBlob(artifact.blob, artifact.filename)
       pushHistory()
+      queueHistoryThumbnail()
       toast.success(t('export.downloaded'))
     } catch {
       toast.error(t('export.failed'))

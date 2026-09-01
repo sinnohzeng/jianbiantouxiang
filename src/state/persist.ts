@@ -1,5 +1,5 @@
 import { normalizeConfig, type AvatarConfig } from '@/state/config'
-import { HISTORY_MAX } from '@/state/history'
+import { HISTORY_MAX, type HistoryEntry } from '@/state/history'
 
 /** 键名带版本，v4 换结构时旧数据自然失效，不用写迁移代码。 */
 export const PERSIST_KEY = 'gradient-avatar:v3'
@@ -8,7 +8,7 @@ const PERSIST_VERSION = 3
 
 export interface PersistedState {
   config: AvatarConfig
-  history: AvatarConfig[]
+  history: HistoryEntry[]
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -45,8 +45,18 @@ export function loadPersistedState(): PersistedState | null {
   }
   if (!isRecord(parsed) || parsed.v !== PERSIST_VERSION || !isRecord(parsed.config)) return null
 
-  const history = Array.isArray(parsed.history)
-    ? parsed.history.filter(isRecord).slice(0, HISTORY_MAX).map(normalizeConfig)
+  const history: HistoryEntry[] = Array.isArray(parsed.history)
+    ? parsed.history
+        .filter(isRecord)
+        .slice(0, HISTORY_MAX)
+        .map((item) => {
+          const rawConfig = isRecord(item.config) ? item.config : {}
+          const thumb =
+            typeof item.thumb === 'string' && item.thumb.startsWith('data:image/')
+              ? item.thumb
+              : undefined
+          return { config: normalizeConfig(rawConfig), ...(thumb ? { thumb } : {}) }
+        })
     : []
 
   return { config: normalizeConfig(parsed.config), history }
@@ -56,8 +66,25 @@ export function loadPersisted(): AvatarConfig | null {
   return loadPersistedState()?.config ?? null
 }
 
+/** 存档超过 400 KB 时从最旧一条开始丢缩略图，配置本身仍然全量保留。 */
+function fitStorage(
+  config: AvatarConfig,
+  history: readonly HistoryEntry[],
+): HistoryEntry[] {
+  const limit = 400 * 1024
+  let entries = history.slice(0, HISTORY_MAX)
+  while (JSON.stringify({ v: PERSIST_VERSION, config, history: entries }).length > limit) {
+    const index = entries.findLastIndex((entry) => entry.thumb !== undefined)
+    if (index === -1) break
+    entries = entries.map((entry, position) =>
+      position === index ? { ...entry, thumb: undefined } : entry,
+    )
+  }
+  return entries
+}
+
 /** 省略 history 时保留已存的那份，避免只想存配置却把历史抹了。 */
-export function savePersisted(config: AvatarConfig, history?: readonly AvatarConfig[]): void {
+export function savePersisted(config: AvatarConfig, history?: readonly HistoryEntry[]): void {
   const store = storage()
   if (!store) return
 
@@ -65,7 +92,7 @@ export function savePersisted(config: AvatarConfig, history?: readonly AvatarCon
   try {
     store.setItem(
       PERSIST_KEY,
-      JSON.stringify({ v: PERSIST_VERSION, config, history: kept.slice(0, HISTORY_MAX) }),
+      JSON.stringify({ v: PERSIST_VERSION, config, history: fitStorage(config, kept) }),
     )
   } catch {
     // 配额写满或隐私模式，丢掉这次写入即可，界面不受影响

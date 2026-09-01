@@ -9,7 +9,12 @@ import {
   type AvatarConfig,
   type PartialConfig,
 } from '@/state/config'
-import { HISTORY_MAX, pushHistory as pushHistoryEntry } from '@/state/history'
+import {
+  HISTORY_MAX,
+  attachHistoryThumb as attachThumbEntry,
+  pushHistory as pushHistoryEntry,
+  type HistoryEntry,
+} from '@/state/history'
 import { loadPersisted, loadPersistedState, savePersisted } from '@/state/persist'
 import { decodeConfigFromHash, encodeConfigToHash, hasBrokenConfigHash } from '@/state/url'
 
@@ -50,7 +55,7 @@ export interface AvatarStore {
   past: AvatarConfig[]
   /** 重做栈。新的配置动作一出现就清空。 */
   future: AvatarConfig[]
-  history: AvatarConfig[]
+  history: HistoryEntry[]
   ui: UiState
   setConfig: (partial: PartialConfig) => void
   undo: () => void
@@ -63,6 +68,7 @@ export interface AvatarStore {
   randomize: () => void
   randomizeAll: () => void
   pushHistory: () => void
+  attachThumb: (hash: string, thumb: string) => void
   restore: (index: number) => void
   reset: () => void
   setUi: (partial: Partial<UiState>) => void
@@ -153,7 +159,7 @@ export function readInitialConfig(): AvatarConfig {
   return stored ?? DEFAULT_CONFIG
 }
 
-function readInitialHistory(): AvatarConfig[] {
+function readInitialHistory(): HistoryEntry[] {
   return loadPersistedState()?.history ?? []
 }
 
@@ -233,10 +239,14 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
     set({ history: pushHistoryEntry(get().history, get().config, HISTORY_MAX) })
   },
 
+  attachThumb: (hash, thumb) => {
+    set({ history: attachThumbEntry(get().history, hash, thumb) })
+  },
+
   restore: (index) => {
     const entry = get().history[index]
     if (!entry) return
-    commitConfig(set, get, entry)
+    commitConfig(set, get, entry.config)
   },
 
   reset: () => {
@@ -257,7 +267,7 @@ export const SYNC_DEBOUNCE_MS = 300
 let syncTimer: ReturnType<typeof setTimeout> | null = null
 let unsubscribe: (() => void) | null = null
 
-function writeSync(config: AvatarConfig, history: readonly AvatarConfig[]): void {
+function writeSync(config: AvatarConfig, history: readonly HistoryEntry[]): void {
   savePersisted(config, history)
   if (typeof window === 'undefined') return
   try {

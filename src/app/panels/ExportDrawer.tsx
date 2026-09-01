@@ -29,6 +29,7 @@ import { supportsWebP } from '@/export/encode'
 import { isWeChat } from '@/export/share'
 import { useT } from '@/i18n'
 import { SIZE_TARGETS, type AvatarConfig } from '@/state/config'
+import { queueHistoryThumbnail } from '@/app/history-thumb'
 import { flushConfigSync, useAvatarStore } from '@/state/store'
 
 export interface ExportDrawerProps {
@@ -132,6 +133,7 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
         previewUrl,
       })
       pushHistory()
+      queueHistoryThumbnail()
     } catch {
       setNotice('export.failed')
     } finally {
@@ -155,7 +157,10 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
       // Promise 必须在用户手势内交给 ClipboardItem，Safari 才允许稍后完成合成
       const copied = await copyImageToClipboard(createClipboardBlob(config))
       setNotice(copied ? 'export.copySuccess' : 'export.copyFailed')
-      if (copied) pushHistory()
+      if (copied) {
+        pushHistory()
+        queueHistoryThumbnail()
+      }
     } catch {
       setNotice('export.copyFailed')
     } finally {

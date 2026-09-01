@@ -351,7 +351,7 @@ describe('HistoryStrip', () => {
     expect(container.querySelectorAll('button')).toHaveLength(0)
 
     const older: AvatarConfig = { ...DEFAULT_CONFIG, text: '旧的一版', palette: 'coral-dawn' }
-    useAvatarStore.setState({ history: [older] })
+    useAvatarStore.setState({ history: [{ config: older }] })
     rerender(
       <I18nProvider>
         <HistoryStrip />

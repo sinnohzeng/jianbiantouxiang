@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_CONFIG, type AvatarConfig } from '@/state/config'
+import type { HistoryEntry } from '@/state/history'
 import {
   PERSIST_KEY,
   clearPersisted,
@@ -11,6 +12,10 @@ import { memoryStorage as store } from '../setup'
 
 function withText(text: string): AvatarConfig {
   return { ...DEFAULT_CONFIG, text }
+}
+
+function entry(text: string, thumb?: string): HistoryEntry {
+  return { config: withText(text), ...(thumb ? { thumb } : {}) }
 }
 
 afterEach(() => {
@@ -25,23 +30,55 @@ describe('savePersisted / loadPersisted', () => {
   })
 
   it('配置与历史一起存', () => {
-    const history = [withText('一'), withText('二')]
+    const history = [entry('一'), entry('二', 'data:image/jpeg;base64,one')]
     savePersisted(DEFAULT_CONFIG, history)
     expect(loadPersistedState()).toEqual({ config: DEFAULT_CONFIG, history })
   })
 
+  it('缩略图 data URL 随历史一起读写', () => {
+    savePersisted(DEFAULT_CONFIG, [entry('一', 'data:image/jpeg;base64,thumb')])
+    expect(loadPersistedState()?.history[0]?.thumb).toBe('data:image/jpeg;base64,thumb')
+  })
+
+  it('非 data URL 的缩略图丢弃，历史配置保留', () => {
+    store.setItem(
+      PERSIST_KEY,
+      JSON.stringify({
+        v: 3,
+        config: DEFAULT_CONFIG,
+        history: [{ config: withText('一'), thumb: 'https://evil.example/a.jpg' }],
+      }),
+    )
+    expect(loadPersistedState()?.history[0]).toEqual({ config: withText('一') })
+  })
+
   it('省略历史参数时保留已存的历史', () => {
-    savePersisted(DEFAULT_CONFIG, [withText('旧')])
+    savePersisted(DEFAULT_CONFIG, [entry('旧')])
     savePersisted(withText('新'))
     const state = loadPersistedState()
     expect(state?.config.text).toBe('新')
-    expect(state?.history.map((item) => item.text)).toEqual(['旧'])
+    expect(state?.history.map((item) => item.config.text)).toEqual(['旧'])
   })
 
   it('历史超过上限时只留前 8 条', () => {
-    const history = Array.from({ length: 12 }, (_, i) => withText(`第${i}`))
+    const history = Array.from({ length: 12 }, (_, i) => entry(`第${i}`))
     savePersisted(DEFAULT_CONFIG, history)
     expect(loadPersistedState()?.history).toHaveLength(8)
+  })
+
+  it('存档超过 400 KB 时从最旧一条开始丢缩略图', () => {
+    const bigThumb = `data:image/jpeg;base64,${'a'.repeat(65 * 1024)}`
+    const history = Array.from({ length: 8 }, (_, index) =>
+      entry(`第${index}`, index === 0 ? undefined : bigThumb),
+    )
+    savePersisted(DEFAULT_CONFIG, history)
+    const raw = store.getItem(PERSIST_KEY) ?? ''
+    expect(raw.length).toBeLessThanOrEqual(400 * 1024)
+    const saved = JSON.parse(raw) as { history: HistoryEntry[] }
+    expect(saved.history[7]?.thumb).toBeUndefined()
+    expect(saved.history.map((item) => item.config.text)).toEqual(
+      history.map((item) => item.config.text),
+    )
   })
 
   it('用固定的键名', () => {
@@ -82,7 +119,7 @@ describe('损坏数据', () => {
       JSON.stringify({
         v: 3,
         config: { text: '半份配置', canvas: { width: 99999 } },
-        history: [{ text: '半份历史' }, '不是对象'],
+        history: [{ config: { text: '半份历史' } }, '不是对象'],
       }),
     )
     const state = loadPersistedState()
@@ -90,7 +127,7 @@ describe('损坏数据', () => {
     expect(state?.config.canvas.width).toBe(8192)
     expect(state?.config.typography).toEqual(DEFAULT_CONFIG.typography)
     expect(state?.history).toHaveLength(1)
-    expect(state?.history[0]?.text).toBe('半份历史')
+    expect(state?.history[0]?.config.text).toBe('半份历史')
   })
 })
 

@@ -36,6 +36,11 @@ test('点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => {
   expect(encoded.bytes).toBeGreaterThan(0)
   expect(encoded.bytes).toBeLessThanOrEqual(1024 * 1024)
   expect(encoded.hitTarget).toBe(true)
+
+  // 导出后历史条应该拿到一张真实缩略图，而不是只靠配色近似
+  await expect(page.locator('[data-slot="history-strip"] img')).toBeVisible({
+    timeout: PROBE_TIMEOUT_MS,
+  })
 })
 
 test('导出抽屉能把 PNG 复制到剪贴板', async ({ context, page }) => {
