@@ -5,6 +5,37 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [3.2.1] - 2026-08-31
+
+### 新增
+
+- **撤销与重做**：顶栏两颗按钮，键盘 `Ctrl/Cmd+Z` 与 `Ctrl/Cmd+Shift+Z`，焦点在输入框时不拦截；上限 50 步，不进分享链接与存档
+- **历史真缩略图**：历史条目异步渲染 96 px JPEG 缩略图，同配色不同质感的两条从此认得出来；旧存档没有缩略图时回落配色渐变加首字
+- **noscript 提示**：禁用 JavaScript 的环境给出双语提示，不再一片空白
+- **样张脚本**：`npm run samples` 用当轮默认值渲染质感 × 配色网格与文字效果样张，README 三张图一条命令重生成
+
+### 变更
+
+- 首屏 JS 预算统一为 250 KB gzip，`scripts/check-budget.mjs` 在 CI 构建后守卫；本轮实测 201.67 KB
+- CI 增加独立 e2e job，push 到 main 与手动触发时跑，兑现 v3 规约的冒烟承诺
+- 镜像 CSS 用 fontsource 固定版本替代 `@latest`，没有 npm 包的字体才回落 latest
+- 去掉两份重复实现：`App.tsx` 改读契约的语区默认字体，store 改读引擎的随机种子
+- 项目记忆目录由 `docs/claude-memory/` 改为 `docs/memory/`，不再绑定单一工具
+
+### 修复
+
+- `SECURITY.md` 重写到 v3 实际安全面；`.mcp.json` 改走本地 shadcn 二进制
+- 补打 v3 线四个发布标签（v3.0.0 到 v3.1.2），发布约定写进 contributing
+
+### 验证
+
+- `npm run lint`、`npm run typecheck`、`npm test`（667 条）、`npm run build`、`npm run budget` 全绿
+- `npx playwright test` 19 条全绿，含 noscript、撤销重做与历史缩略图相关用例
+
+### 说明
+
+- 本轮是 `docs/audits/2026-08-31-tech-doc-debt-audit.md` 与 `specs/v3.1.3-debt-and-hygiene/` 的全部落地；因 v3.2.0 已先发布，编号为 3.2.1 而非原计划的 3.1.3
+
 ## [3.2.0] - 2026-08-31
 
 ### 新增
