@@ -63,6 +63,7 @@ Cloudflare Pages：构建命令 `npm run build`，输出目录 `dist`，Node 版
 | 为什么选这条技术路线 | `docs/adr/`、`docs/research/` |
 | 规约与实施计划 | `specs/` |
 | 踩过的坑 | `docs/engineering-lessons.md` |
+| 跨会话项目记忆 | `docs/memory/` |
 | 参与开发 | `docs/contributing.md` |
 
 ## 与 v2 的关系

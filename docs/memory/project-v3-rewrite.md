@@ -1,6 +1,6 @@
 ---
 name: project-v3-rewrite
-description: 2026-08-29 至 2026-08-31 的 v3 重构、v3.1 状态徽章、v3.1.1 直接导出行级排版与 v3.1.2 默认值/颗粒调整的分工方式、验收口径、推迟范围与后续维护约定
+description: 2026-08-29 至 2026-08-31 的 v3 重构、v3.1 状态徽章、v3.1.1 直接导出行级排版、v3.1.2 默认值/颗粒调整、v3.1.3 审计与债务清理、v3.2 图标徽章的分工方式、验收口径、推迟范围与后续维护约定
 metadata:
   type: project
 ---
@@ -13,10 +13,10 @@ metadata:
 - 改引擎参数前先跑样张：`scratchpad/contact` 那套管线（`composeAvatar` 逐格渲染拼图）随会话消失，仓库里等价做法是 `scripts/screenshots.mjs` 加临时 vite 入口；判定用 std luma、可见停靠色数与文字对比度，不只看单张。
 - 视觉验收看 `docs/assets/samples/`，交互验收跑 `npm run e2e`（桌面 + iPhone 15）与 `npm run screenshots` 后用 Read 看图。
 - 子智能体一律不做 git 操作、不 cat `.env.local`；主会话提交前看 `git status --short` 有无 `D ` 前缀。
-- 付费 registry 用 `./node_modules/.bin/shadcn`，密钥只在 `.env.local` 与 `~/.zshenv`，任何文件与输出不得出现明文。跨项目细节见全局记忆 `reference_shadcn_cli_env_gotchas.md`。
+- 付费 registry 用 `./node_modules/.bin/shadcn`，密钥只在 `.env.local` 与 `~/.zshenv`，任何文件与输出不得出现明文。跨项目细节见 `docs/engineering-lessons.md` 的脚手架阶段。
 - 常驻文档只写现状；变更进 `CHANGELOG.md`，踩坑进 `docs/engineering-lessons.md`。
 - 评审那一轮的两条已知取舍写在 `docs/engineering-lessons.md` 的「评审收尾」：导出体积二分仍在全分辨率画布上做（实测 4096 最坏约 3.3 s，在预算内，不换缩图代理）；8192 加 1 MB 的降级路径只有单测覆盖，没有 e2e（软件渲染下一次 8192 合成要几分钟）。这两条是取舍不是待办，别当技术债重开。
-- 评审型 workflow 的规模与「零问题」判据见全局记忆 `feedback_review_workflow_agent_budget.md` 与 `reference_workflow_agent_limit_false_negative.md`。
+- 评审型 workflow 的规模与「零问题」判据见 `docs/engineering-lessons.md` 的评审收尾。
 
 ## v3.1（2026-08-29 当晚）
 
@@ -64,3 +64,38 @@ plan.md 开头有一张「落地范围」表，spec.md 里标了「v3.2」的小
 - URL hash 只编码与当前默认值的差异；省略字段的旧链接会跟随新默认值，显式字段不会。
 - 颗粒形状池保留 wave 与 corners，别把 ripple 加回来；它是同心圆观感的直接来源。
 - 行级字号只做前置与常驻输入，不扩展成自由排版，也不把所有滑杆都改成常驻输入。
+
+## v3.1.3（2026-08-31 审计与债务清理）
+
+全仓技术与文档债务审计在 `docs/audits/2026-08-31-tech-doc-debt-audit.md`，
+十七项发现的实施规约与计划在 `specs/v3.1.3-debt-and-hygiene/`，六个切片全部落地。
+v3.2.0 先发布，本轮按补丁级发布为 3.2.1。
+
+**Why:** 债务不在主干代码，在发布卫生、文档漂移与契约重复，体验层缺撤销与历史可辨识性；
+不修则每项都会被后续会话反复重开。全部按薄切片带验收修掉，权衡与排除项记进报告，
+防止再被当债重开。
+
+**How to apply:**
+- 首屏唯一数字是 250 KB gzip，`scripts/check-budget.mjs` 在 CI 构建后跑；
+  v3.1 规约的 160 KB 目标已作废，别引用。
+- 样张重生成走 `npm run samples`，头部标注当轮默认值；改默认值后重跑这一条命令并逐张目检。
+- 撤销重做栈在 store 的 past/future（上限 50），不进 URL、localStorage 与历史条目；
+  历史条目的可选 `thumb` 是异步补写的 96 px JPEG，旧存档无缩略图时回落渐变加首字。
+- 镜像 CSS 用 `FontEntry.version` 固定版本；新增精选字体要同轮查 jsDelivr 版本填上，
+  没有 npm 包的字体才回落 `@latest`。
+- 审计报告放 `docs/audits/` 按日期命名，交接文放 `docs/handoff/` 按特性命名，
+  两者已进 contributing 文档表；交接文在工作完成后由接手方更新或删除。
+- 审计报告 §5 与 §6 的条目别重开：那是既有权衡与过度工程化排除项，不是债务。
+
+## v3.2（2026-08-31）
+
+图标徽章与图形来源已落地，规约与计划在 `specs/v3.2-icon-badge/`。
+
+**Why:** v3.1 只落状态徽章，图标徽章没有图形来源会变成画不出东西的预留区；本版把契约、排版、三种来源、选择器、导出与文档接成完整链路。
+
+**How to apply:**
+- `layout.kind` 现在是 `text` / `status` / `logo`；`layout.graphic` 与 `layout.icon` 同轮存在。`layout.scale` 已移除，旧状态徽章链接靠 `normalizeConfig` 迁移到第二行行级字号，不要把它加回契约。
+- 上传图形只存在模块级会话注册表；`encodeConfigToHash` 会把 `upload` 降级为 `none`。不要把上传 id 写进存档或历史。
+- 图形索引是生成产物：lucide 1790 个主图标、emoji 1879 个条目与五语标签由 `npm run gen:icons` / `gen:emoji` 生成，产物与脚本同批提交，不手改。
+- SVG 消毒只走白名单重建。新增 SVG 能力前先看 `docs/engineering-lessons.md` 的 v3.2 一节，不要退回黑名单修补。
+- 图形选择器与全部索引都懒加载。首屏实测 200.22 KB gzip，预算仍为 250 KB；改图形入口时先跑 build 看 chunk 清单。

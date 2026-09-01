@@ -132,7 +132,7 @@ public/           favicon、manifest 图标、_headers、_redirects
 
 ### 阶段 6：文档、提交、发布
 
-- README 重写（现状口径）、`docs/architecture.md` 重写、`CHANGELOG.md` 3.0.0、`docs/engineering-lessons.md` 增补本次踩坑、`docs/claude-memory/` 更新。
+- README 重写（现状口径）、`docs/architecture.md` 重写、`CHANGELOG.md` 3.0.0、`docs/engineering-lessons.md` 增补本次踩坑、`docs/memory/` 更新。
 - 主会话分批提交：spec 与调研 → 脚手架 → 核心库 → 界面 → 修复与测试 → 文档；最后 push。
 - 改仓库名后确认 Cloudflare Pages 构建仍触发（source 存的是 `repo_id`，改名不影响）。
 
