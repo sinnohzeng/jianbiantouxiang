@@ -2,9 +2,9 @@
  * 主操作条。手机上固定在屏幕底部并让出 safe-area，桌面上就是面板列底部的一行。
  * 触控目标一律 44 px 起，尺寸档参考 `@reactbits-pro/mobile-4`。
  *
- * v4.0 起三个高频动作常驻一级：随机颜色（种子）、随机质感与配色、文字快捷入口。
- * 320 px 宽度塞不下五个带文案的按钮，随机与文字在窄屏退成纯图标，
- * 导出是主行动保留文案，按钮都允许收缩、文案 truncate。
+ * v4.0 起四个高频动作常驻一级：随机颜色（种子）、随机质感与配色、文字快捷入口、
+ * 复制链接，全部图标态加 tooltip；桌面端操作条住在 380 px 面板列里，
+ * 带文案排不下，导出是唯一带文案的主行动。
  */
 
 import { useCallback, useState } from 'react'
@@ -114,29 +114,27 @@ export function BottomBar() {
         <Button
           type="button"
           variant="secondary"
-          size="lg"
+          size="icon-lg"
           data-slot="shuffle-color"
           onClick={onShuffle}
           title={t('bottombar.random.hint')}
           aria-label={t('bottombar.random')}
-          className="tap-target min-w-0 shrink rounded-lg px-2.5 md:pr-3"
+          className="tap-target"
         >
           <ShuffleIcon aria-hidden />
-          <span className="hidden truncate md:inline">{t('bottombar.random')}</span>
         </Button>
 
         <Button
           type="button"
           variant="secondary"
-          size="lg"
+          size="icon-lg"
           data-slot="shuffle-all"
           onClick={onShuffleAll}
           title={t('bottombar.randomAll.hint')}
           aria-label={t('bottombar.randomAll')}
-          className="tap-target min-w-0 shrink rounded-lg px-2.5 md:pr-3"
+          className="tap-target"
         >
           <SparklesIcon aria-hidden />
-          <span className="hidden truncate md:inline">{t('bottombar.randomAll')}</span>
         </Button>
 
         <Button
