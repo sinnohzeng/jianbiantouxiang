@@ -10,11 +10,16 @@ if (import.meta.env.DEV || new URLSearchParams(window.location.search).has('prob
   void import('@/app/probe').then((module) => module.installProbe())
 }
 
-const container = document.getElementById('root')
-if (!container) throw new Error('missing #root container')
+// 样张页与端到端探针一样按查询参数懒加载；普通页面不下载这份 chunk
+if (new URLSearchParams(window.location.search).has('samples')) {
+  void import('@/app/samples').then((module) => module.renderSamples())
+} else {
+  const container = document.getElementById('root')
+  if (!container) throw new Error('missing #root container')
 
-createRoot(container).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+  createRoot(container).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
+}

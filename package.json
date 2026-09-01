@@ -30,7 +30,8 @@
     "e2e": "playwright test",
     "screenshots": "node scripts/screenshots.mjs",
     "gen:icons": "node scripts/gen-icon-index.ts",
-    "gen:emoji": "node scripts/gen-emoji-index.ts"
+    "gen:emoji": "node scripts/gen-emoji-index.ts",
+    "samples": "node scripts/samples.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
