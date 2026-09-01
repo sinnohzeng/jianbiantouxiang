@@ -180,3 +180,36 @@ test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
   expect(encoded.bytes).toBeGreaterThan(0)
   expect(encoded.hitTarget).toBe(true)
 })
+
+test('关于对话框展示版本号，恢复默认回到默认档', async ({ page }) => {
+  await openApp(page)
+
+  await page.locator('#avatar-text').fill('重置演练')
+  await page.locator('[data-slot="about-action"]').click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByText(/版本 \d+\.\d+\.\d+/)).toBeVisible()
+
+  await page.locator('[data-slot="reset-action"]').click()
+  await expect(dialog).toBeHidden()
+  // 重置回到默认档，示例文字重新跟随界面语言
+  await expect(page.locator('#avatar-text')).toHaveValue('飞书\n效率先锋')
+})
+
+test('环境光滑杆调低后刷新仍在', async ({ page }) => {
+  await openApp(page)
+
+  await page.getByRole('button', { name: '主题' }).click()
+  const slider = page.locator('[data-slot="ambient-slider"]').getByRole('slider')
+  await slider.focus()
+  await page.keyboard.press('Home')
+  await expect(slider).toHaveAttribute('aria-valuenow', '0')
+
+  await page.reload()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await page.getByRole('button', { name: '主题' }).click()
+  await expect(page.locator('[data-slot="ambient-slider"]').getByRole('slider')).toHaveAttribute(
+    'aria-valuenow',
+    '0',
+  )
+})

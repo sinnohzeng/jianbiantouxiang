@@ -93,6 +93,24 @@ function AppShellBody() {
         </section>
 
         <section className="bg-card/60 flex w-full flex-col lg:min-h-0 lg:w-[380px] lg:shrink-0 lg:rounded-2xl lg:border lg:backdrop-blur-md">
+          <section
+            aria-label={t('history.title')}
+            className="border-border/60 border-b px-4 pt-3 pb-3 lg:px-3"
+          >
+            <h2 className="text-muted-foreground mb-2 px-1 text-xs font-medium">
+              {t('history.title')}
+            </h2>
+            {/* 空态就一行字，为它拉一份 chunk 不值当；有历史了才挂懒加载的那份 */}
+            {hasHistory ? (
+              <ErrorBoundary>
+                <Suspense fallback={null}>
+                  <HistoryStripLazy />
+                </Suspense>
+              </ErrorBoundary>
+            ) : (
+              <p className="text-muted-foreground px-1 text-xs">{t('history.empty')}</p>
+            )}
+          </section>
           <div className="px-4 pt-3 lg:px-3">
             <SegmentedTabs
               items={items}
@@ -114,16 +132,6 @@ function AppShellBody() {
             {activePanel === 'palette' ? <PalettePanel /> : null}
             {activePanel === 'style' ? <StylePanel /> : null}
             {activePanel === 'canvas' ? <CanvasPanel /> : null}
-            {/* 空态就一行字，为它拉一份 chunk 不值当；有历史了才挂懒加载的那份 */}
-            {hasHistory ? (
-              <ErrorBoundary>
-                <Suspense fallback={null}>
-                  <HistoryStripLazy />
-                </Suspense>
-              </ErrorBoundary>
-            ) : (
-              <p className="text-muted-foreground px-1 py-2 text-xs">{t('history.empty')}</p>
-            )}
           </div>
 
           <BottomBar />

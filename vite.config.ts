@@ -18,6 +18,11 @@ const readDict: DictReader = (locale) =>
     fs.readFileSync(path.resolve(import.meta.dirname, `./src/i18n/${locale}.json`), 'utf8'),
   ) as Record<string, string>
 
+/** 版本号注入运行时，关于对话框展示，来源就是 package.json 的 version。 */
+const pkg = JSON.parse(
+  fs.readFileSync(path.resolve(import.meta.dirname, './package.json'), 'utf8'),
+) as { version: string }
+
 /**
  * `manifest.webmanifest` 用哪种语言。默认简体中文，与 `<html lang>` 和 i18n 的默认语言一致；
  * 按语言分开部署时设 `VITE_APP_LOCALE` 覆盖。
@@ -69,6 +74,9 @@ export default defineConfig({
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
     },
+  },
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
   },
   server: {
     port: 5173,
