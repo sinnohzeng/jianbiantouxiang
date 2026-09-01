@@ -32,6 +32,7 @@
   "export.dimensions": "現在のサイズ {width}×{height}",
   "export.done": "{name} を書き出しました",
   "export.download": "ダウンロード",
+  "export.done": "書き出しました",
   "export.downloaded": "ダウンロードを開始しました",
   "export.failed": "書き出しに失敗しました。サイズか形式を変えて再試行してください",
   "export.format": "形式",

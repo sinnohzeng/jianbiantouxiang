@@ -27,6 +27,9 @@ test('点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => {
   const download = page.waitForEvent('download')
   await page.locator('[data-slot="export-action"]').click()
 
+  // 连点防护：点击后按钮立即禁用，loading 至少 600ms 可见
+  await expect(page.locator('[data-slot="export-action"]')).toBeDisabled()
+
   const file = await download
   // v4.0 起文件名带秒级时间戳：`文字_宽x高_YYYYMMDD-HHmmss.jpg`
   expect(file.suggestedFilename()).toMatch(/_\d{8}-\d{6}\.jpg$/)

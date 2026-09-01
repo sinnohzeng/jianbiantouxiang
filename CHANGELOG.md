@@ -5,6 +5,16 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [4.0.1] - 2026-09-02
+
+### 修复
+
+- **导出连点防护**：导出按钮加同步锁与三态（待命 / 导出中 / 已导出），loading 至少展示 600 ms，成功后 400 ms 确认态再解锁，连点窗口约一秒只出一张；同一帧两次点击的闭包竞态用 ref 锁堵上；失败立即解锁可重试，微信长按保存分支不占锁
+
+### 变更
+
+- **收尾约定**：contributing 写明站点在 Cloudflare Pages，main 分支 Push 即部署，改完 commit 加 push 一条龙，只 commit 不 push 不算收尾
+
 ## [4.0.0] - 2026-09-02
 
 两行徽章模型：三个用途收敛为一个纵向栈，规约见 `specs/v4.0-two-line-badge/`。

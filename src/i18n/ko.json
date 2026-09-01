@@ -32,6 +32,7 @@
   "export.dimensions": "현재 크기 {width}×{height}",
   "export.done": "{name}을 내보냈습니다",
   "export.download": "다운로드",
+  "export.done": "내보냄 완료",
   "export.downloaded": "다운로드를 시작했습니다",
   "export.failed": "내보내기에 실패했습니다. 크기나 형식을 바꿔 다시 시도하세요",
   "export.format": "형식",

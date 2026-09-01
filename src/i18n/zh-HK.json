@@ -32,6 +32,7 @@
   "export.dimensions": "目前尺寸 {width}×{height}",
   "export.done": "已匯出 {name}",
   "export.download": "下載",
+  "export.done": "已匯出",
   "export.downloaded": "已開始下載",
   "export.failed": "匯出失敗，換個尺寸或格式再試",
   "export.format": "格式",

@@ -32,6 +32,7 @@
   "export.dimensions": "Current size {width}×{height}",
   "export.done": "Exported {name}",
   "export.download": "Download",
+  "export.done": "Exported",
   "export.downloaded": "Download started",
   "export.failed": "Export failed, try another size or format",
   "export.format": "Format",
