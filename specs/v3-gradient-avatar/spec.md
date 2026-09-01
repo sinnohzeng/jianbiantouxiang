@@ -74,7 +74,7 @@
 - WebP：质量 0.9，同样支持目标体积；启动时用 1×1 画布探测 `toBlob('image/webp')` 的返回类型，Safari 一类不支持的浏览器直接隐藏该选项，不引入 WASM 编码器。
 - PNG：无损；分辨率 ≥ 4096 时提示体积可能很大。
 - 文件名：`<文字>_<宽>x<高>.<ext>`，文字保留原样（含中文）只去掉文件名非法字符并截断到 12 个字符，为空时用 `avatar`。
-- 移动端优先走 Web Share API（`navigator.share({ files })`，可直接分享到微信），不支持时回落下载。
+- 移动端优先走 Web Share API（`navigator.share({ files })`，可直接分享到微信），不支持时回落下载。（本条已被 ADR-0005 取代：主按钮直接下载，分享面板不再自动弹。）
 - 导出前把当前配置写入 URL hash，导出面板提供“复制链接”。
 
 ### 3.6 状态、链接与历史
@@ -102,7 +102,9 @@
 - 1024×1024 JPG 导出在中端手机 ≤ 1.5 s；4096 在桌面 ≤ 3 s。
 - 单测覆盖核心纯函数：seed 映射、文字排版与自动填满、自动文字色、体积二分、URL 编解码、五语言 key 对齐。
 - Playwright 冒烟（桌面 1440 与 iPhone 15 设备模拟）：页面加载、画布非空、导出产物体积达标。
-- CI：lint、typecheck、单测、构建、冒烟；Cloudflare Pages 构建命令 `npm run build`，输出 `dist`。
+- CI：lint、typecheck、单测、构建每次 push 必跑；冒烟以独立 e2e job 在 push 到 main 与手动触发时跑，
+  见 `specs/v3.1.3-debt-and-hygiene/`（2026-08-31 评审修订：原条文承诺冒烟进 CI，落地时只有四步且无决策记录）；
+  Cloudflare Pages 构建命令 `npm run build`，输出 `dist`。
 
 ## 5. 明确不做
 

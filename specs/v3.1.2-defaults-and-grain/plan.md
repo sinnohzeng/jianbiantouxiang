@@ -49,3 +49,10 @@
 
 - `npm run lint`、`npm run typecheck`、`npm test`、`npm run build`、`npm run e2e` 全绿。
 - `npm run screenshots` 生成 16 张设备截图，覆盖桌面、iPhone 15 与 iPhone SE 的深浅主题。
+
+## 评审修订（2026-08-31）
+
+- 审计实测首屏 JS 为 204.09 KB gzip（index 154.16、preload-helper 11.05、i18n 16.70、
+  useScrollLock 22.18），在 250 KB 预算内；v3.1 规约里 160 KB 的旧目标作废。
+- v3 线缺发布标签、README 样张停在 v3.0 调参期（颗粒列带已移除的同心圆），
+  两件与其余审计发现一起落在 `specs/v3.1.3-debt-and-hygiene/`。

@@ -18,3 +18,9 @@
 - `lineSizeScales` 是基准字号乘数，而不是直接存像素；这样同一配置在 512、1024、2048 下自然等比。
 - 直接导出不走 Web Share：下载是用户点“导出”的默认预期；分享与复制链接继续留在显式入口。
 - 复制图片固定转 PNG，因为 Async Clipboard 的图片类型支持以 PNG 最稳；原导出格式不受影响。
+
+## 评审修订（2026-08-31）
+
+- `TextPanel` 状态徽章滑杆同写 `lineSizeScales` 与 `layout.scale` 的双写收回，只写行级数组；
+  `normalizeConfig` 的旧链接迁移保留，`layout.scale` 标 deprecated，随 v3.2 的 `logo` 一起移除。
+  落地在 `specs/v3.1.3-debt-and-hygiene/` 切片四。
