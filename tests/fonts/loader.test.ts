@@ -154,8 +154,8 @@ describe('loadFontForConfig 网络降级', () => {
     expect(result).toEqual({ family: 'Noto Sans SC', source: 'mirror', ok: true })
     expect(hrefs).toEqual([
       'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@700&display=swap',
-      'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@latest/700.css',
-      'https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@latest/700.css',
+      'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/700.css',
+      'https://gcore.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/700.css',
     ])
   })
 

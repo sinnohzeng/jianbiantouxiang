@@ -1,6 +1,7 @@
 /**
- * 精选字体清单：离线兜底与推荐位的数据源，字段取自 fontsource API
- * （https://api.fontsource.org/v1/fonts，2026-08-29 核对）。
+ * 精选字体清单：离线兜底与推荐位的数据源，基础字段取自 fontsource API
+ * （https://api.fontsource.org/v1/fonts，2026-08-29 核对）；version 取 jsDelivr
+ * 包元数据的 latest 标签，2026-08-31 核对。chiron-sung-hk 没有 npm 包，镜像回落 latest。
  * 中文部分覆盖 Google Fonts 上全部带 chinese-* subset 的字体，
  * 目录接口拉不到时 fetchCatalog 直接回落到这里。
  */
@@ -10,6 +11,7 @@ import type { FontEntry } from './catalog'
 export const CURATED_FONTS: FontEntry[] = [
   {
     id: 'noto-sans-sc',
+    version: '5.3.0',
     family: 'Noto Sans SC',
     category: 'sans-serif',
     subsets: ['chinese-simplified', 'cyrillic', 'latin', 'latin-ext', 'vietnamese'],
@@ -18,6 +20,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'noto-serif-sc',
+    version: '5.3.0',
     family: 'Noto Serif SC',
     category: 'serif',
     subsets: ['chinese-simplified', 'cyrillic', 'latin', 'latin-ext', 'vietnamese'],
@@ -26,6 +29,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'liu-jian-mao-cao',
+    version: '5.3.0',
     family: 'Liu Jian Mao Cao',
     category: 'handwriting',
     subsets: ['chinese-simplified', 'latin'],
@@ -34,6 +38,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'long-cang',
+    version: '5.3.0',
     family: 'Long Cang',
     category: 'handwriting',
     subsets: ['chinese-simplified', 'latin'],
@@ -42,6 +47,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'ma-shan-zheng',
+    version: '5.3.1',
     family: 'Ma Shan Zheng',
     category: 'handwriting',
     subsets: ['chinese-simplified', 'latin'],
@@ -50,6 +56,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'wdxl-lubrifont-sc',
+    version: '5.3.0',
     family: 'WDXL Lubrifont SC',
     category: 'sans-serif',
     subsets: ['chinese-simplified', 'cyrillic', 'latin', 'latin-ext', 'symbols2'],
@@ -58,6 +65,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'zcool-kuaile',
+    version: '5.3.0',
     family: 'ZCOOL KuaiLe',
     category: 'sans-serif',
     subsets: ['chinese-simplified', 'latin'],
@@ -66,6 +74,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'zcool-qingke-huangyou',
+    version: '5.3.0',
     family: 'ZCOOL QingKe HuangYou',
     category: 'sans-serif',
     subsets: ['chinese-simplified', 'latin'],
@@ -74,6 +83,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'zcool-xiaowei',
+    version: '5.3.0',
     family: 'ZCOOL XiaoWei',
     category: 'sans-serif',
     subsets: ['chinese-simplified', 'latin'],
@@ -82,6 +92,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'zhi-mang-xing',
+    version: '5.3.0',
     family: 'Zhi Mang Xing',
     category: 'handwriting',
     subsets: ['chinese-simplified', 'latin'],
@@ -90,6 +101,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'noto-sans-tc',
+    version: '5.3.0',
     family: 'Noto Sans TC',
     category: 'sans-serif',
     subsets: ['chinese-traditional', 'cyrillic', 'latin', 'latin-ext', 'vietnamese'],
@@ -98,6 +110,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'noto-serif-tc',
+    version: '5.3.0',
     family: 'Noto Serif TC',
     category: 'serif',
     subsets: ['chinese-traditional', 'cyrillic', 'latin', 'latin-ext', 'vietnamese'],
@@ -106,6 +119,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'bpmf-huninn',
+    version: '5.3.0',
     family: 'Bpmf Huninn',
     category: 'sans-serif',
     subsets: ['chinese-traditional', 'latin', 'latin-ext'],
@@ -114,6 +128,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'bpmf-iansui',
+    version: '5.3.0',
     family: 'Bpmf Iansui',
     category: 'handwriting',
     subsets: ['chinese-traditional', 'latin', 'latin-ext'],
@@ -122,6 +137,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'bpmf-zihi-kai-std',
+    version: '5.3.0',
     family: 'Bpmf Zihi Kai Std',
     category: 'sans-serif',
     subsets: ['chinese-traditional', 'latin', 'latin-ext'],
@@ -130,6 +146,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'cactus-classical-serif',
+    version: '5.3.0',
     family: 'Cactus Classical Serif',
     category: 'serif',
     subsets: ['chinese-traditional', 'cyrillic', 'latin', 'latin-ext', 'vietnamese'],
@@ -138,6 +155,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'chiron-goround-tc',
+    version: '5.3.0',
     family: 'Chiron GoRound TC',
     category: 'sans-serif',
     subsets: [
@@ -153,6 +171,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'chiron-hei-hk',
+    version: '5.3.1',
     family: 'Chiron Hei HK',
     category: 'sans-serif',
     subsets: [
@@ -171,6 +190,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'chocolate-classical-sans',
+    version: '5.3.0',
     family: 'Chocolate Classical Sans',
     category: 'sans-serif',
     subsets: ['chinese-traditional', 'cyrillic', 'latin', 'latin-ext', 'vietnamese'],
@@ -179,6 +199,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'huninn',
+    version: '5.3.0',
     family: 'Huninn',
     category: 'sans-serif',
     subsets: ['chinese-traditional', 'cyrillic', 'latin', 'latin-ext', 'vietnamese'],
@@ -187,6 +208,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'iansui',
+    version: '5.3.0',
     family: 'Iansui',
     category: 'handwriting',
     subsets: ['chinese-traditional', 'latin', 'latin-ext', 'symbols2'],
@@ -195,6 +217,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'lxgw-marker-gothic',
+    version: '5.3.0',
     family: 'LXGW Marker Gothic',
     category: 'sans-serif',
     subsets: [
@@ -212,6 +235,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'lxgw-wenkai-mono-tc',
+    version: '5.3.0',
     family: 'LXGW WenKai Mono TC',
     category: 'monospace',
     subsets: [
@@ -230,6 +254,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'lxgw-wenkai-tc',
+    version: '5.3.0',
     family: 'LXGW WenKai TC',
     category: 'handwriting',
     subsets: [
@@ -248,6 +273,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'uoqmunthenkhung',
+    version: '5.3.0',
     family: 'UoqMunThenKhung',
     category: 'serif',
     subsets: ['chinese-traditional', 'cyrillic', 'latin', 'symbols2'],
@@ -256,6 +282,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'wdxl-lubrifont-tc',
+    version: '5.3.0',
     family: 'WDXL Lubrifont TC',
     category: 'sans-serif',
     subsets: ['chinese-traditional', 'cyrillic', 'latin', 'latin-ext', 'symbols2'],
@@ -264,6 +291,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'noto-sans-hk',
+    version: '5.3.0',
     family: 'Noto Sans HK',
     category: 'sans-serif',
     subsets: ['chinese-hongkong', 'cyrillic', 'latin', 'latin-ext', 'vietnamese'],
@@ -272,6 +300,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'noto-serif-hk',
+    version: '5.3.0',
     family: 'Noto Serif HK',
     category: 'serif',
     subsets: ['chinese-hongkong', 'cyrillic', 'latin', 'latin-ext', 'vietnamese'],
@@ -298,6 +327,7 @@ export const CURATED_FONTS: FontEntry[] = [
 
   {
     id: 'noto-sans-jp',
+    version: '5.3.0',
     family: 'Noto Sans JP',
     category: 'sans-serif',
     subsets: ['cyrillic', 'japanese', 'latin', 'latin-ext', 'vietnamese'],
@@ -306,6 +336,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'noto-serif-jp',
+    version: '5.3.0',
     family: 'Noto Serif JP',
     category: 'serif',
     subsets: ['cyrillic', 'japanese', 'latin', 'latin-ext', 'vietnamese'],
@@ -314,6 +345,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'm-plus-rounded-1c',
+    version: '5.3.0',
     family: 'M PLUS Rounded 1c',
     category: 'sans-serif',
     subsets: [
@@ -332,6 +364,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'zen-maru-gothic',
+    version: '5.3.0',
     family: 'Zen Maru Gothic',
     category: 'sans-serif',
     subsets: ['cyrillic', 'greek', 'japanese', 'latin', 'latin-ext'],
@@ -340,6 +373,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'dela-gothic-one',
+    version: '5.3.0',
     family: 'Dela Gothic One',
     category: 'display',
     subsets: ['cyrillic', 'greek', 'japanese', 'latin', 'latin-ext', 'vietnamese'],
@@ -348,6 +382,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'shippori-mincho',
+    version: '5.3.0',
     family: 'Shippori Mincho',
     category: 'serif',
     subsets: ['japanese', 'latin', 'latin-ext'],
@@ -356,6 +391,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'kosugi-maru',
+    version: '5.3.0',
     family: 'Kosugi Maru',
     category: 'sans-serif',
     subsets: ['cyrillic', 'japanese', 'latin', 'latin-ext'],
@@ -364,6 +400,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'rampart-one',
+    version: '5.3.0',
     family: 'Rampart One',
     category: 'display',
     subsets: ['cyrillic', 'japanese', 'latin', 'latin-ext'],
@@ -372,6 +409,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'yuji-syuku',
+    version: '5.3.0',
     family: 'Yuji Syuku',
     category: 'serif',
     subsets: ['cyrillic', 'japanese', 'latin', 'latin-ext'],
@@ -380,6 +418,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'hachi-maru-pop',
+    version: '5.3.0',
     family: 'Hachi Maru Pop',
     category: 'handwriting',
     subsets: ['cyrillic', 'japanese', 'latin', 'latin-ext'],
@@ -389,6 +428,7 @@ export const CURATED_FONTS: FontEntry[] = [
 
   {
     id: 'noto-sans-kr',
+    version: '5.3.0',
     family: 'Noto Sans KR',
     category: 'sans-serif',
     subsets: ['cyrillic', 'korean', 'latin', 'latin-ext', 'vietnamese'],
@@ -397,6 +437,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'noto-serif-kr',
+    version: '5.3.0',
     family: 'Noto Serif KR',
     category: 'serif',
     subsets: ['cyrillic', 'korean', 'latin', 'latin-ext', 'vietnamese'],
@@ -405,6 +446,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'black-han-sans',
+    version: '5.3.0',
     family: 'Black Han Sans',
     category: 'sans-serif',
     subsets: ['korean', 'latin'],
@@ -413,6 +455,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'do-hyeon',
+    version: '5.3.0',
     family: 'Do Hyeon',
     category: 'sans-serif',
     subsets: ['korean', 'latin'],
@@ -421,6 +464,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'jua',
+    version: '5.3.0',
     family: 'Jua',
     category: 'sans-serif',
     subsets: ['korean', 'latin'],
@@ -429,6 +473,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'gowun-dodum',
+    version: '5.3.0',
     family: 'Gowun Dodum',
     category: 'sans-serif',
     subsets: ['korean', 'latin', 'latin-ext', 'vietnamese'],
@@ -437,6 +482,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'nanum-myeongjo',
+    version: '5.3.0',
     family: 'Nanum Myeongjo',
     category: 'serif',
     subsets: ['korean', 'latin'],
@@ -445,6 +491,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'gasoek-one',
+    version: '5.3.0',
     family: 'Gasoek One',
     category: 'sans-serif',
     subsets: ['korean', 'latin', 'latin-ext'],
@@ -454,6 +501,7 @@ export const CURATED_FONTS: FontEntry[] = [
 
   {
     id: 'inter',
+    version: '5.3.0',
     family: 'Inter',
     category: 'sans-serif',
     subsets: ['cyrillic', 'cyrillic-ext', 'greek', 'greek-ext', 'latin', 'latin-ext', 'vietnamese'],
@@ -461,6 +509,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'poppins',
+    version: '5.3.0',
     family: 'Poppins',
     category: 'sans-serif',
     subsets: ['devanagari', 'latin', 'latin-ext'],
@@ -468,6 +517,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'montserrat',
+    version: '5.3.0',
     family: 'Montserrat',
     category: 'sans-serif',
     subsets: ['cyrillic', 'cyrillic-ext', 'latin', 'latin-ext', 'vietnamese'],
@@ -475,6 +525,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'rubik',
+    version: '5.3.0',
     family: 'Rubik',
     category: 'sans-serif',
     subsets: ['arabic', 'cyrillic', 'cyrillic-ext', 'hebrew', 'latin', 'latin-ext'],
@@ -482,6 +533,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'nunito',
+    version: '5.3.0',
     family: 'Nunito',
     category: 'sans-serif',
     subsets: ['cyrillic', 'cyrillic-ext', 'latin', 'latin-ext', 'vietnamese'],
@@ -489,6 +541,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'outfit',
+    version: '5.3.0',
     family: 'Outfit',
     category: 'sans-serif',
     subsets: ['latin', 'latin-ext'],
@@ -496,6 +549,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'sora',
+    version: '5.3.0',
     family: 'Sora',
     category: 'sans-serif',
     subsets: ['latin', 'latin-ext'],
@@ -503,6 +557,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'syne',
+    version: '5.3.0',
     family: 'Syne',
     category: 'sans-serif',
     subsets: ['greek', 'latin', 'latin-ext'],
@@ -510,6 +565,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'space-grotesk',
+    version: '5.3.0',
     family: 'Space Grotesk',
     category: 'sans-serif',
     subsets: ['latin', 'latin-ext', 'vietnamese'],
@@ -517,6 +573,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'oswald',
+    version: '5.3.0',
     family: 'Oswald',
     category: 'sans-serif',
     subsets: ['cyrillic', 'cyrillic-ext', 'latin', 'latin-ext', 'vietnamese'],
@@ -524,6 +581,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'archivo-black',
+    version: '5.3.0',
     family: 'Archivo Black',
     category: 'sans-serif',
     subsets: ['latin', 'latin-ext'],
@@ -531,6 +589,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'bebas-neue',
+    version: '5.3.0',
     family: 'Bebas Neue',
     category: 'sans-serif',
     subsets: ['latin', 'latin-ext'],
@@ -538,6 +597,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'fredoka',
+    version: '5.3.0',
     family: 'Fredoka',
     category: 'sans-serif',
     subsets: ['hebrew', 'latin', 'latin-ext'],
@@ -545,6 +605,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'righteous',
+    version: '5.3.0',
     family: 'Righteous',
     category: 'display',
     subsets: ['latin', 'latin-ext'],
@@ -552,6 +613,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'playfair-display',
+    version: '5.3.0',
     family: 'Playfair Display',
     category: 'serif',
     subsets: ['cyrillic', 'latin', 'latin-ext', 'vietnamese'],
@@ -559,6 +621,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'dm-serif-display',
+    version: '5.3.0',
     family: 'DM Serif Display',
     category: 'serif',
     subsets: ['latin', 'latin-ext'],
@@ -566,6 +629,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'abril-fatface',
+    version: '5.3.0',
     family: 'Abril Fatface',
     category: 'display',
     subsets: ['latin', 'latin-ext'],
@@ -573,6 +637,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'bungee',
+    version: '5.3.0',
     family: 'Bungee',
     category: 'display',
     subsets: ['latin', 'latin-ext', 'vietnamese'],
@@ -580,6 +645,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'lobster',
+    version: '5.3.0',
     family: 'Lobster',
     category: 'display',
     subsets: ['cyrillic', 'cyrillic-ext', 'latin', 'latin-ext', 'vietnamese'],
@@ -587,6 +653,7 @@ export const CURATED_FONTS: FontEntry[] = [
   },
   {
     id: 'pacifico',
+    version: '5.3.0',
     family: 'Pacifico',
     category: 'handwriting',
     subsets: ['cyrillic', 'cyrillic-ext', 'latin', 'latin-ext', 'vietnamese'],

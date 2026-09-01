@@ -237,11 +237,12 @@ function resolveEntry(
   family: string,
   weight: number,
   hint?: FontEntry,
-): { id: string; weight: number } {
+): { id: string; weight: number; version?: string } {
   const entry = hint ?? getCuratedByFamily(family)
   return {
     id: entry ? entry.id : familyToFontsourceId(family),
     weight: entry ? nearestWeight(entry.weights, weight) : weight,
+    version: entry?.version,
   }
 }
 
@@ -252,13 +253,13 @@ async function loadGoogleFont(
   timeoutMs: number,
   hint?: FontEntry,
 ): Promise<FontLoadResult> {
-  const { id, weight: resolved } = resolveEntry(family, weight, hint)
+  const { id, weight: resolved, version } = resolveEntry(family, weight, hint)
 
   if (await activate([buildCss2Url(family, [resolved])], family, resolved, sample, timeoutMs)) {
     return { family, source: 'google', ok: true }
   }
   for (const host of MIRROR_HOSTS) {
-    const urls = buildMirrorCssUrlsForHost(host, id, [resolved])
+    const urls = buildMirrorCssUrlsForHost(host, id, [resolved], version)
     if (await activate(urls, family, resolved, sample, timeoutMs)) {
       return { family, source: 'mirror', ok: true }
     }

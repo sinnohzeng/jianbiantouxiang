@@ -8,7 +8,7 @@
  * 镜像链路走 jsDelivr 上 fontsource 的 npm 包路径。同一份字体，
  * `/fontsource/css/<id>@latest/<weight>.css` 的 CJK 分片没有 unicode-range，
  * 浏览器只会命中最后一条整包规则（Noto Sans SC 700 为 1.1 MB）；
- * `/npm/@fontsource/<id>@latest/<weight>.css` 每条分片都带 unicode-range，
+ * `/npm/@fontsource/<id>@<version>/<weight>.css` 每条分片都带 unicode-range，
  * 因此镜像用后者（2026-08-29 两条路径都实测过）。
  */
 
@@ -57,13 +57,19 @@ export function buildMirrorCssUrlsForHost(
   host: string,
   id: string,
   weights: readonly number[],
+  version?: string,
 ): string[] {
+  const tag = version?.trim() || 'latest'
   return normalizeWeights(weights).map(
-    (w) => `https://${host}/npm/@fontsource/${id}@latest/${w}.css`,
+    (w) => `https://${host}/npm/@fontsource/${id}@${tag}/${w}.css`,
   )
 }
 
 /** 全部镜像地址，按主机优先级铺平，供调用方按序尝试。 */
-export function buildMirrorCssUrls(id: string, weights: readonly number[]): string[] {
-  return MIRROR_HOSTS.flatMap((host) => buildMirrorCssUrlsForHost(host, id, weights))
+export function buildMirrorCssUrls(
+  id: string,
+  weights: readonly number[],
+  version?: string,
+): string[] {
+  return MIRROR_HOSTS.flatMap((host) => buildMirrorCssUrlsForHost(host, id, weights, version))
 }

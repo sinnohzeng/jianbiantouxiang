@@ -69,6 +69,12 @@ describe('CURATED_FONTS', () => {
     }
   })
 
+  it('除无 npm 包的字体外，镜像版本固定为具体 semver', () => {
+    const withVersion = CURATED_FONTS.filter((f) => f.version !== undefined)
+    expect(withVersion.length).toBe(CURATED_FONTS.length - 1)
+    for (const f of withVersion) expect(f.version).toMatch(/^\d+\.\d+\.\d+$/)
+  })
+
   it('cjk 标记与 subsets 自洽', () => {
     for (const f of CURATED_FONTS) {
       expect(f.cjk).toBe(cjkOfSubsets(f.subsets))

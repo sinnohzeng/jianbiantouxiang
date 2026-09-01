@@ -49,17 +49,23 @@ describe('familyToFontsourceId', () => {
 
 describe('buildMirrorCssUrls', () => {
   it('走 npm 包路径，每个字重一条', () => {
-    expect(buildMirrorCssUrlsForHost('cdn.jsdelivr.net', 'noto-sans-sc', [400, 700])).toEqual([
-      'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@latest/400.css',
-      'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@latest/700.css',
+    expect(
+      buildMirrorCssUrlsForHost('cdn.jsdelivr.net', 'noto-sans-sc', [400, 700], '5.3.0'),
+    ).toEqual([
+      'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/400.css',
+      'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.3.0/700.css',
+    ])
+
+    expect(buildMirrorCssUrlsForHost('cdn.jsdelivr.net', 'unknown', [400])).toEqual([
+      'https://cdn.jsdelivr.net/npm/@fontsource/unknown@latest/400.css',
     ])
   })
 
   it('两个主机按优先级铺平，cdn 在前 gcore 在后', () => {
     expect(MIRROR_HOSTS).toEqual(['cdn.jsdelivr.net', 'gcore.jsdelivr.net'])
-    expect(buildMirrorCssUrls('zcool-kuaile', [400])).toEqual([
-      'https://cdn.jsdelivr.net/npm/@fontsource/zcool-kuaile@latest/400.css',
-      'https://gcore.jsdelivr.net/npm/@fontsource/zcool-kuaile@latest/400.css',
+    expect(buildMirrorCssUrls('zcool-kuaile', [400], '5.3.0')).toEqual([
+      'https://cdn.jsdelivr.net/npm/@fontsource/zcool-kuaile@5.3.0/400.css',
+      'https://gcore.jsdelivr.net/npm/@fontsource/zcool-kuaile@5.3.0/400.css',
     ])
   })
 })

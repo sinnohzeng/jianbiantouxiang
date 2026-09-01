@@ -16,6 +16,8 @@ export type CjkScript = 'sc' | 'tc' | 'hk' | 'jp' | 'kr'
 
 export interface FontEntry {
   id: string
+  /** fontsource npm 包版本；镜像 CSS 用它替代 @latest。 */
+  version?: string
   family: string
   category: FontCategory
   subsets: string[]
@@ -53,6 +55,7 @@ interface CachePayload {
 
 interface RawFont {
   id?: unknown
+  version?: unknown
   family?: unknown
   category?: unknown
   subsets?: unknown
@@ -102,6 +105,9 @@ export function toFontEntry(raw: unknown): FontEntry | null {
     category,
     subsets,
     weights: toWeights(r.weights),
+    ...(typeof r.version === 'string' && /^\d+\.\d+\.\d+$/.test(r.version)
+      ? { version: r.version }
+      : {}),
   }
   if (cjk) entry.cjk = cjk
   return entry

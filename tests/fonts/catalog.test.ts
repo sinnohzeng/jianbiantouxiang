@@ -22,6 +22,7 @@ const RAW = [
     weights: [400, 700],
     styles: ['normal'],
     variable: true,
+    version: '5.3.0',
     type: 'google',
   },
   {
@@ -72,6 +73,7 @@ describe('toFontEntry', () => {
       category: 'sans-serif',
       subsets: ['chinese-simplified', 'latin'],
       weights: [400, 700],
+      version: '5.3.0',
       cjk: 'sc',
     })
   })
