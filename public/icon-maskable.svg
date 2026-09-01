@@ -1,26 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="gma" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="ga" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#e86a3d" />
       <stop offset="0.48" stop-color="#8d7cf0" />
       <stop offset="1" stop-color="#3d9ef2" />
     </linearGradient>
-    <radialGradient id="gmb" cx="0.34" cy="0.2" r="0.62">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.32" />
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
-    </radialGradient>
   </defs>
-  <!-- maskable 由系统自行裁形，底必须铺满整张画布，字形收在内接 80% 安全区里 -->
-  <rect width="512" height="512" fill="url(#gma)" />
-  <rect width="512" height="512" fill="url(#gmb)" />
-  <g transform="translate(256 256) scale(0.78) translate(-256 -256)">
-    <path
-      d="M378.9 170 A150 150 0 1 0 406 256 L 286 256"
-      fill="none"
-      stroke="#ffffff"
-      stroke-width="46"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />
-  </g>
+  <rect width="512" height="512" fill="url(#ga)" />
+  <text
+    x="256"
+    y="256"
+    text-anchor="middle"
+    dominant-baseline="central"
+    font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif"
+    font-weight="700"
+    font-size="240"
+    fill="#ffffff"
+  >渐</text>
 </svg>

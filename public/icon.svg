@@ -12,12 +12,5 @@
   </defs>
   <rect width="512" height="512" rx="112" ry="112" fill="url(#ga)" />
   <rect width="512" height="512" rx="112" ry="112" fill="url(#gb)" />
-  <path
-    d="M378.9 170 A150 150 0 1 0 406 256 L 286 256"
-    fill="none"
-    stroke="#ffffff"
-    stroke-width="46"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+  <text x="256" y="256" text-anchor="middle" dominant-baseline="central" font-family="'Noto Sans SC','PingFang SC',system-ui,sans-serif" font-weight="700" font-size="300" fill="#ffffff">渐</text>
 </svg>

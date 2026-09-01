@@ -1,6 +1,6 @@
 {
   "name": "gradient-avatar",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "private": true,
   "type": "module",
   "description": "输入几个字，秒出一张柔光质感的渐变头像",
@@ -30,6 +30,7 @@
     "e2e": "playwright test",
     "screenshots": "node scripts/screenshots.mjs",
     "gen:icons": "node scripts/gen-icon-index.ts",
+    "gen:app-icons": "node scripts/gen-app-icons.mjs",
     "gen:emoji": "node scripts/gen-emoji-index.ts",
     "samples": "node scripts/samples.mjs",
     "budget": "node scripts/check-budget.mjs"
