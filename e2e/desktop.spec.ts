@@ -28,7 +28,8 @@ test('点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => {
   await page.locator('[data-slot="export-action"]').click()
 
   const file = await download
-  expect(file.suggestedFilename()).toMatch(/\.jpg$/)
+  // v4.0 起文件名带秒级时间戳：`文字_宽x高_YYYYMMDD-HHmmss.jpg`
+  expect(file.suggestedFilename()).toMatch(/_\d{8}-\d{6}\.jpg$/)
 
   // 体积与类型按探针的结果断言：它走的是导出同一条 composeAvatar + encodeCanvas
   const encoded = await probeEncode(page)
@@ -67,7 +68,7 @@ test('改文字后复制的链接在新页面打开，文字一致', async ({ co
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await openApp(page)
 
-  await page.locator('#avatar-text').fill('链接往返')
+  await page.locator('#avatar-text-first').fill('链接往返')
   await page.locator('[data-slot="copy-link-action"]').click()
 
   const shared = await page.evaluate(() => navigator.clipboard.readText())
@@ -75,21 +76,22 @@ test('改文字后复制的链接在新页面打开，文字一致', async ({ co
 
   const opened = await context.newPage()
   await opened.goto(shared)
-  await expect(opened.locator('#avatar-text')).toHaveValue('链接往返')
+  await expect(opened.locator('#avatar-text-first')).toHaveValue('链接往返')
   await opened.close()
 })
 
 test('改文字后可以用键盘撤销与重做', async ({ page }) => {
   await openApp(page)
 
-  const textarea = page.locator('#avatar-text')
-  await textarea.fill('撤销往返')
+  const firstLine = page.locator('#avatar-text-first')
+  await firstLine.fill('撤销往返')
   await page.getByRole('heading', { level: 1 }).click()
   await page.keyboard.press('ControlOrMeta+z')
-  await expect(textarea).toHaveValue('飞书\n效率先锋')
+  await expect(firstLine).toHaveValue('飞书')
+  await expect(page.locator('#avatar-text-second')).toHaveValue('效率先锋')
 
   await page.keyboard.press('ControlOrMeta+Shift+z')
-  await expect(textarea).toHaveValue('撤销往返')
+  await expect(firstLine).toHaveValue('撤销往返')
 })
 
 test('切换语言后 html[lang] 与标题都跟着变', async ({ page }) => {
@@ -114,20 +116,37 @@ test('不带 probe 参数时不挂探针', async ({ page }) => {
   expect(installed).toBe(false)
 })
 
+test('常驻操作条：两个随机一级按钮与文字快捷入口', async ({ page }) => {
+  await openApp(page)
+
+  // 三个高频动作都在一级，不再有下拉二级
+  await expect(page.locator('[data-slot="shuffle-color"]')).toBeVisible()
+  await expect(page.locator('[data-slot="shuffle-all"]')).toBeVisible()
+
+  const hashBefore = await page.evaluate(() => window.location.hash)
+  await page.locator('[data-slot="shuffle-color"]').click()
+  await expect
+    .poll(() => page.evaluate(() => window.location.hash), { timeout: 5000 })
+    .not.toBe(hashBefore)
+
+  // 文字入口一步切到文字页签并聚焦第一行
+  await page.locator('[data-slot="edit-text"]').click()
+  await expect(page.locator('#avatar-text-first')).toBeFocused({ timeout: 5000 })
+})
+
 test('图标徽章能选内置棕榈图标并导出', async ({ page }) => {
   test.setTimeout(PROBE_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('label:has(input[data-group="text-kind"][value="logo"])').click()
-  await page.locator('[data-slot="graphic-picker"]').click()
+  await page.locator('[data-slot="text-icon-switch"]').click()
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
-  await page.locator('#avatar-text').fill('产品设计部')
+  await page.locator('#avatar-text-first').fill('产品设计部')
 
   const download = page.waitForEvent('download')
   await page.locator('[data-slot="export-action"]').click()
   const file = await download
-  expect(file.suggestedFilename()).toMatch(/\.jpg$/)
+  expect(file.suggestedFilename()).toMatch(/_\d{8}-\d{6}\.jpg$/)
 
   const encoded = await probeEncode(page)
   expect(encoded.bytes).toBeGreaterThan(0)
@@ -138,17 +157,16 @@ test('图标徽章能用中文搜到棕榈 emoji 并导出', async ({ page }) =>
   test.setTimeout(PROBE_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('label:has(input[data-group="text-kind"][value="logo"])').click()
-  await page.locator('[data-slot="graphic-picker"]').click()
+  await page.locator('[data-slot="text-icon-switch"]').click()
   await page.locator('label:has(input[data-group="icon-source"][value="emoji"])').click()
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
-  await page.locator('#avatar-text').fill('产品设计部')
+  await page.locator('#avatar-text-first').fill('产品设计部')
 
   const download = page.waitForEvent('download')
   await page.locator('[data-slot="export-action"]').click()
   const file = await download
-  expect(file.suggestedFilename()).toMatch(/\.jpg$/)
+  expect(file.suggestedFilename()).toMatch(/_\d{8}-\d{6}\.jpg$/)
 
   const encoded = await probeEncode(page)
   expect(encoded.bytes).toBeGreaterThan(0)
@@ -159,8 +177,7 @@ test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
   test.setTimeout(PROBE_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('label:has(input[data-group="text-kind"][value="logo"])').click()
-  await page.locator('[data-slot="graphic-picker"]').click()
+  await page.locator('[data-slot="text-icon-switch"]').click()
   await page.locator('input[type="file"]').setInputFiles({
     name: 'team.svg',
     mimeType: 'image/svg+xml',
@@ -169,12 +186,12 @@ test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
     ),
   })
   await expect(page.locator('[data-slot="graphic-picker"]')).toContainText('upload-')
-  await page.locator('#avatar-text').fill('产品设计部')
+  await page.locator('#avatar-text-first').fill('产品设计部')
 
   const download = page.waitForEvent('download')
   await page.locator('[data-slot="export-action"]').click()
   const file = await download
-  expect(file.suggestedFilename()).toMatch(/\.jpg$/)
+  expect(file.suggestedFilename()).toMatch(/_\d{8}-\d{6}\.jpg$/)
 
   const encoded = await probeEncode(page)
   expect(encoded.bytes).toBeGreaterThan(0)
@@ -184,7 +201,7 @@ test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
 test('关于对话框展示版本号，恢复默认回到默认档', async ({ page }) => {
   await openApp(page)
 
-  await page.locator('#avatar-text').fill('重置演练')
+  await page.locator('#avatar-text-first').fill('重置演练')
   await page.locator('[data-slot="about-action"]').click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
@@ -193,7 +210,8 @@ test('关于对话框展示版本号，恢复默认回到默认档', async ({ pa
   await page.locator('[data-slot="reset-action"]').click()
   await expect(dialog).toBeHidden()
   // 重置回到默认档，示例文字重新跟随界面语言
-  await expect(page.locator('#avatar-text')).toHaveValue('飞书\n效率先锋')
+  await expect(page.locator('#avatar-text-first')).toHaveValue('飞书')
+  await expect(page.locator('#avatar-text-second')).toHaveValue('效率先锋')
 })
 
 test('环境光滑杆调低后刷新仍在', async ({ page }) => {

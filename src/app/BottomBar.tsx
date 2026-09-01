@@ -2,28 +2,24 @@
  * 主操作条。手机上固定在屏幕底部并让出 safe-area，桌面上就是面板列底部的一行。
  * 触控目标一律 44 px 起，尺寸档参考 `@reactbits-pro/mobile-4`。
  *
- * 四个控件在 320 px 的日文界面下排不开（随机 98 + 箭头 44 + 复制 44 + 导出 112 加间距超出屏宽），
- * 所以按钮都允许收缩、文案 truncate，宽松的最小宽度只在桌面档给。
+ * v4.0 起三个高频动作常驻一级：随机颜色（种子）、随机质感与配色、文字快捷入口。
+ * 320 px 宽度塞不下五个带文案的按钮，随机与文字在窄屏退成纯图标，
+ * 导出是主行动保留文案，按钮都允许收缩、文案 truncate。
  */
 
 import { useCallback, useState } from 'react'
 import {
-  ChevronUpIcon,
   DownloadIcon,
   Link2Icon,
   Loader2Icon,
   SettingsIcon,
   ShuffleIcon,
+  SparklesIcon,
+  TypeIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { copyText } from '@/app/clipboard'
-import { Button, buttonVariants } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { createExportArtifact } from '@/export/action'
@@ -53,6 +49,17 @@ export function BottomBar() {
     pushHistory()
     queueHistoryThumbnail()
   }, [randomizeAll, pushHistory])
+
+  const onEditText = useCallback(() => {
+    setUi({ activePanel: 'text' })
+    // 等页签渲染完再聚焦；手机上输入框在预览下方，顺手滚进视野
+    requestAnimationFrame(() => {
+      const input = document.querySelector<HTMLInputElement>('[data-slot="text-line1"]')
+      if (!input) return
+      input.focus()
+      input.scrollIntoView({ block: 'center' })
+    })
+  }, [setUi])
 
   const onCopyLink = useCallback(() => {
     // 先把当前配置落进 URL，再复制，别让用户拿到上一版的链接
@@ -104,40 +111,46 @@ export function BottomBar() {
       )}
     >
       <div className="flex h-14 items-center gap-2 px-3 lg:h-auto lg:px-3 lg:py-3">
-        <div className="flex min-w-0 items-stretch">
-          <Button
-            type="button"
-            variant="secondary"
-            size="lg"
-            onClick={onShuffle}
-            title={t('bottombar.random.hint')}
-            className="tap-target min-w-0 shrink rounded-r-none pr-2"
-          >
-            <ShuffleIcon aria-hidden />
-            <span className="truncate">{t('bottombar.random')}</span>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              aria-label={t('bottombar.randomAll')}
-              className={cn(
-                buttonVariants({ variant: 'secondary', size: 'lg' }),
-                'tap-target border-background/60 rounded-l-none border-l px-2',
-              )}
-            >
-              <ChevronUpIcon className="size-4" aria-hidden />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" side="top" className="w-auto min-w-52">
-              <DropdownMenuItem onClick={onShuffle} className="min-h-11 gap-2 px-2">
-                <ShuffleIcon className="size-4" aria-hidden />
-                {t('bottombar.random')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onShuffleAll} className="min-h-11 gap-2 px-2">
-                <ShuffleIcon className="size-4" aria-hidden />
-                {t('bottombar.randomAll')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <Button
+          type="button"
+          variant="secondary"
+          size="lg"
+          data-slot="shuffle-color"
+          onClick={onShuffle}
+          title={t('bottombar.random.hint')}
+          aria-label={t('bottombar.random')}
+          className="tap-target min-w-0 shrink rounded-lg px-2.5 md:pr-3"
+        >
+          <ShuffleIcon aria-hidden />
+          <span className="hidden truncate md:inline">{t('bottombar.random')}</span>
+        </Button>
+
+        <Button
+          type="button"
+          variant="secondary"
+          size="lg"
+          data-slot="shuffle-all"
+          onClick={onShuffleAll}
+          title={t('bottombar.randomAll.hint')}
+          aria-label={t('bottombar.randomAll')}
+          className="tap-target min-w-0 shrink rounded-lg px-2.5 md:pr-3"
+        >
+          <SparklesIcon aria-hidden />
+          <span className="hidden truncate md:inline">{t('bottombar.randomAll')}</span>
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-lg"
+          data-slot="edit-text"
+          onClick={onEditText}
+          aria-label={t('bottombar.text')}
+          title={t('bottombar.text.hint')}
+          className="tap-target"
+        >
+          <TypeIcon aria-hidden />
+        </Button>
 
         <Button
           type="button"

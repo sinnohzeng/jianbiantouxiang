@@ -172,12 +172,6 @@ export function TextPanel() {
                 </Button>
               ) : null}
             </div>
-            {iconMounted ? (
-              <Suspense fallback={null}>
-                <IconPickerLazy open={iconOpen} onOpenChange={setIconOpen} />
-              </Suspense>
-            ) : null}
-
             <SliderField
               label={t('panel.graphic.scale')}
               editLabel={t('panel.common.edit', { name: t('panel.graphic.scale') })}
@@ -241,6 +235,12 @@ export function TextPanel() {
             ))}
           </div>
         </div>
+        {/* 选择器挂载与 iconEnabled 无关：第一次选图形时开关还没点亮 */}
+        {iconMounted ? (
+          <Suspense fallback={null}>
+            <IconPickerLazy open={iconOpen} onOpenChange={setIconOpen} />
+          </Suspense>
+        ) : null}
       </PanelSection>
 
       <PanelSection title={t('panel.text.group.type')}>

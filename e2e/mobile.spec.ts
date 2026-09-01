@@ -33,7 +33,7 @@ test('底栏点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => 
   await page.locator('[data-slot="export-action"]').click()
 
   const file = await download
-  expect(file.suggestedFilename()).toMatch(/\.jpg$/)
+  expect(file.suggestedFilename()).toMatch(/_\d{8}-\d{6}\.jpg$/)
 
   const encoded = await probeEncode(page)
   expect(encoded.type).toBe('image/jpeg')
@@ -46,9 +46,9 @@ test('改文字后复制的链接在新页面打开，文字一致', async ({ co
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await openApp(page)
 
-  const textarea = page.locator('#avatar-text')
-  await centreBetweenBars(page, textarea)
-  await textarea.fill('手机往返')
+  const firstLine = page.locator('#avatar-text-first')
+  await centreBetweenBars(page, firstLine)
+  await firstLine.fill('手机往返')
 
   await page.locator('[data-slot="copy-link-action"]').click()
   const shared = await page.evaluate(() => navigator.clipboard.readText())
@@ -56,7 +56,7 @@ test('改文字后复制的链接在新页面打开，文字一致', async ({ co
 
   const opened = await context.newPage()
   await opened.goto(shared)
-  const restored = opened.locator('#avatar-text')
+  const restored = opened.locator('#avatar-text-first')
   await centreBetweenBars(opened, restored)
   await expect(restored).toHaveValue('手机往返')
   await opened.close()
@@ -77,13 +77,9 @@ test('切换语言后 html[lang] 与标题都跟着变', async ({ page }) => {
 
 test('手机上图形选择器走底部抽屉且无横向滚动', async ({ page }) => {
   await openApp(page)
-  const kind = page.locator('label:has(input[data-group="text-kind"][value="logo"])')
-  await centreBetweenBars(page, kind)
-  await kind.click()
-
-  const picker = page.locator('[data-slot="graphic-picker"]')
-  await centreBetweenBars(page, picker)
-  await picker.click()
+  const iconSwitch = page.locator('[data-slot="text-icon-switch"]')
+  await centreBetweenBars(page, iconSwitch)
+  await iconSwitch.click()
 
   const dialog = page.locator('[data-slot="drawer-popup"]')
   await expect(dialog).toBeVisible()
@@ -95,5 +91,5 @@ test('手机上图形选择器走底部抽屉且无横向滚动', async ({ page 
   await page.locator('label:has(input[data-group="icon-source"][value="emoji"])').click()
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
-  await expect(picker).toContainText('1f334')
+  await expect(page.locator('[data-slot="graphic-picker"]')).toContainText('1f334')
 })
