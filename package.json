@@ -31,7 +31,8 @@
     "screenshots": "node scripts/screenshots.mjs",
     "gen:icons": "node scripts/gen-icon-index.ts",
     "gen:emoji": "node scripts/gen-emoji-index.ts",
-    "samples": "node scripts/samples.mjs"
+    "samples": "node scripts/samples.mjs",
+    "budget": "node scripts/check-budget.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
