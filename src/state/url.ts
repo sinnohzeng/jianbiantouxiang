@@ -53,7 +53,7 @@ function fromBase64Url(encoded: string): string | null {
 
 /**
  * 编码成 `#c=<base64url>`。只写与默认配置不同的字段，链接长度随改动量增长，
- * 默认状态下只有几个字符。版本号与默认值相同时同样省略，解码端按缺省即 v3 处理。
+ * 默认状态下只有几个字符。版本号与默认值相同时同样省略，解码端按缺省即旧版处理。
  */
 export function encodeConfigToHash(config: AvatarConfig): string {
   // 上传图形只属于本次会话。写进链接会让对方拿到一个不存在的会话 id，
@@ -86,7 +86,8 @@ export function hasBrokenConfigHash(hash: string): boolean {
 
 /**
  * 解码 hash。任何一环出问题都返回 null，让调用方回落到 localStorage 或默认配置：
- * 少前缀、base64 坏、JSON 坏、载荷不是对象、版本号不是 3。
+ * 少前缀、base64 坏、JSON 坏、载荷不是对象、版本号既不是 3 也不是 4。
+ * v3 载荷交给 `normalizeConfig` 迁移：三行并两行，退役字段忽略。
  */
 export function decodeConfigFromHash(hash: string): AvatarConfig | null {
   const entry = configEntryOf(hash)
@@ -102,7 +103,7 @@ export function decodeConfigFromHash(hash: string): AvatarConfig | null {
     return null
   }
   if (!isRecord(payload)) return null
-  if (payload.v !== undefined && payload.v !== 3) return null
+  if (payload.v !== undefined && payload.v !== 3 && payload.v !== 4) return null
 
   return normalizeConfig(payload)
 }

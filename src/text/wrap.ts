@@ -16,6 +16,22 @@ export function splitParagraphs(text: string): string[] {
   return lines.slice(start, end)
 }
 
+/**
+ * v4 两行模型对显式换行的唯一解释：最多两行，第三行起并入第二行。
+ *
+ * 与 `splitParagraphs` 不同，这里不去掉前导空行：第一行为空、第二行有内容
+ * 是合法槽位（图标加说明文字就是这么存的），空槽位留住，行级补偿等参数
+ * 才能跟着内容走，求解层的晋升分支才够得着。
+ * `normalizeConfig` 迁移旧链接与排版求解共用这一条，口径不会分叉。
+ */
+export function twoLinesOf(text: string): [string, string] {
+  if (typeof text !== 'string' || text === '') return ['', '']
+  const lines = text.split(LINE_BREAK_RE).map((line) => line.trim())
+  const first = lines[0] ?? ''
+  if (lines.length <= 1) return [first, '']
+  return [first, lines.slice(1).join('')]
+}
+
 let wordSegmenter: Intl.Segmenter | null | undefined
 
 function getWordSegmenter(): Intl.Segmenter | null {

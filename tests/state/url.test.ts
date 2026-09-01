@@ -76,7 +76,6 @@ describe('编解码往返', () => {
       typography: {
         ...DEFAULT_CONFIG.typography,
         fontFamily: 'LXGW WenKai',
-        vertical: true,
         effect: 'glow',
         pill: { radius: 0.4, padding: 0.5, opacity: 0.8 },
       },
@@ -120,7 +119,6 @@ describe('旧链接兼容', () => {
       ...DEFAULT_CONFIG,
       text: '请假中\n09-01 至 09-07',
       layout: {
-        kind: 'logo',
         graphic: 0.64,
         icon: { source: 'emoji', id: '1f334' },
       },
@@ -136,11 +134,10 @@ describe('旧链接兼容', () => {
 
   it('链接里的版式同样过一遍夹值与枚举校验', () => {
     const hacked = encodePayload({
-      layout: { kind: 'logo', graphic: 9, icon: { source: 'photo', id: 'x' } },
+      layout: { graphic: 9, icon: { source: 'photo', id: 'x' } },
     })
     const config = decodeConfigFromHash(hacked)
     expect(config?.layout).toEqual({
-      kind: 'logo',
       graphic: 0.8,
       icon: { source: 'none', id: '' },
     })
@@ -149,7 +146,8 @@ describe('旧链接兼容', () => {
   it('状态徽章链接不再写死 layout.scale，旧值只落在行级字号', () => {
     const config = normalizeConfig({ layout: { kind: 'status', scale: 0.3 } })
     const payload = payloadOf(encodeConfigToHash(config))
-    expect(payload.layout).toEqual({ kind: 'status' })
+    // kind 退役后版式回到默认，链接里不再出现 layout
+    expect(payload.layout).toBeUndefined()
     expect(config.typography.lineSizeScales[1]).toBe(0.3)
   })
 
@@ -157,15 +155,29 @@ describe('旧链接兼容', () => {
     const config: AvatarConfig = {
       ...DEFAULT_CONFIG,
       layout: {
-        kind: 'logo',
         graphic: 0.64,
         icon: { source: 'upload', id: 'upload-1' },
       },
     }
     const payload = payloadOf(encodeConfigToHash(config))
-    expect(payload.layout).toEqual({ kind: 'logo', graphic: 0.64 })
+    expect(payload.layout).toEqual({ graphic: 0.64 })
     const decoded = decodeConfigFromHash(encodeConfigToHash(config))
     expect(decoded?.layout.icon).toEqual({ source: 'none', id: '' })
+  })
+
+  it('v3 载荷被接受并迁移：第三行起并入第二行，退役字段忽略', () => {
+    const config = decodeConfigFromHash(
+      encodePayload({
+        v: 3,
+        text: '一\n二\n三',
+        layout: { kind: 'status' },
+        typography: { vertical: true },
+      }),
+    )
+    expect(config?.v).toBe(4)
+    expect(config?.text).toBe('一\n二三')
+    expect('kind' in (config?.layout ?? {})).toBe(false)
+    expect('vertical' in (config?.typography ?? {})).toBe(false)
   })
 })
 
@@ -188,9 +200,9 @@ describe('decodeConfigFromHash 容错', () => {
     expect(decodeConfigFromHash(encodePayload(null))).toBeNull()
   })
 
-  it('旧版本载荷返回 null', () => {
+  it('范围外版本载荷返回 null', () => {
     expect(decodeConfigFromHash(encodePayload({ v: 2, text: '旧链接' }))).toBeNull()
-    expect(decodeConfigFromHash(encodePayload({ v: 4, text: '未来链接' }))).toBeNull()
+    expect(decodeConfigFromHash(encodePayload({ v: 5, text: '未来链接' }))).toBeNull()
   })
 
   it('缺 v 视为当前版本', () => {

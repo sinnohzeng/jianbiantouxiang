@@ -54,10 +54,6 @@ function paintLine(
   letterSpacingPx: number,
   nativeSpacing: boolean,
 ): void {
-  if (line.glyphs.length > 0) {
-    for (const glyph of line.glyphs) paintOne(ctx, mode, glyph.char, glyph.x, glyph.y)
-    return
-  }
   if (nativeSpacing) {
     paintOne(ctx, mode, line.text, line.x, line.y)
     return
@@ -71,7 +67,7 @@ function paintLine(
 }
 
 /**
- * 一段同号的行。状态徽章的首行与次行字号不同，字号既决定 ctx.font，
+ * 一段同号的行。栈模型的首行与次行字号不同，字号既决定 ctx.font，
  * 也决定描边、光晕、阴影的尺度，所以效果要按段各算一遍，不能拿整块的字号一刀切。
  */
 interface Run {
@@ -81,21 +77,20 @@ interface Run {
   letterSpacingPx: number
 }
 
-/** 相邻同字体的行并成一段。纯文字与图标徽章只会得到一段，走的还是原来那条路。 */
+/** 相邻同字体的行并成一段。单行版式只会得到一段。 */
 function runsOf(layout: TextLayout): Run[] {
   const runs: Run[] = []
   for (const line of layout.lines) {
-    const font = line.font ?? layout.font
     const last = runs.at(-1)
-    if (last && last.font === font) {
+    if (last && last.font === line.font) {
       last.lines.push(line)
       continue
     }
     runs.push({
       lines: [line],
-      font,
-      fontSizePx: line.fontSizePx ?? layout.fontSizePx,
-      letterSpacingPx: line.letterSpacingPx ?? layout.letterSpacingPx,
+      font: line.font,
+      fontSizePx: line.fontSizePx,
+      letterSpacingPx: line.letterSpacingPx,
     })
   }
   return runs
@@ -117,10 +112,10 @@ function clearShadow(ctx: CanvasRenderingContext2D): void {
   ctx.shadowOffsetY = 0
 }
 
-/** 竖排逐字定位，字距已经算进坐标，原生字距必须归零。 */
-function applyLetterSpacing(ctx: CanvasRenderingContext2D, run: Run, vertical: boolean): boolean {
+/** 字距写进画布上下文；引擎缺席时返回 false，由绘制逐字补偿。 */
+function applyLetterSpacing(ctx: CanvasRenderingContext2D, run: Run): boolean {
   if (!('letterSpacing' in ctx)) return run.letterSpacingPx === 0
-  ctx.letterSpacing = vertical ? '0px' : cssPx(run.letterSpacingPx)
+  ctx.letterSpacing = cssPx(run.letterSpacingPx)
   return true
 }
 
@@ -161,25 +156,19 @@ export function drawText(
   // 底板包住整块文字，与分段无关，所以铺在所有段之前
   if (config.typography.effect === 'pill') drawPlate(ctx, layout, config, color)
 
-  for (const run of runsOf(layout)) paintRun(ctx, run, layout, config, color)
+  for (const run of runsOf(layout)) paintRun(ctx, run, config, color)
 
   clearShadow(ctx)
   ctx.restore()
 }
 
 /** 画一段同号的行：先按效果补底层，再落正文那一遍。 */
-function paintRun(
-  ctx: CanvasRenderingContext2D,
-  run: Run,
-  layout: TextLayout,
-  config: AvatarConfig,
-  color: string,
-): void {
+function paintRun(ctx: CanvasRenderingContext2D, run: Run, config: AvatarConfig, color: string): void {
   const { effect, effectStrength } = config.typography
   ctx.font = run.font
   ctx.fillStyle = color
   clearShadow(ctx)
-  const nativeSpacing = applyLetterSpacing(ctx, run, layout.vertical)
+  const nativeSpacing = applyLetterSpacing(ctx, run)
 
   if (effect === 'outline') {
     const lineWidth = run.fontSizePx * OUTLINE_RATIO * effectStrength

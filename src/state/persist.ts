@@ -1,7 +1,10 @@
 import { normalizeConfig, type AvatarConfig } from '@/state/config'
 import { HISTORY_MAX, type HistoryEntry } from '@/state/history'
 
-/** 键名带版本，v4 换结构时旧数据自然失效，不用写迁移代码。 */
+/**
+ * 键名带版本。v4 换的是配置契约而不是存档外壳，旧存档继续读，
+ * 配置在 `normalizeConfig` 里迁移，所以键名不升、老数据不作废。
+ */
 export const PERSIST_KEY = 'gradient-avatar:v3'
 
 const PERSIST_VERSION = 3

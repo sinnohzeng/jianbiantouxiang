@@ -65,15 +65,6 @@ afterEach(() => {
   cleanup()
 })
 
-/** 切用途。分段控件的真实控件是 sr-only 的 radio，按 data-group 与取值查。 */
-function pickKind(container: HTMLElement, value: string): void {
-  const radio = container.querySelector<HTMLInputElement>(
-    `input[data-group="text-kind"][value="${value}"]`,
-  )
-  expect(radio, value).not.toBeNull()
-  fireEvent.click(radio!)
-}
-
 function firstLine(container: HTMLElement): HTMLInputElement {
   return container.querySelector<HTMLInputElement>('#avatar-text-first')!
 }
@@ -83,50 +74,10 @@ function secondLine(container: HTMLElement): HTMLInputElement {
 }
 
 describe('TextPanel', () => {
-  it('输入文字写回 store', () => {
+  it('两个单行输入框，两行用换行连起来写回', () => {
     const { container } = mount(<TextPanel />)
-    const textarea = container.querySelector('textarea')
-    expect(textarea).not.toBeNull()
-    fireEvent.change(textarea!, { target: { value: '猪猪老公' } })
-    expect(config().text).toBe('猪猪老公')
-  })
-
-  it('对齐、锚点与竖排都接上了 store', () => {
-    const { container } = mount(<TextPanel />)
-
-    const right = container.querySelector<HTMLInputElement>(
-      'input[data-group="text-align"][value="right"]',
-    )
-    expect(right).not.toBeNull()
-    fireEvent.click(right!)
-    expect(config().typography.align).toBe('right')
-
-    const anchors = container.querySelectorAll('input[data-group="text-anchor"]')
-    expect(anchors).toHaveLength(9)
-    const topLeft = container.querySelector<HTMLInputElement>(
-      'input[data-group="text-anchor"][value="tl"]',
-    )
-    fireEvent.click(topLeft!)
-    expect(config().typography.anchor).toBe('tl')
-
-    const vertical = container.querySelector<HTMLInputElement>('#text-vertical')
-    expect(vertical).not.toBeNull()
-    fireEvent.click(vertical!)
-    expect(config().typography.vertical).toBe(true)
-  })
-
-  it('排版组里有滑杆', () => {
-    // Base UI 的滑杆真实控件是 thumb 里那个 input[type=range]，
-    // jsdom 没有布局，thumb 会停在 visibility:hidden，按 role 查不到，所以按标签查
-    const { container } = mount(<TextPanel />)
-    expect(container.querySelectorAll('input[type="range"]').length).toBeGreaterThanOrEqual(6)
-  })
-
-  it('状态徽章下换成两个单行输入框，两行用换行连起来写回', () => {
-    const { container } = mount(<TextPanel />)
-    pickKind(container, 'status')
-
     expect(container.querySelector('textarea')).toBeNull()
+
     fireEvent.change(firstLine(container), { target: { value: '请假中' } })
     fireEvent.change(secondLine(container), { target: { value: '09-01 至 09-07' } })
     expect(config().text).toBe('请假中\n09-01 至 09-07')
@@ -134,96 +85,88 @@ describe('TextPanel', () => {
 
   it('第二行清空后不留尾随换行', () => {
     const { container } = mount(<TextPanel />)
-    pickKind(container, 'status')
-
     fireEvent.change(firstLine(container), { target: { value: '请假中' } })
     fireEvent.change(secondLine(container), { target: { value: '09-01' } })
     fireEvent.change(secondLine(container), { target: { value: '' } })
     expect(config().text).toBe('请假中')
   })
 
-  it('切用途不清空已经填好的文字', () => {
+  it('单行输入里粘贴的多行内容并成一行', () => {
+    useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, text: '' } })
     const { container } = mount(<TextPanel />)
-    fireEvent.change(container.querySelector('textarea')!, { target: { value: '猪猪老公\n09-01' } })
-
-    pickKind(container, 'status')
-    expect(config().text).toBe('猪猪老公\n09-01')
-    expect(firstLine(container).value).toBe('猪猪老公')
-    expect(secondLine(container).value).toBe('09-01')
-
-    pickKind(container, 'text')
-    expect(config().text).toBe('猪猪老公\n09-01')
-    expect(container.querySelector<HTMLTextAreaElement>('textarea')!.value).toBe('猪猪老公\n09-01')
+    fireEvent.change(firstLine(container), { target: { value: '第一行\n第二行\r\n第三行' } })
+    expect(config().text).toBe('第一行第二行第三行')
   })
 
-  it('状态徽章下锚点、偏移、对齐、竖排、自动换行都不在 DOM 里', () => {
+  it('用途分段控件退役，DOM 里不再出现', () => {
     const { container } = mount(<TextPanel />)
-    const sliders = () => container.querySelectorAll('input[type="range"]').length
-
-    expect(container.querySelector('input[data-group="text-align"]')).not.toBeNull()
-    expect(container.querySelectorAll('input[data-group="text-anchor"]')).toHaveLength(9)
-    expect(container.querySelector('#text-vertical')).not.toBeNull()
-    expect(container.querySelector('#text-auto-wrap')).not.toBeNull()
-    const before = sliders()
-
-    pickKind(container, 'status')
-
-    // 条件渲染而不是 CSS 隐藏：这几个参数在这个用途下不参与求解，读屏与键盘也不该走到它们
+    expect(container.querySelector('input[data-group="text-kind"]')).toBeNull()
     expect(container.querySelector('input[data-group="text-align"]')).toBeNull()
     expect(container.querySelectorAll('input[data-group="text-anchor"]')).toHaveLength(0)
     expect(container.querySelector('#text-vertical')).toBeNull()
     expect(container.querySelector('#text-auto-wrap')).toBeNull()
-    // 四个行级滑杆收起、次行字号滑杆出现。数数量而不是认文案，换语言不会红
-    expect(sliders()).toBe(before - 5)
   })
 
-  it('次行字号滑杆只写行级比例，不写死字段', () => {
+  it('两行都有内容时：次行字号加两条水平补偿共三个行级滑杆', () => {
     const { container } = mount(<TextPanel />)
-    pickKind(container, 'status')
+    fireEvent.change(firstLine(container), { target: { value: '飞书' } })
+    fireEvent.change(secondLine(container), { target: { value: '效率先锋' } })
 
-    // 基础组排在最前，这个用途下它里面唯一的滑杆就是次行字号
-    const range = container.querySelector<HTMLInputElement>('input[type="range"]')
-    expect(range).not.toBeNull()
-    fireEvent.change(range!, { target: { value: '0.6' } })
-    expect(config().typography.lineSizeScales[1]).toBeCloseTo(0.6)
-    expect('scale' in config().layout).toBe(false)
+    // 滑杆总数 = 行级三个 + 排版组四个 + 效果组强度一个起步，数下限不认文案
+    const ranges = container.querySelectorAll('input[type="range"]')
+    expect(ranges.length).toBeGreaterThanOrEqual(7)
+
+    // 前三个行级滑杆依次是：次行字号、第一行补偿、第二行补偿
+    fireEvent.change(ranges[0]!, { target: { value: '0.7' } })
+    fireEvent.change(ranges[1]!, { target: { value: '0.02' } })
+    fireEvent.change(ranges[2]!, { target: { value: '-0.03' } })
+    expect(config().typography.lineSizeScales[1]).toBeCloseTo(0.7)
+    expect(config().typography.lineOffsetsX).toEqual([0.02, -0.03])
   })
 
-  it('纯文字多行时能分别调每一行的字号与水平补偿', () => {
+  it('只有一行时：没有次行字号，只有一条第一行补偿', () => {
     const { container } = mount(<TextPanel />)
-    fireEvent.change(container.querySelector('textarea')!, {
-      target: { value: '飞书\n效率先锋' },
-    })
+    fireEvent.change(firstLine(container), { target: { value: '暴富' } })
+    fireEvent.change(secondLine(container), { target: { value: '' } })
 
+    const before = config().typography.lineOffsetsX
     const ranges = container.querySelectorAll<HTMLInputElement>('input[type="range"]')
-    // 行级控件已移动到全局字号之前；第 2 行的字号与水平补偿在第 3、4 个滑杆
-    const lineSize = ranges[2]!
-    const lineOffset = ranges[3]!
-    fireEvent.change(lineSize, { target: { value: '0.7' } })
-    fireEvent.change(lineOffset, { target: { value: '0.02' } })
-
-    expect(config().typography.lineSizeScales).toEqual([1, 0.7])
-    expect(config().typography.lineOffsetsX).toEqual([0, 0.02])
+    // 第一个行级滑杆就是第一行补偿
+    fireEvent.change(ranges[0]!, { target: { value: '0.05' } })
+    expect(config().typography.lineOffsetsX).toEqual([0.05, before[1] ?? 0])
   })
 
-  it('行级字号控件在全局字号之前，且数值输入常驻可直接修改', () => {
-    const { container } = mount(<TextPanel />)
-    fireEvent.change(container.querySelector('textarea')!, {
-      target: { value: '飞书\n效率先锋' },
+  it('图标开关：选了图形才算开，清除按钮一键回纯文字', () => {
+    useAvatarStore.setState({
+      config: {
+        ...DEFAULT_CONFIG,
+        layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'emoji', id: '1f334' } },
+      },
     })
+    const { container } = mount(<TextPanel />)
 
-    const firstLine = screen.getByRole('textbox', { name: /Edit Line 1 size/ })
-    const secondLine = screen.getByRole('textbox', { name: /Edit Line 2 size/ })
-    expect((firstLine as HTMLInputElement).value).toBe('100')
-    expect((secondLine as HTMLInputElement).value).toBe('62')
+    const toggle = container.querySelector<HTMLInputElement>('#text-icon')
+    expect(toggle?.checked).toBe(true)
 
-    fireEvent.focus(firstLine)
-    fireEvent.change(firstLine, { target: { value: '80' } })
-    fireEvent.blur(firstLine)
-
-    expect(config().typography.lineSizeScales).toEqual([0.8, 0.62])
+    const clear = container.querySelector<HTMLButtonElement>('button[data-slot="icon-clear"]')
+    expect(clear).not.toBeNull()
+    fireEvent.click(clear!)
+    expect(config().layout.icon).toEqual({ source: 'none', id: '' })
   })
 
+  it('自定义颜色下有四个预设色块，点选即写回', () => {
+    const { container } = mount(<TextPanel />)
+    // 效果组默认折叠，先展开
+    fireEvent.click(screen.getByRole('button', { name: /效果|Effect|効果|효과/ }))
+
+    const presets = container.querySelectorAll('button[role="radio"]')
+    expect(presets).toHaveLength(4)
+    fireEvent.click(presets[1]!)
+    expect(config().typography.color).toBe('#141413')
+  })
+})
+
+describe('StylePanel 排布', () => {
   it('质感面板的种子区在质感选择之前', () => {
     mount(<StylePanel />)
 

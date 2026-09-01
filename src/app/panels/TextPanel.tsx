@@ -1,19 +1,13 @@
 /**
- * 文字面板：用途与内容、字体与排版、效果三组。
- * 分组用可折叠区块，基础与排版默认展开，效果收起，手机上一屏能看完前两组。
+ * 文字面板：内容、字体与排版、效果三组。
  *
- * 用途分段控件放在最上面：它决定下面露出哪些控件，先选用途再填内容，顺序与人的想法一致。
+ * v4 只有一种版式：图标（可选）→ 第一行 → 第二行的纵向栈。
+ * 面板不再有「用途」，用户填三个原料：第一行、第二行、图标开关，
+ * 排版由引擎自动适配，怎么填都出图。
  */
 
 import { Suspense, useId, useMemo, useState } from 'react'
-import {
-  AlignCenterIcon,
-  AlignLeftIcon,
-  AlignRightIcon,
-  BadgeCheckIcon,
-  CalendarClockIcon,
-  TypeIcon,
-} from 'lucide-react'
+import { TypeIcon, XIcon } from 'lucide-react'
 import { PanelSection } from '@/components/blocks/panel-section'
 import { SegmentedControl, type SegmentedOption } from '@/components/blocks/segmented-control'
 import { SliderField } from '@/components/blocks/slider-field'
@@ -22,24 +16,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import { useT } from '@/i18n'
-import {
-  LINE_OVERRIDE_MAX,
-  ANCHORS,
-  TEXT_EFFECTS,
-  type Anchor,
-  type LayoutKind,
-  type TextEffect,
-} from '@/state/config'
+import { LINE_OVERRIDE_MAX, TEXT_EFFECTS, type TextEffect } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
-import { cn } from '@/lib/utils'
-import { splitParagraphs } from '@/text/wrap'
+import { twoLinesOf } from '@/text/wrap'
 import { weightsOf } from './font-entries'
 import { FontPickerLazy, IconPickerLazy } from './lazy'
 import { GraphicThumb } from './GraphicThumb'
 
-type Align = 'left' | 'center' | 'right'
 type SizeMode = 'auto' | 'manual'
 type ColorMode = 'auto' | 'custom'
 
@@ -51,33 +35,13 @@ const COLOR_PRESETS: readonly { hex: string; key: 'white' | 'black' | 'cream' | 
   { hex: '#FFD34D', key: 'yellow' },
 ]
 
-/** 九宫格按行排布，与 Anchor 的九个取值一一对应。 */
-const ANCHOR_GRID: readonly Anchor[] = ANCHORS
-
-/** 小方块里那个点摆在哪，直接对应锚点位置，不用另画图。 */
-const ANCHOR_ALIGN: Record<Anchor, string> = {
-  tl: 'items-start justify-start',
-  t: 'items-start justify-center',
-  tr: 'items-start justify-end',
-  l: 'items-center justify-start',
-  c: 'items-center justify-center',
-  r: 'items-center justify-end',
-  bl: 'items-end justify-start',
-  b: 'items-end justify-center',
-  br: 'items-end justify-end',
+/** 单行输入不允许带出换行：粘贴进来的多行在这里并成一行。 */
+function stripBreaks(value: string): string {
+  return value.replace(/\r\n|\r|\n/g, '')
 }
 
-/**
- * 状态徽章的两行。按第一个换行切开，其余换行留在次行里，
- * 用户在纯文字用途下打的多段文字切过来不会被砍掉。
- */
-function splitStatus(text: string): [string, string] {
-  const at = text.indexOf('\n')
-  return at === -1 ? [text, ''] : [text.slice(0, at), text.slice(at + 1)]
-}
-
-/** 次行为空时不留尾随换行，免得切回纯文字用途时多出一个空段。 */
-function joinStatus(first: string, second: string): string {
+/** 第二行为空时不留尾随换行，存储形态与两行模型一一对应。 */
+function joinLines(first: string, second: string): string {
   return second === '' ? first : `${first}\n${second}`
 }
 
@@ -108,55 +72,11 @@ export function TextPanel() {
   const [iconMounted, setIconMounted] = useState(false)
 
   const type = config.typography
-  const kind = config.layout.kind
-  // 状态徽章的版式写死在代码里：整块在安全框里居中，逐行横排。
-  // 锚点、偏移、对齐、竖排、自动换行在这个用途下都不参与求解，
-  // 留在界面上只会让人以为能调，调完发现画面没变
-  const freeform = kind === 'text'
-  const [first, second] = splitStatus(config.text)
+  const [first, second] = useMemo(() => twoLinesOf(config.text), [config.text])
+  const hasFirst = first.trim() !== ''
+  const hasSecond = second.trim() !== ''
+  const iconEnabled = config.layout.icon.source !== 'none'
   const weights = useMemo(() => weightsOf(type.fontFamily), [type.fontFamily])
-  const paragraphs = useMemo(() => splitParagraphs(config.text), [config.text])
-  const lineCount = Math.min(paragraphs.length, LINE_OVERRIDE_MAX)
-
-  // 图标是给名字加个锚，不替代名字：这一档选错，后面填的内容全排在错的版式上
-  const kindOptions: SegmentedOption<LayoutKind>[] = [
-    {
-      value: 'text',
-      label: t('panel.text.kind.text'),
-      icon: (
-        <>
-          <TypeIcon aria-hidden="true" />
-          <span className="truncate">{t('panel.text.kind.text')}</span>
-        </>
-      ),
-    },
-    {
-      value: 'status',
-      label: t('panel.text.kind.status'),
-      icon: (
-        <>
-          <CalendarClockIcon aria-hidden="true" />
-          <span className="truncate">{t('panel.text.kind.status')}</span>
-        </>
-      ),
-    },
-    {
-      value: 'logo',
-      label: t('panel.text.kind.logo'),
-      icon: (
-        <>
-          <BadgeCheckIcon aria-hidden="true" />
-          <span className="truncate">{t('panel.text.kind.logo')}</span>
-        </>
-      ),
-    },
-  ]
-
-  const alignOptions: SegmentedOption<Align>[] = [
-    { value: 'left', label: t('panel.text.align.left'), icon: <AlignLeftIcon /> },
-    { value: 'center', label: t('panel.text.align.center'), icon: <AlignCenterIcon /> },
-    { value: 'right', label: t('panel.text.align.right'), icon: <AlignRightIcon /> },
-  ]
 
   const effectOptions: SegmentedOption<TextEffect>[] = TEXT_EFFECTS.map((effect) => ({
     value: effect,
@@ -167,121 +87,110 @@ export function TextPanel() {
     <div className="flex flex-col">
       <PanelSection title={t('panel.text.group.basic')}>
         <div className="flex flex-col gap-1.5">
-          <Label>{t('panel.text.kind')}</Label>
-          <SegmentedControl<LayoutKind>
-            name="text-kind"
-            label={t('panel.text.kind')}
-            value={kind}
-            options={kindOptions}
-            onChange={(next) => setLayout({ kind: next })}
+          <Label htmlFor="avatar-text-first">{t('panel.text.line1')}</Label>
+          <Input
+            id="avatar-text-first"
+            data-slot="text-line1"
+            className="h-11"
+            value={first}
+            placeholder={t('panel.text.line1.placeholder')}
+            onChange={(event) =>
+              setConfig({ text: joinLines(stripBreaks(event.target.value), second) })
+            }
           />
-          {kind === 'status' ? (
-            <p className="text-muted-foreground text-xs">{t('panel.text.kind.status.hint')}</p>
-          ) : null}
-          {kind === 'logo' ? (
-            <p className="text-muted-foreground text-xs">{t('panel.text.kind.logo.hint')}</p>
-          ) : null}
-          {kind === 'status' ? (
-          <>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="avatar-text-first">{t('panel.text.line1')}</Label>
-              <Input
-                id="avatar-text-first"
-                className="h-11"
-                value={first}
-                placeholder={t('panel.text.line1.placeholder')}
-                onChange={(event) => setConfig({ text: joinStatus(event.target.value, second) })}
-              />
-            </div>
+        </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="avatar-text-second">{t('panel.text.line2')}</Label>
-              <Input
-                id="avatar-text-second"
-                className="h-11"
-                value={second}
-                placeholder={t('panel.text.line2.placeholder')}
-                onChange={(event) => setConfig({ text: joinStatus(first, event.target.value) })}
-              />
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="avatar-text-second">{t('panel.text.line2')}</Label>
+          <Input
+            id="avatar-text-second"
+            data-slot="text-line2"
+            className="h-11"
+            value={second}
+            placeholder={t('panel.text.line2.placeholder')}
+            onChange={(event) =>
+              setConfig({ text: joinLines(first, stripBreaks(event.target.value)) })
+            }
+          />
+        </div>
+
+        <div className="flex min-h-11 items-center justify-between gap-3">
+          <Label htmlFor="text-icon">{t('panel.text.icon')}</Label>
+          <Switch
+            id="text-icon"
+            data-slot="text-icon-switch"
+            className="after:-inset-y-[13px]"
+            checked={iconEnabled}
+            onCheckedChange={(enabled) => {
+              // 开关打开即拉起图形选择器：选完图形开关才算真正点亮，
+              // 关掉则清空图标，栈回到纯文字
+              if (enabled) {
+                setIconMounted(true)
+                setIconOpen(true)
+              } else {
+                setLayout({ icon: { source: 'none', id: '' } })
+              }
+            }}
+          />
+        </div>
+        {iconEnabled ? (
+          <>
+            <p className="text-muted-foreground text-xs">{t('panel.text.icon.hint')}</p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                data-slot="graphic-picker"
+                className="h-11 min-w-0 flex-1 justify-start gap-2 px-2"
+                onClick={() => {
+                  setIconMounted(true)
+                  setIconOpen(true)
+                }}
+              >
+                <GraphicThumb
+                  icon={config.layout.icon}
+                  config={config}
+                  color={type.colorMode === 'custom' ? type.color : '#ffffff'}
+                />
+                <span className="truncate">
+                  {config.layout.icon.source === 'none'
+                    ? t('panel.graphic.empty')
+                    : config.layout.icon.id || t('panel.graphic.current')}
+                </span>
+              </Button>
+              {config.layout.icon.source !== 'none' ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-lg"
+                  data-slot="icon-clear"
+                  aria-label={t('panel.text.icon.clear')}
+                  title={t('panel.text.icon.clear')}
+                  onClick={() => setLayout({ icon: { source: 'none', id: '' } })}
+                >
+                  <XIcon aria-hidden />
+                </Button>
+              ) : null}
             </div>
+            {iconMounted ? (
+              <Suspense fallback={null}>
+                <IconPickerLazy open={iconOpen} onOpenChange={setIconOpen} />
+              </Suspense>
+            ) : null}
 
             <SliderField
-              label={t('panel.layout.scale')}
-              editLabel={t('panel.common.edit', { name: t('panel.layout.scale') })}
-              value={type.lineSizeScales[1] ?? 0.62}
-              min={0.2}
+              label={t('panel.graphic.scale')}
+              editLabel={t('panel.common.edit', { name: t('panel.graphic.scale') })}
+              value={config.layout.graphic}
+              min={0.3}
               max={0.8}
               step={0.01}
               scale={100}
               unit="%"
-              onChange={(scale) =>
-                setTypography({
-                  lineSizeScales: withLineValue(type.lineSizeScales, 1, scale, 1),
-                })
-              }
+              onChange={(graphic) => setLayout({ graphic })}
             />
           </>
-        ) : (
-          <>
-            {kind === 'logo' ? (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t('panel.graphic.title')}</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  data-slot="graphic-picker"
-                  className="h-11 w-full justify-start gap-2 px-2"
-                  onClick={() => {
-                    setIconMounted(true)
-                    setIconOpen(true)
-                  }}
-                >
-                  <GraphicThumb
-                    icon={config.layout.icon}
-                    config={config}
-                    color={type.colorMode === 'custom' ? type.color : '#ffffff'}
-                  />
-                  <span className="truncate">
-                    {config.layout.icon.source === 'none'
-                      ? t('panel.graphic.empty')
-                      : config.layout.icon.id || t('panel.graphic.current')}
-                  </span>
-                </Button>
-                {iconMounted ? (
-                  <Suspense fallback={null}>
-                    <IconPickerLazy open={iconOpen} onOpenChange={setIconOpen} />
-                  </Suspense>
-                ) : null}
-              </div>
-            ) : null}
-
-            {kind === 'logo' ? (
-              <SliderField
-                label={t('panel.graphic.scale')}
-                editLabel={t('panel.common.edit', { name: t('panel.graphic.scale') })}
-                value={config.layout.graphic}
-                min={0.3}
-                max={0.8}
-                step={0.01}
-                scale={100}
-                unit="%"
-                onChange={(graphic) => setLayout({ graphic })}
-              />
-            ) : null}
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="avatar-text">{t('panel.text.content')}</Label>
-              <Textarea
-                id="avatar-text"
-                className="min-h-24"
-                value={config.text}
-                placeholder={t('panel.text.placeholder')}
-                onChange={(event) => setConfig({ text: event.target.value })}
-              />
-            </div>
-          </>
-        )}
-        </div>
+        ) : null}
 
         <div className="flex flex-col gap-1.5">
           <Label>{t('panel.text.font')}</Label>
@@ -349,49 +258,66 @@ export function TextPanel() {
           />
         </div>
 
-        {freeform && !type.vertical && lineCount > 1
-          ? Array.from({ length: lineCount }, (_, index) => (
-              <div key={index} className="flex flex-col gap-2">
-                <SliderField
-                  label={`${t('panel.text.lineSize', { index: index + 1 })} · ${paragraphs[index] ?? ''}`}
-                  editLabel={t('panel.common.edit', {
-                    name: t('panel.text.lineSize', { index: index + 1 }),
-                  })}
-                  showInput
-                  value={type.lineSizeScales[index] ?? 1}
-                  min={0.2}
-                  max={2}
-                  step={0.01}
-                  scale={100}
-                  precision={0}
-                  unit="%"
-                  onChange={(scale) =>
-                    setTypography({
-                      lineSizeScales: withLineValue(type.lineSizeScales, index, scale, 1),
-                    })
-                  }
-                />
-                <SliderField
-                  label={t('panel.text.lineOffset', { index: index + 1 })}
-                  editLabel={t('panel.common.edit', {
-                    name: t('panel.text.lineOffset', { index: index + 1 }),
-                  })}
-                  value={type.lineOffsetsX[index] ?? 0}
-                  min={-0.25}
-                  max={0.25}
-                  step={0.0025}
-                  scale={100}
-                  precision={1}
-                  unit="%"
-                  onChange={(offset) =>
-                    setTypography({
-                      lineOffsetsX: withLineValue(type.lineOffsetsX, index, offset, 0),
-                    })
-                  }
-                />
-              </div>
-            ))
-          : null}
+        {hasFirst && hasSecond ? (
+          <SliderField
+            label={t('panel.layout.scale')}
+            editLabel={t('panel.common.edit', { name: t('panel.layout.scale') })}
+            value={type.lineSizeScales[1] ?? 0.62}
+            min={0.2}
+            max={0.8}
+            step={0.01}
+            scale={100}
+            unit="%"
+            onChange={(scale) =>
+              setTypography({
+                lineSizeScales: withLineValue(type.lineSizeScales, 1, scale, 1),
+              })
+            }
+          />
+        ) : null}
+
+        {hasFirst ? (
+          <SliderField
+            label={t('panel.text.lineOffset', { index: 1 })}
+            editLabel={t('panel.common.edit', {
+              name: t('panel.text.lineOffset', { index: 1 }),
+            })}
+            value={type.lineOffsetsX[0] ?? 0}
+            min={-0.25}
+            max={0.25}
+            step={0.0025}
+            scale={100}
+            precision={1}
+            unit="%"
+            onChange={(offset) =>
+              setTypography({
+                lineOffsetsX: withLineValue(type.lineOffsetsX, 0, offset, 0),
+              })
+            }
+          />
+        ) : null}
+
+        {hasSecond ? (
+          <SliderField
+            label={t('panel.text.lineOffset', { index: 2 })}
+            editLabel={t('panel.common.edit', {
+              name: t('panel.text.lineOffset', { index: 2 }),
+            })}
+            value={type.lineOffsetsX[1] ?? 0}
+            min={-0.25}
+            max={0.25}
+            step={0.0025}
+            scale={100}
+            precision={1}
+            unit="%"
+            onChange={(offset) =>
+              setTypography({
+                lineOffsetsX: withLineValue(type.lineOffsetsX, 1, offset, 0),
+              })
+            }
+          />
+        ) : null}
+
 
         <SliderField
           label={t('panel.text.fontSize')}
@@ -441,110 +367,6 @@ export function TextPanel() {
           onChange={(letterSpacing) => setTypography({ letterSpacing })}
         />
 
-        {freeform ? (
-          <div className="flex flex-col gap-1.5">
-            <Label>{t('panel.text.align')}</Label>
-            <SegmentedControl<Align>
-              name="text-align"
-              label={t('panel.text.align')}
-              value={type.align}
-              options={alignOptions}
-              onChange={(align) => setTypography({ align })}
-            />
-          </div>
-        ) : null}
-
-        {freeform ? (
-          <div className="flex flex-col gap-1.5">
-            <Label>{t('panel.text.anchor')}</Label>
-            <div
-              role="radiogroup"
-              aria-label={t('panel.text.anchor')}
-              className="grid w-fit grid-cols-3 gap-1"
-            >
-              {ANCHOR_GRID.map((anchor) => (
-                <label key={anchor} className="relative cursor-pointer">
-                  <input
-                    type="radio"
-                    className="peer sr-only"
-                    name={`text-anchor-${uid}`}
-                    data-group="text-anchor"
-                    value={anchor}
-                    checked={type.anchor === anchor}
-                    aria-label={t(`panel.text.anchor.${anchor}`)}
-                    onChange={(event) => {
-                      if (event.target.checked) setTypography({ anchor })
-                    }}
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      'border-border peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:ring-ring/50 peer-checked:*:bg-primary-foreground flex size-11 rounded-lg border p-2 transition-colors peer-focus-visible:ring-3 motion-reduce:transition-none',
-                      ANCHOR_ALIGN[anchor],
-                    )}
-                  >
-                    <span className="bg-foreground size-1.5 rounded-full" />
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {freeform ? (
-          <SliderField
-            label={t('panel.text.offsetX')}
-            editLabel={t('panel.common.edit', { name: t('panel.text.offsetX') })}
-            value={type.offsetX}
-            min={-0.5}
-            max={0.5}
-            step={0.005}
-            scale={100}
-            unit="%"
-            precision={1}
-            onChange={(offsetX) => setTypography({ offsetX })}
-          />
-        ) : null}
-
-        {freeform ? (
-          <SliderField
-            label={t('panel.text.offsetY')}
-            editLabel={t('panel.common.edit', { name: t('panel.text.offsetY') })}
-            value={type.offsetY}
-            min={-0.5}
-            max={0.5}
-            step={0.005}
-            scale={100}
-            unit="%"
-            precision={1}
-            onChange={(offsetY) => setTypography({ offsetY })}
-          />
-        ) : null}
-
-        {freeform ? (
-          <div className="flex min-h-11 items-center justify-between gap-3">
-            <Label htmlFor="text-vertical">{t('panel.text.vertical')}</Label>
-            {/* 开关本体只有 32×18，热区靠 ::after 外扩到 44 高 */}
-            <Switch
-              id="text-vertical"
-              className="after:-inset-y-[13px]"
-              checked={type.vertical}
-              onCheckedChange={(vertical) => setTypography({ vertical })}
-            />
-          </div>
-        ) : null}
-
-        {freeform ? (
-          <div className="flex min-h-11 items-center justify-between gap-3">
-            <Label htmlFor="text-auto-wrap">{t('panel.text.autoWrap')}</Label>
-            <Switch
-              id="text-auto-wrap"
-              className="after:-inset-y-[13px]"
-              checked={type.autoWrap}
-              onCheckedChange={(autoWrap) => setTypography({ autoWrap })}
-            />
-          </div>
-        ) : null}
       </PanelSection>
 
       <PanelSection title={t('panel.text.group.effect')} defaultOpen={false}>

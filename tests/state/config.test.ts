@@ -28,8 +28,9 @@ describe('normalizeConfig 补默认', () => {
     expect(config.typography).toEqual(DEFAULT_CONFIG.typography)
   })
 
-  it('v 恒为 3', () => {
-    expect(normalizeConfig({ v: 2 }).v).toBe(3)
+  it('v 恒为 4，旧版本号也归一到 v4', () => {
+    expect(normalizeConfig({ v: 2 }).v).toBe(4)
+    expect(normalizeConfig({ v: 3 }).v).toBe(4)
   })
 
   it('默认是方形、白色文字、15% 边距、1.03 行高与两行示例', () => {
@@ -56,7 +57,13 @@ describe('normalizeConfig 夹值与校验', () => {
       highlight: 9,
       styleParams: { intensity: -3, scale: 99, rotation: -10 },
       canvas: { width: 100000, height: 1, radius: 5 },
-      typography: { fontSize: 0, padding: 2, lineHeight: 0.1, letterSpacing: 3, offsetX: -9 },
+      typography: {
+        fontSize: 0,
+        padding: 2,
+        lineHeight: 0.1,
+        letterSpacing: 3,
+        lineOffsetsX: [-9, 9],
+      },
     })
     expect(config.highlight).toBe(1)
     expect(config.styleParams.intensity).toBe(0)
@@ -69,7 +76,7 @@ describe('normalizeConfig 夹值与校验', () => {
     expect(config.typography.padding).toBe(0.3)
     expect(config.typography.lineHeight).toBe(0.85)
     expect(config.typography.letterSpacing).toBe(0.5)
-    expect(config.typography.offsetX).toBe(-0.5)
+    expect(config.typography.lineOffsetsX).toEqual([-0.25, 0.25])
   })
 
   it('NaN 与非数值回落到默认', () => {
@@ -92,13 +99,11 @@ describe('normalizeConfig 夹值与校验', () => {
     const config = normalizeConfig({
       style: 'plasma',
       canvas: { shape: 'triangle' },
-      typography: { anchor: 'zz', align: 'justify', effect: 'emboss' },
+      typography: { effect: 'emboss' },
       exportOptions: { format: 'gif', sizeTarget: '10mb' },
     })
     expect(config.style).toBe('mesh')
     expect(config.canvas.shape).toBe('square')
-    expect(config.typography.anchor).toBe('c')
-    expect(config.typography.align).toBe('center')
     expect(config.typography.effect).toBe('shadow')
     expect(config.exportOptions.format).toBe('jpg')
     expect(config.exportOptions.sizeTarget).toBe('1mb')
@@ -108,12 +113,11 @@ describe('normalizeConfig 夹值与校验', () => {
     const config = normalizeConfig({
       style: 'silk',
       canvas: { shape: 'circle' },
-      typography: { anchor: 'br', align: 'right', effect: 'glow', fontSource: 'upload' },
+      typography: { effect: 'glow', fontSource: 'upload' },
       exportOptions: { format: 'webp', sizeTarget: 'none' },
     })
     expect(config.style).toBe('silk')
     expect(config.canvas.shape).toBe('circle')
-    expect(config.typography.anchor).toBe('br')
     expect(config.typography.effect).toBe('glow')
     expect(config.exportOptions.format).toBe('webp')
   })
@@ -145,12 +149,6 @@ describe('normalizeConfig 夹值与校验', () => {
     expect(config.exportOptions.bgColor).toBe(DEFAULT_CONFIG.exportOptions.bgColor)
   })
 
-  it('布尔字段只接受布尔值', () => {
-    const config = normalizeConfig({ typography: { vertical: 'true', autoWrap: 0 } })
-    expect(config.typography.vertical).toBe(DEFAULT_CONFIG.typography.vertical)
-    expect(config.typography.autoWrap).toBe(DEFAULT_CONFIG.typography.autoWrap)
-  })
-
   it('归一化是幂等的', () => {
     const once = normalizeConfig({ text: '产品设计部', styleParams: { scale: 1.7 } })
     expect(normalizeConfig(once)).toEqual(once)
@@ -163,22 +161,34 @@ describe('normalizeConfig 的 layout 子树', () => {
     expect(config.layout).toEqual(DEFAULT_CONFIG.layout)
   })
 
-  it('kind 认三种用途，别的落回 text', () => {
-    expect(normalizeConfig({ layout: { kind: 'status' } }).layout.kind).toBe('status')
-    expect(normalizeConfig({ layout: { kind: 'logo' } }).layout.kind).toBe('logo')
-    expect(normalizeConfig({ layout: { kind: 7 } }).layout.kind).toBe('text')
+  it('kind 退役：旧用途字段读进来即忽略', () => {
+    expect(normalizeConfig({ layout: { kind: 'status' } }).layout).toEqual(
+      DEFAULT_CONFIG.layout,
+    )
+    expect('kind' in normalizeConfig({ layout: { kind: 'logo' } }).layout).toBe(false)
+  })
+
+  it('v3 旧链接三行以上文字：第三行起并入第二行', () => {
+    const config = normalizeConfig({ v: 3, text: '一行\n二行\n三行\n四行' })
+    expect(config.text).toBe('一行\n二行三行四行')
+  })
+
+  it('v4 载荷里多余的换行同样收敛到两行', () => {
+    expect(normalizeConfig({ v: 4, text: '甲\n乙\n丙' }).text).toBe('甲\n乙丙')
+  })
+
+  it('前导空行保留槽位：第一行空、第二行有内容是合法的图标加说明形态', () => {
+    expect(normalizeConfig({ text: '\n第二行' }).text).toBe('\n第二行')
   })
 
   it('graphic 与 icon 同轮补默认并夹值', () => {
-    expect(normalizeConfig({ layout: { kind: 'logo' } }).layout).toEqual({
-      kind: 'logo',
+    expect(normalizeConfig({ layout: {} }).layout).toEqual({
       graphic: DEFAULT_CONFIG.layout.graphic,
       icon: { source: 'none', id: '' },
     })
 
     const config = normalizeConfig({
       layout: {
-        kind: 'logo',
         graphic: 0.1,
         icon: { source: 'emoji', id: '1f334' },
       },
@@ -218,8 +228,9 @@ describe('normalizeConfig 的 layout 子树', () => {
         lineOffsetsX: [-0.4, 0.3, 1],
       },
     })
-    expect(config.typography.lineSizeScales).toEqual([0.2, 2, 1])
-    expect(config.typography.lineOffsetsX).toEqual([-0.25, 0.25, 0.25])
+    // 两行模型只留两档，第三档直接丢弃
+    expect(config.typography.lineSizeScales).toEqual([0.2, 2])
+    expect(config.typography.lineOffsetsX).toEqual([-0.25, 0.25])
 
     const huge = normalizeConfig({
       typography: {

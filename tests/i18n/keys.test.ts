@@ -16,7 +16,7 @@ import { LOCALES, dictOf, loadDict, translate, type Locale } from '@/i18n'
 import { STYLE_LIST } from '@/engine/styles'
 import { CURATED_ICON_CATEGORIES } from '@/graphics/curated'
 import { EMOJI_GROUPS } from '@/graphics/emoji-index'
-import { ANCHORS, SIZE_TARGETS, TEXT_EFFECTS } from '@/state/config'
+import { SIZE_TARGETS, TEXT_EFFECTS } from '@/state/config'
 
 const DICTS: Record<Locale, Record<string, string>> = {
   'zh-CN': zhCN,
@@ -116,7 +116,6 @@ function dynamicKeys(): string[] {
       ...style.params.map((param) => param.labelKey),
     ]),
     ...TEXT_EFFECTS.map((effect) => `panel.text.effect.${effect}`),
-    ...ANCHORS.map((anchor) => `panel.text.anchor.${anchor}`),
     // TextPanel 的文字色预设 panel.text.color.preset.<key>
     ...['white', 'black', 'cream', 'yellow'].map((key) => `panel.text.color.preset.${key}`),
     ...SIZE_TARGETS.map((target) => `export.size.${target}`),

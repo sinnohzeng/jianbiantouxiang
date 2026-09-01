@@ -201,7 +201,7 @@ describe('composeWith 文字', () => {
     const config = configOf({
       text: '产品设计部',
       typography: { colorMode: 'auto' },
-      layout: { kind: 'logo', icon: { source: 'builtin', id: 'tree-palm' } },
+      layout: { icon: { source: 'builtin', id: 'tree-palm' } },
     })
 
     await composeWith(config, 512, 512, h.deps)
@@ -222,7 +222,7 @@ describe('composeWith 文字', () => {
     h.loadGraphicForConfig.mockResolvedValue(graphic)
     h.layoutText.mockReturnValue({ ...LAYOUT, graphic: rect })
 
-    await composeWith(configOf({ text: '', layout: { kind: 'logo' } }), 512, 512, h.deps)
+    await composeWith(configOf({ text: '' }), 512, 512, h.deps)
 
     expect(h.drawGraphic).toHaveBeenCalledTimes(1)
     expect(h.drawText).not.toHaveBeenCalled()

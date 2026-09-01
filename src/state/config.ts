@@ -1,22 +1,25 @@
 /**
- * v3 的共享配置契约。所有模块围绕这份类型写，之后只允许增字段，不允许改语义。
+ * v4 的共享配置契约。所有模块围绕这份类型写，之后只允许增字段，不允许改语义。
+ *
+ * v4.0 把 v3 的三个用途（纯文字 / 状态徽章 / 图标徽章）收敛为一个两行徽章模型，
+ * 见 specs/v4.0-two-line-badge/spec.md：
+ * - `text` 最多两行，第三行起并入第二行，旧链接在 `normalizeConfig` 里迁移；
+ * - `layout.kind` 与自由排版字段（对齐、锚点、全局偏移、竖排、自动换行开关）退役，
+ *   旧载荷里带着它们不报错，读进来即忽略；
+ * - 版式只剩一个纵向栈：图标（可选）→ 第一行 → 第二行，水平居中、自动适配。
  */
 
+import { twoLinesOf } from '@/text/wrap'
 import type { Locale } from '@/i18n'
 
 export type StyleId = 'mesh' | 'flow' | 'silk' | 'grain'
 export type Shape = 'square' | 'rounded' | 'circle'
 export type TextEffect = 'plain' | 'outline' | 'shadow' | 'glow' | 'pill'
-export type Anchor = 'tl' | 't' | 'tr' | 'l' | 'c' | 'r' | 'bl' | 'b' | 'br'
-/**
- * 用途：画面怎么构成。版式写死在代码里，用户只选用途、填内容，见 specs/v3.1-badge-templates。
- * 图标徽章需要图形来源、排版与界面同轮落地；upload 只存本次会话 id，不进分享链接。
- */
-export type LayoutKind = 'text' | 'status' | 'logo'
 export type IconSource = 'none' | 'builtin' | 'emoji' | 'upload'
 
 export interface AvatarConfig {
-  v: 3
+  v: 4
+  /** 最多两行：第一行 \n 第二行；第二行为空表示只有第一行。 */
   text: string
   seed: string // 空字符串表示由 text 哈希派生
   style: StyleId
@@ -40,24 +43,17 @@ export interface AvatarConfig {
     padding: number // 每边安全边距比例 0..0.3
     lineHeight: number // 0.85..2
     letterSpacing: number // em，-0.1..0.5
-    align: 'left' | 'center' | 'right'
-    anchor: Anchor
-    offsetX: number // 画布宽比例 -0.5..0.5
-    offsetY: number
-    vertical: boolean
-    autoWrap: boolean
     effect: TextEffect
     effectStrength: number // 0..1
     colorMode: 'auto' | 'custom'
     color: string
-    /** 显式行相对基准字号的乘数；自动换行的续行沿用源段落的值。 */
+    /** 两档：次行相对基准字号的乘数。 */
     lineSizeScales: number[]
-    /** 显式行的水平视觉补偿，按画布宽度比例。 */
+    /** 两档：逐行水平视觉补偿，按画布宽度比例，落位时只动自己那行。 */
     lineOffsetsX: number[]
     pill: { radius: number; padding: number; opacity: number }
   }
   layout: {
-    kind: LayoutKind
     /** logo：图形占安全框高度的比例。 */
     graphic: number // 0.3..0.8
     icon: {
@@ -76,26 +72,23 @@ export interface AvatarConfig {
 export const STYLE_IDS: readonly StyleId[] = ['mesh', 'flow', 'silk', 'grain']
 export const SHAPES: readonly Shape[] = ['square', 'rounded', 'circle']
 export const TEXT_EFFECTS: readonly TextEffect[] = ['plain', 'outline', 'shadow', 'glow', 'pill']
-export const ANCHORS: readonly Anchor[] = ['tl', 't', 'tr', 'l', 'c', 'r', 'bl', 'b', 'br']
 export const FONT_SOURCES = ['google', 'system', 'upload'] as const
 export const SIZE_MODES = ['auto', 'manual'] as const
-export const ALIGNS = ['left', 'center', 'right'] as const
 export const COLOR_MODES = ['auto', 'custom'] as const
 export const EXPORT_FORMATS = ['jpg', 'png', 'webp'] as const
 export const SIZE_TARGETS = ['none', '1mb', '2mb'] as const
-export const LAYOUT_KINDS: readonly LayoutKind[] = ['text', 'status', 'logo']
 export const ICON_SOURCES = ['none', 'builtin', 'emoji', 'upload'] as const
 
 /** 图形标识最长 128 字符，防止坏链接把状态与 hash 无限撑大。 */
 export const ICON_ID_MAX = 128
 
-/** 行级参数最多保存 12 档，防止坏链接把状态与 URL 无限撑大。 */
-export const LINE_OVERRIDE_MAX = 12
+/** 行级参数固定两档：两行模型之外没有第三行。 */
+export const LINE_OVERRIDE_MAX = 2
 
-/** 状态徽章次行相对首行的默认字号比例。 */
+/** 次行相对首行的默认字号比例。 */
 export const STATUS_SECOND_LINE_SCALE = 0.62
 
-/** 状态徽章里两块之间的留白，按首行字号算。 */
+/** 徽章两块之间的留白，按首行字号算。 */
 export const STATUS_GAP_RATIO = 0.18
 
 /** 画布边长的合法区间，上限对应桌面导出的 4096。 */
@@ -103,7 +96,7 @@ export const CANVAS_MIN = 64
 export const CANVAS_MAX = 8192
 
 export const DEFAULT_CONFIG: AvatarConfig = {
-  v: 3,
+  v: 4,
   text: '飞书\n效率先锋',
   seed: '',
   style: 'mesh',
@@ -128,12 +121,6 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     padding: 0.15,
     lineHeight: 1.03,
     letterSpacing: 0,
-    align: 'center',
-    anchor: 'c',
-    offsetX: 0,
-    offsetY: 0,
-    vertical: false,
-    autoWrap: true,
     // v4.0 起默认投影：比发光收敛，深浅背景都稳；强度 0.4 是白字与深字适配后的折中
     effect: 'shadow',
     effectStrength: 0.4,
@@ -144,7 +131,6 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     pill: { radius: 0.5, padding: 0.3, opacity: 0.55 },
   },
   layout: {
-    kind: 'text',
     graphic: 0.52,
     icon: { source: 'none', id: '' },
   },
@@ -203,10 +189,6 @@ function int(value: unknown, fallback: number, min: number, max: number): number
   return Math.round(num(value, fallback, min, max))
 }
 
-function bool(value: unknown, fallback: boolean): boolean {
-  return typeof value === 'boolean' ? value : fallback
-}
-
 function str(value: unknown, fallback: string): string {
   return typeof value === 'string' ? value : fallback
 }
@@ -259,6 +241,10 @@ function normalizeNumberArray(
 /**
  * 把任意局部输入补成完整配置：缺字段补默认，数值按注释里的区间夹值，
  * 枚举与数组做合法性校验。任何输入都不会抛错。
+ *
+ * 同时承担 v3 → v4 的迁移：三行以上的文字第三行起并入第二行；
+ * `layout.kind`、对齐、锚点、全局偏移、竖排、自动换行开关这些退役字段读进来即忽略；
+ * 旧状态徽章的 `layout.scale` 迁移到次行字号档。
  */
 export function normalizeConfig(partial: unknown): AvatarConfig {
   const d = DEFAULT_CONFIG
@@ -271,6 +257,12 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
   const ex = isRecord(src.exportOptions) ? src.exportOptions : {}
   const lay = isRecord(src.layout) ? src.layout : {}
   const icon = isRecord(lay.icon) ? lay.icon : {}
+
+  // 换行解释收敛到两行：旧链接的三行以上在这里并档，
+  // v4 载荷里被塞进多余换行也走同一条规则，渲染层不会见到第三行
+  const [firstLine, secondLine] = twoLinesOf(str(src.text, d.text))
+  const text = secondLine === '' ? firstLine : `${firstLine}\n${secondLine}`
+
   const lineSizeScales = normalizeNumberArray(
     tp.lineSizeScales,
     d.typography.lineSizeScales,
@@ -285,8 +277,8 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
   }
 
   return {
-    v: 3,
-    text: str(src.text, d.text),
+    v: 4,
+    text,
     seed: str(src.seed, d.seed),
     style: pick(src.style, STYLE_IDS, d.style),
     styleParams: {
@@ -314,12 +306,6 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
       padding: num(tp.padding, d.typography.padding, 0, 0.3),
       lineHeight: num(tp.lineHeight, d.typography.lineHeight, 0.85, 2),
       letterSpacing: num(tp.letterSpacing, d.typography.letterSpacing, -0.1, 0.5),
-      align: pick(tp.align, ALIGNS, d.typography.align),
-      anchor: pick(tp.anchor, ANCHORS, d.typography.anchor),
-      offsetX: num(tp.offsetX, d.typography.offsetX, -0.5, 0.5),
-      offsetY: num(tp.offsetY, d.typography.offsetY, -0.5, 0.5),
-      vertical: bool(tp.vertical, d.typography.vertical),
-      autoWrap: bool(tp.autoWrap, d.typography.autoWrap),
       effect: pick(tp.effect, TEXT_EFFECTS, d.typography.effect),
       effectStrength: num(tp.effectStrength, d.typography.effectStrength, 0, 1),
       colorMode: pick(tp.colorMode, COLOR_MODES, d.typography.colorMode),
@@ -343,7 +329,6 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
       const rawId = str(icon.id, d.layout.icon.id).trim()
       const id = source === 'none' || rawId.length > ICON_ID_MAX ? '' : rawId
       return {
-        kind: pick(lay.kind, LAYOUT_KINDS, d.layout.kind),
         graphic: num(lay.graphic, d.layout.graphic, 0.3, 0.8),
         icon: { source, id },
       }

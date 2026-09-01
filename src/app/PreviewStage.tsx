@@ -145,8 +145,9 @@ export function PreviewStage() {
 
   const caps = useMemo(() => getRenderCaps(), [])
   const preview = useThrottled(config, PREVIEW_THROTTLE_MS)
-  const iconSource = preview.layout.kind === 'logo' ? preview.layout.icon.source : 'none'
-  const iconId = preview.layout.kind === 'logo' ? preview.layout.icon.id : ''
+  // v4 起图标不属于任何「用途」，设置了就进栈，来源与标识直接读
+  const iconSource = preview.layout.icon.source
+  const iconId = preview.layout.icon.id
   const safeGuide = useMemo(
     () => safeArea(preview, box.width, box.height),
     [preview, box.width, box.height],
