@@ -92,7 +92,7 @@ describe('randomize', () => {
     store().randomize()
     const { config } = store()
     expect(config.seed).not.toBe('old')
-    expect(config.seed).toMatch(/^[0-9a-z]{10}$/)
+    expect(config.seed).toMatch(/^[0-9a-z]{12}$/)
     expect(config.text).toBe('猪猪家族')
     expect(config.styleParams).toEqual(DEFAULT_CONFIG.styleParams)
   })

@@ -1,4 +1,5 @@
 import type { StyleId } from './config'
+import { randomSeed } from '@/engine/seed'
 import { create } from 'zustand'
 import { PALETTES } from '@/palettes/palettes'
 import {
@@ -72,20 +73,6 @@ function deepMerge(base: object, patch: object): Record<string, unknown> {
     out[key] = isRecord(next) && isRecord(current) ? deepMerge(current, next) : next
   }
   return out
-}
-
-/** 10 位 base36 种子。有 crypto 就用，避免多个标签页同时随机撞到一起。 */
-function randomSeed(): string {
-  const buf = new Uint32Array(2)
-  const webcrypto = globalThis.crypto
-  if (typeof webcrypto?.getRandomValues === 'function') {
-    webcrypto.getRandomValues(buf)
-  } else {
-    buf[0] = Math.floor(Math.random() * 0xffffffff)
-    buf[1] = Math.floor(Math.random() * 0xffffffff)
-  }
-  const text = (buf[0] ?? 0).toString(36) + (buf[1] ?? 0).toString(36)
-  return text.padEnd(10, '0').slice(0, 10)
 }
 
 /**

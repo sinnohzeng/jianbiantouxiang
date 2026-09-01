@@ -4,24 +4,9 @@ import { Toaster } from '@/components/ui/sonner'
 import { AppShell } from '@/app/AppShell'
 import { useTheme } from '@/app/theme'
 import { getCuratedByFamily, nearestWeight } from '@/fonts'
-import { I18nProvider, dictOf, useLocale, useT, type Locale } from '@/i18n'
-import { DEFAULT_CONFIG, type PartialConfig } from '@/state/config'
+import { I18nProvider, dictOf, useLocale, useT } from '@/i18n'
+import { DEFAULT_CONFIG, LOCALE_DEFAULT_FONT, type PartialConfig } from '@/state/config'
 import { initialConfigSource, initialHashBroken, useAvatarStore } from '@/state/store'
-
-/**
- * 界面语言对应的默认字体，见 spec §3.3。
- *
- * 字形不对不止是难看。loader 用 `document.fonts.load` 探测是否就绪，
- * FontFaceSet 会按 unicode-range 过滤，Noto Sans SC 的切片不覆盖谚文，
- * 韩文示例配简体字体会拿到空数组，被判成加载失败并弹回落提示。
- */
-const LOCALE_FONT_FAMILY: Record<Locale, string> = {
-  'zh-CN': 'Noto Sans SC',
-  'zh-HK': 'Noto Sans TC',
-  en: 'Inter',
-  ja: 'Noto Sans JP',
-  ko: 'Noto Sans KR',
-}
 
 const OWNED_DEFAULTS = {
   text: DEFAULT_CONFIG.text,
@@ -81,7 +66,7 @@ export function LocaleDefaults() {
     }
 
     if (!released.current.font) {
-      const family = LOCALE_FONT_FAMILY[locale]
+      const family = LOCALE_DEFAULT_FONT[locale]
       if (family !== typography.fontFamily) {
         const entry = getCuratedByFamily(family)
         owned.current.fontFamily = family

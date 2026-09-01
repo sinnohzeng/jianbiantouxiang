@@ -146,6 +146,13 @@ describe('旧链接兼容', () => {
     })
   })
 
+  it('状态徽章链接不再写死 layout.scale，旧值只落在行级字号', () => {
+    const config = normalizeConfig({ layout: { kind: 'status', scale: 0.3 } })
+    const payload = payloadOf(encodeConfigToHash(config))
+    expect(payload.layout).toEqual({ kind: 'status' })
+    expect(config.typography.lineSizeScales[1]).toBe(0.3)
+  })
+
   it('上传图形不进链接，来源退回 none', () => {
     const config: AvatarConfig = {
       ...DEFAULT_CONFIG,
