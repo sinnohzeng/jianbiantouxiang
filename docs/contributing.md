@@ -26,6 +26,9 @@ npm run dev
 | `npm run test:watch` | Vitest 监听模式 |
 | `npm run e2e` | Playwright，桌面 1440 与 iPhone 15 两组 |
 | `npm run screenshots` | 三个设备各截深浅两套主题到 `.screenshots/` |
+| `npm run gen:icons` | 从 lucide-react 重建内置图标索引 |
+| `npm run gen:emoji` | 从 emojibase-data 重建五语 emoji 索引 |
+| `npm run budget` | 按 entry 加 modulepreload 的 gzip 和检查首屏 JS 预算 |
 | `npm run format` | Prettier 写回 |
 | `npm run format:check` | Prettier 只检查 |
 
@@ -59,6 +62,8 @@ docs: 补齐字体加载链的说明
 常用类型：`feat`、`fix`、`refactor`、`perf`、`test`、`docs`、`chore`、`build`、`ci`。
 
 提交信息不带任何署名或协作者尾注。
+
+CHANGELOG 记完某个版本的收尾提交合入后，同一轮打 `v<semver>` 标签并推送标签；`package.json` 的 `version` 与 CHANGELOG 最新版本同轮更新。历史标签补打前先核对提交内容，别只按日期猜。
 
 ## 代码约定
 
@@ -104,6 +109,9 @@ docs: 补齐字体加载链的说明
 | 踩坑：非显然的失败与它的判据 | `docs/engineering-lessons.md` |
 | 规约与实施计划：造什么、怎么造 | `specs/<feature>/` |
 | 调研：外部事实与出处 | `docs/research/` |
+| 审计：某轮发现、证据与落地去向 | `docs/audits/`，按日期命名，只记当轮发现，不记现状 |
+| 交接：跨会话继续未完工作 | `docs/handoff/`，按特性命名；接手会话完成后更新或删除 |
+| 项目记忆：跨会话维护口径 | `docs/memory/` |
 
 常驻文档只写现状。不要在 `README.md` 或 `architecture.md` 里写“本次改了什么”“相比上一版”，那些进 `CHANGELOG.md`。
 
