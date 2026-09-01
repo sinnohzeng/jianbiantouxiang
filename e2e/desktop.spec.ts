@@ -95,3 +95,70 @@ test('不带 probe 参数时不挂探针', async ({ page }) => {
   )
   expect(installed).toBe(false)
 })
+
+test('图标徽章能选内置棕榈图标并导出', async ({ page }) => {
+  test.setTimeout(PROBE_TIMEOUT_MS)
+  await openApp(page)
+
+  await page.locator('label:has(input[data-group="text-kind"][value="logo"])').click()
+  await page.locator('[data-slot="graphic-picker"]').click()
+  await page.locator('[data-slot="command-input"]').fill('棕榈')
+  await page.getByRole('option', { name: /棕榈树/ }).click()
+  await page.locator('#avatar-text').fill('产品设计部')
+
+  const download = page.waitForEvent('download')
+  await page.locator('[data-slot="export-action"]').click()
+  const file = await download
+  expect(file.suggestedFilename()).toMatch(/\.jpg$/)
+
+  const encoded = await probeEncode(page)
+  expect(encoded.bytes).toBeGreaterThan(0)
+  expect(encoded.hitTarget).toBe(true)
+})
+
+test('图标徽章能用中文搜到棕榈 emoji 并导出', async ({ page }) => {
+  test.setTimeout(PROBE_TIMEOUT_MS)
+  await openApp(page)
+
+  await page.locator('label:has(input[data-group="text-kind"][value="logo"])').click()
+  await page.locator('[data-slot="graphic-picker"]').click()
+  await page.locator('label:has(input[data-group="icon-source"][value="emoji"])').click()
+  await page.locator('[data-slot="command-input"]').fill('棕榈')
+  await page.getByRole('option', { name: /棕榈树/ }).click()
+  await page.locator('#avatar-text').fill('产品设计部')
+
+  const download = page.waitForEvent('download')
+  await page.locator('[data-slot="export-action"]').click()
+  const file = await download
+  expect(file.suggestedFilename()).toMatch(/\.jpg$/)
+
+  const encoded = await probeEncode(page)
+  expect(encoded.bytes).toBeGreaterThan(0)
+  expect(encoded.hitTarget).toBe(true)
+})
+
+test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
+  test.setTimeout(PROBE_TIMEOUT_MS)
+  await openApp(page)
+
+  await page.locator('label:has(input[data-group="text-kind"][value="logo"])').click()
+  await page.locator('[data-slot="graphic-picker"]').click()
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'team.svg',
+    mimeType: 'image/svg+xml',
+    buffer: Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" onload="alert(1)"><script>alert(2)</script><path d="M20 20h60v60h-60z" fill="#3730c3"/></svg>',
+    ),
+  })
+  await expect(page.locator('[data-slot="graphic-picker"]')).toContainText('upload-')
+  await page.locator('#avatar-text').fill('产品设计部')
+
+  const download = page.waitForEvent('download')
+  await page.locator('[data-slot="export-action"]').click()
+  const file = await download
+  expect(file.suggestedFilename()).toMatch(/\.jpg$/)
+
+  const encoded = await probeEncode(page)
+  expect(encoded.bytes).toBeGreaterThan(0)
+  expect(encoded.hitTarget).toBe(true)
+})

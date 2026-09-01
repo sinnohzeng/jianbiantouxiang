@@ -56,7 +56,16 @@ function fromBase64Url(encoded: string): string | null {
  * 默认状态下只有几个字符。版本号与默认值相同时同样省略，解码端按缺省即 v3 处理。
  */
 export function encodeConfigToHash(config: AvatarConfig): string {
-  const payload = diff(config, DEFAULT_CONFIG)
+  // 上传图形只属于本次会话。写进链接会让对方拿到一个不存在的会话 id，
+  // 分享时降级成空来源，接收方仍能通过文字与版式复现，再自行上传自己的图形。
+  const shared =
+    config.layout.icon.source === 'upload'
+      ? {
+          ...config,
+          layout: { ...config.layout, icon: { source: 'none', id: '' } },
+        }
+      : config
+  const payload = diff(shared, DEFAULT_CONFIG)
   return HASH_PREFIX + toBase64Url(JSON.stringify(isRecord(payload) ? payload : {}))
 }
 

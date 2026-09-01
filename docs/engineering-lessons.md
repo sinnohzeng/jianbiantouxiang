@@ -302,3 +302,27 @@ URL hash 只编码与当前默认值的差异。把 `padding` 从 0.1 改到 0.1
 ### 行级字号的难点是可发现性，不是能力
 
 行级字号本来就存在，但控件排在全局字号后面，数值还要先点一下才变成输入框。用户会把它理解成“不好改”。本轮只做两件事：把行级控件前置到全局字号之前，给行级字号加常驻数值框。不要把所有滑杆都改成常驻输入，那会让界面变重；只给需要精确修改的行级参数开这一档。
+
+## v3.2 图标徽章（2026-08-31）
+
+### 生成索引与脚本必须同批提交
+
+`src/graphics/lucide.ts` 动态 import `generated/lucide-curated` 与 `lucide-full`。只写消费端不跑生成器时，typecheck 直接报模块不存在；这不是可以等到“下次生成”的警告，而是主干缺产物。规则：生成脚本、纯转换层、产物与消费端同批提交；`npm run gen:icons` 与 `npm run gen:emoji` 是唯一重建入口，产物文件头写明命令，不手改。
+
+lucide-react 1.37 的 `icons/` 目录有 2048 个 `.mjs`，其中 1790 个主模块带 `__iconNode`，其余是别名转发。索引只按主模块收，别名不进索引，否则同一个图形会在选择器里出现两次。精选清单要用主名：`filter`、`smile`、`home` 这一批都是别名，规范名分别是 `funnel`、`face-slightly-smiling`、`house`。
+
+### 图形加载不要把索引拖进首屏
+
+`source.ts` 本身可以静态进首屏，但三个实现必须按来源动态 `import()`。如果把 `lucide.ts` 静态接进 source，`curated.ts` 与 React 组件链就会跟着进首屏。选择器再走 `panels/lazy.ts` 的挂载闩，才能做到没点开图形选择器时不拉 cmdk 与索引；内置全库只在搜索超出精选时加载，emoji 标签按当前语言加载。
+
+### SVG 消毒用重建，不做黑名单修补
+
+上传 SVG 走 `DOMParser` 后按元素与属性白名单重建。未知元素整支丢弃，未知属性删除，`url()` 只保留 `#id` 内部引用；`script`、`foreignObject`、`image`、`use` 与事件属性都不在白名单里。这样比“删掉 script 再放行其余”更可解释：产物里只可能出现已知绘图元素。没有安全绘图元素时拒绝上传，不猜一张空图。
+
+### jsdom 没有 Path2D，图形单测要显式装替身
+
+`loadLucideGraphic` 依赖 `Path2D`。jsdom 不实现它，直接测会得到 null，看起来像业务失败。用例先在 `globalThis.Path2D` 装一个带 `addPath`、`rect`、`arc` 等方法的替身，再动态 import 模块，才能守住“图标节点真的被转成路径”的消费端链路。
+
+### 图标徽章的绘制断言盯调用，不盯排版字段
+
+v3.1 的教训在 v3.2 复用：`tests/export/compose.test.ts` 断言 `composeWith` 调 `drawGraphic`，并核对传入的图形对象、落位矩形与取色结果。删掉合成层的落笔调用时测试会红；只断言 layout 里有 `graphic` 字段则不会。图形为空、文字为空、上传失败这些路径也要有独立用例，防止异常路径吞掉整张导出。

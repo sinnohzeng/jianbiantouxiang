@@ -10,12 +10,18 @@ import { createStubMeasure, fontSizeOf, makeConfig } from './helpers'
 
 const measure = createStubMeasure()
 
-function layout(overrides: PartialConfig, width = 1000, height = 1000) {
-  return layoutText(makeConfig(overrides), width, height, measure)
+function layout(
+  overrides: PartialConfig,
+  width = 1000,
+  height = 1000,
+  graphic?: { width: number; height: number } | null,
+) {
+  return layoutText(makeConfig(overrides), width, height, measure, graphic)
 }
 
 /** 1000 × 1000、边距 10 %、圆角 20 %：安全框是 (100, 100, 800, 800)，不被圆角收缩。 */
 const SAFE = { x: 100, y: 100, width: 800, height: 800 }
+const GRAPHIC_SQUARE = { width: 24, height: 24 }
 
 describe('纯文字用途', () => {
   it('安全框按边距与圆角算，圆角 20 % 下不收缩', () => {
@@ -130,7 +136,72 @@ describe('状态徽章', () => {
   })
 })
 
-describe('圆形画布下的两种用途', () => {
+describe('图标徽章', () => {
+  const LOGO: PartialConfig = {
+    text: '产品设计部',
+    typography: { sizeMode: 'manual', fontSize: 0.1, padding: 0.1, effect: 'plain' },
+    layout: { kind: 'logo', graphic: 0.5 },
+  }
+  const GRAPHIC = { width: 24, height: 24 }
+
+  it('图形在上、文字在下，间距按安全框高度算', () => {
+    const result = layout(LOGO, 1000, 1000, GRAPHIC)
+    expect(result.graphic).toEqual({ x: 300, y: 100, width: 400, height: 400 })
+    // 0.5 × 800 + 0.06 × 800 = 448
+    expect(result.lines[0]?.y).toBeGreaterThan(548)
+    expect(result.box.y).toBeGreaterThanOrEqual(548)
+  })
+
+  it('宽图形先受宽度约束，高度跟着等比缩小', () => {
+    const result = layout(LOGO, 1000, 1000, { width: 400, height: 100 })
+    expect(result.graphic).toEqual({ x: 100, y: 100, width: 800, height: 200 })
+    expect(result.overflow).toBe(false)
+  })
+
+  it('文字为空时图形居中，按较短边乘比例', () => {
+    const result = layout({ ...LOGO, text: '' }, 1000, 1000, GRAPHIC)
+    expect(result.graphic).toEqual({ x: 300, y: 300, width: 400, height: 400 })
+    expect(result.lines).toEqual([])
+    expect(result.box).toEqual(result.graphic)
+  })
+
+  it('图形缺失时文字仍居中，不把上部留成空洞', () => {
+    const result = layout(LOGO, 1000, 1000, null)
+    expect(result.graphic).toBeUndefined()
+    expect(result.box.y).toBeCloseTo(450)
+    expect(result.lines[0]?.y).toBeCloseTo(530)
+  })
+
+  it('锚点、竖排与行级补偿不参与图标徽章求解', () => {
+    const moved = layout(
+      {
+        ...LOGO,
+        typography: {
+          ...LOGO.typography!,
+          anchor: 'tl',
+          vertical: true,
+          lineOffsetsX: [0.2],
+          lineSizeScales: [1, 0.2],
+        },
+        text: '产品设计\n效率先锋',
+      },
+      1000,
+      1000,
+      GRAPHIC,
+    )
+    const centered = layout(
+      { ...LOGO, text: '产品设计\n效率先锋' },
+      1000,
+      1000,
+      GRAPHIC,
+    )
+    expect(moved.lines[0]?.x).toBeCloseTo(centered.lines[0]?.x ?? 0)
+    expect(moved.lines[0]?.y).toBeCloseTo(centered.lines[0]?.y ?? 0)
+    expect(moved.vertical).toBe(false)
+  })
+})
+
+describe('圆形画布下的三种用途', () => {
   const ROUND: PartialConfig = {
     canvas: { shape: 'circle' },
     typography: { padding: 0.1 },
@@ -143,9 +214,9 @@ describe('圆形画布下的两种用途', () => {
     return dx * dx + dy * dy <= (size / 2) ** 2 + 1e-6
   }
 
-  for (const kind of ['text', 'status'] as const) {
+  for (const kind of ['text', 'status', 'logo'] as const) {
     it(`${kind} 的块四角都在圆内`, () => {
-      const result = layout({ ...ROUND, text: '请假中\n09-01', layout: { kind } })
+      const result = layout({ ...ROUND, text: '请假中\n09-01', layout: { kind } }, 1000, 1000, kind === 'logo' ? GRAPHIC_SQUARE : undefined)
       const box = result.box
       expect(insideCircle(box.x, box.y)).toBe(true)
       expect(insideCircle(box.x + box.width, box.y)).toBe(true)

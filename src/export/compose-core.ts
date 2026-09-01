@@ -1,6 +1,8 @@
 import { resolveSeed } from '@/engine/seed'
+import type { Graphic } from '@/graphics/types'
 import type { AvatarConfig } from '@/state/config'
 import { effectiveConfig } from '@/text/effective'
+import type { Rect } from '@/text/layout'
 import { createCanvas, get2d, releaseCanvas } from './canvas'
 
 /**
@@ -8,8 +10,10 @@ import { createCanvas, get2d, releaseCanvas } from './canvas'
  * 集成时 `compose.ts` 一处装配，合成本身不认识具体实现。
  * L 是排版结果，合成只负责在量测、取色与绘制之间传递，不读它的字段。
  */
-export interface ComposeDeps<L> {
+export interface ComposeDeps<L extends { graphic?: Rect }> {
   loadFontForConfig(config: AvatarConfig): Promise<unknown>
+  /** 图标徽章的来源加载。失败实现返回 null，不中断导出。 */
+  loadGraphicForConfig(config: AvatarConfig): Promise<Graphic | null>
   renderGradient(config: AvatarConfig, width: number, height: number): Promise<HTMLCanvasElement>
   drawHighlight(
     ctx: CanvasRenderingContext2D,
@@ -18,7 +22,7 @@ export interface ComposeDeps<L> {
     strength: number,
     seed: string,
   ): void
-  layoutText(config: AvatarConfig, width: number, height: number): L
+  layoutText(config: AvatarConfig, width: number, height: number, graphic: Graphic | null): L
   /** 一次采样定下文字色与要不要补胶囊底板，见 text/auto-color 的 resolveInk。 */
   resolveInk(
     ctx: CanvasRenderingContext2D,
@@ -26,21 +30,31 @@ export interface ComposeDeps<L> {
     config: AvatarConfig,
   ): { color: string; plate: boolean }
   drawText(ctx: CanvasRenderingContext2D, layout: L, config: AvatarConfig, color: string): void
+  drawGraphic(
+    ctx: CanvasRenderingContext2D,
+    graphic: Graphic,
+    rect: Rect,
+    config: AvatarConfig,
+    color: string,
+  ): void
 }
 
 /**
- * 按 底色 → 渐变 → 高光 → 文字 → 形状遮罩 的顺序合成一张完整头像。
+ * 按 底色 → 渐变 → 高光 → 图形与文字 → 形状遮罩 的顺序合成一张完整头像。
  * 顺序是硬性的：高光要压在渐变上，自动文字色要读高光之后的画面，
  * 遮罩必须最后做，否则被裁掉的边角会被后续绘制重新填满。
  */
-export async function composeWith<L>(
+export async function composeWith<L extends { graphic?: Rect }>(
   config: AvatarConfig,
   width: number,
   height: number,
   deps: ComposeDeps<L>,
 ): Promise<HTMLCanvasElement> {
-  // 字体没就绪就量测，导出会用回退字体，和预览对不上
+  // 字体没就绪就量测，导出会用回退字体，和预览对不上。
+  // 图形与字体互不依赖，并行加载，别让 emoji 网络把字体链也串住。
+  const graphicPromise = deps.loadGraphicForConfig(config)
   await deps.loadFontForConfig(config)
+  const graphic = await graphicPromise
 
   const gradient = await deps.renderGradient(config, width, height)
   // 中途抛错时这两张全尺寸画布都得当场释放：8192 导出一张就是 256 MB，
@@ -62,13 +76,17 @@ export async function composeWith<L>(
     // 否则空白种子下高光与渐变会用两串不同的随机数
     deps.drawHighlight(ctx, width, height, config.highlight, resolveSeed(config))
 
-    if (config.text.trim() !== '') {
-      const layout = deps.layoutText(config, width, height)
+    const hasText = config.text.trim() !== ''
+    if (hasText || graphic) {
+      const layout = deps.layoutText(config, width, height, graphic)
       // 底板判定与预览走同一条路径：都读高光之后的像素，两边不会一个有底板一个没有。
-      // effect 不参与排版，补上底板之后不必重新量一遍
+      // 图标徽章里文字不与图形重叠，先取文字下方背景色，再按这个颜色画内置图形。
       const ink = deps.resolveInk(ctx, layout, config)
       const target = effectiveConfig(config, ink.plate)
-      deps.drawText(ctx, layout, target, ink.color)
+      if (graphic && layout.graphic) {
+        deps.drawGraphic(ctx, graphic, layout.graphic, target, ink.color)
+      }
+      if (hasText) deps.drawText(ctx, layout, target, ink.color)
     }
 
     applyShapeMask(ctx, config, width, height)
@@ -121,7 +139,7 @@ function traceRoundRect(
   ctx.moveTo(r, 0)
   ctx.lineTo(width - r, 0)
   ctx.arcTo(width, 0, width, r, r)
-  ctx.lineTo(width, height - r)
+  ctx.lineTo(width - r, height - r)
   ctx.arcTo(width, height, width - r, height, r)
   ctx.lineTo(r, height)
   ctx.arcTo(0, height, 0, height - r, r)

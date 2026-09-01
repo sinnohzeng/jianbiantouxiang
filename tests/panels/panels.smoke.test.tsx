@@ -177,7 +177,7 @@ describe('TextPanel', () => {
     expect(sliders()).toBe(before - 5)
   })
 
-  it('次行字号滑杆同时写回行级比例与 layout.scale', () => {
+  it('次行字号滑杆只写行级比例，不写死字段', () => {
     const { container } = mount(<TextPanel />)
     pickKind(container, 'status')
 
@@ -186,7 +186,7 @@ describe('TextPanel', () => {
     expect(range).not.toBeNull()
     fireEvent.change(range!, { target: { value: '0.6' } })
     expect(config().typography.lineSizeScales[1]).toBeCloseTo(0.6)
-    expect(config().layout.scale).toBeCloseTo(0.6)
+    expect('scale' in config().layout).toBe(false)
   })
 
   it('纯文字多行时能分别调每一行的字号与水平补偿', () => {

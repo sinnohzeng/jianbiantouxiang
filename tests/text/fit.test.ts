@@ -260,8 +260,8 @@ describe('状态徽章求解', () => {
   it('manual 模式直接用给定字号，次行按 scale 缩', () => {
     const result = status({
       ...STATUS,
-      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1 },
-      layout: { kind: 'status', scale: 0.5 },
+      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, lineSizeScales: [1, 0.5] },
+      layout: { kind: 'status' },
     })
     expect(result.primary.fontSizePx).toBeCloseTo(200)
     expect(result.secondary?.fontSizePx).toBeCloseTo(100)
@@ -292,8 +292,14 @@ describe('状态徽章求解', () => {
   })
 
   it('scale 越大次行越大、整体越高，两档都塞得进安全框', () => {
-    const small = status({ ...STATUS, layout: { kind: 'status', scale: 0.2 } })
-    const large = status({ ...STATUS, layout: { kind: 'status', scale: 0.8 } })
+    const small = status({
+      ...STATUS,
+      typography: { ...STATUS.typography!, lineSizeScales: [1, 0.2] },
+    })
+    const large = status({
+      ...STATUS,
+      typography: { ...STATUS.typography!, lineSizeScales: [1, 0.8] },
+    })
     expect(large.secondary?.fontSizePx ?? 0).toBeGreaterThan(small.secondary?.fontSizePx ?? 0)
     expect(large.height).toBeGreaterThan(small.height)
     expect(small.fits).toBe(true)
@@ -302,8 +308,16 @@ describe('状态徽章求解', () => {
 
   it('高度吃紧时 scale 越大首行越小，两块要一起塞进安全框', () => {
     // 扁画布下高度才是约束，首行不再被宽度封顶
-    const small = status({ ...STATUS, layout: { kind: 'status', scale: 0.2 } }, 1000, 300)
-    const large = status({ ...STATUS, layout: { kind: 'status', scale: 0.8 } }, 1000, 300)
+    const small = status(
+      { ...STATUS, typography: { ...STATUS.typography!, lineSizeScales: [1, 0.2] } },
+      1000,
+      300,
+    )
+    const large = status(
+      { ...STATUS, typography: { ...STATUS.typography!, lineSizeScales: [1, 0.8] } },
+      1000,
+      300,
+    )
     expect(large.primary.fontSizePx).toBeLessThan(small.primary.fontSizePx)
     expect(large.fits).toBe(true)
   })

@@ -74,3 +74,26 @@ test('切换语言后 html[lang] 与标题都跟着变', async ({ page }) => {
   // ko 字典是单独一份 chunk，标题要等它落地才变，toHaveTitle 自带重试
   await expect(page).toHaveTitle(/그라데이션 아바타/)
 })
+
+test('手机上图形选择器走底部抽屉且无横向滚动', async ({ page }) => {
+  await openApp(page)
+  const kind = page.locator('label:has(input[data-group="text-kind"][value="logo"])')
+  await centreBetweenBars(page, kind)
+  await kind.click()
+
+  const picker = page.locator('[data-slot="graphic-picker"]')
+  await centreBetweenBars(page, picker)
+  await picker.click()
+
+  const dialog = page.locator('[data-slot="drawer-popup"]')
+  await expect(dialog).toBeVisible()
+  const overflowsX = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+  )
+  expect(overflowsX).toBe(false)
+
+  await page.locator('label:has(input[data-group="icon-source"][value="emoji"])').click()
+  await page.locator('[data-slot="command-input"]').fill('棕榈')
+  await page.getByRole('option', { name: /棕榈树/ }).click()
+  await expect(picker).toContainText('1f334')
+})

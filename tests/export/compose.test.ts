@@ -1,4 +1,6 @@
 import { composeWith, type ComposeDeps } from '@/export/compose-core'
+import type { Graphic } from '@/graphics/types'
+import type { Rect } from '@/text/layout'
 import { normalizeConfig, type AvatarConfig, type PartialConfig } from '@/state/config'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -10,7 +12,7 @@ import {
 } from './fake-canvas'
 
 /** 排版结果在合成里是不透明的，用一个标记对象就够断言传递链路。 */
-const LAYOUT = { marker: 'layout' }
+const LAYOUT = { marker: 'layout', graphic: undefined }
 
 interface Harness {
   deps: ComposeDeps<typeof LAYOUT>
@@ -20,6 +22,8 @@ interface Harness {
   resolveInk: ReturnType<typeof vi.fn>
   layoutText: ReturnType<typeof vi.fn>
   drawHighlight: ReturnType<typeof vi.fn>
+  drawGraphic: ReturnType<typeof vi.fn>
+  loadGraphicForConfig: ReturnType<typeof vi.fn>
 }
 
 function makeHarness(plate = false): Harness {
@@ -30,9 +34,16 @@ function makeHarness(plate = false): Harness {
   const drawHighlight = vi.fn(() => {
     order.push('drawHighlight')
   })
+  const drawGraphic = vi.fn(() => {
+    order.push('drawGraphic')
+  })
   const layoutText = vi.fn(() => {
     order.push('layoutText')
     return LAYOUT
+  })
+  const loadGraphicForConfig = vi.fn(async () => {
+    order.push('loadGraphicForConfig')
+    return null
   })
   // 真实现自己处理 custom：颜色直接用配置里的，也不判底板，替身照这个口径来
   const resolveInk = vi.fn((_ctx: unknown, _layout: unknown, config: AvatarConfig) => {
@@ -50,17 +61,29 @@ function makeHarness(plate = false): Harness {
       order.push('loadFontForConfig')
       return { family: 'Noto Sans SC', source: 'google', ok: true }
     }),
+    loadGraphicForConfig,
     renderGradient: vi.fn(async () => {
       order.push('renderGradient')
       return gradient
     }),
     drawHighlight,
+    drawGraphic,
     layoutText,
     resolveInk,
     drawText,
   }
 
-  return { deps, order, gradient, drawText, resolveInk, layoutText, drawHighlight }
+  return {
+    deps,
+    order,
+    gradient,
+    drawText,
+    resolveInk,
+    layoutText,
+    drawHighlight,
+    drawGraphic,
+    loadGraphicForConfig,
+  }
 }
 
 function configOf(partial: PartialConfig = {}): AvatarConfig {
@@ -87,6 +110,7 @@ describe('composeWith 流程', () => {
     await composeWith(configOf(), 512, 512, h.deps)
 
     expect(h.order).toEqual([
+      'loadGraphicForConfig',
       'loadFontForConfig',
       'renderGradient',
       'drawHighlight',
@@ -167,13 +191,55 @@ describe('composeWith 文字', () => {
     expect(h.drawText.mock.calls[0]?.[3]).toBe('#0a0a0a')
   })
 
+  it('图标徽章把图形矩形交给 drawGraphic，颜色来自同一次取色', async () => {
+    const h = makeHarness(true)
+    const image = { width: 128, height: 128 } as unknown as CanvasImageSource
+    const graphic: Graphic = { kind: 'image', image, width: 128, height: 128 }
+    const rect: Rect = { x: 10, y: 20, width: 100, height: 80 }
+    h.loadGraphicForConfig.mockResolvedValue(graphic)
+    h.layoutText.mockReturnValue({ ...LAYOUT, graphic: rect })
+    const config = configOf({
+      text: '产品设计部',
+      typography: { colorMode: 'auto' },
+      layout: { kind: 'logo', icon: { source: 'builtin', id: 'tree-palm' } },
+    })
+
+    await composeWith(config, 512, 512, h.deps)
+
+    // 这条用例盯消费端：删掉 composeWith 里的 drawGraphic 调用它必须变红，
+    // 不是只断言排版产物里有 graphic 字段。
+    expect(h.drawGraphic).toHaveBeenCalledTimes(1)
+    expect(h.drawGraphic.mock.calls[0]?.[1]).toBe(graphic)
+    expect(h.drawGraphic.mock.calls[0]?.[2]).toEqual(rect)
+    expect(h.drawGraphic.mock.calls[0]?.[4]).toBe('#123456')
+  })
+
+  it('文字为空但图形存在时仍画图形', async () => {
+    const h = makeHarness()
+    const image = { width: 128, height: 128 } as unknown as CanvasImageSource
+    const graphic: Graphic = { kind: 'image', image, width: 128, height: 128 }
+    const rect: Rect = { x: 0, y: 0, width: 100, height: 100 }
+    h.loadGraphicForConfig.mockResolvedValue(graphic)
+    h.layoutText.mockReturnValue({ ...LAYOUT, graphic: rect })
+
+    await composeWith(configOf({ text: '', layout: { kind: 'logo' } }), 512, 512, h.deps)
+
+    expect(h.drawGraphic).toHaveBeenCalledTimes(1)
+    expect(h.drawText).not.toHaveBeenCalled()
+  })
+
   it('文字为空白时跳过排版与绘字', async () => {
     const h = makeHarness()
     await composeWith(configOf({ text: '   ' }), 512, 512, h.deps)
 
     expect(h.layoutText).not.toHaveBeenCalled()
     expect(h.drawText).not.toHaveBeenCalled()
-    expect(h.order).toEqual(['loadFontForConfig', 'renderGradient', 'drawHighlight'])
+    expect(h.order).toEqual([
+      'loadGraphicForConfig',
+      'loadFontForConfig',
+      'renderGradient',
+      'drawHighlight',
+    ])
   })
 })
 

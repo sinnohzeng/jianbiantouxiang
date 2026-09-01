@@ -10,6 +10,7 @@ import {
   AlignCenterIcon,
   AlignLeftIcon,
   AlignRightIcon,
+  BadgeCheckIcon,
   CalendarClockIcon,
   TypeIcon,
 } from 'lucide-react'
@@ -35,7 +36,8 @@ import { useAvatarStore } from '@/state/store'
 import { cn } from '@/lib/utils'
 import { splitParagraphs } from '@/text/wrap'
 import { weightsOf } from './font-entries'
-import { FontPickerLazy } from './lazy'
+import { FontPickerLazy, IconPickerLazy } from './lazy'
+import { GraphicThumb } from './GraphicThumb'
 
 type Align = 'left' | 'center' | 'right'
 type SizeMode = 'auto' | 'manual'
@@ -93,13 +95,16 @@ export function TextPanel() {
   const [fontOpen, setFontOpen] = useState(false)
   // 字体选择器是懒加载的，挂上就等于拉 chunk，所以只在用户点开之后才挂
   const [fontMounted, setFontMounted] = useState(false)
+  const [iconOpen, setIconOpen] = useState(false)
+  // 图形选择器同字体一样：没点开过就不挂，避免把 cmdk 与索引拉进首屏
+  const [iconMounted, setIconMounted] = useState(false)
 
   const type = config.typography
   const kind = config.layout.kind
   // 状态徽章的版式写死在代码里：整块在安全框里居中，逐行横排。
   // 锚点、偏移、对齐、竖排、自动换行在这个用途下都不参与求解，
   // 留在界面上只会让人以为能调，调完发现画面没变
-  const freeform = kind !== 'status'
+  const freeform = kind === 'text'
   const [first, second] = splitStatus(config.text)
   const weights = useMemo(() => weightsOf(type.fontFamily), [type.fontFamily])
   const paragraphs = useMemo(() => splitParagraphs(config.text), [config.text])
@@ -124,6 +129,16 @@ export function TextPanel() {
         <>
           <CalendarClockIcon aria-hidden="true" />
           <span className="truncate">{t('panel.text.kind.status')}</span>
+        </>
+      ),
+    },
+    {
+      value: 'logo',
+      label: t('panel.text.kind.logo'),
+      icon: (
+        <>
+          <BadgeCheckIcon aria-hidden="true" />
+          <span className="truncate">{t('panel.text.kind.logo')}</span>
         </>
       ),
     },
@@ -155,9 +170,10 @@ export function TextPanel() {
           {kind === 'status' ? (
             <p className="text-muted-foreground text-xs">{t('panel.text.kind.status.hint')}</p>
           ) : null}
-        </div>
-
-        {kind === 'status' ? (
+          {kind === 'logo' ? (
+            <p className="text-muted-foreground text-xs">{t('panel.text.kind.logo.hint')}</p>
+          ) : null}
+          {kind === 'status' ? (
           <>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="avatar-text-first">{t('panel.text.line1')}</Label>
@@ -184,34 +200,80 @@ export function TextPanel() {
             <SliderField
               label={t('panel.layout.scale')}
               editLabel={t('panel.common.edit', { name: t('panel.layout.scale') })}
-              value={type.lineSizeScales[1] ?? config.layout.scale}
+              value={type.lineSizeScales[1] ?? 0.62}
               min={0.2}
               max={0.8}
               step={0.01}
               scale={100}
               unit="%"
               onChange={(scale) =>
-                setConfig({
-                  typography: {
-                    lineSizeScales: withLineValue(type.lineSizeScales, 1, scale, 1),
-                  },
-                  layout: { scale },
+                setTypography({
+                  lineSizeScales: withLineValue(type.lineSizeScales, 1, scale, 1),
                 })
               }
             />
           </>
         ) : (
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="avatar-text">{t('panel.text.content')}</Label>
-            <Textarea
-              id="avatar-text"
-              className="min-h-24"
-              value={config.text}
-              placeholder={t('panel.text.placeholder')}
-              onChange={(event) => setConfig({ text: event.target.value })}
-            />
-          </div>
+          <>
+            {kind === 'logo' ? (
+              <div className="flex flex-col gap-1.5">
+                <Label>{t('panel.graphic.title')}</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  data-slot="graphic-picker"
+                  className="h-11 w-full justify-start gap-2 px-2"
+                  onClick={() => {
+                    setIconMounted(true)
+                    setIconOpen(true)
+                  }}
+                >
+                  <GraphicThumb
+                    icon={config.layout.icon}
+                    config={config}
+                    color={type.colorMode === 'custom' ? type.color : '#ffffff'}
+                  />
+                  <span className="truncate">
+                    {config.layout.icon.source === 'none'
+                      ? t('panel.graphic.empty')
+                      : config.layout.icon.id || t('panel.graphic.current')}
+                  </span>
+                </Button>
+                {iconMounted ? (
+                  <Suspense fallback={null}>
+                    <IconPickerLazy open={iconOpen} onOpenChange={setIconOpen} />
+                  </Suspense>
+                ) : null}
+              </div>
+            ) : null}
+
+            {kind === 'logo' ? (
+              <SliderField
+                label={t('panel.graphic.scale')}
+                editLabel={t('panel.common.edit', { name: t('panel.graphic.scale') })}
+                value={config.layout.graphic}
+                min={0.3}
+                max={0.8}
+                step={0.01}
+                scale={100}
+                unit="%"
+                onChange={(graphic) => setLayout({ graphic })}
+              />
+            ) : null}
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="avatar-text">{t('panel.text.content')}</Label>
+              <Textarea
+                id="avatar-text"
+                className="min-h-24"
+                value={config.text}
+                placeholder={t('panel.text.placeholder')}
+                onChange={(event) => setConfig({ text: event.target.value })}
+              />
+            </div>
+          </>
         )}
+        </div>
 
         <div className="flex flex-col gap-1.5">
           <Label>{t('panel.text.font')}</Label>

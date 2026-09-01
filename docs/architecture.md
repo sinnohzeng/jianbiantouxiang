@@ -25,7 +25,7 @@
 | `src/main.tsx` | 挂 React 根，接上系统主题监听，按条件装端到端探针 |
 | `src/App.tsx` | 套 i18n Provider，让文档标题与默认示例文字跟随界面语言 |
 | `src/app/` | 应用外壳、顶栏、底部操作条、实时预览、氛围背景、主题状态 |
-| `src/app/panels/` | 文字、配色、质感、画布四个面板，加导出抽屉、字体选择器、历史条 |
+| `src/app/panels/` | 文字、配色、质感、画布四个面板，加导出抽屉、字体选择器、图形选择器、历史条 |
 | `src/components/ui/` | shadcn 生成的原语，本仓不改写、不格式化 |
 | `src/components/blocks/` | 面板复用件：分段控件、radio card、带数值的滑杆、颜色格、可折叠分组 |
 | `src/engine/` | 质感定义与参数映射、种子、预览挂载、离屏渲染、设备能力探测、无 WebGL2 兜底 |
@@ -33,6 +33,8 @@
 | `src/text/` | 文字量测、换行、自动填满、排版、绘制、自动取色 |
 | `src/palettes/` | 26 套内置配色、OKLCH 色彩工具、种子色和谐生成 |
 | `src/fonts/` | 精选清单、fontsource 目录缓存、css2 与镜像加载链、本地上传注册 |
+| `src/graphics/` | 图形来源分派、lucide Path2D、Noto Emoji、上传消毒、五语 emoji 索引、图形绘制 |
+| `src/graphics/generated/` | lucide 全库与精选索引、emoji 基础索引与五语标签，由 `npm run gen:icons` / `gen:emoji` 生成 |
 | `src/export/` | 画布合成、编码与体积二分、导出动作、下载、图片剪贴板、文件名 |
 | `src/state/` | `AvatarConfig` 契约、zustand store、URL 编解码、本地存档、历史 |
 | `src/i18n/` | 五份扁平字典与 Provider |
@@ -54,13 +56,14 @@
 | `palette`、`customColors` | 内置配色 id 或 `custom`，自定义时给 2 到 6 个 hex | 配色、引擎 |
 | `canvas` | 宽高、形状、圆角比例 | 合成、导出 |
 | `typography` | 字体与来源、字重、字号模式与字号、行级字号比例与水平补偿、边距、行高、字间距、对齐、锚点、偏移、竖排、自动换行、文字效果与强度、取色模式与颜色、胶囊底参数 | 文字、字体 |
+| `layout` | 用途（纯文字、状态徽章、图标徽章）、图形比例与图形来源 | 文字排版、图形、URL |
 | `exportOptions` | 格式、体积档、底色 | 编码 |
 
 同一模块另外导出三个函数。`DEFAULT_CONFIG` 是默认值的唯一定义处；`normalizeConfig` 把任意局部输入补成完整配置，数值按区间夹值、枚举做合法性校验，任何输入都不抛错；`configHash` 对键排序后做 FNV-1a，用作历史去重与渲染去重的标记。
 
 ## 渲染管线
 
-预览与导出走两条独立的路径，共用引擎与文字两个模块，因此参数改动只需落在一处。
+预览与导出走两条独立的路径，共用引擎、文字与图形三个模块，因此参数改动只需落在一处。
 
 ```mermaid
 flowchart TD
@@ -71,7 +74,7 @@ flowchart TD
     stage["PreviewStage"]
     mount["createGradientMount · ShaderMount 画布"]
     hl["高光图层 · CSS mix-blend-mode screen"]
-    txt["文字图层 · layoutText + drawText"]
+    txt["图形与文字图层 · loadGraphic + layoutText + drawGraphic + drawText"]
     ink["取色探针 · renderGradient 128 px"]
     stage --> mount
     stage --> hl
@@ -85,22 +88,23 @@ flowchart TD
     compose["composeAvatar"]
     grad["renderGradient · 离屏 ShaderMount"]
     high["drawHighlight · globalCompositeOperation screen"]
-    layout["layoutText"]
+    loadg["loadGraphic"]
+    layout["layoutText + 图形落位"]
     pick["needsPlate + pickTextColor + effectiveConfig"]
-    draw["drawText"]
+    draw["drawGraphic + drawText"]
     mask["形状遮罩 · destination-in"]
     enc["encodeCanvas · 质量二分"]
     out["downloadBlob / copyImageToClipboard"]
-    compose --> grad --> high --> layout --> pick --> draw --> mask --> enc --> out
+    compose --> loadg --> grad --> high --> layout --> pick --> draw --> mask --> enc --> out
   end
 
   store --> stage
   store --> compose
 ```
 
-预览把三层叠在一个定长方框里：底下是 `ShaderMount` 的 WebGL 画布，中间一张 2D 画布画高光，上面一张 2D 画布画文字，形状裁切交给 CSS。配置停 80 ms 才推给 shader，取色探针再多等一档到 220 ms。
+预览把三层叠在一个定长方框里：底下是 `ShaderMount` 的 WebGL 画布，中间一张 2D 画布画高光，上面一张 2D 画布按“先图形后文字”绘制，形状裁切交给 CSS。配置停 80 ms 才推给 shader，取色探针再多等一档到 220 ms；图形只按来源与 id 变化重新加载。
 
-导出的顺序是硬性的。高光要压在渐变之上，自动文字色要读高光之后的画面，形状遮罩必须最后做，否则被裁掉的边角会被后续绘制重新填满。合成逻辑在 `src/export/compose-core.ts`，引擎、文字与字体三个模块的真实实现在 `compose.ts` 一处装配，单测因此不必拉起 WebGL 与字体网络。
+导出的顺序是硬性的。高光要压在渐变之上，自动文字色要读高光之后的画面，形状遮罩必须最后做，否则被裁掉的边角会被后续绘制重新填满。合成逻辑在 `src/export/compose-core.ts`，引擎、文字、字体与图形四个模块的真实实现在 `compose.ts` 一处装配，单测因此不必拉起 WebGL、字体网络或 emoji CDN。
 
 预览画布没有开 `preserveDrawingBuffer`，读回来是空的。预览里的自动取色因此另开一条低分辨率探针，用导出同一条 `renderGradient` 路径画一张 128 px 的小图，在上面取色并判断要不要底板。
 
@@ -130,6 +134,20 @@ flowchart TD
 自动文字色分两档。内置配色直接用配色表里的 `text` 设计值，同一配色下每块文字都是同一个颜色，高光、颗粒与种子都改不动它。自定义配色没有设计值，走像素判定，门槛是文字区域相对亮度 0.5，低于此取白字。
 
 两个候选色都到不了对比度 3.0 时，`needsPlate` 判真，`effectiveConfig` 返回一份把文字效果换成胶囊底的配置。用户的 `config` 不动：底板是引擎替他兜的底，写回配置会连带进链接与存档，下次打开就分不清是谁改的。这一步只在自动取色加纯色文字的组合下代劳。
+
+图标徽章的排版同样在 `layoutText` 里求解。图形先按安全框高度的 `layout.graphic` 等比缩放，宽度超出时改按宽度约束；文字拿到剩余高度并水平居中。文字为空时图形居中，图形缺失时文字退回整块安全框居中。版式固定，锚点、对齐、竖排与行级补偿不参与。
+
+## 图形来源
+
+`src/graphics/source.ts` 是唯一分派入口：内置图标、emoji 与上传图形都按需 `import()`，主界面不带索引。三种来源统一返回 `Graphic`，调用方不认识具体实现。
+
+| 来源 | 索引 | 图形 |
+| --- | --- | --- |
+| 内置图标 | lucide-react 1.37 的 1790 个主图标；精选 162 个随选择器小索引加载，全库 470 KB 原始数据只在搜索超出精选时加载 | `__iconNode` 转 `Path2D`，按文字色描边，并复用文字效果 |
+| emoji | emojibase-data 15.0.0 的 1879 个可分组条目，五种语言各一份标签 chunk | 按码点取 Noto Emoji v2.047 单个 SVG，fetch 转 Blob 再画，保留原色 |
+| 上传 | 无索引，模块级会话注册表 | SVG 先经元素与属性白名单重建；PNG / WebP 直接 `Image`，保留原色 |
+
+上传 SVG 只保留常见绘图元素、渐变、裁剪与安全展示属性；未知元素整支丢弃，未知属性删除，`url()` 只允许内部引用。注册后的 id 不写进 URL、localStorage 或历史，分享时降级为 `none`。加载失败只让图形位留空，渐变、文字与导出继续可用。
 
 ## 字体
 
@@ -178,13 +196,13 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 ## 代码分割与首屏预算
 
-首屏 JS 上限 250 KB gzip。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
+首屏 JS 上限 250 KB gzip，v3.2 实测 200.22 KB。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
 
 三条规则守住这个上限。
 
 - 要拆的包，主 chunk 里一个符号都不能静态引用。`@paper-design/shaders` 只从 `shader-mount.ts`、`shader-noise.ts` 与 `shaders/*.ts` 三个薄模块进来，全部走 `import()`。
 - 不用 `const { X } = await import('包名')` 从包入口取符号，命名空间访问挡住 tree-shaking。要拆就先写一个只 `export { X } from '包名'` 的本地模块，再动态 import 它。
-- 懒组件一挂进树就立刻拉 chunk。导出抽屉、字体选择器与历史条都走 `panels/lazy.ts`，并且只在真要显示时才挂上，之后一直留着。这个挂载闩是 store 的 `ui.exportMounted`，由 `setUi` 从 `exportOpen` 派生。
+- 懒组件一挂进树就立刻拉 chunk。导出抽屉、字体选择器与历史条都走 `panels/lazy.ts`，并且只在真要显示时才挂上，之后一直留着。这个挂载闩是 store 的 `ui.exportMounted`，由 `setUi` 从 `exportOpen` 派生。图形选择器同走 `lazy.ts`，没点开前不拉 cmdk 与索引；内置全库、emoji 标签也只在对应搜索模式需要时加载。
 
 详细口径见 `docs/engineering-lessons.md`。
 
@@ -192,8 +210,8 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 | 层 | 命令 | 覆盖 |
 | --- | --- | --- |
-| 单测 | `npm test` | `tests/` 与 `src/` 同名，jsdom 环境，覆盖种子映射、排版与自动填满、自动取色、体积二分、URL 编解码、字典对齐 |
-| 端到端 | `npm run e2e` | 两个 project：`desktop` 跑 1440 桌面，`iphone-15` 跑设备模拟。`smoke` 两档都跑，`desktop` 与 `mobile` 各归一档 |
+| 单测 | `npm test` | `tests/` 与 `src/` 同名，jsdom 环境，覆盖种子映射、排版与自动填满、图标排版、SVG 消毒、图形绘制消费端、索引结构、自动取色、体积二分、URL 编解码、字典对齐 |
+| 端到端 | `npm run e2e` | 两个 project：`desktop` 跑 1440 桌面，`iphone-15` 跑设备模拟。覆盖内置图标、emoji、上传 SVG、手机底部抽屉与既有导出路径 |
 | 视觉 | `npm run screenshots` | 桌面 1440、iPhone 15、iPhone SE 三个设备各截深浅两套主题，输出到 `.screenshots/` |
 
 headless chromium 默认没有 GPU，WebGL2 靠 `--use-angle=swiftshader` 等启动参数走软件渲染。`devices['iPhone 15']` 的默认浏览器是 webkit，project 里必须显式覆盖成 chromium，否则那几个参数不生效。
@@ -214,4 +232,4 @@ PWA 由 `vite-plugin-pwa` 生成 manifest 与 service worker，注册方式是�
 - 导出尺寸受设备限制。`caps.ts` 同时探测 WebGL 上限与 2D 画布面积上限，取较小值，超出时按上限渲染再放大，导出面板显示本机的最高原生边长。探测结果缓存 7 天。
 - 主“导出”按钮直接触发浏览器下载；导出抽屉提供“下载”与“复制图片”两个显式动作。微信内置浏览器拦截 `a[download]`，那里改为提示长按图片保存。
 - WebP 只在 `toBlob('image/webp')` 实际返回 `image/webp` 的浏览器里提供，不引入 WASM 编码器。PNG 无损，体积不可控，靠界面提示。
-- 上传的字体只在本次会话有效，不写盘、不进链接、不进存档。
+- 上传的字体与图形只在本次会话有效，不写盘、不进链接、不进存档；分享链接中的上传图形退回空来源。

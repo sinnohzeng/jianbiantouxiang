@@ -67,6 +67,41 @@
 | `font.upload.failed`              | 字体文件读不出来，换一个再试                                                     |
 | `font.upload.hint`                | 支持 TTF、OTF、WOFF、WOFF2，只在当前会话有效，分享出去对方看不到                 |
 | `font.upload.tooLarge`            | 字体文件太大，请换一个更小的                                                     |
+| `icon.all`                        | 全部图标                                                                         |
+| `icon.builtin`                    | 内置图标                                                                         |
+| `icon.category.business`          | 商务                                                                             |
+| `icon.category.common`            | 常用                                                                             |
+| `icon.category.food`              | 饮食                                                                             |
+| `icon.category.media`             | 媒体                                                                             |
+| `icon.category.nature`            | 自然                                                                             |
+| `icon.category.objects`           | 物件                                                                             |
+| `icon.category.people`            | 人物                                                                             |
+| `icon.category.symbols`           | 符号                                                                             |
+| `icon.category.tech`              | 技术                                                                             |
+| `icon.category.travel`            | 旅行                                                                             |
+| `icon.empty`                      | 没有匹配的图形                                                                   |
+| `icon.emoji`                      | Emoji                                                                            |
+| `icon.emoji.group.0`              | 表情与情绪                                                                       |
+| `icon.emoji.group.1`              | 人物与手势                                                                       |
+| `icon.emoji.group.2`              | 肤色修饰                                                                         |
+| `icon.emoji.group.3`              | 动物与自然                                                                       |
+| `icon.emoji.group.4`              | 食物与饮料                                                                       |
+| `icon.emoji.group.5`              | 旅行与地点                                                                       |
+| `icon.emoji.group.6`              | 活动                                                                             |
+| `icon.emoji.group.7`              | 物件                                                                             |
+| `icon.emoji.group.8`              | 符号                                                                             |
+| `icon.emoji.group.9`              | 旗帜                                                                             |
+| `icon.loading`                    | 图形索引加载中                                                                   |
+| `icon.search.builtin`             | 搜索中英文关键词或图标名                                                         |
+| `icon.search.emoji`               | 搜索 emoji 名称或标签                                                            |
+| `icon.source`                     | 图形来源                                                                         |
+| `icon.title`                      | 选图形                                                                           |
+| `icon.upload`                     | 上传图形                                                                         |
+| `icon.upload.badExt`              | 不支持这种图形格式                                                               |
+| `icon.upload.badSvg`              | 这个 SVG 读不出来或没有安全绘图内容                                              |
+| `icon.upload.failed`              | 图形文件读不出来，换一个再试                                                     |
+| `icon.upload.hint`                | 支持 SVG、PNG、WebP，只在当前会话有效，分享出去对方看不到                        |
+| `icon.upload.tooLarge`            | 图形文件太大，请换一个更小的                                                     |
 | `history.empty`                   | 随机或导出之后会出现在这里                                                       |
 | `history.item`                    | 第 {index} 版                                                                    |
 | `history.title`                   | 最近生成                                                                         |
@@ -91,6 +126,10 @@
 | `panel.canvas.width`              | 宽                                                                               |
 | `panel.common.edit`               | 编辑{name}                                                                       |
 | `panel.common.hex`                | 十六进制色值                                                                     |
+| `panel.graphic.current`           | 当前图形                                                                         |
+| `panel.graphic.empty`             | 先选一个图形                                                                     |
+| `panel.graphic.scale`             | 图形比例                                                                         |
+| `panel.graphic.title`             | 图形                                                                             |
 | `panel.layout.scale`              | 次行字号                                                                         |
 | `panel.palette.builtin`           | 内置配色                                                                         |
 | `panel.palette.custom`            | 自定义配色                                                                       |
@@ -164,6 +203,8 @@
 | `panel.text.kind`                 | 用途                                                                             |
 | `panel.text.kind.status`          | 状态徽章                                                                         |
 | `panel.text.kind.status.hint`     | 第一行大字写状态，第二行小字写日期                                               |
+| `panel.text.kind.logo`            | 图标徽章                                                                         |
+| `panel.text.kind.logo.hint`       | 图形在上、文字在下，适合部门与产品标识                                          |
 | `panel.text.kind.text`            | 纯文字                                                                           |
 | `panel.text.letterSpacing`        | 字间距                                                                           |
 | `panel.text.line1`                | 第一行                                                                           |

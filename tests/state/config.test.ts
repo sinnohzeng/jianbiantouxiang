@@ -163,21 +163,52 @@ describe('normalizeConfig 的 layout 子树', () => {
     expect(config.layout).toEqual(DEFAULT_CONFIG.layout)
   })
 
-  it('kind 只认两种用途，别的落回 text', () => {
+  it('kind 认三种用途，别的落回 text', () => {
     expect(normalizeConfig({ layout: { kind: 'status' } }).layout.kind).toBe('status')
-    // 图标徽章推迟到 v3.2，未来版本的链接落到这里要退回纯文字，不能画出半截版式
-    expect(normalizeConfig({ layout: { kind: 'logo' } }).layout.kind).toBe('text')
+    expect(normalizeConfig({ layout: { kind: 'logo' } }).layout.kind).toBe('logo')
     expect(normalizeConfig({ layout: { kind: 7 } }).layout.kind).toBe('text')
   })
 
-  it('scale 夹在 0.2..0.8', () => {
-    expect(normalizeConfig({ layout: { scale: 0 } }).layout.scale).toBe(0.2)
-    expect(normalizeConfig({ layout: { scale: 0.2 } }).layout.scale).toBe(0.2)
-    expect(normalizeConfig({ layout: { scale: 0.8 } }).layout.scale).toBe(0.8)
-    expect(normalizeConfig({ layout: { scale: 9 } }).layout.scale).toBe(0.8)
-    expect(normalizeConfig({ layout: { scale: Number.NaN } }).layout.scale).toBe(
-      DEFAULT_CONFIG.layout.scale,
+  it('graphic 与 icon 同轮补默认并夹值', () => {
+    expect(normalizeConfig({ layout: { kind: 'logo' } }).layout).toEqual({
+      kind: 'logo',
+      graphic: DEFAULT_CONFIG.layout.graphic,
+      icon: { source: 'none', id: '' },
+    })
+
+    const config = normalizeConfig({
+      layout: {
+        kind: 'logo',
+        graphic: 0.1,
+        icon: { source: 'emoji', id: '1f334' },
+      },
+    })
+    expect(config.layout.graphic).toBe(0.3)
+    expect(config.layout.icon).toEqual({ source: 'emoji', id: '1f334' })
+  })
+
+  it('graphic 夹在 0.3..0.8，非法值回落默认', () => {
+    expect(normalizeConfig({ layout: { graphic: 0 } }).layout.graphic).toBe(0.3)
+    expect(normalizeConfig({ layout: { graphic: 0.3 } }).layout.graphic).toBe(0.3)
+    expect(normalizeConfig({ layout: { graphic: 0.8 } }).layout.graphic).toBe(0.8)
+    expect(normalizeConfig({ layout: { graphic: 9 } }).layout.graphic).toBe(0.8)
+    expect(normalizeConfig({ layout: { graphic: 'wide' } }).layout.graphic).toBe(
+      DEFAULT_CONFIG.layout.graphic,
     )
+  })
+
+  it('icon source 校验，none 强制清空 id，超长 id 拒绝', () => {
+    expect(normalizeConfig({ layout: { icon: { source: 'photo', id: 'x' } } }).layout.icon).toEqual(
+      { source: 'none', id: '' },
+    )
+    expect(
+      normalizeConfig({ layout: { icon: { source: 'none', id: '1f334' } } }).layout.icon,
+    ).toEqual({ source: 'none', id: '' })
+    expect(
+      normalizeConfig({
+        layout: { icon: { source: 'emoji', id: 'x'.repeat(129) } },
+      }).layout.icon,
+    ).toEqual({ source: 'emoji', id: '' })
   })
 
   it('行级字号与水平补偿夹值、补默认并限制长度', () => {

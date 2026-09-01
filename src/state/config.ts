@@ -10,10 +10,10 @@ export type TextEffect = 'plain' | 'outline' | 'shadow' | 'glow' | 'pill'
 export type Anchor = 'tl' | 't' | 'tr' | 'l' | 'c' | 'r' | 'bl' | 'b' | 'br'
 /**
  * 用途：画面怎么构成。版式写死在代码里，用户只选用途、填内容，见 specs/v3.1-badge-templates。
- * 规约里的图标徽章（logo）推迟到 v3.2，那一档要先有图形来源才有意义，
- * 现在不进取值集，未来版本的链接落到这里会退回 text，画出来仍是一张正常的纯文字图。
+ * 图标徽章需要图形来源、排版与界面同轮落地；upload 只存本次会话 id，不进分享链接。
  */
-export type LayoutKind = 'text' | 'status'
+export type LayoutKind = 'text' | 'status' | 'logo'
+export type IconSource = 'none' | 'builtin' | 'emoji' | 'upload'
 
 export interface AvatarConfig {
   v: 3
@@ -58,7 +58,13 @@ export interface AvatarConfig {
   }
   layout: {
     kind: LayoutKind
-    scale: number // status：次行相对首行的字号比例 0.2..0.8
+    /** logo：图形占安全框高度的比例。 */
+    graphic: number // 0.3..0.8
+    icon: {
+      source: IconSource
+      /** builtin 是 lucide 名，emoji 是去 FE0F 的码点串，upload 是本次会话 id。 */
+      id: string
+    }
   }
   exportOptions: {
     format: 'jpg' | 'png' | 'webp'
@@ -77,10 +83,17 @@ export const ALIGNS = ['left', 'center', 'right'] as const
 export const COLOR_MODES = ['auto', 'custom'] as const
 export const EXPORT_FORMATS = ['jpg', 'png', 'webp'] as const
 export const SIZE_TARGETS = ['none', '1mb', '2mb'] as const
-export const LAYOUT_KINDS: readonly LayoutKind[] = ['text', 'status']
+export const LAYOUT_KINDS: readonly LayoutKind[] = ['text', 'status', 'logo']
+export const ICON_SOURCES = ['none', 'builtin', 'emoji', 'upload'] as const
+
+/** 图形标识最长 128 字符，防止坏链接把状态与 hash 无限撑大。 */
+export const ICON_ID_MAX = 128
 
 /** 行级参数最多保存 12 档，防止坏链接把状态与 URL 无限撑大。 */
 export const LINE_OVERRIDE_MAX = 12
+
+/** 状态徽章次行相对首行的默认字号比例。 */
+export const STATUS_SECOND_LINE_SCALE = 0.62
 
 /** 状态徽章里两块之间的留白，按首行字号算。 */
 export const STATUS_GAP_RATIO = 0.18
@@ -125,13 +138,14 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     effectStrength: 0.5,
     colorMode: 'custom',
     color: '#ffffff',
-    lineSizeScales: [1, 0.62],
+    lineSizeScales: [1, STATUS_SECOND_LINE_SCALE],
     lineOffsetsX: [0, 0],
     pill: { radius: 0.5, padding: 0.3, opacity: 0.55 },
   },
   layout: {
     kind: 'text',
-    scale: 0.62,
+    graphic: 0.52,
+    icon: { source: 'none', id: '' },
   },
   exportOptions: {
     format: 'jpg',
@@ -255,6 +269,7 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
   const pill = isRecord(tp.pill) ? tp.pill : {}
   const ex = isRecord(src.exportOptions) ? src.exportOptions : {}
   const lay = isRecord(src.layout) ? src.layout : {}
+  const icon = isRecord(lay.icon) ? lay.icon : {}
   const lineSizeScales = normalizeNumberArray(
     tp.lineSizeScales,
     d.typography.lineSizeScales,
@@ -262,10 +277,10 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
     0.2,
     2,
   )
-  // v3.1 的状态徽章只有 layout.scale 一个自由度。旧链接缺行级数组时，
-  // 把第二行迁移成同一个值，不能因为契约扩了就把用户调好的比例打回默认。
+  // v3.1 的状态徽章只有 layout.scale 一个自由度。v3.2 已把契约字段移除，
+  // 旧链接缺行级数组时在这里迁移，不能把用户调好的比例打回默认。
   if (!Array.isArray(tp.lineSizeScales) && lay.kind === 'status') {
-    lineSizeScales[1] = num(lay.scale, d.layout.scale, 0.2, 0.8)
+    lineSizeScales[1] = num(lay.scale, STATUS_SECOND_LINE_SCALE, 0.2, 0.8)
   }
 
   return {
@@ -322,10 +337,16 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
         opacity: num(pill.opacity, d.typography.pill.opacity, 0, 1),
       },
     },
-    layout: {
-      kind: pick(lay.kind, LAYOUT_KINDS, d.layout.kind),
-      scale: num(lay.scale, d.layout.scale, 0.2, 0.8),
-    },
+    layout: (() => {
+      const source = pick(icon.source, ICON_SOURCES, d.layout.icon.source)
+      const rawId = str(icon.id, d.layout.icon.id).trim()
+      const id = source === 'none' || rawId.length > ICON_ID_MAX ? '' : rawId
+      return {
+        kind: pick(lay.kind, LAYOUT_KINDS, d.layout.kind),
+        graphic: num(lay.graphic, d.layout.graphic, 0.3, 0.8),
+        icon: { source, id },
+      }
+    })(),
     exportOptions: {
       format: pick(ex.format, EXPORT_FORMATS, d.exportOptions.format),
       sizeTarget: pick(ex.sizeTarget, SIZE_TARGETS, d.exportOptions.sizeTarget),

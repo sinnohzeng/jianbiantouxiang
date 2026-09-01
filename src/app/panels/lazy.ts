@@ -1,7 +1,7 @@
 /**
- * 三个重件的懒加载入口。
+ * 四个重件的懒加载入口。
  *
- * 导出抽屉带整套 Drawer 与编码链路，字体选择器带 cmdk 与精选清单，历史条只在有历史时才有内容，
+ * 导出抽屉带整套 Drawer 与编码链路，字体与图形选择器带 cmdk 与索引，历史条只在有历史时才有内容，
  * 三个都不是首屏必需，拆出去让入口 chunk 守住 spec §4 的 250 KB gzip 上限。
  * 用它们的地方要自己包一层 Suspense，并且只在真要显示时才挂上，否则等于没拆。
  *
@@ -16,6 +16,10 @@ export const ExportDrawerLazy = lazy(() =>
 
 export const FontPickerLazy = lazy(() =>
   import('./FontPicker').then((module) => ({ default: module.FontPicker })),
+)
+
+export const IconPickerLazy = lazy(() =>
+  import('./IconPicker').then((module) => ({ default: module.IconPicker })),
 )
 
 export const HistoryStripLazy = lazy(() =>

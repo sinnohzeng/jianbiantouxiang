@@ -24,6 +24,9 @@ import { createGradientMount, type GradientMount } from '@/engine/mount'
 import { renderGradient } from '@/engine/render'
 import { resolveSeed } from '@/engine/seed'
 import { releaseCanvas } from '@/export/canvas'
+import { drawGraphic } from '@/graphics/draw'
+import { loadGraphic } from '@/graphics/source'
+import type { Graphic } from '@/graphics/types'
 import { fetchCatalog } from '@/fonts/catalog'
 import type { FontEntry } from '@/fonts/catalog'
 import { getCuratedByFamily } from '@/fonts/curated'
@@ -65,7 +68,10 @@ interface ProbeResult {
 }
 
 /** 用导出同一条路径画一张小图，在上面取自动文字色并判断要不要底板。 */
-async function probeInk(config: AvatarConfig): Promise<ProbeResult | null> {
+async function probeInk(
+  config: AvatarConfig,
+  graphic: Graphic | null,
+): Promise<ProbeResult | null> {
   const { width, height } = config.canvas
   const ratio = width / height
   const probeWidth = Math.max(
@@ -91,7 +97,7 @@ async function probeInk(config: AvatarConfig): Promise<ProbeResult | null> {
     releaseCanvas(gradient)
     drawHighlight(ctx, probeWidth, probeHeight, config.highlight, resolveSeed(config))
 
-    const layout = layoutText(config, probeWidth, probeHeight)
+    const layout = layoutText(config, probeWidth, probeHeight, undefined, graphic)
     return resolveInk(ctx, layout, config)
   } catch {
     return null
@@ -135,9 +141,12 @@ export function PreviewStage() {
   const [autoPlate, setAutoPlate] = useState(false)
   const [overflow, setOverflow] = useState(false)
   const [fontTick, setFontTick] = useState(0)
+  const [graphic, setGraphic] = useState<Graphic | null>(null)
 
   const caps = useMemo(() => getRenderCaps(), [])
   const preview = useThrottled(config, PREVIEW_THROTTLE_MS)
+  const iconSource = preview.layout.kind === 'logo' ? preview.layout.icon.source : 'none'
+  const iconId = preview.layout.kind === 'logo' ? preview.layout.icon.id : ''
   const safeGuide = useMemo(
     () => safeArea(preview, box.width, box.height),
     [preview, box.width, box.height],
@@ -204,6 +213,21 @@ export function PreviewStage() {
     return () => observer.disconnect()
   }, [])
 
+  // 图形与字体不同，只在来源与 id 变化时加载。配置里其他滑杆不该重复拉网络或索引 chunk。
+  useEffect(() => {
+    let cancelled = false
+    const task =
+      iconSource === 'none' || iconId === ''
+        ? Promise.resolve(null)
+        : loadGraphic({ source: iconSource, id: iconId })
+    void task.then((next) => {
+      if (!cancelled) setGraphic(next)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [iconSource, iconId])
+
   // 字体：加载完成才重绘，否则 canvas 会先用回退字形画一遍
   useEffect(() => {
     let cancelled = false
@@ -266,7 +290,7 @@ export function PreviewStage() {
     const timer = setTimeout(() => {
       probeChain.current = probeChain.current
         .catch(() => {})
-        .then(() => (cancelled ? null : probeInk(previewRef.current)))
+        .then(() => (cancelled ? null : probeInk(previewRef.current, graphic)))
         .then((result) => {
           if (cancelled || !result) return
           setAutoInk(result.color)
@@ -277,7 +301,7 @@ export function PreviewStage() {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [probeSignature, colorMode])
+  }, [probeSignature, colorMode, graphic])
 
   // 高光与文字。放进 rAF 画，既不挤占布局这一帧，也让排版结果的回写落在回调里
   useEffect(() => {
@@ -304,17 +328,20 @@ export function PreviewStage() {
       drawHighlight(highlightCtx, pixelWidth, pixelHeight, preview.highlight, resolveSeed(preview))
 
       const drawConfig = effectiveConfig(preview, plate)
+      const layout = layoutText(drawConfig, pixelWidth, pixelHeight, undefined, graphic)
+      if (graphic && layout.graphic) {
+        drawGraphic(textCtx, graphic, layout.graphic, drawConfig, ink)
+      }
       if (drawConfig.text.trim() === '') {
-        setOverflow(false)
+        setOverflow(layout.overflow)
         return
       }
-      const layout = layoutText(drawConfig, pixelWidth, pixelHeight)
       drawText(textCtx, layout, drawConfig, ink)
       setOverflow(layout.overflow)
     })
 
     return () => cancelAnimationFrame(frame)
-  }, [preview, box, ink, plate, fontTick])
+  }, [preview, box, ink, plate, fontTick, graphic])
 
   const frameStyle = useMemo(() => {
     const { width, height, shape, radius } = preview.canvas

@@ -14,6 +14,8 @@ import zhCN from '@/i18n/zh-CN.json'
 import zhHK from '@/i18n/zh-HK.json'
 import { LOCALES, dictOf, loadDict, translate, type Locale } from '@/i18n'
 import { STYLE_LIST } from '@/engine/styles'
+import { CURATED_ICON_CATEGORIES } from '@/graphics/curated'
+import { EMOJI_GROUPS } from '@/graphics/emoji-index'
 import { ANCHORS, SIZE_TARGETS, TEXT_EFFECTS } from '@/state/config'
 
 const DICTS: Record<Locale, Record<string, string>> = {
@@ -116,6 +118,8 @@ function dynamicKeys(): string[] {
     ...TEXT_EFFECTS.map((effect) => `panel.text.effect.${effect}`),
     ...ANCHORS.map((anchor) => `panel.text.anchor.${anchor}`),
     ...SIZE_TARGETS.map((target) => `export.size.${target}`),
+    ...CURATED_ICON_CATEGORIES.map((category) => `icon.category.${category}`),
+    ...EMOJI_GROUPS.map((group) => `icon.emoji.group.${group}`),
     // ExportDrawer 的 setNotice(`export.${result}`)，取值来自 shareBlob 的返回
     'export.shared',
     'export.cancelled',

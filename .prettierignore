@@ -9,6 +9,9 @@ package-lock.json
 # shadcn 生成的原语，跟随上游，不做本仓格式化
 src/components/ui
 
+# 索引产物由生成器负责，格式化只会重排大文件
+src/graphics/generated
+
 # registry 装入的官方技能文档
 .agents/skills
 

@@ -119,7 +119,11 @@ describe('旧链接兼容', () => {
     const config: AvatarConfig = {
       ...DEFAULT_CONFIG,
       text: '请假中\n09-01 至 09-07',
-      layout: { kind: 'status', scale: 0.35 },
+      layout: {
+        kind: 'logo',
+        graphic: 0.64,
+        icon: { source: 'emoji', id: '1f334' },
+      },
       typography: { ...DEFAULT_CONFIG.typography, lineSizeScales: [1, 0.35] },
     }
     expect(decodeConfigFromHash(encodeConfigToHash(config))).toEqual(config)
@@ -130,11 +134,31 @@ describe('旧链接兼容', () => {
     expect(payload).toEqual({ text: '同事' })
   })
 
-  it('链接里的版式同样过一遍夹值，未来版本的用途退回纯文字', () => {
-    const hacked = encodePayload({ layout: { kind: 'logo', scale: 99 } })
+  it('链接里的版式同样过一遍夹值与枚举校验', () => {
+    const hacked = encodePayload({
+      layout: { kind: 'logo', graphic: 9, icon: { source: 'photo', id: 'x' } },
+    })
     const config = decodeConfigFromHash(hacked)
-    expect(config?.layout.kind).toBe('text')
-    expect(config?.layout.scale).toBe(0.8)
+    expect(config?.layout).toEqual({
+      kind: 'logo',
+      graphic: 0.8,
+      icon: { source: 'none', id: '' },
+    })
+  })
+
+  it('上传图形不进链接，来源退回 none', () => {
+    const config: AvatarConfig = {
+      ...DEFAULT_CONFIG,
+      layout: {
+        kind: 'logo',
+        graphic: 0.64,
+        icon: { source: 'upload', id: 'upload-1' },
+      },
+    }
+    const payload = payloadOf(encodeConfigToHash(config))
+    expect(payload.layout).toEqual({ kind: 'logo', graphic: 0.64 })
+    const decoded = decodeConfigFromHash(encodeConfigToHash(config))
+    expect(decoded?.layout.icon).toEqual({ source: 'none', id: '' })
   })
 })
 

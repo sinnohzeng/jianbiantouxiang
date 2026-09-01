@@ -1,4 +1,4 @@
-import { STATUS_GAP_RATIO, type AvatarConfig } from '@/state/config'
+import { STATUS_GAP_RATIO, STATUS_SECOND_LINE_SCALE, type AvatarConfig } from '@/state/config'
 import { fontString, letterSpacingPxOf, toGraphemes, type MeasureFn } from './measure'
 import { splitParagraphs, wrapLineParts } from './wrap'
 
@@ -350,20 +350,20 @@ export function safeArea(
 }
 
 /**
- * 排版求解：manual 直接用给定字号，auto 在 [0.04, 0.92] × 短边内二分 12 轮找最大可行字号。
- * 单段文字先用闭式解一步到位，校验通过就不再二分。
+ * 在给定矩形里求解文字。图标徽章要先把上部让给图形，再把剩余矩形交给这一层；
+ * 纯文字与状态徽章仍先按边距与遮罩算安全框，再走同一个求解器。
  */
-export function fitText(
+export function fitTextInArea(
   config: AvatarConfig,
   width: number,
   height: number,
   measure: MeasureFn,
+  area: Box,
 ): FitResult {
   const typography = config.typography
   const shortSide = Math.max(1, Math.min(width, height))
-  const box = safeArea(config, width, height)
-  const safeWidth = box.width
-  const safeHeight = box.height
+  const safeWidth = area.width
+  const safeHeight = area.height
   const paragraphs = splitParagraphs(config.text)
 
   const build = (ratio: number): FitResult => {
@@ -449,6 +449,18 @@ export function fitText(
   return strict.block.broke ? search(false) : strict
 }
 
+/**
+ * 排版求解：manual 直接用给定字号，auto 在 [0.04, 0.92] × 短边内二分 12 轮找最大可行字号。
+ */
+export function fitText(
+  config: AvatarConfig,
+  width: number,
+  height: number,
+  measure: MeasureFn,
+): FitResult {
+  return fitTextInArea(config, width, height, measure, safeArea(config, width, height))
+}
+
 /** 状态徽章的求解结果：首行、次行、两者之间的留白，以及合起来的尺寸。 */
 export interface StatusFit {
   primary: FitResult
@@ -465,7 +477,7 @@ export interface StatusFit {
 /**
  * 状态徽章的排版求解。
  *
- * 首行字号与次行字号只有一个自由度：次行恒等于首行乘 `layout.scale`，
+ * 首行字号与次行字号只有一个自由度：次行恒等于首行乘第二行的行级比例，
  * 二分只搜首行。两个都放开会有无穷多组解落在安全框里，出图就不稳定了。
  * 竖排在这个用途下没有意义，强制横排；锚点与偏移同理，版式写死在居中。
  */
@@ -486,7 +498,8 @@ export function fitStatus(
   const head = paragraphs.slice(0, 1)
   const rest = paragraphs.slice(1)
   const primaryScale = config.typography.lineSizeScales[0] ?? 1
-  const secondaryScale = config.typography.lineSizeScales[1] ?? config.layout.scale
+  const secondaryScale =
+    config.typography.lineSizeScales[1] ?? STATUS_SECOND_LINE_SCALE
   const primaryOffset = config.typography.lineOffsetsX[0] ?? 0
   const secondaryOffset = config.typography.lineOffsetsX[1] ?? 0
 

@@ -1,5 +1,5 @@
 import type { Anchor, AvatarConfig } from '@/state/config'
-import { fitStatus, fitText, safeArea, type FitResult } from './fit'
+import { fitStatus, fitText, fitTextInArea, safeArea, type FitResult } from './fit'
 import { createCanvasMeasure, type MeasureFn } from './measure'
 
 export interface Rect {
@@ -42,6 +42,11 @@ export interface PillRect extends Rect {
   radiusPx: number
 }
 
+export interface GraphicSize {
+  width: number
+  height: number
+}
+
 export interface TextLayout {
   lines: LayoutLine[]
   fontSizePx: number
@@ -59,6 +64,8 @@ export interface TextLayout {
   align: 'left' | 'center' | 'right'
   /** 文字超出安全框，界面据此提示。 */
   overflow: boolean
+  /** 图标徽章里图形的落位；纯文字与状态徽章没有这块。 */
+  graphic?: Rect
 }
 
 const ANCHOR_X: Record<Anchor, number> = {
@@ -156,6 +163,9 @@ function placeBlock(
   }))
 }
 
+/** 图标徽章里图形与文字之间的留白，按安全框高度算。 */
+const LOGO_GAP_RATIO = 0.06
+
 /** 胶囊底板：把整块文字按 pill.padding 外扩，圆角按短边算。 */
 function pillOf(config: AvatarConfig, box: Rect, fontSizePx: number): PillRect {
   const pad = config.typography.pill.padding * fontSizePx
@@ -249,6 +259,114 @@ function layoutStatus(
 }
 
 /**
+ * 图标徽章：图形在上，文字在下。图形尺寸由来源的真实宽高比决定，
+ * 求解器只拿到一个 GraphicSize，不认识它是 Path2D 还是 Image。
+ */
+function layoutBadge(
+  config: AvatarConfig,
+  width: number,
+  height: number,
+  measure: MeasureFn,
+  graphic?: GraphicSize | null,
+): TextLayout {
+  const safeBox: Rect = safeArea(config, width, height)
+  const flat: AvatarConfig = {
+    ...config,
+    typography: {
+      ...config.typography,
+      align: 'center',
+      anchor: 'c',
+      offsetX: 0,
+      offsetY: 0,
+      vertical: false,
+      autoWrap: true,
+      lineSizeScales: [],
+      lineOffsetsX: [],
+    },
+  }
+  const hasText = config.text.trim() !== ''
+  let graphicRect: Rect | undefined
+  let textArea: Rect = safeBox
+  let bottomAlign = false
+
+  if (graphic) {
+    const aspect = graphic.width / Math.max(1, graphic.height)
+    if (hasText) {
+      let gh = safeBox.height * config.layout.graphic
+      let gw = gh * aspect
+      if (gw > safeBox.width) {
+        gw = safeBox.width
+        gh = gw / aspect
+      }
+      graphicRect = {
+        x: safeBox.x + (safeBox.width - gw) / 2,
+        y: safeBox.y,
+        width: gw,
+        height: gh,
+      }
+      textArea = {
+        x: safeBox.x,
+        y: safeBox.y + gh + safeBox.height * LOGO_GAP_RATIO,
+        width: safeBox.width,
+        height: Math.max(0, safeBox.height - gh - safeBox.height * LOGO_GAP_RATIO),
+      }
+      bottomAlign = true
+    } else {
+      let side = Math.min(safeBox.width, safeBox.height) * config.layout.graphic
+      let gw = side * aspect
+      if (gw > safeBox.width) {
+        gw = safeBox.width
+        side = gw / aspect
+      }
+      if (side > safeBox.height) {
+        side = safeBox.height
+        gw = side * aspect
+      }
+      graphicRect = {
+        x: safeBox.x + (safeBox.width - gw) / 2,
+        y: safeBox.y + (safeBox.height - side) / 2,
+        width: gw,
+        height: side,
+      }
+      textArea = { x: safeBox.x, y: safeBox.y, width: safeBox.width, height: 0 }
+    }
+  }
+
+  const fit = fitTextInArea(flat, width, height, measure, textArea)
+  const block = fit.block
+  const originX = textArea.x + (textArea.width - block.width) / 2
+  const originY = bottomAlign
+    ? textArea.y + textArea.height - block.height
+    : textArea.y + (textArea.height - block.height) / 2
+  const lines = block.lines.length > 0 ? placeBlock(flat, fit, originX, originY) : []
+  const box: Rect =
+    block.lines.length > 0
+      ? { x: originX, y: originY, width: block.width, height: block.height }
+      : (graphicRect ?? { x: safeBox.x, y: safeBox.y, width: 0, height: 0 })
+
+  return {
+    lines,
+    fontSizePx: fit.fontSizePx,
+    lineHeightPx: fit.lineHeightPx,
+    letterSpacingPx: fit.letterSpacingPx,
+    font: fit.font,
+    box,
+    safeBox,
+    pill: pillOf(config, box, fit.fontSizePx),
+    vertical: false,
+    align: 'center',
+    overflow:
+      !fit.fits ||
+      (graphicRect !== undefined &&
+        (graphicRect.x < safeBox.x - 1e-6 ||
+          graphicRect.y < safeBox.y - 1e-6 ||
+          graphicRect.x + graphicRect.width > safeBox.x + safeBox.width + 1e-6 ||
+          graphicRect.y + graphicRect.height > safeBox.y + safeBox.height + 1e-6)),
+    graphic: graphicRect,
+  }
+}
+
+/**
  * 排版求解加落位，按用途分派。基线用度量得到的 ascent / descent 定，
  * 所以是墨迹意义上的居中，不是 em 框意义上的居中。
  */
@@ -257,8 +375,10 @@ export function layoutText(
   width: number,
   height: number,
   measure?: MeasureFn,
+  graphic?: GraphicSize | null,
 ): TextLayout {
   const m = measure ?? getSharedMeasure()
   if (config.layout.kind === 'status') return layoutStatus(config, width, height, m)
+  if (config.layout.kind === 'logo') return layoutBadge(config, width, height, m, graphic)
   return layoutPlain(config, width, height, m)
 }
