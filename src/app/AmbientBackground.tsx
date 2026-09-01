@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react'
 import { resolveColors } from '@/engine/colors'
+import { AMBIENT_DEFAULT, suppressBlobColor, useAmbientLevel } from '@/app/ambient'
 import { useTheme } from '@/app/theme'
 import { DEFAULT_CONFIG } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
@@ -33,12 +34,15 @@ export function AmbientBackground() {
     const colors = resolveColors({ ...DEFAULT_CONFIG, palette, customColors })
     return SLOTS.map((slot, index) => ({
       ...slot,
-      color: colors[index % colors.length] ?? colors[0] ?? '#c7d2fe',
+      color: suppressBlobColor(colors[index % colors.length] ?? colors[0] ?? '#c7d2fe', resolved),
     }))
-  }, [palette, customColors])
+  }, [palette, customColors, resolved])
 
-  // 深色底上同样的透明度会显脏，压到一半
-  const opacity = resolved === 'dark' ? 0.28 : 0.45
+  const { level } = useAmbientLevel()
+
+  // 深色底上同样的透明度会显脏，压到一半；强度滑杆以默认档为基准等比缩放
+  const base = resolved === 'dark' ? 0.28 : 0.45
+  const opacity = Math.min(0.9, base * (level / AMBIENT_DEFAULT))
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
