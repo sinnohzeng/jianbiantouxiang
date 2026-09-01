@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "shadcn": {
-      "command": "npx",
-      "args": ["shadcn@latest", "mcp"]
+      "command": "./node_modules/.bin/shadcn",
+      "args": ["mcp"]
     }
   }
 }
