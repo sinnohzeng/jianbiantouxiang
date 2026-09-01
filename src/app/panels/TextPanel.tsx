@@ -43,6 +43,14 @@ type Align = 'left' | 'center' | 'right'
 type SizeMode = 'auto' | 'manual'
 type ColorMode = 'auto' | 'custom'
 
+/** 常用文字色预设：白、黑、米白、明黄，配投影反色适配逐一验过。 */
+const COLOR_PRESETS: readonly { hex: string; key: 'white' | 'black' | 'cream' | 'yellow' }[] = [
+  { hex: '#FFFFFF', key: 'white' },
+  { hex: '#141413', key: 'black' },
+  { hex: '#F5F1E8', key: 'cream' },
+  { hex: '#FFD34D', key: 'yellow' },
+]
+
 /** 九宫格按行排布，与 Anchor 的九个取值一一对应。 */
 const ANCHOR_GRID: readonly Anchor[] = ANCHORS
 
@@ -619,6 +627,10 @@ export function TextPanel() {
               label={t('panel.text.color.custom')}
               hexLabel={t('panel.common.hex')}
               value={type.color}
+              presets={COLOR_PRESETS.map((preset) => ({
+                hex: preset.hex,
+                label: t(`panel.text.color.preset.${preset.key}`),
+              }))}
               onChange={(color) => setTypography({ color })}
             />
           ) : (

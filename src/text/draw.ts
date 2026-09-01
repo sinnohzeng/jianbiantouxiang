@@ -191,7 +191,11 @@ function paintRun(
       paintAll(ctx, run, 'stroke', nativeSpacing)
     }
   } else if (effect === 'shadow') {
-    ctx.shadowColor = `rgba(0, 0, 0, ${(0.15 + 0.45 * effectStrength).toFixed(3)})`
+    const alpha = (0.15 + 0.45 * effectStrength).toFixed(3)
+    // 深色字改用白漫射：黑阴影压在深字上等于没画，与 glow 的反色同一口径
+    ctx.shadowColor = isLightColor(color)
+      ? `rgba(0, 0, 0, ${alpha})`
+      : `rgba(255, 255, 255, ${alpha})`
     ctx.shadowBlur = run.fontSizePx * 0.16 * effectStrength
     ctx.shadowOffsetY = run.fontSizePx * 0.05 * effectStrength
   } else if (effect === 'glow') {

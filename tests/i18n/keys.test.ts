@@ -117,6 +117,8 @@ function dynamicKeys(): string[] {
     ]),
     ...TEXT_EFFECTS.map((effect) => `panel.text.effect.${effect}`),
     ...ANCHORS.map((anchor) => `panel.text.anchor.${anchor}`),
+    // TextPanel 的文字色预设 panel.text.color.preset.<key>
+    ...['white', 'black', 'cream', 'yellow'].map((key) => `panel.text.color.preset.${key}`),
     ...SIZE_TARGETS.map((target) => `export.size.${target}`),
     ...CURATED_ICON_CATEGORIES.map((category) => `icon.category.${category}`),
     ...EMOJI_GROUPS.map((group) => `icon.emoji.group.${group}`),

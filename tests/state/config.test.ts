@@ -99,7 +99,7 @@ describe('normalizeConfig 夹值与校验', () => {
     expect(config.canvas.shape).toBe('square')
     expect(config.typography.anchor).toBe('c')
     expect(config.typography.align).toBe('center')
-    expect(config.typography.effect).toBe('glow')
+    expect(config.typography.effect).toBe('shadow')
     expect(config.exportOptions.format).toBe('jpg')
     expect(config.exportOptions.sizeTarget).toBe('1mb')
   })

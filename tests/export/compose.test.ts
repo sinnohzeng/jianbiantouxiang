@@ -251,7 +251,7 @@ describe('composeWith 自动底板', () => {
 
     expect(h.resolveInk).toHaveBeenCalledWith(expect.anything(), LAYOUT, config)
     expect(h.drawText.mock.calls[0]?.[2]).toMatchObject({ typography: { effect: 'pill' } })
-    expect(config.typography.effect).toBe('glow')
+    expect(config.typography.effect).toBe('shadow')
   })
 
   it('不要底板时原样把 config 交给取色与绘字', async () => {

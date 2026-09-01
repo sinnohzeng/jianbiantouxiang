@@ -134,8 +134,9 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     offsetY: 0,
     vertical: false,
     autoWrap: true,
-    effect: 'glow',
-    effectStrength: 0.5,
+    // v4.0 起默认投影：比发光收敛，深浅背景都稳；强度 0.4 是白字与深字适配后的折中
+    effect: 'shadow',
+    effectStrength: 0.4,
     colorMode: 'custom',
     color: '#ffffff',
     lineSizeScales: [1, STATUS_SECOND_LINE_SCALE],

@@ -9,6 +9,12 @@ import { Input } from '@/components/ui/input'
 import { normalizeHex } from '@/state/config'
 import { cn } from '@/lib/utils'
 
+/** 预设色档：常用文字色一键取，省得每次拧取色器。 */
+export interface ColorPreset {
+  hex: string
+  label: string
+}
+
 export interface ColorFieldProps {
   /** 颜色块的可访问名。 */
   label: string
@@ -18,6 +24,8 @@ export interface ColorFieldProps {
   showHex?: boolean
   /** hex 文本框的可访问名。 */
   hexLabel?: string
+  /** 常用色预设，给了就在输入行上方多一排色块。 */
+  presets?: readonly ColorPreset[]
   className?: string
 }
 
@@ -27,6 +35,7 @@ export function ColorField({
   onChange,
   showHex = true,
   hexLabel,
+  presets,
   className,
 }: ColorFieldProps) {
   const id = useId()
@@ -40,29 +49,54 @@ export function ColorField({
   }
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
-      <input
-        id={id}
-        type="color"
-        aria-label={label}
-        value={value}
-        onChange={(event) => onChange(normalizeHex(event.target.value, value))}
-        className="border-border size-11 shrink-0 cursor-pointer rounded-lg border bg-transparent p-1"
-      />
-      {showHex ? (
-        <Input
-          className="h-11 font-mono uppercase"
-          aria-label={hexLabel ?? label}
-          spellCheck={false}
-          autoComplete="off"
-          value={draft ?? value}
-          onChange={(event) => setDraft(event.target.value)}
-          onBlur={(event) => commitHex(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') commitHex(event.currentTarget.value)
-          }}
-        />
+    <div className={cn('flex flex-col gap-2', className)}>
+      {presets && presets.length > 0 ? (
+        <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-1.5">
+          {presets.map((preset) => {
+            const active = normalizeHex(preset.hex, '') === value.toLowerCase()
+            return (
+              <button
+                key={preset.hex}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                aria-label={preset.label}
+                title={preset.label}
+                onClick={() => onChange(normalizeHex(preset.hex, preset.hex))}
+                className={cn(
+                  'border-border size-11 cursor-pointer rounded-lg border transition-colors',
+                  active && 'border-primary ring-ring/50 ring-3',
+                )}
+                style={{ backgroundColor: preset.hex }}
+              />
+            )
+          })}
+        </div>
       ) : null}
+      <div className="flex items-center gap-2">
+        <input
+          id={id}
+          type="color"
+          aria-label={label}
+          value={value}
+          onChange={(event) => onChange(normalizeHex(event.target.value, value))}
+          className="border-border size-11 shrink-0 cursor-pointer rounded-lg border bg-transparent p-1"
+        />
+        {showHex ? (
+          <Input
+            className="h-11 font-mono uppercase"
+            aria-label={hexLabel ?? label}
+            spellCheck={false}
+            autoComplete="off"
+            value={draft ?? value}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={(event) => commitHex(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') commitHex(event.currentTarget.value)
+            }}
+          />
+        ) : null}
+      </div>
     </div>
   )
 }

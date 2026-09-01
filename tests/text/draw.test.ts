@@ -14,7 +14,7 @@ function render(overrides: PartialConfig, color = '#FFFFFF') {
   return { ctx, calls, paints, layout }
 }
 
-// 这一组用例验的是绘制机制，effect 显式钉成 plain：默认的 glow 要画三遍，笔数对不上
+// 这一组用例验的是绘制机制，effect 显式钉成 plain，不受默认效果变化影响
 const BASE: PartialConfig = {
   text: '猪猪',
   typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
@@ -106,6 +106,23 @@ describe('文字样式', () => {
       typography: { ...BASE.typography, effect: 'shadow', effectStrength: 1 },
     })
     expect(calls.filter((call) => call === 'fillText:猪猪')).toHaveLength(1)
+  })
+
+  it('shadow 的颜色随文字色反色适配：浅字黑阴影，深字白漫射', () => {
+    const light = render({
+      ...BASE,
+      typography: { ...BASE.typography, effect: 'shadow', effectStrength: 1 },
+    })
+    expect(light.paints[0]?.shadowColor).toBe('rgba(0, 0, 0, 0.600)')
+
+    const dark = render(
+      {
+        ...BASE,
+        typography: { ...BASE.typography, effect: 'shadow', effectStrength: 1 },
+      },
+      '#141413',
+    )
+    expect(dark.paints[0]?.shadowColor).toBe('rgba(255, 255, 255, 0.600)')
   })
 })
 

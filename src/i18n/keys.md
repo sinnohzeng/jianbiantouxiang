@@ -191,6 +191,10 @@
 | `panel.text.color.auto`           | 自动                                                                                                             |
 | `panel.text.color.auto.hint`      | 按文字下方画面的明度选白或深灰，并保证对比度达标                                                                 |
 | `panel.text.color.custom`         | 自定义                                                                                                           |
+| `panel.text.color.preset.white`   | 白色                                                                                                            |
+| `panel.text.color.preset.black`   | 黑色                                                                                                            |
+| `panel.text.color.preset.cream`   | 米白                                                                                                            |
+| `panel.text.color.preset.yellow`  | 明黄                                                                                                            |
 | `panel.text.content`              | 文字内容                                                                                                         |
 | `panel.text.effect`               | 文字样式                                                                                                         |
 | `panel.text.effect.glow`          | 发光                                                                                                             |
