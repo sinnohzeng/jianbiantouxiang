@@ -253,5 +253,7 @@
   "icon.emoji.group.6": "활동",
   "icon.emoji.group.7": "사물",
   "icon.emoji.group.8": "기호",
-  "icon.emoji.group.9": "깃발"
+  "icon.emoji.group.9": "깃발",
+  "topbar.undo": "실행 취소",
+  "topbar.redo": "다시 실행"
 }

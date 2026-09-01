@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import { PALETTES } from '@/palettes/palettes'
 import {
   DEFAULT_CONFIG,
+  configHash,
   normalizeConfig,
   type AvatarConfig,
   type PartialConfig,
@@ -27,6 +28,9 @@ export interface UiState {
   fontStatus: FontStatus
 }
 
+/** 配置级撤销上限。配置对象本身很小，50 份足够回退一串误操作。 */
+export const UNDO_MAX = 50
+
 export const DEFAULT_UI: UiState = {
   activePanel: 'text',
   exportOpen: false,
@@ -42,9 +46,15 @@ type ExportPatch = NonNullable<PartialConfig['exportOptions']>
 
 export interface AvatarStore {
   config: AvatarConfig
+  /** 撤销栈，只存在内存，不进 URL、存档或历史条。 */
+  past: AvatarConfig[]
+  /** 重做栈。新的配置动作一出现就清空。 */
+  future: AvatarConfig[]
   history: AvatarConfig[]
   ui: UiState
   setConfig: (partial: PartialConfig) => void
+  undo: () => void
+  redo: () => void
   setTypography: (partial: TypographyPatch) => void
   setLayout: (partial: LayoutPatch) => void
   setStyleParams: (partial: StyleParamsPatch) => void
@@ -90,6 +100,17 @@ function nextPaletteId(current: string): string {
   const pool = sameTone.length > 0 ? sameTone : others
   if (pool.length === 0) return current
   return pool[Math.floor(Math.random() * pool.length)]?.id ?? current
+}
+
+/** 写入下一份配置，并把当前份压进撤销栈。无变化时不入栈。 */
+function commitConfig(
+  set: (partial: Partial<AvatarStore>) => void,
+  get: () => AvatarStore,
+  next: AvatarConfig,
+): void {
+  const { config, past } = get()
+  if (configHash(next) === configHash(config)) return
+  set({ config: next, past: [...past, config].slice(-UNDO_MAX), future: [] })
 }
 
 /** 本次会话的初始配置是从哪来的。 */
@@ -138,11 +159,36 @@ function readInitialHistory(): AvatarConfig[] {
 
 export const useAvatarStore = create<AvatarStore>()((set, get) => ({
   config: readInitialConfig(),
+  past: [],
+  future: [],
   history: readInitialHistory(),
   ui: { ...DEFAULT_UI },
 
   setConfig: (partial) => {
-    set({ config: normalizeConfig(deepMerge(get().config, partial)) })
+    const next = normalizeConfig(deepMerge(get().config, partial))
+    commitConfig(set, get, next)
+  },
+
+  undo: () => {
+    const { config, past, future } = get()
+    const previous = past.at(-1)
+    if (!previous) return
+    set({
+      config: previous,
+      past: past.slice(0, -1),
+      future: [config, ...future].slice(0, UNDO_MAX),
+    })
+  },
+
+  redo: () => {
+    const { config, past, future } = get()
+    const next = future[0]
+    if (!next) return
+    set({
+      config: next,
+      past: [...past, config].slice(-UNDO_MAX),
+      future: future.slice(1),
+    })
   },
 
   setTypography: (partial) => {
@@ -166,7 +212,7 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
   },
 
   randomize: () => {
-    set({ config: { ...get().config, seed: randomSeed() } })
+    commitConfig(set, get, { ...get().config, seed: randomSeed() })
   },
 
   randomizeAll: () => {
@@ -175,8 +221,11 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
     // 从当前质感以外的三种里挑，与配色同一口径：点一下必须看得出变化
     const others = styles.filter((s) => s !== config.style)
     const style = others[Math.floor(Math.random() * others.length)] ?? config.style
-    set({
-      config: { ...config, seed: randomSeed(), palette: nextPaletteId(config.palette), style },
+    commitConfig(set, get, {
+      ...config,
+      seed: randomSeed(),
+      palette: nextPaletteId(config.palette),
+      style,
     })
   },
 
@@ -187,13 +236,13 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
   restore: (index) => {
     const entry = get().history[index]
     if (!entry) return
-    set({ config: entry })
+    commitConfig(set, get, entry)
   },
 
   reset: () => {
     // 必须是 DEFAULT_CONFIG 本身，不能换成等值的新对象：
     // src/App.tsx 的 LocaleDefaults 靠这份引用认出“回到默认档”，好让示例文字与默认字体重新跟随语言
-    set({ config: DEFAULT_CONFIG })
+    commitConfig(set, get, DEFAULT_CONFIG)
   },
 
   setUi: (partial) => {

@@ -253,5 +253,7 @@
   "icon.emoji.group.6": "活動",
   "icon.emoji.group.7": "もの",
   "icon.emoji.group.8": "記号",
-  "icon.emoji.group.9": "旗"
+  "icon.emoji.group.9": "旗",
+  "topbar.undo": "元に戻す",
+  "topbar.redo": "やり直す"
 }

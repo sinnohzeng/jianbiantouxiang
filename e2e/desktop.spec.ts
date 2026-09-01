@@ -74,6 +74,19 @@ test('改文字后复制的链接在新页面打开，文字一致', async ({ co
   await opened.close()
 })
 
+test('改文字后可以用键盘撤销与重做', async ({ page }) => {
+  await openApp(page)
+
+  const textarea = page.locator('#avatar-text')
+  await textarea.fill('撤销往返')
+  await page.getByRole('heading', { level: 1 }).click()
+  await page.keyboard.press('ControlOrMeta+z')
+  await expect(textarea).toHaveValue('飞书\n效率先锋')
+
+  await page.keyboard.press('ControlOrMeta+Shift+z')
+  await expect(textarea).toHaveValue('撤销往返')
+})
+
 test('切换语言后 html[lang] 与标题都跟着变', async ({ page }) => {
   await openApp(page)
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN')

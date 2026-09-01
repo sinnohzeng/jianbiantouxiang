@@ -27,7 +27,13 @@ const store = () => useAvatarStore.getState()
 beforeEach(() => {
   stopConfigSync()
   window.history.replaceState(null, '', '/')
-  useAvatarStore.setState({ config: DEFAULT_CONFIG, history: [], ui: { ...DEFAULT_UI } })
+  useAvatarStore.setState({
+    config: DEFAULT_CONFIG,
+    past: [],
+    future: [],
+    history: [],
+    ui: { ...DEFAULT_UI },
+  })
 })
 
 afterEach(() => {
@@ -206,6 +212,68 @@ describe('history 动作', () => {
     expect(store().config).toEqual(DEFAULT_CONFIG)
     // 引用相等是对外契约：App 的 LocaleDefaults 据此认出“回到默认档”，重新按语言下发文字与字体
     expect(store().config).toBe(DEFAULT_CONFIG)
+  })
+})
+
+describe('撤销与重做', () => {
+  it('配置动作入栈，undo 回到上一份，redo 再回到下一份', () => {
+    const before = store().config
+    store().setConfig({ text: '第一次' })
+    store().setConfig({ text: '第二次' })
+    expect(store().past.map((item) => item.text)).toEqual([
+      DEFAULT_CONFIG.text,
+      '第一次',
+    ])
+
+    store().undo()
+    expect(store().config.text).toBe('第一次')
+    store().undo()
+    expect(store().config).toBe(before)
+    expect(store().future.map((item) => item.text)).toEqual(['第一次', '第二次'])
+
+    store().redo()
+    expect(store().config.text).toBe('第一次')
+    store().redo()
+    expect(store().config.text).toBe('第二次')
+  })
+
+  it('无变化的 setConfig 不占撤销栈', () => {
+    store().setConfig({ text: DEFAULT_CONFIG.text })
+    expect(store().past).toHaveLength(0)
+  })
+
+  it('新的配置动作清空重做栈', () => {
+    store().setConfig({ text: '第一次' })
+    store().undo()
+    expect(store().future).toHaveLength(1)
+    store().setConfig({ text: '另一条路' })
+    expect(store().future).toHaveLength(0)
+  })
+
+  it('撤销栈最多 50 份', () => {
+    for (let i = 0; i < 55; i += 1) store().setConfig({ text: `第${i}` })
+    expect(store().past).toHaveLength(50)
+    expect(store().past[0]?.text).toBe('第4')
+  })
+
+  it('随机、恢复历史与重置都能撤销', () => {
+    store().randomize()
+    const randomized = store().config
+    store().setConfig({ text: '历史前' })
+    store().pushHistory()
+    store().setConfig({ text: '历史后' })
+    store().restore(0)
+    expect(store().config.text).toBe('历史前')
+    store().undo()
+    expect(store().config.text).toBe('历史后')
+    store().undo()
+    expect(store().config.text).toBe('历史前')
+    store().undo()
+    expect(store().config).toBe(randomized)
+
+    store().reset()
+    store().undo()
+    expect(store().config).toBe(randomized)
   })
 })
 

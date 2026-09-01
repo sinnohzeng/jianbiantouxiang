@@ -3,7 +3,16 @@
  * 半透明加模糊的悬浮壳借 `@shadcnblocks/navbar6` 的写法，让它压在环境光晕上不显得生硬。
  */
 
-import { CheckIcon, LanguagesIcon, MonitorIcon, MoonIcon, SunIcon } from 'lucide-react'
+import { useEffect } from 'react'
+import {
+  CheckIcon,
+  LanguagesIcon,
+  MonitorIcon,
+  MoonIcon,
+  Redo2Icon,
+  SunIcon,
+  Undo2Icon,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import {
@@ -14,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { THEME_MODES, useTheme, type ThemeMode } from '@/app/theme'
 import { LOCALES, useLocale, useT, type Locale } from '@/i18n'
+import { useAvatarStore } from '@/state/store'
 import { cn } from '@/lib/utils'
 
 const REPO_URL = 'https://github.com/sinnohzeng/jianbiantouxiang'
@@ -44,7 +54,30 @@ export function TopBar() {
   const t = useT()
   const { locale, setLocale } = useLocale()
   const { mode, setMode } = useTheme()
+  const undo = useAvatarStore((state) => state.undo)
+  const redo = useAvatarStore((state) => state.redo)
+  const canUndo = useAvatarStore((state) => state.past.length > 0)
+  const canRedo = useAvatarStore((state) => state.future.length > 0)
   const ThemeIcon = THEME_ICON[mode]
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (!event.metaKey && !event.ctrlKey) return
+      if (event.key.toLowerCase() !== 'z') return
+      const target = event.target
+      if (
+        target instanceof HTMLElement &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        return
+      }
+      event.preventDefault()
+      if (event.shiftKey) redo()
+      else undo()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [redo, undo])
 
   return (
     <header className="bg-background/70 supports-[backdrop-filter]:bg-background/55 sticky top-0 z-30 flex h-14 items-center gap-2 border-b px-3 backdrop-blur-md lg:px-6">
@@ -64,6 +97,29 @@ export function TopBar() {
       </div>
 
       <div className="ml-auto flex items-center gap-0.5">
+        <button
+          type="button"
+          data-slot="undo-action"
+          className={iconButton}
+          aria-label={t('topbar.undo')}
+          title={t('topbar.undo')}
+          disabled={!canUndo}
+          onClick={undo}
+        >
+          <Undo2Icon className="size-5" />
+        </button>
+        <button
+          type="button"
+          data-slot="redo-action"
+          className={iconButton}
+          aria-label={t('topbar.redo')}
+          title={t('topbar.redo')}
+          disabled={!canRedo}
+          onClick={redo}
+        >
+          <Redo2Icon className="size-5" />
+        </button>
+
         <DropdownMenu>
           <DropdownMenuTrigger
             className={iconButton}

@@ -253,5 +253,7 @@
   "icon.emoji.group.6": "Activities",
   "icon.emoji.group.7": "Objects",
   "icon.emoji.group.8": "Symbols",
-  "icon.emoji.group.9": "Flags"
+  "icon.emoji.group.9": "Flags",
+  "topbar.undo": "Undo",
+  "topbar.redo": "Redo"
 }

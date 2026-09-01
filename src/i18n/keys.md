@@ -261,5 +261,7 @@
 | `theme.light`                     | 浅色                                                                             |
 | `theme.system`                    | 跟随系统                                                                         |
 | `topbar.github`                   | 在 GitHub 上查看源码                                                             |
+| `topbar.redo`                      | 重做                                                                             |
+| `topbar.undo`                      | 撤销                                                                             |
 | `topbar.language`                 | 界面语言                                                                         |
 | `topbar.theme`                    | 主题                                                                             |

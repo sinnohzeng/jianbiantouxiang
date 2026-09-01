@@ -253,5 +253,7 @@
   "icon.emoji.group.6": "活動",
   "icon.emoji.group.7": "物件",
   "icon.emoji.group.8": "符號",
-  "icon.emoji.group.9": "旗幟"
+  "icon.emoji.group.9": "旗幟",
+  "topbar.undo": "撤銷",
+  "topbar.redo": "重做"
 }
