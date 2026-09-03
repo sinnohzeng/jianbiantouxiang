@@ -123,7 +123,12 @@ describe('getPalette 与 paletteColors', () => {
     // DEFAULT_PALETTE_ID 是 id 查不到时的兜底，DEFAULT_CONFIG.palette 是首屏出的那套，两者不必同一个
     expect(getPalette(DEFAULT_PALETTE_ID)).toBeDefined()
     expect(getPalette(DEFAULT_CONFIG.palette)).toBeDefined()
-    expect(DEFAULT_CONFIG.palette).toBe('aurora')
+    expect(DEFAULT_CONFIG.palette).toBe('clear-sky')
+  })
+
+  it('显式写旧默认 aurora 的配置仍归一化为 aurora', () => {
+    expect(getPalette('aurora')).toBeDefined()
+    expect(normalizeConfig({ ...DEFAULT_CONFIG, palette: 'aurora' }).palette).toBe('aurora')
   })
 
   it('查不到的 id 返回 undefined', () => {

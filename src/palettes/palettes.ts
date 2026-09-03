@@ -301,6 +301,15 @@ const ROWS: readonly Row[] = [
     '#080808',
     ['墨黑单色', '墨黑單色', 'Ink Black', 'インクブラック', '잉크 블랙'],
   ],
+  [
+    'clear-sky',
+    'blue',
+    'light',
+    ['#E3EEFF', '#B9D4FF', '#8FBBFF', '#66A3FF', '#4A8EFF'],
+    '#141413',
+    '#F4F8FF',
+    ['晴空', '晴空', 'Clear Sky', 'クリアスカイ', '클리어 스카이'],
+  ],
 ]
 
 export const PALETTES: Palette[] = ROWS.map(([id, family, tone, colors, text, bg, names]) => ({

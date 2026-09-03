@@ -108,7 +108,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     rotation: 0,
   },
   highlight: 0.25,
-  palette: 'aurora',
+  palette: 'clear-sky',
   customColors: [],
   canvas: { width: 1024, height: 1024, shape: 'square', radius: 0.2 },
   typography: {
