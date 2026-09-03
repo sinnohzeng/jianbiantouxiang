@@ -16,7 +16,7 @@ import { memoryStorage as storage } from '../setup'
 // 只用到 id 与 tone，给三套固定数据让“换同 tone 配色”有唯一解
 vi.mock('@/palettes/palettes', () => ({
   PALETTES: [
-    { id: 'aurora', tone: 'light' },
+    { id: 'clear-sky', tone: 'light' },
     { id: 'frost', tone: 'light' },
     { id: 'midnight', tone: 'dark' },
   ],
@@ -144,20 +144,20 @@ describe('randomizeAll', () => {
     })
     store().randomizeAll()
     const { config } = store()
-    expect(['aurora', 'frost', 'midnight']).toContain(config.palette)
+    expect(['clear-sky', 'frost', 'midnight']).toContain(config.palette)
     expect(config.customColors).toEqual(['#112233', '#445566'])
   })
 
   it('配色 id 不认识时换成内置配色', () => {
     useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, palette: '不存在' } })
     store().randomizeAll()
-    expect(['aurora', 'frost', 'midnight']).toContain(store().config.palette)
+    expect(['clear-sky', 'frost', 'midnight']).toContain(store().config.palette)
   })
 
   it('同 tone 只剩当前这一套时跨 tone 换，不会原地不动', () => {
     useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, palette: 'midnight' } })
     store().randomizeAll()
-    expect(['aurora', 'frost']).toContain(store().config.palette)
+    expect(['clear-sky', 'frost']).toContain(store().config.palette)
   })
 
   it('连续点十次，每次都换掉当前配色', () => {

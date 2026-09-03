@@ -31,7 +31,7 @@
 | `src/engine/` | 质感定义与参数映射、种子、预览挂载、离屏渲染、设备能力探测、无 WebGL2 兜底 |
 | `src/engine/shaders/` | 四段 fragment shader 源码，一种质感一份 chunk |
 | `src/text/` | 文字量测、换行、自动填满、排版、绘制、自动取色 |
-| `src/palettes/` | 26 套内置配色、OKLCH 色彩工具、种子色和谐生成 |
+| `src/palettes/` | 27 套内置配色、OKLCH 色彩工具、种子色和谐生成 |
 | `src/fonts/` | 精选清单、fontsource 目录缓存、css2 与镜像加载链、本地上传注册 |
 | `src/graphics/` | 图形来源分派、lucide Path2D、Noto Emoji、上传消毒、五语 emoji 索引、图形绘制 |
 | `src/graphics/generated/` | lucide 全库与精选索引、emoji 基础索引与五语标签，由 `npm run gen:icons` / `gen:emoji` 生成 |
@@ -166,7 +166,7 @@ v4 只有一种版式：图标（可选）→ 第一行 → 第二行的纵向�
 
 ## 配色
 
-`src/palettes/palettes.ts` 用一张元组表定义 26 套配色，归到 15 个家族。每套的字段是 id、家族、明暗、2 到 6 个停靠色、推荐文字色、留白底色，以及五种语言的名字。配色名不进 i18n 字典，直接按 `useLocale()` 从 `PALETTES[i].name[locale]` 取。`PLATE_HINT_IDS` 列出推荐文字色对最差停靠点低于 WCAG 4.5 的配色，界面据此默认开启胶囊底。
+`src/palettes/palettes.ts` 用一张元组表定义 27 套配色，归到 15 个家族。每套的字段是 id、家族、明暗、2 到 6 个停靠色、推荐文字色、留白底色，以及五种语言的名字。配色名不进 i18n 字典，直接按 `useLocale()` 从 `PALETTES[i].name[locale]` 取。`PLATE_HINT_IDS` 列出推荐文字色对最差停靠点低于 WCAG 4.5 的配色，界面据此默认开启胶囊底。
 
 种子色生成在 `harmony.ts`：给一个主色，按类比、分裂互补、同色相三种方案在 OKLCH 里排出 5 档明度阶梯加 1 个光感点；给两个主色则沿短弧在两个色相之间取档。明度阶梯与 chroma 系数都是定值，同一种子色永远得到同一套。
 
