@@ -36,7 +36,6 @@ describe('normalizeConfig 补默认', () => {
   it('默认是方形、白色文字、15% 边距、1.03 行高与两行示例', () => {
     expect(DEFAULT_CONFIG.canvas.shape).toBe('square')
     expect(DEFAULT_CONFIG.text).toBe('飞书\n效率先锋')
-    expect(DEFAULT_CONFIG.typography.colorMode).toBe('custom')
     expect(DEFAULT_CONFIG.typography.color).toBe('#ffffff')
     expect(DEFAULT_CONFIG.typography.padding).toBe(0.15)
     expect(DEFAULT_CONFIG.typography.lineHeight).toBe(1.03)
@@ -106,7 +105,7 @@ describe('normalizeConfig 夹值与校验', () => {
     expect(config.canvas.shape).toBe('square')
     expect(config.typography.effect).toBe('shadow')
     expect(config.exportOptions.format).toBe('jpg')
-    expect(config.exportOptions.sizeTarget).toBe('1mb')
+    expect(config.exportOptions.sizeTarget).toBe('2mb')
   })
 
   it('合法枚举原样保留', () => {
@@ -274,7 +273,7 @@ describe('configHash', () => {
     const base = configHash(DEFAULT_CONFIG)
     expect(configHash(normalizeConfig({ text: '别的字' }))).not.toBe(base)
     expect(configHash(normalizeConfig({ styleParams: { grain: 0.9 } }))).not.toBe(base)
-    expect(configHash(normalizeConfig({ canvas: { width: 2048 } }))).not.toBe(base)
+    expect(configHash(normalizeConfig({ canvas: { width: 1024 } }))).not.toBe(base)
   })
 })
 

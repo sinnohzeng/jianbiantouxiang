@@ -3,7 +3,6 @@ import { oklab, wcagContrast } from '@/palettes/culori'
 import {
   DEFAULT_PALETTE_ID,
   PALETTES,
-  PALETTE_FAMILIES,
   PLATE_HINT_IDS,
   getPalette,
   paletteColors,
@@ -154,19 +153,3 @@ describe('getPalette 与 paletteColors', () => {
   })
 })
 
-describe('PALETTE_FAMILIES', () => {
-  it('覆盖所有配色用到的家族且不重复', () => {
-    const used = new Set(PALETTES.map((p) => p.family))
-    const listed = PALETTE_FAMILIES.map((f) => f.id)
-    expect(new Set(listed).size).toBe(listed.length)
-    expect(new Set(listed)).toEqual(used)
-  })
-
-  it('每个家族有五种语言的名字', () => {
-    for (const family of PALETTE_FAMILIES) {
-      for (const locale of LOCALES) {
-        expect(family.name[locale], `${family.id} ${locale}`).toBeTruthy()
-      }
-    }
-  })
-})

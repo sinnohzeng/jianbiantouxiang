@@ -1,7 +1,6 @@
 import { resolveSeed } from '@/engine/seed'
 import type { Graphic } from '@/graphics/types'
 import type { AvatarConfig } from '@/state/config'
-import { effectiveConfig } from '@/text/effective'
 import type { Rect } from '@/text/layout'
 import { createCanvas, get2d, releaseCanvas } from './canvas'
 
@@ -23,12 +22,6 @@ export interface ComposeDeps<L extends { graphic?: Rect }> {
     seed: string,
   ): void
   layoutText(config: AvatarConfig, width: number, height: number, graphic: Graphic | null): L
-  /** 一次采样定下文字色与要不要补胶囊底板，见 text/auto-color 的 resolveInk。 */
-  resolveInk(
-    ctx: CanvasRenderingContext2D,
-    layout: L,
-    config: AvatarConfig,
-  ): { color: string; plate: boolean }
   drawText(ctx: CanvasRenderingContext2D, layout: L, config: AvatarConfig, color: string): void
   drawGraphic(
     ctx: CanvasRenderingContext2D,
@@ -41,8 +34,8 @@ export interface ComposeDeps<L extends { graphic?: Rect }> {
 
 /**
  * 按 底色 → 渐变 → 高光 → 图形与文字 → 形状遮罩 的顺序合成一张完整头像。
- * 顺序是硬性的：高光要压在渐变上，自动文字色要读高光之后的画面，
- * 遮罩必须最后做，否则被裁掉的边角会被后续绘制重新填满。
+ * 顺序是硬性的：高光要压在渐变上，遮罩必须最后做，
+ * 否则被裁掉的边角会被后续绘制重新填满。
  */
 export async function composeWith<L extends { graphic?: Rect }>(
   config: AvatarConfig,
@@ -79,14 +72,12 @@ export async function composeWith<L extends { graphic?: Rect }>(
     const hasText = config.text.trim() !== ''
     if (hasText || graphic) {
       const layout = deps.layoutText(config, width, height, graphic)
-      // 底板判定与预览走同一条路径：都读高光之后的像素，两边不会一个有底板一个没有。
-      // 图标徽章里文字不与图形重叠，先取文字下方背景色，再按这个颜色画内置图形。
-      const ink = deps.resolveInk(ctx, layout, config)
-      const target = effectiveConfig(config, ink.plate)
+      // 文字色就是用户挑的那个色，预览与导出读同一个字段，不再有第二条判定路径
+      const ink = config.typography.color
       if (graphic && layout.graphic) {
-        deps.drawGraphic(ctx, graphic, layout.graphic, target, ink.color)
+        deps.drawGraphic(ctx, graphic, layout.graphic, config, ink)
       }
-      if (hasText) deps.drawText(ctx, layout, target, ink.color)
+      if (hasText) deps.drawText(ctx, layout, config, ink)
     }
 
     applyShapeMask(ctx, config, width, height)

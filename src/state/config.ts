@@ -45,7 +45,6 @@ export interface AvatarConfig {
     letterSpacing: number // em，-0.1..0.5
     effect: TextEffect
     effectStrength: number // 0..1
-    colorMode: 'auto' | 'custom'
     color: string
     /** 两档：次行相对基准字号的乘数。 */
     lineSizeScales: number[]
@@ -73,10 +72,10 @@ export interface AvatarConfig {
 
 export const STYLE_IDS: readonly StyleId[] = ['mesh', 'flow', 'silk', 'grain']
 export const SHAPES: readonly Shape[] = ['square', 'rounded', 'circle']
-export const TEXT_EFFECTS: readonly TextEffect[] = ['plain', 'outline', 'shadow', 'glow', 'pill']
+// 投影是默认档，排第一：默认值理应是列表里第一个，用户看到的顺序就是分量顺序
+export const TEXT_EFFECTS: readonly TextEffect[] = ['shadow', 'plain', 'outline', 'glow', 'pill']
 export const FONT_SOURCES = ['google', 'system', 'upload'] as const
 export const SIZE_MODES = ['auto', 'manual'] as const
-export const COLOR_MODES = ['auto', 'custom'] as const
 export const EXPORT_FORMATS = ['jpg', 'png', 'webp'] as const
 export const SIZE_TARGETS = ['none', '1mb', '2mb'] as const
 export const ICON_SOURCES = ['none', 'builtin', 'emoji', 'brand', 'upload'] as const
@@ -124,7 +123,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
   highlight: 0.25,
   palette: 'aurora',
   customColors: [],
-  canvas: { width: 1024, height: 1024, shape: 'square', radius: 0.2 },
+  canvas: { width: 2048, height: 2048, shape: 'square', radius: 0.2 },
   typography: {
     // 契约基线，也是 normalizeConfig 的兜底值。首次进入实际用哪套字体按界面语言定，见 LOCALE_DEFAULT_FONT
     fontFamily: 'Noto Sans SC',
@@ -138,7 +137,6 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     // v4.0 起默认投影：比发光收敛，深浅背景都稳；强度 0.4 是白字与深字适配后的折中
     effect: 'shadow',
     effectStrength: 0.4,
-    colorMode: 'custom',
     color: '#ffffff',
     lineSizeScales: [1, STATUS_SECOND_LINE_SCALE],
     lineOffsetsX: [0, 0],
@@ -151,7 +149,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
   },
   exportOptions: {
     format: 'jpg',
-    sizeTarget: '1mb',
+    sizeTarget: '2mb',
     bgColor: '#ffffff',
   },
 }
@@ -323,7 +321,6 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
       letterSpacing: num(tp.letterSpacing, d.typography.letterSpacing, -0.1, 0.5),
       effect: pick(tp.effect, TEXT_EFFECTS, d.typography.effect),
       effectStrength: num(tp.effectStrength, d.typography.effectStrength, 0, 1),
-      colorMode: pick(tp.colorMode, COLOR_MODES, d.typography.colorMode),
       color: normalizeHex(tp.color, d.typography.color),
       lineSizeScales,
       lineOffsetsX: normalizeNumberArray(

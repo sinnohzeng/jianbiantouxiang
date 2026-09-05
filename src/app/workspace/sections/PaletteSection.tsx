@@ -1,10 +1,14 @@
 /**
- * 配色节：随机主按钮、明暗与家族筛选、四列渐变磁贴，自定义色与种子生成器折在末尾。
+ * 配色节：明暗筛选加四列渐变磁贴，自定义色与种子生成器折在末尾。
  * 磁贴是真实渐变缩略图而不是圆点，选色时看到的就是画面里的走向。
+ *
+ * 这里不再放「随机颜色」：同一个动作在常驻操作条上已经是一级按钮，
+ * 同一件事在一屏里出现两次，用户只会犹豫这两个是不是不一样。
+ * 也不再有家族下拉：明暗两档就够分流，先按家族收窄再挑反而比直接挑更慢。
  */
 
 import { useId, useMemo, useState } from 'react'
-import { PlusIcon, ShuffleIcon, XIcon } from 'lucide-react'
+import { PlusIcon, XIcon } from 'lucide-react'
 import { ColorField } from '@/components/blocks/color-field'
 import { PanelSection } from '@/components/blocks/panel-section'
 import { SegmentedControl } from '@/components/blocks/segmented-control'
@@ -12,33 +16,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { queueHistoryThumbnail } from '@/app/history-thumb'
-import { Ripple, useRipple } from '@/app/showcase/Ripple'
 import { useShowcase } from '@/app/showcase/config'
 import { SelectionIndicator } from '@/app/showcase/SelectionIndicator'
 import { paletteThumbCss, parseHexList } from '@/palettes/color'
 import { harmonize, type HarmonyScheme } from '@/palettes/harmony'
-import {
-  PALETTES,
-  PALETTE_FAMILIES,
-  paletteColors,
-  type PaletteFamilyId,
-  type PaletteTone,
-} from '@/palettes/palettes'
+import { PALETTES, paletteColors, type PaletteTone } from '@/palettes/palettes'
 import { useLocale, useT } from '@/i18n'
 import { normalizeHex } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { SectionCard } from './card'
 
 type ToneFilter = 'all' | PaletteTone
-type FamilyFilter = 'all' | PaletteFamilyId
 
 const CUSTOM_MIN = 2
 const CUSTOM_MAX = 6
@@ -49,14 +37,10 @@ export function PaletteSection() {
   const { locale } = useLocale()
   const config = useAvatarStore((state) => state.config)
   const setConfig = useAvatarStore((state) => state.setConfig)
-  const randomize = useAvatarStore((state) => state.randomize)
-  const pushHistory = useAvatarStore((state) => state.pushHistory)
 
   const showcase = useShowcase()
-  const burst = useRipple()
 
   const [tone, setTone] = useState<ToneFilter>('all')
-  const [family, setFamily] = useState<FamilyFilter>('all')
   const [seed1, setSeed1] = useState('#5fb4f5')
   const [seed2, setSeed2] = useState('')
   const [seedTone, setSeedTone] = useState<PaletteTone>('light')
@@ -65,13 +49,8 @@ export function PaletteSection() {
   const [pasted, setPasted] = useState('')
 
   const visible = useMemo(
-    () =>
-      PALETTES.filter(
-        (palette) =>
-          (tone === 'all' || palette.tone === tone) &&
-          (family === 'all' || palette.family === family),
-      ),
-    [tone, family],
+    () => PALETTES.filter((palette) => tone === 'all' || palette.tone === tone),
+    [tone],
   )
 
   /** 自定义区没存过色时，先拿当前配色当草稿，用户一改就落到 custom。 */
@@ -83,12 +62,6 @@ export function PaletteSection() {
   const writeCustom = (colors: string[]): void => {
     setConfig({ palette: 'custom', customColors: colors })
   }
-
-  const familyItems = useMemo(() => {
-    const items: Record<string, string> = { all: t('panel.palette.family.all') }
-    for (const item of PALETTE_FAMILIES) items[item.id] = item.name[locale]
-    return items
-  }, [locale, t])
 
   const generate = (): void => {
     const base = normalizeHex(seed1, '')
@@ -105,26 +78,6 @@ export function PaletteSection() {
 
   return (
     <SectionCard title={t('panel.palette.title')}>
-      {/* 与底栏同一个动作提到一级：换种子就是换一张，最高频，放在配色节顶上 */}
-      <span className="relative flex">
-        <Button
-          type="button"
-          data-slot="palette-shuffle"
-          className="tap-target h-11 w-full"
-          title={t('bottombar.random.hint')}
-          onClick={() => {
-            randomize()
-            pushHistory()
-            queueHistoryThumbnail()
-            burst.fire()
-          }}
-        >
-          <ShuffleIcon aria-hidden />
-          {t('bottombar.random')}
-          <Ripple token={burst.token} />
-        </Button>
-      </span>
-
       <div className="flex flex-col gap-2">
         <SegmentedControl<ToneFilter>
           name="palette-tone"
@@ -137,28 +90,6 @@ export function PaletteSection() {
           ]}
           onChange={setTone}
         />
-        <Select
-          items={familyItems}
-          value={family}
-          onValueChange={(next) => {
-            if (typeof next === 'string') setFamily(next as FamilyFilter)
-          }}
-        >
-          {/* 原语给的 data-[size=default]:h-8 带变体，优先级压过裸 h-11，只能同样带变体覆盖 */}
-          <SelectTrigger
-            className="w-full data-[size=default]:h-11"
-            aria-label={t('panel.palette.family')}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(familyItems).map(([id, name]) => (
-              <SelectItem key={id} value={id}>
-                {name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {visible.length === 0 ? (

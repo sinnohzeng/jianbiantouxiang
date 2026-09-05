@@ -1,4 +1,4 @@
-import { INK_DARK, INK_LIGHT, isLightColor } from '@/text/auto-color'
+import { INK_DARK, INK_LIGHT, isLightColor } from '@/text/ink'
 import type { AvatarConfig } from '@/state/config'
 import type { Rect } from '@/text/layout'
 import type { Graphic } from './types'

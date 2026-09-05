@@ -1,8 +1,10 @@
 /**
- * 图形节：开关、当前图形磁贴、更换与清除。
+ * 图标节：开关、当前图标磁贴、更换与清除。
  *
- * 开关的语义沿用 v4：开就是拉起选择器去挑一个图形，关就把图形位清空回纯文字。
- * 图形大小在检查器带里，这里只管挑。
+ * 标题叫「图标」不叫「图形」：第一次进来的人不知道「图形」指什么，
+ * 所以标题下常驻一句话，把内置图标、emoji、品牌标志、上传图片四条来路直接摊开说。
+ * 开关的语义沿用 v4：开就是拉起选择器去挑一个，关就把这一位清空回纯文字。
+ * 图标大小在微调面板里，这里只管挑。
  */
 
 import { Suspense, useState } from 'react'
@@ -52,6 +54,8 @@ export function GraphicSection() {
         />
       }
     >
+      <p className="text-muted-foreground text-xs">{t('panel.graphic.intro')}</p>
+
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -67,7 +71,7 @@ export function GraphicSection() {
             <GraphicThumb
               icon={icon}
               config={config}
-              color={type.colorMode === 'custom' ? type.color : '#ffffff'}
+              color={type.color}
             />
           ) : (
             <ImagePlusIcon className="size-6" aria-hidden />
@@ -82,7 +86,7 @@ export function GraphicSection() {
           </p>
           <div className="flex flex-wrap items-center gap-1.5">
             <Button type="button" variant="outline" className="h-11 px-3" onClick={openPicker}>
-              {t('panel.graphic.change')}
+              {enabled ? t('panel.graphic.change') : t('panel.graphic.pick')}
             </Button>
             {enabled ? (
               <Button

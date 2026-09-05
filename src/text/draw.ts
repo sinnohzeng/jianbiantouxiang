@@ -1,5 +1,5 @@
 import type { AvatarConfig } from '@/state/config'
-import { INK_DARK, INK_LIGHT, isLightColor } from './auto-color'
+import { INK_DARK, INK_LIGHT, isLightColor } from './ink'
 import type { LayoutLine, PillRect, TextLayout } from './layout'
 import { cssPx, toGraphemes } from './measure'
 

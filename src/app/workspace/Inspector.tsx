@@ -1,7 +1,7 @@
 /**
- * 微调面板：全部数值滑杆按分组收在这里，外加画布尺寸与形状。
+ * 微调面板：全部数值滑杆按分组收在这里。画布尺寸与形状归导出抽屉，不在这。
  *
- * 默认收起。桌面打开时在最右侧多开一列，手机上就在挑选栏下面展开。
+ * 默认收起。桌面打开时在最左侧多开一列，手机上就在挑选栏下面展开。
  * 开合状态由 inspector-open 这个模块级状态持有并落盘，手机与桌面共用同一个开关。
  *
  * 收起时整块不渲染，不是藏起来：Base UI 的滑杆在挂载那一刻量自己有多宽，
@@ -25,7 +25,6 @@ import { useInspectorOpen } from '@/app/inspector-open'
 import { StaggerRoot } from '@/app/showcase/stagger'
 import { twoLinesOf } from '@/text/wrap'
 import { withLineValue } from '@/app/workspace/shared'
-import { CanvasSection } from './sections/CanvasSection'
 import { SectionCard } from './sections/card'
 import { cn } from '@/lib/utils'
 
@@ -336,8 +335,6 @@ export function Inspector() {
               onChange={(highlight) => setConfig({ highlight })}
             />
           </Group>
-
-          <CanvasSection />
         </StaggerRoot>
       ) : null}
     </section>

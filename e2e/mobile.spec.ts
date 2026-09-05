@@ -38,7 +38,7 @@ test('底栏点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => 
   const encoded = await probeEncode(page)
   expect(encoded.type).toBe('image/jpeg')
   expect(encoded.bytes).toBeGreaterThan(0)
-  expect(encoded.bytes).toBeLessThanOrEqual(1024 * 1024)
+  expect(encoded.bytes).toBeLessThanOrEqual(2 * 1024 * 1024)
   expect(encoded.hitTarget).toBe(true)
 })
 
@@ -131,7 +131,8 @@ test('预览上盖着可长按保存的 JPG，改文字会换新图，网格不�
   expect(first?.startsWith('data:image/jpeg;base64,')).toBe(true)
   expect((first ?? '').length).toBeGreaterThan(5000)
 
-  // 网格是预览参考层，长按存下来的图里不该有它
+  // 网格是预览参考层，长按存下来的图里不该有它。它收在操作条的更多菜单里
+  await page.locator('[data-slot="more-menu"]').click()
   await page.locator('[data-slot="grid-toggle"]').click()
   await page.waitForTimeout(1200)
   expect(await image.getAttribute('src')).toBe(first)

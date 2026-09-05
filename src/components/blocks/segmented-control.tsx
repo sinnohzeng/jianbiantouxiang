@@ -84,7 +84,11 @@ export function SegmentedControl<T extends string>({
               // 深色的观感几乎不变（明度 0.715 到 0.740），只把浅色那一档补上来。
               // 选中态是实心主色：白底板压在浅灰槽上只差一点点亮度，一眼看不出选的是哪一格
               'text-foreground/65 relative flex h-full w-full min-w-0 items-center justify-center gap-1.5 rounded-md px-2 text-sm font-medium transition-colors',
-              'peer-hover:text-foreground peer-checked:text-primary-foreground peer-checked:font-semibold',
+              // 悬停提亮只给未选中的那几格。写成 peer-hover 的话 Tailwind 会把它排在 peer-checked 之后，
+              // 悬停选中格时文字被改回 foreground，压在实心主色底板上就是一片看不清的深色，
+              // 深浅两套主题都中招。所以选择器里自己带上 :not(:checked)
+              '[.peer:hover:not(:checked)~&]:text-foreground',
+              'peer-checked:text-primary-foreground peer-checked:font-semibold',
               !showcase && 'peer-checked:bg-primary peer-checked:shadow-sm',
               'peer-focus-visible:ring-ring/50 peer-focus-visible:ring-3',
               'motion-reduce:transition-none',

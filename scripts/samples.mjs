@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 生成 README 使用的三张样张。
+ * 生成 README 使用的四张样张。
  *
  * 先构建，再起 vite preview，最后打开 ?samples=1 截 #samples。样张页走
  * composeAvatar 真实导出链路，不用 DOM 里的预览画布，避免软件渲染与
@@ -65,10 +65,11 @@ async function main() {
     await pageRoot.waitFor({ state: 'visible' })
 
     const children = page.locator('#samples > div')
-    await expectLocatorCount(children, 7)
+    await expectLocatorCount(children, 9)
     await children.nth(2).screenshot({ path: path.join(OUT_DIR, 'styles-x-palettes-1.jpg'), type: 'jpeg', quality: 86 })
     await children.nth(4).screenshot({ path: path.join(OUT_DIR, 'styles-x-palettes-2.jpg'), type: 'jpeg', quality: 86 })
-    await children.nth(6).screenshot({ path: path.join(OUT_DIR, 'text-effects.jpg'), type: 'jpeg', quality: 86 })
+    await children.nth(6).screenshot({ path: path.join(OUT_DIR, 'styles-x-palettes-3.jpg'), type: 'jpeg', quality: 86 })
+    await children.nth(8).screenshot({ path: path.join(OUT_DIR, 'text-effects.jpg'), type: 'jpeg', quality: 86 })
     await page.close()
   } finally {
     await browser.close()
@@ -83,7 +84,7 @@ async function main() {
     })
   }
 
-  console.log(`已生成 3 张样张，输出目录 ${OUT_DIR}`)
+  console.log(`已生成 4 张样张，输出目录 ${OUT_DIR}`)
 }
 
 async function expectLocatorCount(locator, count) {

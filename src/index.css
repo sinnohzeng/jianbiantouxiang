@@ -157,6 +157,195 @@
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+
+  /*
+   * 桌面工作台的栅格。写在这里而不是堆在 className 上：
+   * 断点 × 微调开合 = 四套列模板加四套落位，用任意变体拼出来是一串三百字符的类名，
+   * 改一个数要在里面数括号。
+   *
+   * 列宽随视口线性放宽：1440 笔记本上挑选栏是 340，1920 上放到 400，再宽就封顶，
+   * 富余全部让给画框（画框自己的封顶在 PreviewStage，960）。
+   * 微调打开时三列各让一档，腾出最左边那一列给它。
+   * 微调在左不在右：它是「改得更细」，与左边两列的「挑」是同一件事的深一层，
+   * 而右边那一列是作品本身，不该被参数面板夹在中间。
+   */
+  [data-slot='workspace'] {
+    --pick-w: clamp(340px, calc(12.5vw + 160px), 400px);
+    --pick-w-open: clamp(300px, calc(12.5vw + 120px), 360px);
+    /* 微调开着、但还没拆成两列那一档：一共才三列，挑选栏不必收到四列时的宽度，
+       跟收起时同宽，开合微调不会让这一列自己缩一圈 */
+    --pick-w-solo: clamp(300px, calc(12.5vw + 160px), 400px);
+    --inspector-w: clamp(300px, calc(8.33vw + 180px), 340px);
+  }
+
+  /*
+   * 桌面的列模板。挑选栏拆不拆成两列，看的是还剩多少宽度给画框，不只是视口有多宽：
+   * 微调收起时 1280 就够拆，展开时微调那一列要再吃掉三百像素，1280 上四列并排
+   * 会把画框压到 300，比不拆还糟，所以展开态要 1536 才拆。
+   * 拆开时外层壳 display:contents，两个子列直接成为 grid 项各占一列、各自滚；
+   * 拆不开时壳自己就是一个 grid 项，由它统一滚。
+   */
+
+  /* display 归这里管：拆两列时要能换成 contents，工具类里的 flex 排在组件层之后会压掉它 */
+  [data-slot='pick-columns'] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 挑选栏并作一列 */
+  @media (min-width: 64rem) {
+    [data-slot='workspace'][data-inspector='closed'] {
+      grid-template-columns: minmax(0, var(--pick-w)) minmax(0, 1fr);
+    }
+    [data-inspector='closed'] > [data-slot='pick-columns'] {
+      grid-area: 1 / 1;
+    }
+    [data-inspector='closed'] > [data-slot='preview-pane'] {
+      grid-area: 1 / 2;
+    }
+    [data-inspector='closed'] > [data-slot='bottom-bar'] {
+      grid-area: 2 / 2;
+    }
+
+    [data-slot='workspace'][data-inspector='open'] {
+      grid-template-columns:
+        minmax(0, var(--inspector-w))
+        minmax(0, var(--pick-w-solo))
+        minmax(0, 1fr);
+    }
+    [data-inspector='open'] > [data-slot='inspector-dock'] {
+      grid-area: 1 / 1;
+    }
+    [data-inspector='open'] > [data-slot='pick-columns'] {
+      grid-area: 1 / 2;
+    }
+    [data-inspector='open'] > [data-slot='preview-pane'] {
+      grid-area: 1 / 3;
+    }
+    [data-inspector='open'] > [data-slot='bottom-bar'] {
+      grid-area: 2 / 3;
+    }
+  }
+
+  /* 1280 起、微调收起：挑选栏拆成两列 */
+  @media (min-width: 80rem) {
+    [data-slot='workspace'][data-inspector='closed'] {
+      grid-template-columns: minmax(0, var(--pick-w)) minmax(0, var(--pick-w)) minmax(0, 1fr);
+    }
+    [data-inspector='closed'] > [data-slot='pick-columns'] {
+      display: contents;
+    }
+    [data-inspector='closed'] [data-slot='pick-column'] {
+      grid-area: 1 / 1;
+    }
+    [data-inspector='closed'] [data-slot='pick-column-color'] {
+      grid-area: 1 / 2;
+    }
+    [data-inspector='closed'] > [data-slot='preview-pane'] {
+      grid-area: 1 / 3;
+    }
+    [data-inspector='closed'] > [data-slot='bottom-bar'] {
+      grid-area: 2 / 3;
+    }
+  }
+
+  /* 1536 起、微调展开：微调、两列挑选栏、画框四列并排 */
+  @media (min-width: 96rem) {
+    [data-slot='workspace'][data-inspector='open'] {
+      grid-template-columns:
+        minmax(0, var(--inspector-w))
+        minmax(0, var(--pick-w-open))
+        minmax(0, var(--pick-w-open))
+        minmax(0, 1fr);
+    }
+    [data-inspector='open'] > [data-slot='pick-columns'] {
+      display: contents;
+    }
+    [data-inspector='open'] [data-slot='pick-column'] {
+      grid-area: 1 / 2;
+    }
+    [data-inspector='open'] [data-slot='pick-column-color'] {
+      grid-area: 1 / 3;
+    }
+    [data-inspector='open'] > [data-slot='preview-pane'] {
+      grid-area: 1 / 4;
+    }
+    [data-inspector='open'] > [data-slot='bottom-bar'] {
+      grid-area: 2 / 4;
+    }
+  }
+
+  /* 拆开了才让两个子列各自滚，并回一列时滚的是外层壳，两层都能滚会打架 */
+  @media (min-width: 80rem) {
+    [data-inspector='closed'] [data-slot='pick-column'],
+    [data-inspector='closed'] [data-slot='pick-column-color'] {
+      min-height: 0;
+      overflow-y: auto;
+      padding-inline: 0.125rem;
+    }
+  }
+  @media (min-width: 96rem) {
+    [data-inspector='open'] [data-slot='pick-column'],
+    [data-inspector='open'] [data-slot='pick-column-color'] {
+      min-height: 0;
+      overflow-y: auto;
+      padding-inline: 0.125rem;
+    }
+  }
+
+  /*
+   * 操作条按自己有多宽决定文案露不露，而不是按视口。
+   * 它落在预览那一列里，同一个视口宽度下，微调开合会让这一列从 1056 掉到 736，
+   * 看视口宽度的断点在这里给不出正确答案。收起的顺序按分量倒着来：
+   * 先收次级动作的文案，再收两个随机，最后才轮到导出。
+   * 每个按钮都另有 aria-label，文案收掉不影响可访问名。
+   */
+  [data-slot='bottom-bar'] {
+    container: bar / inline-size;
+  }
+
+  /* 手机上它是通栏一条、按钮竖排，文案一直在，所以整段只管桌面 */
+  @media (min-width: 64rem) {
+    @container bar (min-width: 38rem) {
+      [data-slot='bottom-bar'] [data-label='short'] {
+        display: none;
+      }
+      [data-slot='bottom-bar'] [data-label='full'] {
+        display: block;
+      }
+    }
+
+    @container bar (max-width: 34rem) {
+      [data-slot='inspector-toggle'] [data-label],
+      [data-slot='more-menu'] [data-label] {
+        display: none;
+      }
+    }
+
+    @container bar (max-width: 30rem) {
+      [data-slot='shuffle-color'] [data-label],
+      [data-slot='shuffle-all'] [data-label] {
+        display: none;
+      }
+    }
+
+    @container bar (max-width: 22rem) {
+      [data-slot='export-action'] [data-label] {
+        display: none;
+      }
+    }
+  }
+
+  /*
+   * 竖向滚动条常驻占位。挑选栏这几列的内容高度会随筛选与展开跨过溢出阈值，
+   * 滚动条一出一进就是十几像素的宽度跳变，看起来像「点了随机颜色，这一列自己变宽了」。
+   */
+  [data-slot='pick-columns'],
+  [data-slot='pick-column'],
+  [data-slot='pick-column-color'],
+  [data-slot='inspector-dock'] {
+    scrollbar-gutter: stable;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

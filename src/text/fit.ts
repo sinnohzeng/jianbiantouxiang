@@ -310,16 +310,23 @@ export function fitStack(
   if (typography.sizeMode === 'manual') return build(typography.fontSize)
 
   /**
-   * 严格档要求两件事：没把哪个拉丁词从中间劈开，且主行没换行。
+   * 严格档要求两件事：没把哪个拉丁词从中间劈开，且两行各自都还是一行。
    *
-   * 主行是徽章的主体，「请假中」被折成「请假」加「中」比小一号难看得多，
-   * 而二分只认「更大」，不加这一条它会一路放大到刚好折行的那个尺寸。
-   * 放不下的长主行没有满足这一条的解，自动落到宽松档，与拆词那条同一个兜底。
+   * 用户写在「第一行」「第二行」里的就是他要的两行，排版不该自作主张再折一次：
+   * 「效率先锋」被折成「效率先」加「锋」比整体小一号难看得多。
+   * 二分只认「更大」，不加这一条它会一路放大到刚好折行的那个尺寸，
+   * 于是字越多折得越碎，而不是像用户预期的那样自动变小。
+   * 真放不下的长行没有满足这一条的解，自动落到宽松档，与拆词那条同一个兜底：
+   * 先按最小字号也塞不下时才允许折行。
    */
+  const singleLine = (part: ParagraphFit | null): boolean =>
+    part === null || part.block.lines.length <= 1
+
   const tidy = (fit: StackFit): boolean =>
     !(fit.primary?.block.broke ?? false) &&
     !(fit.secondary?.block.broke ?? false) &&
-    (fit.primary?.block.lines.length ?? 0) <= 1
+    singleLine(fit.primary) &&
+    singleLine(fit.secondary)
 
   const search = (strict: boolean): StackFit => {
     let low = MIN_FONT_RATIO

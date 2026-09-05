@@ -42,10 +42,15 @@ export const PROBE_TIMEOUT_MS = 60_000
  */
 export async function openApp(page: Page): Promise<void> {
   await page.goto(APP_URL)
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await page.waitForFunction(
     () => (globalThis as unknown as ProbeWindow).__gradientAvatarProbe !== undefined,
   )
+  await waitReady(page)
+}
+
+/** reload 之后再点界面之前用：等标题与幕布，不然点击会落在幕布上。 */
+export async function waitReady(page: Page): Promise<void> {
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await page
     .locator('[data-slot="preloader"][data-loading="true"]')
     .waitFor({ state: 'detached', timeout: 15_000 })

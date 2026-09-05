@@ -76,11 +76,19 @@ describe('auto 模式', () => {
     expect(result.fits).toBe(true)
   })
 
-  it('次行放不下时允许折行，主行仍保持单行', () => {
+  it('两行都不折：字号退到各自单行都放得下的那一档', () => {
     const result = fit({ text: '飞书\n效率先锋', typography: { padding: 0.1 } })
     expect(result.primary?.block.lines).toHaveLength(1)
-    expect(result.secondary?.block.lines).toHaveLength(2)
+    expect(result.secondary?.block.lines).toHaveLength(1)
+    // 约束落在次行：4 个 CJK × 0.62 ≤ 800，基准字号被压到 322 上下，而不是主行独占的 400
+    expect(result.primary?.fontSizePx ?? 0).toBeCloseTo(322, -1)
     expect(result.fits).toBe(true)
+  })
+
+  it('一行长到最小字号也放不下时才允许折行', () => {
+    const result = fit({ text: '飞书\n' + '效'.repeat(40), typography: { padding: 0.1 } })
+    expect(result.primary?.block.lines).toHaveLength(1)
+    expect((result.secondary?.block.lines.length ?? 0) > 1).toBe(true)
   })
 
   it('两块之间的留白按首行字号的 0.18 算', () => {

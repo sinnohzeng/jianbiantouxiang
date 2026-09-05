@@ -8,22 +8,19 @@
  * shader 画布的上下文可能被浏览器判掉（显存吃紧、GPU 复位、后台标签页回收），
  * 丢了之后 setUniforms 全是空操作、画面再也不动，所以挂载处监听 webglcontextlost 整块重建。
  *
- * 自动文字色要读“文字下方的画面”，而 WebGL 画布没开 preserveDrawingBuffer 读不回来，
- * 所以另开一条低分辨率探针：用导出同一条 renderGradient 路径画 128 px 的小图，
- * 在上面取色并判断要不要加底板。探针走的是尾沿防抖，比预览再多等一档，拖滑杆时不会每帧起一次 WebGL。
+ * 文字色就是用户挑的那一个，预览不再另起离屏 WebGL 去采样判色。
+ * 网格与安全区参考线的开关在操作条的「更多」里，不压在作品上。
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Grid3x3Icon, ScanIcon, TriangleAlertIcon } from 'lucide-react'
+import { TriangleAlertIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { getRenderCaps } from '@/engine/caps'
 import { resolveColors } from '@/engine/colors'
 import { cssFallbackBackground } from '@/engine/css-fallback'
 import { drawHighlight } from '@/engine/highlight'
 import { createGradientMount, type GradientMount } from '@/engine/mount'
-import { renderGradient } from '@/engine/render'
 import { resolveSeed } from '@/engine/seed'
-import { releaseCanvas } from '@/export/canvas'
 import { drawGraphic } from '@/graphics/draw'
 import { loadGraphic } from '@/graphics/source'
 import type { Graphic } from '@/graphics/types'
@@ -31,21 +28,18 @@ import { fetchCatalog } from '@/fonts/catalog'
 import type { FontEntry } from '@/fonts/catalog'
 import { getCuratedByFamily } from '@/fonts/curated'
 import { loadFontForConfig, quoteFamily } from '@/fonts/loader'
-import { INK_LIGHT, resolveInk } from '@/text/auto-color'
 import { drawText } from '@/text/draw'
-import { effectiveConfig } from '@/text/effective'
 import { safeArea } from '@/text/fit'
 import { layoutText } from '@/text/layout'
 import { GRID_DIVISIONS, usePreviewOverlays } from '@/app/preview-overlays'
 import { usePreviewSaveImage } from '@/app/preview-save-image'
 import { PreviewFrame } from '@/app/showcase/PreviewFrame'
 import { usePreviewFx } from '@/app/showcase/preview-fx'
-import { probeKey } from '@/app/probe-key'
 import { useThrottled } from '@/app/use-throttled'
 import { useIsMobile, useMediaQuery } from '@/hooks/use-media'
 import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
-import { snapFontRatio, type AvatarConfig } from '@/state/config'
+import { snapFontRatio } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 
 /**
@@ -54,61 +48,11 @@ import { useAvatarStore } from '@/state/store'
  */
 const PREVIEW_THROTTLE_MS = 80
 
-/** 取色探针再多等一档：它要起一次离屏 WebGL，比 setUniforms 贵得多。 */
-const PROBE_DELAY_MS = 220
-
-/** 探针短边像素。够 resolveInk 的 64×64 采样，又不至于拖慢。 */
-const PROBE_SHORT_SIDE = 128
-
 /** 预览画布的像素比上限，2 已经足够，再高只是白白多画像素。 */
 const MAX_PREVIEW_DPR = 2
 
 /** 上下文丢失后最多重建几次。反复丢说明这台设备扛不住，再重建也是白搭。 */
 const MAX_CONTEXT_RESTARTS = 3
-
-interface ProbeResult {
-  color: string
-  plate: boolean
-}
-
-/** 用导出同一条路径画一张小图，在上面取自动文字色并判断要不要底板。 */
-async function probeInk(
-  config: AvatarConfig,
-  graphic: Graphic | null,
-): Promise<ProbeResult | null> {
-  const { width, height } = config.canvas
-  const ratio = width / height
-  const probeWidth = Math.max(
-    16,
-    Math.round(ratio >= 1 ? PROBE_SHORT_SIDE * ratio : PROBE_SHORT_SIDE),
-  )
-  const probeHeight = Math.max(
-    16,
-    Math.round(ratio >= 1 ? PROBE_SHORT_SIDE : PROBE_SHORT_SIDE / ratio),
-  )
-
-  const canvas = document.createElement('canvas')
-  canvas.width = probeWidth
-  canvas.height = probeHeight
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })
-  if (!ctx) return null
-
-  try {
-    const gradient = await renderGradient(config, probeWidth, probeHeight)
-    ctx.fillStyle = config.exportOptions.bgColor
-    ctx.fillRect(0, 0, probeWidth, probeHeight)
-    ctx.drawImage(gradient, 0, 0, probeWidth, probeHeight)
-    releaseCanvas(gradient)
-    drawHighlight(ctx, probeWidth, probeHeight, config.highlight, resolveSeed(config))
-
-    const layout = layoutText(config, probeWidth, probeHeight, undefined, graphic)
-    return resolveInk(ctx, layout, config)
-  } catch {
-    return null
-  } finally {
-    releaseCanvas(canvas)
-  }
-}
 
 /** 目录条目先查精选清单，再查 fontsource 目录的本地缓存，查到才传给加载器。 */
 async function resolveFontEntry(family: string, source: string): Promise<FontEntry | undefined> {
@@ -137,17 +81,15 @@ export function PreviewStage() {
   const gradientRef = useRef<GradientMount | null>(null)
   const initialConfigRef = useRef(config)
   const toastedRef = useRef(new Set<string>())
-  const probeChain = useRef<Promise<unknown>>(Promise.resolve())
 
   const [box, setBox] = useState({ width: 0, height: 0 })
-  // 参考层开关记在 localStorage，刷新后还在；它们不属于配置，导出永远不画
-  const { guide, grid, setGuide, setGrid } = usePreviewOverlays()
+  // 参考层只读：开关在操作条的「更多」里。它们记在 localStorage，刷新后还在，
+  // 不属于配置，导出永远不画
+  const { guide, grid } = usePreviewOverlays()
   // 触屏才铺那张可长按保存的图；桌面用下载，叠一张静态图只会挡住实时预览
   const coarsePointer = useMediaQuery('(pointer: coarse)')
   const canLongPress = isMobile || coarsePointer
   const saveImage = usePreviewSaveImage(config, canLongPress)
-  const [autoInk, setAutoInk] = useState(INK_LIGHT)
-  const [autoPlate, setAutoPlate] = useState(false)
   const [overflow, setOverflow] = useState(false)
   const [fontTick, setFontTick] = useState(0)
   const [graphic, setGraphic] = useState<Graphic | null>(null)
@@ -173,11 +115,8 @@ export function PreviewStage() {
   // 字体状态放 store，面板与预览看同一份，不必各存一份局部状态
   const fontLoading = useAvatarStore((state) => state.ui.fontStatus === 'loading')
 
-  const { fontFamily, fontSource, fontWeight, colorMode, color } = config.typography
-
-  // 取色结果只在 auto 模式下生效；文字清空时底板也跟着撤掉
-  const ink = colorMode === 'custom' ? color : autoInk
-  const plate = colorMode === 'auto' && preview.text.trim() !== '' && autoPlate
+  const { fontFamily, fontSource, fontWeight } = config.typography
+  const ink = preview.typography.color
 
   // 挂载一次，之后只 update。style 换了由 mount 内部重建 shader 程序
   useEffect(() => {
@@ -291,37 +230,6 @@ export function PreviewStage() {
     }
   }, [preview.text, fontFamily, fontWeight, fontLoading])
 
-  // preview 每次都是新对象，探针只认与取色相关的那部分，改导出格式不该起一次离屏渲染
-  const previewRef = useRef(preview)
-  useEffect(() => {
-    previewRef.current = preview
-  }, [preview])
-
-  const probeSignature = useMemo(() => probeKey(preview), [preview])
-
-  // 自动文字色与底板判定
-  useEffect(() => {
-    if (colorMode !== 'auto' || previewRef.current.text.trim() === '') return
-    let cancelled = false
-    // 串到上一次探针后面。防抖只挡得住还没起跑的那次，已经在跑的探针照样占着一个离屏
-    // WebGL 上下文；连着改配置时它们会并行堆起来，浏览器一旦超过并发上限，
-    // 被判掉的往往是常驻预览那个上下文。这里保证同时最多一个在跑、一个在排队。
-    const timer = setTimeout(() => {
-      probeChain.current = probeChain.current
-        .catch(() => {})
-        .then(() => (cancelled ? null : probeInk(previewRef.current, graphic)))
-        .then((result) => {
-          if (cancelled || !result) return
-          setAutoInk(result.color)
-          setAutoPlate(result.plate)
-        })
-    }, PROBE_DELAY_MS)
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-  }, [probeSignature, colorMode, graphic])
-
   // 高光与文字。放进 rAF 画，既不挤占布局这一帧，也让排版结果的回写落在回调里
   useEffect(() => {
     const highlight = highlightRef.current
@@ -346,7 +254,7 @@ export function PreviewStage() {
       textCtx.clearRect(0, 0, pixelWidth, pixelHeight)
       drawHighlight(highlightCtx, pixelWidth, pixelHeight, preview.highlight, resolveSeed(preview))
 
-      const drawConfig = effectiveConfig(preview, plate)
+      const drawConfig = preview
       const layout = layoutText(drawConfig, pixelWidth, pixelHeight, undefined, graphic)
       if (graphic && layout.graphic) {
         drawGraphic(textCtx, graphic, layout.graphic, drawConfig, ink)
@@ -370,7 +278,7 @@ export function PreviewStage() {
     })
 
     return () => cancelAnimationFrame(frame)
-  }, [preview, box, ink, plate, fontTick, graphic, setUi])
+  }, [preview, box, ink, fontTick, graphic, setUi])
 
   const frameStyle = useMemo(() => {
     const { width, height, shape, radius } = preview.canvas
@@ -380,7 +288,7 @@ export function PreviewStage() {
     // 它是这一列留给预览的净空，两列档要给下面的检查器带让位，三列档几乎占满整列
     const edge = isMobile
       ? 'min(calc(100vw - 32px), calc(var(--preview-h) - 40px))'
-      : 'min(var(--preview-max, 70vh), 720px)'
+      : 'min(var(--preview-max, 70vh), 960px)'
     const shortSide = Math.min(box.width, box.height)
     const corner =
       shape === 'circle' ? '50%' : shape === 'rounded' ? `${shortSide * radius}px` : '0px'
@@ -439,11 +347,27 @@ export function PreviewStage() {
         onPointerMove={onFxPointerMove}
         onPointerLeave={onFxPointerLeave}
       >
+        {/* 画框底下的一团光晕，取当前配色、大半径模糊，从画框往外化开。
+            少了它，画框底边就是一条硬直线压在环境光上，看着像容器没收住。
+            它排在画框前面，靠 DOM 顺序垫在底下，不用负 z-index：
+            炫技层给外层挂 transform，负层级会被那个层叠上下文夹住，关掉炫技层时又不会 */}
+        <div
+          aria-hidden
+          data-slot="preview-bloom"
+          className="pointer-events-none absolute inset-x-5 -bottom-9 top-1/3 opacity-55 blur-[64px] dark:opacity-40"
+          style={{
+            background: frameStyle.background,
+            borderRadius: frameStyle.borderRadius,
+          }}
+        />
+
         <PreviewFrame
           ref={frameRef}
           role="img"
           aria-label={label}
-          className="relative isolate w-full overflow-hidden shadow-[0_18px_60px_-24px_rgba(0,0,0,0.45)] ring-1 ring-black/5 dark:ring-white/10"
+          // 三层投影：贴边一层压住边缘，中层给厚度，最外一层拖得很长很淡。
+          // 单层短投影会在画框底下收出一条看得见的边，那正是「分界线」的来源
+          className="relative isolate w-full overflow-hidden shadow-[0_2px_10px_-6px_rgba(0,0,0,0.22),0_26px_70px_-34px_rgba(0,0,0,0.30),0_64px_150px_-70px_rgba(0,0,0,0.28)] ring-1 ring-black/5 dark:ring-white/10"
           style={{
             aspectRatio: frameStyle.aspectRatio,
             borderRadius: frameStyle.borderRadius,
@@ -529,55 +453,6 @@ export function PreviewStage() {
 
         </PreviewFrame>
 
-        {/* 角标与按钮挂在外层而不是画框里：画框 overflow-hidden 加大圆角，
-            圆形与大圆角形状下贴角的元素会被裁掉一半，热区跟着一起没了 */}
-        {plate ? (
-          <p
-            className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-black/45 px-2 py-1 text-[11px] leading-none font-medium text-white backdrop-blur-sm"
-            title={t('preview.plate.hint')}
-          >
-            {t('preview.plate.badge')}
-          </p>
-        ) : null}
-
-        {/* 两个参考层开关。桌面竖着贴在画框右上角；手机预览只有 28svh，两个 44 px 的圆钮
-            压上去要盖掉半个字，所以缩到 36 px 挪去右下角，那里通常是空的渐变；热区靠伪元素补回 44 px */}
-        <div className="absolute right-2 bottom-2 flex flex-row gap-1 lg:top-2 lg:bottom-auto lg:flex-col lg:gap-1.5">
-          <button
-            type="button"
-            data-slot="grid-toggle"
-            aria-pressed={grid}
-            aria-label={t('preview.grid')}
-            title={t('preview.grid.hint')}
-            onClick={() => setGrid(!grid)}
-            className={cn(
-              'lg:tap-target flex size-9 items-center justify-center rounded-full backdrop-blur-sm transition-colors',
-              // 缩到 36 px 之后靠外扩的伪元素补回 44 px 触控热区
-              'relative after:absolute after:-inset-1 lg:after:hidden',
-              'focus-visible:ring-ring/60 focus-visible:ring-3 focus-visible:outline-none',
-              grid ? 'bg-white/85 text-neutral-900' : 'bg-black/35 text-white hover:bg-black/50',
-            )}
-          >
-            <Grid3x3Icon className="size-4 lg:size-5" />
-          </button>
-          <button
-            type="button"
-            data-slot="guide-toggle"
-            aria-pressed={guide}
-            aria-label={t('preview.safeArea')}
-            title={t('preview.safeArea.hint')}
-            onClick={() => setGuide(!guide)}
-            className={cn(
-              'lg:tap-target flex size-9 items-center justify-center rounded-full backdrop-blur-sm transition-colors',
-              // 缩到 36 px 之后靠外扩的伪元素补回 44 px 触控热区
-              'relative after:absolute after:-inset-1 lg:after:hidden',
-              'focus-visible:ring-ring/60 focus-visible:ring-3 focus-visible:outline-none',
-              guide ? 'bg-white/85 text-neutral-900' : 'bg-black/35 text-white hover:bg-black/50',
-            )}
-          >
-            <ScanIcon className="size-4 lg:size-5" />
-          </button>
-        </div>
       </div>
 
       <div className="flex min-h-5 w-full max-w-full flex-col items-center gap-1 text-center">

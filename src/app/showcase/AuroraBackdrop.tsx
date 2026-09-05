@@ -1,9 +1,8 @@
 /**
  * 页面底色的极光背景，来自 `@reactbits-starter/aurora-blur-tw`。
  *
- * 颜色取当前配色的前三色，第四层回到第一色收口；透明度接顶栏那根环境光滑杆，
- * 以 `AMBIENT_DEFAULT` 为基准等比缩放。浅色主题下先把颜色压一档再上屏，
- * 与原来的 CSS 光晕同一口径，pastel 当背景才不晃眼。
+ * 颜色取当前配色的前三色，第四层回到第一色收口；不透明度恒定开满，没有强度滑杆。
+ * 浅色主题下先把颜色压一档再上屏，与 CSS 光晕同一口径，pastel 当背景才不晃眼。
  *
  * 两处省电：手机把渲染分辨率压到 0.5 DPR；标签页切走时 `frameloop` 置 never 停帧。
  * 这份组件只走懒 chunk，three 与 @react-three/fiber 不进 entry。
@@ -11,7 +10,7 @@
 
 import { useMemo } from 'react'
 import AuroraBlur, { type AuroraLayer, type SkyLayer } from '@/components/showcase/aurora-blur'
-import { AMBIENT_DEFAULT, suppressBlobColor, useAmbientLevel } from '@/app/ambient'
+import { suppressBlobColor } from '@/app/ambient'
 import { usePageVisible } from '@/app/showcase/visibility'
 import { useTheme } from '@/app/theme'
 import { resolveColors } from '@/engine/colors'
@@ -51,7 +50,6 @@ export default function AuroraBackdrop() {
   const palette = useAvatarStore((state) => state.config.palette)
   const customColors = useAvatarStore((state) => state.config.customColors)
   const { resolved } = useTheme()
-  const { level } = useAmbientLevel()
   const isMobile = useIsMobile()
   const visible = usePageVisible()
 
@@ -82,8 +80,7 @@ export default function AuroraBackdrop() {
    * 所以先把颜色压暗再上屏，不透明度反而给满：要的是把底色染上一层，而不是打一束光。
    */
   const dark = resolved === 'dark'
-  const base = dark ? 0.95 : 0.62
-  const opacity = Math.min(1, base * (level / AMBIENT_DEFAULT))
+  const opacity = dark ? 1 : 0.88
 
   return (
     <div

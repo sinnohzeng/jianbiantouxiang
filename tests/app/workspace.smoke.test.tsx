@@ -123,12 +123,12 @@ describe('挑选栏 · 文字节', () => {
     expect(config().typography.fontWeight).toBe(Number(target!.value))
   })
 
-  it('自定义颜色下有四个预设色块，点选即写回', () => {
+  it('文字色是一排从白到黑的预设色块，点选即写回', () => {
     const { container } = mount(<PickColumn />)
     const presets = container.querySelectorAll('button[role="radio"]')
-    expect(presets).toHaveLength(4)
-    fireEvent.click(presets[1]!)
-    expect(config().typography.color).toBe('#141413')
+    expect(presets).toHaveLength(7)
+    fireEvent.click(presets[6]!)
+    expect(config().typography.color).toBe('#000000')
   })
 })
 
@@ -198,11 +198,10 @@ describe('挑选栏 · 配色节', () => {
     expect(config().customColors).toEqual(['#fde68a', '#a5f3fc', '#c7d2fe'])
   })
 
-  it('随机配色主按钮换种子', () => {
+  it('配色节不再重复摆随机按钮与家族下拉，两者都在别处', () => {
     const { container } = mount(<PickColumn />)
-    const before = config().seed
-    fireEvent.click(container.querySelector<HTMLButtonElement>('[data-slot="palette-shuffle"]')!)
-    expect(config().seed).not.toBe(before)
+    expect(container.querySelector('[data-slot="palette-shuffle"]')).toBeNull()
+    expect(container.querySelector('[data-slot="select-trigger"]')).toBeNull()
   })
 })
 
@@ -230,18 +229,16 @@ describe('挑选栏 · 质感节', () => {
   })
 })
 
-describe('微调 · 画布节', () => {
-  // 画布挪进了微调面板，面板收起时整块不挂
-  beforeEach(() => setInspectorOpen(true))
-
+describe('导出抽屉 · 画布', () => {
+  // 画布本质上是导出参数，v5 起长在导出抽屉里，不在微调面板
   it('尺寸预设与形状写回 store', () => {
-    const { container } = mount(<Inspector />)
+    mount(<ExportDrawer open onOpenChange={() => {}} />)
 
-    fireEvent.click(screen.getByRole('button', { name: '2048' }))
-    expect(config().canvas.width).toBe(2048)
-    expect(config().canvas.height).toBe(2048)
+    fireEvent.click(screen.getByRole('button', { name: '4096' }))
+    expect(config().canvas.width).toBe(4096)
+    expect(config().canvas.height).toBe(4096)
 
-    const circle = container.querySelector<HTMLInputElement>(
+    const circle = document.querySelector<HTMLInputElement>(
       'input[data-group="canvas-shape"][value="circle"]',
     )
     fireEvent.click(circle!)
@@ -249,11 +246,17 @@ describe('微调 · 画布节', () => {
   })
 
   it('自定义宽高会夹到合法区间', () => {
-    const { container } = mount(<Inspector />)
-    const inputs = container.querySelectorAll<HTMLInputElement>('input[type="number"]')
+    mount(<ExportDrawer open onOpenChange={() => {}} />)
+    const inputs = document.querySelectorAll<HTMLInputElement>('input[type="number"]')
     expect(inputs).toHaveLength(2)
     fireEvent.change(inputs[0]!, { target: { value: '99999' } })
     expect(config().canvas.width).toBe(8192)
+  })
+
+  it('微调面板里没有画布字段了', () => {
+    setInspectorOpen(true)
+    const { container } = mount(<Inspector />)
+    expect(container.querySelector('input[data-group="canvas-shape"]')).toBeNull()
   })
 })
 
@@ -320,18 +323,17 @@ describe('微调面板', () => {
     expect(ranges(container)).toHaveLength(14)
   })
 
-  it('图形大小只在有图形时出现，圆角只在圆角形状下出现', () => {
+  it('图标的两条滑杆只在有图标时出现', () => {
     setInspectorOpen(true)
     useAvatarStore.setState({
       config: {
         ...DEFAULT_CONFIG,
-        canvas: { ...DEFAULT_CONFIG.canvas, shape: 'rounded' },
         layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'builtin', id: 'palmtree' } },
       },
     })
     const { container } = mount(<Inspector />)
-    // 14 加图形的大小与水平补偿，再加圆角
-    expect(ranges(container)).toHaveLength(17)
+    // 14 加图标的大小与水平补偿。圆角比例跟着画布搬进了导出抽屉
+    expect(ranges(container)).toHaveLength(16)
   })
 
   it('偏离默认值的行才有重置钮，点一下回默认', () => {

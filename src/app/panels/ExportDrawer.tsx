@@ -1,5 +1,9 @@
 /**
- * 导出抽屉：格式、体积档、设备上限提示与「下载」「复制图片」两个显式动作。
+ * 导出抽屉：画布尺寸与形状、格式、体积档、设备上限提示，
+ * 加「下载」「复制图片」两个显式动作。
+ *
+ * 画布在这里而不在微调面板：画多大、什么形状、四周垫什么底色，
+ * 三件都是「出什么文件」，跟格式与体积是同一类参数，分两处放只会让人来回找。
  * 微信内置浏览器拦 a[download]，长按也只认 http(s) 与 data: 地址，所以微信里固定出 JPG、
  * 转成 data URL 画成 img 让用户长按保存；格式选择在微信里不显示。
  *
@@ -22,6 +26,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer'
 import { Label } from '@/components/ui/label'
+import { CanvasFields } from '@/app/panels/CanvasFields'
 import { getRenderCaps } from '@/engine/caps'
 import { createClipboardBlob, createExportArtifact } from '@/export/action'
 import { releaseCanvas } from '@/export/canvas'
@@ -189,6 +194,8 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
         </DrawerHeader>
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-2 pb-4">
+          <CanvasFields />
+
           {wechat ? null : (
             <div className="flex flex-col gap-1.5">
               <Label>{t('export.format')}</Label>

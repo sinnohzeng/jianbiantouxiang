@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  AMBIENT_DEFAULT,
-  AMBIENT_STORAGE_KEY,
-  getAmbientLevel,
-  setAmbientLevel,
-  suppressBlobColor,
-} from '@/app/ambient'
+import { suppressBlobColor } from '@/app/ambient'
 import { oklch } from '@/palettes/culori'
 
 describe('suppressBlobColor', () => {
@@ -20,16 +14,5 @@ describe('suppressBlobColor', () => {
 
   it('深色主题原色返回', () => {
     expect(suppressBlobColor('#8d7cf0', 'dark')).toBe('#8d7cf0')
-  })
-})
-
-describe('环境光强度', () => {
-  it('夹进 0 到 1 并落盘', () => {
-    setAmbientLevel(1.7)
-    expect(getAmbientLevel()).toBe(1)
-    setAmbientLevel(-0.4)
-    expect(getAmbientLevel()).toBe(0)
-    setAmbientLevel(AMBIENT_DEFAULT)
-    expect(localStorage.getItem(AMBIENT_STORAGE_KEY)).toBe(String(AMBIENT_DEFAULT))
   })
 })

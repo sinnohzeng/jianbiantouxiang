@@ -97,7 +97,7 @@ docs: 补齐字体加载链的说明
 - 模块内引用用相对路径，跨目录一律用 `@/` 别名，不写 `../../`。
 - 格式交给 Prettier：单引号、不加分号、行宽 100、尾随逗号。`src/components/ui`、`docs/`、`specs/` 与根目录的长文档都在 `.prettierignore` 里，改这些文件不必也不要跑格式化。
 - 新组件按这个顺序找：先看 `src/components/ui/` 的 shadcn 原语够不够用，不够就去付费 registry 找可借鉴的范式并按本仓需要改造，都不合适才自己写。`src/components/blocks/` 里的件都在文件头注明了范式来源。
-- 界面文案一律走 i18n key，源码里不出现硬编码的中文或英文文案。key 是扁平的点分命名，一级前缀就是区域，现有的是 `app`、`panel`、`style`、`preview`、`export`、`font`、`topbar`、`bottombar`、`history`、`theme`、`locale`、`common`。加 key 要同时改五份字典，少一份 typecheck 就报错。配色名与家族名不进字典，它们在 `src/palettes/palettes.ts` 里自带五语。
+- 界面文案一律走 i18n key，源码里不出现硬编码的中文或英文文案。key 是扁平的点分命名，一级前缀就是区域，现有的是 `app`、`panel`、`style`、`preview`、`export`、`font`、`topbar`、`bottombar`、`history`、`theme`、`locale`、`common`。加 key 要同时改五份字典，少一份 typecheck 就报错。配色名不进字典，它在 `src/palettes/palettes.ts` 里自带五语。
 - 触控目标不小于 44 px，输入类控件字号不小于 16 px，后者是为了避开 iOS 聚焦时的自动缩放。
 - 装饰性动画要读 `prefers-reduced-motion`。用 `usePrefersReducedMotion()` 或 CSS 媒体查询，做法是把时长归零而不是移除元素，布局才不会跟着跳。
 

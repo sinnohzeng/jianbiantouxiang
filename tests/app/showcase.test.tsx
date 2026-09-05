@@ -8,7 +8,6 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
-import { setAmbientLevel } from '@/app/ambient'
 import { showcaseEnabled } from '@/app/showcase/config'
 import { ShowcaseBackground } from '@/app/showcase/ShowcaseBackground'
 
@@ -39,7 +38,6 @@ function stubMatchMedia(reduced: boolean): void {
 }
 
 beforeEach(() => {
-  setAmbientLevel(0.5)
   stubMatchMedia(false)
 })
 
@@ -79,12 +77,5 @@ describe('ShowcaseBackground', () => {
     await Promise.resolve()
     expect(container.querySelector('[data-slot="showcase-background"]')).toBeNull()
     expect(container.querySelectorAll('.ambient-blob').length).toBeGreaterThan(0)
-  })
-
-  it('环境光拉到 0 时不挂背景着色器', async () => {
-    setAmbientLevel(0)
-    const { container } = render(<ShowcaseBackground />)
-    await Promise.resolve()
-    expect(container.querySelector('[data-slot="showcase-background"]')).toBeNull()
   })
 })

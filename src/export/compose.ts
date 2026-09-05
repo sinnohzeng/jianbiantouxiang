@@ -4,7 +4,6 @@ import { loadFontForConfig } from '@/fonts/loader'
 import { drawGraphic } from '@/graphics/draw'
 import { loadGraphic } from '@/graphics/source'
 import type { AvatarConfig } from '@/state/config'
-import { resolveInk } from '@/text/auto-color'
 import { drawText } from '@/text/draw'
 import { layoutText, type TextLayout } from '@/text/layout'
 import { composeWith, type ComposeDeps } from './compose-core'
@@ -19,7 +18,6 @@ const deps: ComposeDeps<TextLayout> = {
   renderGradient,
   drawHighlight,
   layoutText: (config, width, height, graphic) => layoutText(config, width, height, undefined, graphic),
-  resolveInk,
   drawText,
   drawGraphic,
 }

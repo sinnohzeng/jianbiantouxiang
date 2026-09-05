@@ -9,10 +9,10 @@
 import { Suspense, useEffect, useState } from 'react'
 import {
   CheckIcon,
+  ContrastIcon,
   HistoryIcon,
   InfoIcon,
   LanguagesIcon,
-  MonitorIcon,
   MoonIcon,
   Redo2Icon,
   SunIcon,
@@ -24,26 +24,28 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Slider } from '@/components/ui/slider'
 import { AboutDialog } from '@/app/AboutDialog'
 import { ErrorBoundary } from '@/app/error-boundary'
 import { HistoryStripLazy } from '@/app/panels/lazy'
 import { BrandMark } from '@/app/BrandMark'
 import { BrandTitle } from '@/app/showcase/BrandTitle'
-import { useAmbientLevel } from '@/app/ambient'
 import { THEME_MODES, useTheme, type ThemeMode } from '@/app/theme'
 import { LOCALES, useLocale, useT, type Locale } from '@/i18n'
 import { useAvatarStore } from '@/state/store'
 import { cn } from '@/lib/utils'
 
+/**
+ * 「跟随系统」用一枚半明半暗的圆，不用显示器。
+ * 显示器画的是设备，读出来是「屏幕设置」；这一档要说的是「深浅由系统定」，
+ * 主流做法（GitHub、Notion、Raycast 都是这一路）是一个左右各半的圆。
+ */
 const THEME_ICON: Record<ThemeMode, LucideIcon> = {
   light: SunIcon,
   dark: MoonIcon,
-  system: MonitorIcon,
+  system: ContrastIcon,
 }
 
 const THEME_LABEL_KEY = {
@@ -75,7 +77,6 @@ export function TopBar() {
   const [historyMounted, setHistoryMounted] = useState(false)
   const ThemeIcon = THEME_ICON[mode]
   const [aboutOpen, setAboutOpen] = useState(false)
-  const { level: ambient, setLevel: setAmbientLevel } = useAmbientLevel()
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -200,21 +201,6 @@ export function TopBar() {
                 </DropdownMenuItem>
               )
             })}
-            <DropdownMenuSeparator />
-            <div className="px-2 pt-1.5 pb-2">
-              <span className="text-muted-foreground mb-1.5 block px-1 text-xs">
-                {t('theme.ambient')}
-              </span>
-              <Slider
-                data-slot="ambient-slider"
-                aria-label={t('theme.ambient')}
-                value={[Math.round(ambient * 100)]}
-                onValueChange={(value) => {
-                  const next = Array.isArray(value) ? (value[0] ?? 0) : value
-                  setAmbientLevel(next / 100)
-                }}
-              />
-            </div>
           </DropdownMenuContent>
         </DropdownMenu>
 

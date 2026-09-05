@@ -1,6 +1,9 @@
 /**
- * 画布节：尺寸预设胶囊与宽高输入、形状分段、导出底色。
+ * 画布字段：尺寸预设胶囊与宽高输入、形状分段、导出底色。
  * 宽高输入框保持 16 px 字号，iOS 上聚焦不会把整页放大。
+ *
+ * v5 起它长在导出抽屉里而不是微调面板：画多大、什么形状、四周垫什么底色，
+ * 三件都是「出什么文件」的参数，跟格式与体积档是同一类事。
  *
  * 换形状不动边距。圆形遮罩带来的收缩由 text/fit 的 safeArea 按几何算。
  * 圆角比例跟在形状分段下面，只在形状是圆角时出现。
@@ -16,7 +19,6 @@ import { useT } from '@/i18n'
 import { CANVAS_MAX, CANVAS_MIN, DEFAULT_CONFIG, type Shape } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { cn } from '@/lib/utils'
-import { SectionCard } from './card'
 
 interface Preset {
   id: string
@@ -48,7 +50,7 @@ function clampSide(value: number, fallback: number): number {
   return Math.min(CANVAS_MAX, Math.max(CANVAS_MIN, Math.round(value)))
 }
 
-export function CanvasSection() {
+export function CanvasFields() {
   const t = useT()
   const config = useAvatarStore((state) => state.config)
   const setCanvas = useAvatarStore((state) => state.setCanvas)
@@ -78,7 +80,9 @@ export function CanvasSection() {
   )
 
   return (
-    <SectionCard title={t('panel.canvas.title')}>
+    <div data-slot="canvas-fields" className="flex flex-col gap-4">
+      <p className="text-sm font-medium">{t('panel.canvas.title')}</p>
+
       <div className="flex flex-col gap-1.5">
         <Label>{t('panel.canvas.preset.avatar')}</Label>
         {renderPresets(AVATAR_PRESETS, t('panel.canvas.preset.avatar'))}
@@ -181,6 +185,6 @@ export function CanvasSection() {
         />
         <p className="text-muted-foreground text-xs">{t('export.bg.hint')}</p>
       </div>
-    </SectionCard>
+    </div>
   )
 }

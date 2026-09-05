@@ -3,7 +3,10 @@
  * 不进首屏 chunk，产品代码也不引用它。
  *
  * 样张不是截图工具的一部分：这里走 composeAvatar 真实导出链路，
- * 页面只负责把 26 套配色、四种质感与五种文字效果排成可目检的网格。
+ * 页面只负责把 37 套配色、四种质感与五种文字效果排成可目检的网格。
+ *
+ * 配色分三张排，不是两张：一张塞满二十几行时高度过万像素，
+ * 软件渲染下 Chromium 直接报 “Unable to capture screenshot”。
  */
 
 import { releaseCanvas } from '@/export/canvas'
@@ -16,6 +19,8 @@ import { DEFAULT_CONFIG, TEXT_EFFECTS, normalizeConfig, type AvatarConfig } from
 const CELL = 352
 const GAP = 8
 const EFFECT_PALETTES = ['aurora', 'sunset', 'glacier', 'midnight', 'peach']
+/** 配色样张分几张。每张十几行，再多就超出截图能承受的高度。 */
+const SHEETS = 3
 
 function text(text: string): HTMLDivElement {
   const node = document.createElement('div')
@@ -125,7 +130,7 @@ function mount(node: HTMLElement): void {
   root.appendChild(node)
 }
 
-/** 渲染三张样张的 DOM；截图脚本等这个标记出现再落盘。 */
+/** 渲染四张样张的 DOM；截图脚本等这个标记出现再落盘。 */
 export async function renderSamples(): Promise<void> {
   const page = document.createElement('div')
   page.id = 'samples'
@@ -133,10 +138,11 @@ export async function renderSamples(): Promise<void> {
     'display:inline-flex;flex-direction:column;align-items:flex-start;padding:24px;background:#fbf9f6;color:#141413'
   page.appendChild(header())
 
-  page.appendChild(sectionTitle('质感 × 配色（1 / 2）'))
-  page.appendChild(await stylePaletteSheet(PALETTES.slice(0, 13)))
-  page.appendChild(sectionTitle('质感 × 配色（2 / 2）'))
-  page.appendChild(await stylePaletteSheet(PALETTES.slice(13)))
+  const per = Math.ceil(PALETTES.length / SHEETS)
+  for (let i = 0; i < SHEETS; i += 1) {
+    page.appendChild(sectionTitle(`质感 × 配色（${i + 1} / ${SHEETS}）`))
+    page.appendChild(await stylePaletteSheet(PALETTES.slice(i * per, (i + 1) * per)))
+  }
   page.appendChild(sectionTitle('文字效果'))
   page.appendChild(await textEffectSheet())
 

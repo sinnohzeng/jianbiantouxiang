@@ -19,14 +19,23 @@ import { FontPickerLazy } from '@/app/panels/lazy'
 import { joinLines, stripBreaks } from '@/app/workspace/shared'
 import { SectionCard } from './card'
 
-type ColorMode = 'auto' | 'custom'
-
-/** 常用文字色预设：白、黑、米白、明黄，配投影反色适配逐一验过。 */
-const COLOR_PRESETS: readonly { hex: string; key: 'white' | 'black' | 'cream' | 'yellow' }[] = [
+/**
+ * 常用文字色预设：两档白、三档灰、两档黑，从纯白一路走到纯黑。
+ *
+ * 头像上的文字色实际只在这条明度轴上挑，彩色文字压在彩色渐变上几乎必然脏。
+ * 想要别的颜色仍可以拧下面的取色器，这排色块只是把高频的那几档摆出来。
+ */
+const COLOR_PRESETS: readonly {
+  hex: string
+  key: 'white' | 'cream' | 'silver' | 'gray' | 'slate' | 'ink' | 'black'
+}[] = [
   { hex: '#FFFFFF', key: 'white' },
-  { hex: '#141413', key: 'black' },
   { hex: '#F5F1E8', key: 'cream' },
-  { hex: '#FFD34D', key: 'yellow' },
+  { hex: '#D4D4D8', key: 'silver' },
+  { hex: '#9CA3AF', key: 'gray' },
+  { hex: '#4B5563', key: 'slate' },
+  { hex: '#141413', key: 'ink' },
+  { hex: '#000000', key: 'black' },
 ]
 
 export function TextSection() {
@@ -141,30 +150,19 @@ export function TextSection() {
 
       <div className="flex flex-col gap-1.5">
         <Label>{t('panel.text.color')}</Label>
-        <SegmentedControl<ColorMode>
-          name="text-color-mode"
+        {/* v5 起没有「自动」：文字色就是这里挑的那一个，预览与导出读同一个字段。
+            自动取色要另起一次离屏渲染去采样，结果还会随高光与种子飘，
+            用户看到的是「我没动它，颜色自己变了」 */}
+        <ColorField
           label={t('panel.text.color')}
-          value={type.colorMode}
-          options={[
-            { value: 'auto', label: t('panel.text.color.auto') },
-            { value: 'custom', label: t('panel.text.color.custom') },
-          ]}
-          onChange={(colorMode) => setTypography({ colorMode })}
+          hexLabel={t('panel.common.hex')}
+          value={type.color}
+          presets={COLOR_PRESETS.map((preset) => ({
+            hex: preset.hex,
+            label: t(`panel.text.color.preset.${preset.key}`),
+          }))}
+          onChange={(color) => setTypography({ color })}
         />
-        {type.colorMode === 'custom' ? (
-          <ColorField
-            label={t('panel.text.color.custom')}
-            hexLabel={t('panel.common.hex')}
-            value={type.color}
-            presets={COLOR_PRESETS.map((preset) => ({
-              hex: preset.hex,
-              label: t(`panel.text.color.preset.${preset.key}`),
-            }))}
-            onChange={(color) => setTypography({ color })}
-          />
-        ) : (
-          <p className="text-muted-foreground text-xs">{t('panel.text.color.auto.hint')}</p>
-        )}
       </div>
     </SectionCard>
   )

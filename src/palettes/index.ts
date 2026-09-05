@@ -1,15 +1,12 @@
 export {
   DEFAULT_PALETTE_ID,
   PALETTES,
-  PALETTE_FAMILIES,
   PLATE_HINT_IDS,
   getPalette,
   paletteColors,
 } from './palettes'
 export type {
   Palette,
-  PaletteFamily,
-  PaletteFamilyId,
   PaletteLocale,
   PaletteTone,
 } from './palettes'

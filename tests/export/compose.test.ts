@@ -19,14 +19,13 @@ interface Harness {
   order: string[]
   gradient: HTMLCanvasElement
   drawText: ReturnType<typeof vi.fn>
-  resolveInk: ReturnType<typeof vi.fn>
   layoutText: ReturnType<typeof vi.fn>
   drawHighlight: ReturnType<typeof vi.fn>
   drawGraphic: ReturnType<typeof vi.fn>
   loadGraphicForConfig: ReturnType<typeof vi.fn>
 }
 
-function makeHarness(plate = false): Harness {
+function makeHarness(): Harness {
   const order: string[] = []
   // 渐变画布只被 drawImage 与释放动到，用一个最小的替身即可
   const gradient = { width: 2048, height: 2048 } as HTMLCanvasElement
@@ -45,13 +44,6 @@ function makeHarness(plate = false): Harness {
     order.push('loadGraphicForConfig')
     return null
   })
-  // 真实现自己处理 custom：颜色直接用配置里的，也不判底板，替身照这个口径来
-  const resolveInk = vi.fn((_ctx: unknown, _layout: unknown, config: AvatarConfig) => {
-    order.push('resolveInk')
-    return config.typography.colorMode === 'custom'
-      ? { color: config.typography.color, plate: false }
-      : { color: '#123456', plate }
-  })
   const drawText = vi.fn(() => {
     order.push('drawText')
   })
@@ -69,7 +61,6 @@ function makeHarness(plate = false): Harness {
     drawHighlight,
     drawGraphic,
     layoutText,
-    resolveInk,
     drawText,
   }
 
@@ -78,7 +69,6 @@ function makeHarness(plate = false): Harness {
     order,
     gradient,
     drawText,
-    resolveInk,
     layoutText,
     drawHighlight,
     drawGraphic,
@@ -105,7 +95,7 @@ function opsOfOutput(): Op[] {
 }
 
 describe('composeWith 流程', () => {
-  it('按 字体 → 渐变 → 高光 → 排版 → 取色 → 绘字 的顺序调用依赖', async () => {
+  it('按 字体 → 渐变 → 高光 → 排版 → 绘字 的顺序调用依赖', async () => {
     const h = makeHarness()
     await composeWith(configOf(), 512, 512, h.deps)
 
@@ -115,7 +105,6 @@ describe('composeWith 流程', () => {
       'renderGradient',
       'drawHighlight',
       'layoutText',
-      'resolveInk',
       'drawText',
     ])
   })
@@ -163,36 +152,16 @@ describe('composeWith 流程', () => {
 })
 
 describe('composeWith 文字', () => {
-  it('自动色把排版结果交给取色，再把颜色交给绘字', async () => {
+  it('文字色直接取配置里的那一个，绘字拿到的就是它', async () => {
     const h = makeHarness()
-    const config = configOf({ typography: { colorMode: 'auto' } })
+    const config = configOf({ typography: { color: '#0a0a0a' } })
     await composeWith(config, 512, 512, h.deps)
 
-    expect(h.resolveInk).toHaveBeenCalledWith(expect.anything(), LAYOUT, config)
-    expect(h.drawText).toHaveBeenCalledWith(expect.anything(), LAYOUT, config, '#123456')
+    expect(h.drawText).toHaveBeenCalledWith(expect.anything(), LAYOUT, config, '#0a0a0a')
   })
 
-  it('取色只调一次，颜色与底板出自同一次采样', async () => {
-    const h = makeHarness(true)
-    await composeWith(configOf(), 512, 512, h.deps)
-
-    expect(h.resolveInk).toHaveBeenCalledTimes(1)
-  })
-
-  it('自定义色直接用配置里的颜色', async () => {
+  it('图标徽章把图形矩形交给 drawGraphic，颜色与文字同一个', async () => {
     const h = makeHarness()
-    await composeWith(
-      configOf({ typography: { colorMode: 'custom', color: '#0a0a0a' } }),
-      512,
-      512,
-      h.deps,
-    )
-
-    expect(h.drawText.mock.calls[0]?.[3]).toBe('#0a0a0a')
-  })
-
-  it('图标徽章把图形矩形交给 drawGraphic，颜色来自同一次取色', async () => {
-    const h = makeHarness(true)
     const image = { width: 128, height: 128 } as unknown as CanvasImageSource
     const graphic: Graphic = { kind: 'image', image, width: 128, height: 128 }
     const rect: Rect = { x: 10, y: 20, width: 100, height: 80 }
@@ -200,7 +169,7 @@ describe('composeWith 文字', () => {
     h.layoutText.mockReturnValue({ ...LAYOUT, graphic: rect })
     const config = configOf({
       text: '产品设计部',
-      typography: { colorMode: 'auto' },
+      typography: { color: '#123456' },
       layout: { icon: { source: 'builtin', id: 'tree-palm' } },
     })
 
@@ -240,43 +209,6 @@ describe('composeWith 文字', () => {
       'renderGradient',
       'drawHighlight',
     ])
-  })
-})
-
-describe('composeWith 自动底板', () => {
-  it('像素判定要底板时把 effect 换成胶囊，用户的 config 不动', async () => {
-    const h = makeHarness(true)
-    const config = configOf({ typography: { colorMode: 'auto' } })
-    await composeWith(config, 512, 512, h.deps)
-
-    expect(h.resolveInk).toHaveBeenCalledWith(expect.anything(), LAYOUT, config)
-    expect(h.drawText.mock.calls[0]?.[2]).toMatchObject({ typography: { effect: 'pill' } })
-    expect(config.typography.effect).toBe('shadow')
-  })
-
-  it('不要底板时原样把 config 交给取色与绘字', async () => {
-    const h = makeHarness(false)
-    const config = configOf()
-    await composeWith(config, 512, 512, h.deps)
-
-    expect(h.drawText.mock.calls[0]?.[2]).toBe(config)
-  })
-
-  it('用户自己选了效果就不覆盖', async () => {
-    const h = makeHarness(true)
-    const config = configOf({ typography: { effect: 'outline' } })
-    await composeWith(config, 512, 512, h.deps)
-
-    expect(h.drawText.mock.calls[0]?.[2]).toBe(config)
-  })
-
-  it('自定义文字色时底板判定不改配置', async () => {
-    const h = makeHarness(true)
-    const config = configOf({ typography: { colorMode: 'custom', color: '#0a0a0a' } })
-    await composeWith(config, 512, 512, h.deps)
-
-    expect(h.drawText.mock.calls[0]?.[2]).toBe(config)
-    expect(h.drawText.mock.calls[0]?.[3]).toBe('#0a0a0a')
   })
 })
 
