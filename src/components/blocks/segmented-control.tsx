@@ -74,17 +74,18 @@ export function SegmentedControl<T extends string>({
           {value === option.value ? (
             <SelectionIndicator
               id={`segmented-${name}-${uid}`}
-              className="bg-background rounded-md shadow-xs"
+              className="bg-primary rounded-md shadow-sm"
             />
           ) : null}
           <span
             className={cn(
               // 未选中态不用 text-muted-foreground：浅色主题下它压在 bg-muted 上只有 4.38:1，
               // 14 px 正文不达 WCAG AA 的 4.5:1。前景色压到 65% 后浅色 5.17:1、深色 6.20:1，
-              // 深色的观感几乎不变（明度 0.715 到 0.740），只把浅色那一档补上来
+              // 深色的观感几乎不变（明度 0.715 到 0.740），只把浅色那一档补上来。
+              // 选中态是实心主色：白底板压在浅灰槽上只差一点点亮度，一眼看不出选的是哪一格
               'text-foreground/65 relative flex h-full w-full min-w-0 items-center justify-center gap-1.5 rounded-md px-2 text-sm font-medium transition-colors',
-              'peer-hover:text-foreground peer-checked:text-foreground',
-              !showcase && 'peer-checked:bg-background peer-checked:shadow-xs',
+              'peer-hover:text-foreground peer-checked:text-primary-foreground peer-checked:font-semibold',
+              !showcase && 'peer-checked:bg-primary peer-checked:shadow-sm',
               'peer-focus-visible:ring-ring/50 peer-focus-visible:ring-3',
               'motion-reduce:transition-none',
             )}

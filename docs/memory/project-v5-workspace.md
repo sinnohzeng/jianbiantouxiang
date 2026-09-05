@@ -33,5 +33,15 @@ metadata:
 - 典型用法（owner 口述）：改文字、可能加图标、随机刷配色挑一张好看的，极少数调补偿；边距字号等默认值由 owner 上手后定，大多数人不会手调。默认配方必须足够好看。
 - 2026-09-05：owner 在 `inbox/`（已 gitignore）投放 lark.svg、doubao-work.png、Qoder.png、workbuddy 图标；已并入 `assets/brand/`
   与 `scripts/brand-list.json`（58 个品牌，13 个带纯白变体）。Qoder 是 potrace 描摹，WorkBuddy 去掉了 filter 光斑，豆包工作只有 266px 位图。
-- §B 定稿：方向乙三列工作台、检查器带、手机 28svh 加分隔条、brand 图形源、showcase 懒 chunk（motion + React Bits）；切片顺序 B4 → W1 → W2 → S1 → B7。
-- 2026-09-05 下半场：W2 三列工作台、M1 手机长按直存、S1 炫技层全部落地并推送。检查器行是紧凑两行式，三段挤一行会把滑杆压到 0 宽，Base UI 会直接把滑块藏起来。首屏预算已降级为报告。
+- §B 定稿：方向乙、手机 28svh 加分隔条、brand 图形源、showcase 懒 chunk（motion + React Bits）；切片顺序 B4 → W1 → W2 → S1 → B7。
+- 2026-09-05 下半场：W2 工作台、M1 手机长按直存、S1 炫技层全部落地并推送。检查器行是紧凑两行式，三段挤一行会把滑杆压到 0 宽，Base UI 会直接把滑块藏起来。首屏预算已降级为报告。
+- 2026-09-05 收尾：owner 看图后要的五件事都做了。布局从「三列常驻检查器」改成「双列挑选栏加按需打开的微调」，
+  owner 亲选「默认收起，按需打开」；最近生成挪进顶栏浮层；操作条横跨底部整宽且每个按钮都带文案；
+  选中态换实心主色；一键恢复默认进「更多」菜单带确认；service worker 每 15 分钟轮询新版本并弹刷新提示。
+- Base UI 滑杆的第二条坑：在 `display:none` 里挂载会量到 0 宽并把滑块设成 `visibility: hidden`，
+  之后显示出来也不复测，键盘与拖动全失灵。默认收起的面板必须「开的时候才挂」，不能只用 CSS 藏。
+- 星爆粒子（star-burst-tw）已整个移除。它铺满自己那块方形画布，摆在按钮上就是 owner 说的「方形色散」；
+  移到预览框加径向遮罩确实好看了，但 owner 的判断是「太花哨，可以去掉」，于是全站换成纯 CSS 涟漪。
+  组件文件 `src/components/showcase/star-burst.tsx` 一并删除，要回退就从 registry 重装。
+- 进场幕布（preloader）读秒期间会吃掉所有点击，e2e 里所有「打开就点」的用例都会失败。
+  现在读秒一结束就 `pointer-events-none`，`openApp` 等的是 `[data-slot="preloader"][data-loading="true"]` 消失。

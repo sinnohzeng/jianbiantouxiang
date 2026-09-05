@@ -526,6 +526,7 @@ export function PreviewStage() {
               className="showcase-preview-glow pointer-events-none absolute inset-0"
             />
           ) : null}
+
         </PreviewFrame>
 
         {/* 角标与按钮挂在外层而不是画框里：画框 overflow-hidden 加大圆角，

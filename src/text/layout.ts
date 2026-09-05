@@ -86,6 +86,8 @@ function placeGraphic(
   hasText: boolean,
 ): { graphicRect: Rect; textArea: Rect } {
   const aspect = graphic.width / Math.max(1, graphic.height)
+  // 水平补偿按安全框宽度算，与逐行文字补偿同一口径
+  const shift = safeBox.width * config.layout.graphicOffsetX
 
   if (!hasText) {
     let side = Math.min(safeBox.width, safeBox.height) * config.layout.graphic
@@ -100,7 +102,7 @@ function placeGraphic(
     }
     return {
       graphicRect: {
-        x: safeBox.x + (safeBox.width - gw) / 2,
+        x: safeBox.x + (safeBox.width - gw) / 2 + shift,
         y: safeBox.y + (safeBox.height - side) / 2,
         width: gw,
         height: side,
@@ -118,7 +120,7 @@ function placeGraphic(
   const gap = safeBox.height * LOGO_GAP_RATIO
   return {
     graphicRect: {
-      x: safeBox.x + (safeBox.width - gw) / 2,
+      x: safeBox.x + (safeBox.width - gw) / 2 + shift,
       y: safeBox.y,
       width: gw,
       height: gh,

@@ -3,16 +3,17 @@
  * 宽高输入框保持 16 px 字号，iOS 上聚焦不会把整页放大。
  *
  * 换形状不动边距。圆形遮罩带来的收缩由 text/fit 的 safeArea 按几何算。
- * 圆角比例在检查器带里，只在形状是圆角时出现。
+ * 圆角比例跟在形状分段下面，只在形状是圆角时出现。
  */
 
 import { CircleIcon, SquareIcon } from 'lucide-react'
 import { ColorField } from '@/components/blocks/color-field'
 import { SegmentedControl } from '@/components/blocks/segmented-control'
+import { SliderField } from '@/components/blocks/slider-field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useT } from '@/i18n'
-import { CANVAS_MAX, CANVAS_MIN, type Shape } from '@/state/config'
+import { CANVAS_MAX, CANVAS_MIN, DEFAULT_CONFIG, type Shape } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { cn } from '@/lib/utils'
 import { SectionCard } from './card'
@@ -152,6 +153,22 @@ export function CanvasSection() {
           ]}
           onChange={(shape) => setCanvas({ shape })}
         />
+        {canvas.shape === 'rounded' ? (
+          <SliderField
+            layout="row"
+            label={t('panel.canvas.radius')}
+            editLabel={t('panel.common.edit', { name: t('panel.canvas.radius') })}
+            resetLabel={t('panel.common.reset', { name: t('panel.canvas.radius') })}
+            value={canvas.radius}
+            defaultValue={DEFAULT_CONFIG.canvas.radius}
+            min={0}
+            max={0.5}
+            step={0.01}
+            scale={100}
+            unit="%"
+            onChange={(radius) => setCanvas({ radius })}
+          />
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-1.5">

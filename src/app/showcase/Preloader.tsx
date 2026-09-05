@@ -88,20 +88,28 @@ export function ShowcasePreloader() {
   if (!mounted) return null
 
   return (
-    <Preloader
-      loading={loading}
-      variant="stairs"
-      stairCount={10}
-      stairsRevealFrom="center"
-      stairsRevealDirection="up"
-      position="fixed"
-      zIndex={9999}
-      duration={MAX_MS}
-      bgColor="var(--background)"
-      loadingText={t('app.name')}
-      textClassName="text-2xl text-foreground tracking-tight"
-      ariaLabel={t('app.name')}
-      onComplete={() => setMounted(false)}
-    />
+    // 外面这层做两件事：给端到端一个稳定的选择器，以及在幕布开始抽走的那一刻停止吃指针事件。
+    // 抽走要放完整段动画，期间界面已经露出来了，这时还挡着点击就成了假死
+    <div
+      data-slot="preloader"
+      data-loading={loading ? 'true' : 'false'}
+      className={loading ? undefined : 'pointer-events-none'}
+    >
+      <Preloader
+        loading={loading}
+        variant="stairs"
+        stairCount={10}
+        stairsRevealFrom="center"
+        stairsRevealDirection="up"
+        position="fixed"
+        zIndex={9999}
+        duration={MAX_MS}
+        bgColor="var(--background)"
+        loadingText={t('app.name')}
+        textClassName="text-2xl text-foreground tracking-tight"
+        ariaLabel={t('app.name')}
+        onComplete={() => setMounted(false)}
+      />
+    </div>
   )
 }

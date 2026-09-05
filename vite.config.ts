@@ -61,7 +61,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 注册交给 app/sw-update：那里要拿 registration 才能定时轮询新版本，
+      // 自动注入的那段脚本给不出这个句柄
+      injectRegister: null,
+      registerType: 'prompt',
       includeAssets: ['icon.svg', 'icon-maskable.svg', 'icon-192.png', 'icon-512.png'],
       manifest: localizedManifest(manifestLocale, readDict),
       workbox: {

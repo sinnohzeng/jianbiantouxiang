@@ -33,13 +33,29 @@ interface ProbeWindow {
 /** 合成与编码在软件渲染下要跑几秒，探针相关的用例统一放宽。 */
 export const PROBE_TIMEOUT_MS = 60_000
 
-/** 打开首页并等到界面与探针都就绪。 */
+/**
+ * 打开首页并等到界面与探针都就绪。
+ *
+ * 进场幕布是 z-index 9999 的 fixed 层，读秒期间所有点击都落在幕布上，
+ * 所以这里一并等它读完秒；开始抽走之后它就不吃指针事件了，不必等动画放完。
+ * 炫技层关掉时它根本不挂，这一步立刻返回。
+ */
 export async function openApp(page: Page): Promise<void> {
   await page.goto(APP_URL)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await page.waitForFunction(
     () => (globalThis as unknown as ProbeWindow).__gradientAvatarProbe !== undefined,
   )
+  await page
+    .locator('[data-slot="preloader"][data-loading="true"]')
+    .waitFor({ state: 'detached', timeout: 15_000 })
+}
+
+/** 打开微调面板。v5 起它默认收起，开合状态落在 localStorage。 */
+export async function openInspector(page: Page): Promise<void> {
+  const toggle = page.locator('[data-slot="inspector-toggle"]')
+  if ((await toggle.getAttribute('aria-pressed')) !== 'true') await toggle.click()
+  await expect(page.locator('[data-slot="inspector"]')).toBeVisible()
 }
 
 export function probeStats(page: Page, size?: number): Promise<ProbePixelStats> {

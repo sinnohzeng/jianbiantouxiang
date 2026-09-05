@@ -184,8 +184,13 @@ describe('normalizeConfig 的 layout 子树', () => {
   it('graphic 与 icon 同轮补默认并夹值', () => {
     expect(normalizeConfig({ layout: {} }).layout).toEqual({
       graphic: DEFAULT_CONFIG.layout.graphic,
+      graphicOffsetX: DEFAULT_CONFIG.layout.graphicOffsetX,
       icon: { source: 'none', id: '' },
     })
+
+    // 水平补偿超界要夹回来，老存档没有这个字段就落到 0
+    expect(normalizeConfig({ layout: { graphicOffsetX: 9 } }).layout.graphicOffsetX).toBe(0.25)
+    expect(normalizeConfig({ layout: { graphicOffsetX: -9 } }).layout.graphicOffsetX).toBe(-0.25)
 
     const config = normalizeConfig({
       layout: {

@@ -1,15 +1,12 @@
 /**
- * 关于对话框：简介、版本号、源码链接与恢复默认设置收在一处。
+ * 关于对话框：简介、版本号与源码链接。
  *
  * 版本号由 vite define 从 package.json 的 version 构建期注入，跟发布不会脱节。
- * 恢复默认放这里而不是主屏：低频次级动作，摆主屏对路人只有误触一个用处；
- * reset 走撤销栈，恢复之后还能 undo 回去，按可逆动作的惯例不上确认弹窗。
+ * 恢复默认在操作条的「更多」菜单里，带一次确认：调乱了的人第一反应是去底栏找，
+ * 不是先点开关于。
  */
 
-import { RotateCcwIcon } from 'lucide-react'
-import { toast } from 'sonner'
 import { BrandMark } from '@/app/BrandMark'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -18,7 +15,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useT } from '@/i18n'
-import { useAvatarStore } from '@/state/store'
 
 const REPO_URL = 'https://github.com/sinnohzeng/jianbiantouxiang'
 
@@ -29,13 +25,6 @@ interface AboutDialogProps {
 
 export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
   const t = useT()
-  const reset = useAvatarStore((state) => state.reset)
-
-  const onReset = (): void => {
-    reset()
-    onOpenChange(false)
-    toast.success(t('about.resetDone'))
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -55,17 +44,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
 
         <p className="text-muted-foreground text-sm leading-6">{t('about.intro')}</p>
 
-        <div className="flex items-center justify-between gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            data-slot="reset-action"
-            onClick={onReset}
-          >
-            <RotateCcwIcon aria-hidden />
-            {t('about.reset')}
-          </Button>
+        <div className="flex items-center justify-end gap-2">
           <a
             href={REPO_URL}
             target="_blank"

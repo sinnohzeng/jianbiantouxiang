@@ -1,5 +1,5 @@
 /**
- * 工作台冒烟：挑选栏五节与检查器带都能渲染出关键控件，动一下就写回 store。
+ * 工作台冒烟：挑选栏两列与微调面板都能渲染出关键控件，动一下就写回 store。
  * 断言走 role、data-slot 与 value 选择器，不依赖具体文案，换语言或改措辞都不会红。
  */
 
@@ -13,6 +13,7 @@ import { Inspector } from '@/app/workspace/Inspector'
 import { PickColumn } from '@/app/workspace/PickColumn'
 import { DEFAULT_CONFIG, type AvatarConfig } from '@/state/config'
 import { DEFAULT_UI, useAvatarStore } from '@/state/store'
+import { setInspectorOpen } from '@/app/inspector-open'
 
 beforeAll(() => {
   // Base UI 的弹层组件要这几个浏览器 API，jsdom 里没有
@@ -54,6 +55,8 @@ function config(): AvatarConfig {
 
 beforeEach(() => {
   useAvatarStore.setState({ config: DEFAULT_CONFIG, history: [], ui: { ...DEFAULT_UI } })
+  // 微调的开合是模块级状态，会在用例之间串台
+  setInspectorOpen(false)
 })
 
 afterEach(() => {
@@ -227,9 +230,12 @@ describe('挑选栏 · 质感节', () => {
   })
 })
 
-describe('挑选栏 · 画布节', () => {
+describe('微调 · 画布节', () => {
+  // 画布挪进了微调面板，面板收起时整块不挂
+  beforeEach(() => setInspectorOpen(true))
+
   it('尺寸预设与形状写回 store', () => {
-    const { container } = mount(<PickColumn />)
+    const { container } = mount(<Inspector />)
 
     fireEvent.click(screen.getByRole('button', { name: '2048' }))
     expect(config().canvas.width).toBe(2048)
@@ -243,7 +249,7 @@ describe('挑选栏 · 画布节', () => {
   })
 
   it('自定义宽高会夹到合法区间', () => {
-    const { container } = mount(<PickColumn />)
+    const { container } = mount(<Inspector />)
     const inputs = container.querySelectorAll<HTMLInputElement>('input[type="number"]')
     expect(inputs).toHaveLength(2)
     fireEvent.change(inputs[0]!, { target: { value: '99999' } })
@@ -251,16 +257,21 @@ describe('挑选栏 · 画布节', () => {
   })
 })
 
-describe('检查器带', () => {
-  it('手机上默认收起，桌面靠 CSS 常驻展开', () => {
+describe('微调面板', () => {
+  it('默认收起，收起时整块不挂；点标题才展开', () => {
     const { container } = mount(<Inspector />)
     const trigger = container.querySelector<HTMLButtonElement>('button[aria-expanded]')
     expect(trigger?.getAttribute('aria-expanded')).toBe('false')
+    // Base UI 的滑杆在 display:none 里挂载会量到 0 宽并把滑块藏掉，所以收起时不挂
+    expect(ranges(container)).toHaveLength(0)
+
     fireEvent.click(trigger!)
     expect(trigger?.getAttribute('aria-expanded')).toBe('true')
+    expect(ranges(container).length).toBeGreaterThan(0)
   })
 
   it('第一条滑杆是字号：自动态显示回写值，拖一下切手动，点“自动”回去', () => {
+    setInspectorOpen(true)
     useAvatarStore.setState({ ui: { ...useAvatarStore.getState().ui, autoFontSize: 0.31 } })
     const { container } = mount(<Inspector />)
     expect(config().typography.sizeMode).toBe('auto')
@@ -282,6 +293,7 @@ describe('检查器带', () => {
   })
 
   it('两行都有内容时，逐行组是次行字号加两条水平补偿', () => {
+    setInspectorOpen(true)
     const { container } = mount(<Inspector />)
     // 排版组四条（字号、行高、字间距、边距）之后就是逐行组
     const list = ranges(container)
@@ -293,6 +305,7 @@ describe('检查器带', () => {
   })
 
   it('只有一行时：没有次行字号，只有一条第一行补偿', () => {
+    setInspectorOpen(true)
     useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, text: '暴富' } })
     const { container } = mount(<Inspector />)
     const before = config().typography.lineOffsetsX
@@ -301,12 +314,14 @@ describe('检查器带', () => {
   })
 
   it('质感组是当前 style 的五个参数加光感', () => {
+    setInspectorOpen(true)
     const { container } = mount(<Inspector />)
     // 排版 4 + 逐行 3 + 效果 1 + 质感 6 = 14，默认没有图形也不是圆角
     expect(ranges(container)).toHaveLength(14)
   })
 
   it('图形大小只在有图形时出现，圆角只在圆角形状下出现', () => {
+    setInspectorOpen(true)
     useAvatarStore.setState({
       config: {
         ...DEFAULT_CONFIG,
@@ -315,10 +330,12 @@ describe('检查器带', () => {
       },
     })
     const { container } = mount(<Inspector />)
-    expect(ranges(container)).toHaveLength(16)
+    // 14 加图形的大小与水平补偿，再加圆角
+    expect(ranges(container)).toHaveLength(17)
   })
 
   it('偏离默认值的行才有重置钮，点一下回默认', () => {
+    setInspectorOpen(true)
     useAvatarStore.setState({
       config: {
         ...DEFAULT_CONFIG,

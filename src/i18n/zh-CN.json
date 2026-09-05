@@ -257,5 +257,16 @@
   "topbar.language": "界面语言",
   "topbar.redo": "重做",
   "topbar.theme": "主题",
-  "topbar.undo": "撤销"
+  "topbar.undo": "撤销",
+  "panel.graphic.offset": "水平补偿",
+  "panel.inspector.open": "打开微调",
+  "panel.inspector.close": "收起微调",
+  "bottombar.more": "更多",
+  "reset.body": "文字、配色和全部微调都会回到初始状态，这一步可以撤销。",
+  "reset.cancel": "取消",
+  "update.title": "有新版本",
+  "update.body": "刷新页面就能用上新版本。",
+  "update.action": "刷新",
+  "bottombar.random.short": "随机颜色",
+  "bottombar.randomAll.short": "全部随机"
 }

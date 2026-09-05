@@ -257,5 +257,16 @@
   "topbar.language": "Language",
   "topbar.redo": "Redo",
   "topbar.theme": "Theme",
-  "topbar.undo": "Undo"
+  "topbar.undo": "Undo",
+  "panel.graphic.offset": "Horizontal offset",
+  "panel.inspector.open": "Open fine-tuning",
+  "panel.inspector.close": "Close fine-tuning",
+  "bottombar.more": "More",
+  "reset.body": "Text, palette and every fine-tuned value go back to their initial state. You can undo it.",
+  "reset.cancel": "Cancel",
+  "update.title": "New version available",
+  "update.body": "Reload the page to pick it up.",
+  "update.action": "Reload",
+  "bottombar.random.short": "Shuffle",
+  "bottombar.randomAll.short": "All"
 }

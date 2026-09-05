@@ -32,7 +32,7 @@ import { blobToDataUrl, isWeChat } from '@/export/share'
 import { useT } from '@/i18n'
 import { SIZE_TARGETS, type AvatarConfig } from '@/state/config'
 import { queueHistoryThumbnail } from '@/app/history-thumb'
-import { BurstFlash, useBurst } from '@/app/showcase/Burst'
+import { Ripple, useRipple } from '@/app/showcase/Ripple'
 import { flushConfigSync, useAvatarStore } from '@/state/store'
 
 export interface ExportDrawerProps {
@@ -69,7 +69,7 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
   const [done, setDone] = useState<Done | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   // 出图成功时在结果区放一次粒子，预览框同时弹一下
-  const burst = useBurst()
+  const burst = useRipple()
   const fireBurst = burst.fire
 
   useEffect(() => {
@@ -225,7 +225,7 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
 
           {done ? (
             <div data-slot="export-result" className="relative flex flex-col gap-2">
-              <BurstFlash token={burst.token} className="size-64" />
+              <Ripple token={burst.token} className="rounded-xl" />
               <p className="text-sm">{t('export.done', { name: done.filename })}</p>
               <p className="text-muted-foreground text-xs">
                 {t('export.result', {

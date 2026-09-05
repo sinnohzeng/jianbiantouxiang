@@ -56,6 +56,8 @@ export interface AvatarConfig {
   layout: {
     /** logo：图形占安全框高度的比例。 */
     graphic: number // 0.3..0.8
+    /** 图形的水平视觉补偿，按安全框宽度比例，正数往右。 */
+    graphicOffsetX: number // -0.25..0.25
     icon: {
       source: IconSource
       /** builtin 是 lucide 名，emoji 是去 FE0F 的码点串，brand 是品牌文件名，upload 是本次会话 id。 */
@@ -144,6 +146,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
   },
   layout: {
     graphic: 0.52,
+    graphicOffsetX: 0,
     icon: { source: 'none', id: '' },
   },
   exportOptions: {
@@ -342,6 +345,7 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
       const id = source === 'none' || rawId.length > ICON_ID_MAX ? '' : rawId
       return {
         graphic: num(lay.graphic, d.layout.graphic, 0.3, 0.8),
+        graphicOffsetX: num(lay.graphicOffsetX, d.layout.graphicOffsetX, -0.25, 0.25),
         icon: { source, id },
       }
     })(),

@@ -4,7 +4,14 @@
  */
 
 import { expect, test } from '@playwright/test'
-import { APP_URL, PROBE_TIMEOUT_MS, openApp, probeEncode, probeStats } from './helpers'
+import {
+  APP_URL,
+  PROBE_TIMEOUT_MS,
+  openApp,
+  openInspector,
+  probeEncode,
+  probeStats,
+} from './helpers'
 
 test('预览挂着 WebGL 画布，合成结果不是一张平色', async ({ page }) => {
   await openApp(page)
@@ -41,7 +48,9 @@ test('点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => {
   expect(encoded.bytes).toBeLessThanOrEqual(1024 * 1024)
   expect(encoded.hitTarget).toBe(true)
 
-  // 导出后历史条应该拿到一张真实缩略图，而不是只靠配色近似
+  // 导出后历史条应该拿到一张真实缩略图，而不是只靠配色近似。
+  // v5 起它收在顶栏「最近生成」的浮层里，跟撤销重做放一起
+  await page.locator('[data-slot="history-menu"]').click()
   await expect(page.locator('[data-slot="history-strip"] img')).toBeVisible({
     timeout: PROBE_TIMEOUT_MS,
   })
@@ -119,21 +128,46 @@ test('不带 probe 参数时不挂探针', async ({ page }) => {
   expect(installed).toBe(false)
 })
 
-test('三列工作台：挑选栏、预览、检查器带常驻，没有页签', async ({ page }) => {
+test('双列工作台：文字图形一列、配色质感一列，微调默认收起', async ({ page }) => {
   await openApp(page)
 
-  // v5 起页签与手风琴全部取消，五节卡片与检查器带一屏之内都在
+  // v5 起页签与手风琴全部取消，两列挑选栏与操作条一屏之内都在
   await expect(page.locator('[role="tablist"]')).toHaveCount(0)
   await expect(page.locator('[data-slot="pick-column"]')).toBeVisible()
-  await expect(page.locator('[data-slot="inspector"]')).toBeVisible()
+  await expect(page.locator('[data-slot="pick-column-color"]')).toBeVisible()
   await expect(page.locator('[data-slot="bottom-bar"]')).toBeVisible()
 
-  // 检查器带每一行都有常驻数字框，数量与滑杆一致
+  // 微调默认收起，宽度让给改文字与换配色
+  await expect(page.locator('[data-slot="inspector"]')).toBeHidden()
+  await expect(page.locator('[data-slot="inspector-toggle"]')).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  )
+
+  await openInspector(page)
+
+  // 微调每一行都有常驻数字框，数量与滑杆一致
   const sliders = await page.locator('[data-slot="inspector"] input[type="range"]').count()
   expect(sliders).toBeGreaterThan(6)
   await expect(page.locator('[data-slot="inspector"] [data-slot="slider-number"]')).toHaveCount(
     sliders,
   )
+
+  // 开合状态落盘，刷新之后还开着
+  await page.reload()
+  await expect(page.locator('[data-slot="inspector"]')).toBeVisible()
+})
+
+test('主预览区不出现滚动条', async ({ page }) => {
+  await openApp(page)
+
+  const scrollable = await page.evaluate(() => {
+    const pane = document.querySelector('[data-slot="preview-pane"]')
+    if (!pane) return null
+    return { scroll: pane.scrollHeight, client: pane.clientHeight }
+  })
+  expect(scrollable).not.toBeNull()
+  expect(scrollable!.scroll).toBeLessThanOrEqual(scrollable!.client)
 })
 
 test('配色节的随机主按钮换种子', async ({ page }) => {
@@ -150,8 +184,9 @@ test('配色节的随机主按钮换种子', async ({ page }) => {
   await expect.poll(readSeed, { timeout: 5000 }).not.toBe(before)
 })
 
-test('检查器带：改过的参数出现重置钮，点一下回默认', async ({ page }) => {
+test('微调：改过的参数出现重置钮，点一下回默认', async ({ page }) => {
   await openApp(page)
+  await openInspector(page)
 
   // 边距是排版组第四行，默认 15%
   const padding = page.locator('[data-slot="inspector"] input[type="range"]').nth(3)
@@ -170,9 +205,11 @@ test('检查器带：改过的参数出现重置钮，点一下回默认', async
 test('常驻操作条：两个随机一级按钮与文字快捷入口', async ({ page }) => {
   await openApp(page)
 
-  // 三个高频动作都在一级，不再有下拉二级
+  // 三个高频动作都在一级，不再有下拉二级；每个按钮都带可见文案
   await expect(page.locator('[data-slot="shuffle-color"]')).toBeVisible()
+  await expect(page.locator('[data-slot="shuffle-color"]')).toContainText('随机颜色')
   await expect(page.locator('[data-slot="shuffle-all"]')).toBeVisible()
+  await expect(page.locator('[data-slot="export-action"]')).toContainText('导出')
 
   // 随机颜色只换种子；比较存档里的 seed 字段，而不是「存档有没有写过」
   const readSeed = () =>
@@ -291,17 +328,28 @@ test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
   expect(encoded.hitTarget).toBe(true)
 })
 
-test('关于对话框展示版本号，恢复默认回到默认档', async ({ page }) => {
+test('关于对话框展示版本号', async ({ page }) => {
   await openApp(page)
 
-  await page.locator('#avatar-text-first').fill('重置演练')
   await page.locator('[data-slot="about-action"]').click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
   await expect(dialog.getByText(/版本 \d+\.\d+\.\d+/)).toBeVisible()
+})
 
+test('操作条的更多菜单里恢复默认，确认后回到默认档', async ({ page }) => {
+  await openApp(page)
+
+  await page.locator('#avatar-text-first').fill('重置演练')
+  await page.locator('[data-slot="more-menu"]').click()
   await page.locator('[data-slot="reset-action"]').click()
+
+  // 恢复默认会抹掉当前全部配置，先问一句再动手
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  await page.locator('[data-slot="reset-confirm"]').click()
   await expect(dialog).toBeHidden()
+
   // 重置回到默认档，示例文字重新跟随界面语言
   await expect(page.locator('#avatar-text-first')).toHaveValue('飞书')
   await expect(page.locator('#avatar-text-second')).toHaveValue('效率先锋')
@@ -346,6 +394,7 @@ test('网格参考线打开后刷新仍开，且不进导出画布', async ({ pa
 
 test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ page }) => {
   await openApp(page)
+  await openInspector(page)
 
   const auto = page.locator('[data-slot="slider-auto"]')
   await expect(auto).toHaveAttribute('aria-pressed', 'true')

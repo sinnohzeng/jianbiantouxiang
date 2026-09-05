@@ -229,21 +229,27 @@
  * 只动 transform 的缩放：居中靠的是 Tailwind 的 translate 属性，
  * 在 transform 里再写一遍 translate(-50%, -50%) 会与它叠加，元素会偏出半个身位。
  */
-@keyframes showcase-burst-fade {
-  0% {
-    opacity: 0;
-    transform: scale(0.7);
+/*
+ * 随机与导出成功时那一圈涟漪。5.0 之前这里是着色器粒子，方形边界太扎眼，换成纯 CSS。
+ */
+@keyframes showcase-ripple-out {
+  from {
+    opacity: 0.7;
+    transform: scale(0.72);
   }
-  22% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
+  to {
     opacity: 0;
-    transform: scale(1.25);
+    transform: scale(1.55);
   }
 }
 
-.showcase-burst {
-  animation: showcase-burst-fade 900ms ease-out forwards;
+.showcase-ripple {
+  animation: showcase-ripple-out 620ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase-ripple {
+    animation: none;
+    opacity: 0;
+  }
 }

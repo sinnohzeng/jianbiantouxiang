@@ -1,11 +1,15 @@
 /**
- * 顶栏：品牌、撤销重做、语言、主题、关于。
+ * 顶栏：品牌、撤销重做、最近生成、语言、主题、关于。
+ *
+ * 最近生成跟撤销重做放在一起：三个都是“回到刚才那一版”，同一类动作就该同一处落点。
+ * 缩略图条是懒加载的，点开过一次才拉那份 chunk。
  * 半透明加模糊的悬浮壳借 `@shadcnblocks/navbar6` 的写法，让它压在环境光晕上不显得生硬。
  */
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import {
   CheckIcon,
+  HistoryIcon,
   InfoIcon,
   LanguagesIcon,
   MonitorIcon,
@@ -23,8 +27,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Slider } from '@/components/ui/slider'
 import { AboutDialog } from '@/app/AboutDialog'
+import { ErrorBoundary } from '@/app/error-boundary'
+import { HistoryStripLazy } from '@/app/panels/lazy'
 import { BrandMark } from '@/app/BrandMark'
 import { BrandTitle } from '@/app/showcase/BrandTitle'
 import { useAmbientLevel } from '@/app/ambient'
@@ -63,6 +70,9 @@ export function TopBar() {
   const redo = useAvatarStore((state) => state.redo)
   const canUndo = useAvatarStore((state) => state.past.length > 0)
   const canRedo = useAvatarStore((state) => state.future.length > 0)
+  // 只订阅有没有历史：0 到 1 才重渲，后面每加一格都重渲顶栏就得不偿失了
+  const hasHistory = useAvatarStore((state) => state.history.length > 0)
+  const [historyMounted, setHistoryMounted] = useState(false)
   const ThemeIcon = THEME_ICON[mode]
   const [aboutOpen, setAboutOpen] = useState(false)
   const { level: ambient, setLevel: setAmbientLevel } = useAmbientLevel()
@@ -121,6 +131,31 @@ export function TopBar() {
         >
           <Redo2Icon className="size-5" />
         </button>
+
+        <Popover>
+          <PopoverTrigger
+            className={iconButton}
+            data-slot="history-menu"
+            aria-label={t('history.title')}
+            title={t('history.title')}
+            onClick={() => setHistoryMounted(true)}
+          >
+            <HistoryIcon className="size-5" />
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-auto max-w-[min(24rem,calc(100vw-1.5rem))]">
+            <h2 className="text-muted-foreground px-1 text-xs font-medium">{t('history.title')}</h2>
+            {/* 空态就一行字，为它拉一份 chunk 不值当；有历史了才挂懒加载的那份 */}
+            {hasHistory && historyMounted ? (
+              <ErrorBoundary>
+                <Suspense fallback={null}>
+                  <HistoryStripLazy />
+                </Suspense>
+              </ErrorBoundary>
+            ) : (
+              <p className="text-muted-foreground px-1 pb-1 text-xs">{t('history.empty')}</p>
+            )}
+          </PopoverContent>
+        </Popover>
 
         <DropdownMenu>
           <DropdownMenuTrigger

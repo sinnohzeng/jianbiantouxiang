@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { queueHistoryThumbnail } from '@/app/history-thumb'
-import { BurstFlash, useBurst } from '@/app/showcase/Burst'
+import { Ripple, useRipple } from '@/app/showcase/Ripple'
 import { useShowcase } from '@/app/showcase/config'
 import { SelectionIndicator } from '@/app/showcase/SelectionIndicator'
 import { paletteThumbCss, parseHexList } from '@/palettes/color'
@@ -53,7 +53,7 @@ export function PaletteSection() {
   const pushHistory = useAvatarStore((state) => state.pushHistory)
 
   const showcase = useShowcase()
-  const burst = useBurst()
+  const burst = useRipple()
 
   const [tone, setTone] = useState<ToneFilter>('all')
   const [family, setFamily] = useState<FamilyFilter>('all')
@@ -121,8 +121,8 @@ export function PaletteSection() {
         >
           <ShuffleIcon aria-hidden />
           {t('bottombar.random')}
+          <Ripple token={burst.token} />
         </Button>
-        <BurstFlash token={burst.token} />
       </span>
 
       <div className="flex flex-col gap-2">
@@ -189,7 +189,7 @@ export function PaletteSection() {
                 {active ? (
                   <SelectionIndicator
                     id={`palette-tile-${uid}`}
-                    className="ring-foreground/55 rounded-xl ring-2"
+                    className="ring-foreground rounded-xl ring-[3px]"
                   />
                 ) : null}
                 {/* 关掉炫技层时退回原来的做法：外层垫一圈本配色的渐变，内层缩进 3 px 露出来 */}

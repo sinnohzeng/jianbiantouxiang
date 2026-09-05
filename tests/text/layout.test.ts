@@ -239,6 +239,38 @@ describe('图标进栈', () => {
     expect(graphic.y).toBeCloseTo(graphic.x)
   })
 
+  it('水平补偿按安全框宽度整体挪图形，纯图形时同样生效', () => {
+    const withText = layout(
+      {
+        text: '产品设计部',
+        typography: { sizeMode: 'manual', fontSize: 0.1, padding: 0.1, effect: 'plain' },
+        layout: {
+          graphic: 0.5,
+          graphicOffsetX: 0.05,
+          icon: { source: 'builtin', id: 'tree-palm' },
+        },
+      },
+      GRAPHIC,
+    )
+    // 安全框宽 800，补偿 5% 就是往右 40
+    expect(withText.graphic!.x).toBeCloseTo(340)
+
+    const iconOnly = layout(
+      {
+        text: '',
+        typography: { padding: 0.1 },
+        layout: {
+          graphic: 0.52,
+          graphicOffsetX: -0.05,
+          icon: { source: 'builtin', id: 'tree-palm' },
+        },
+      },
+      GRAPHIC,
+    )
+    const centred = 100 + (800 - 800 * 0.52) / 2
+    expect(iconOnly.graphic!.x).toBeCloseTo(centred - 40)
+  })
+
   it('图标来源是 none 时，传了图形尺寸也不进栈', () => {
     const result = layout(
       {

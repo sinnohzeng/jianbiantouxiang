@@ -257,5 +257,16 @@
   "topbar.language": "表示言語",
   "topbar.redo": "やり直す",
   "topbar.theme": "テーマ",
-  "topbar.undo": "元に戻す"
+  "topbar.undo": "元に戻す",
+  "panel.graphic.offset": "水平オフセット",
+  "panel.inspector.open": "微調整を開く",
+  "panel.inspector.close": "微調整を閉じる",
+  "bottombar.more": "その他",
+  "reset.body": "文字、配色、微調整した値がすべて初期状態に戻ります。取り消しできます。",
+  "reset.cancel": "キャンセル",
+  "update.title": "新しいバージョンがあります",
+  "update.body": "ページを再読み込みすると反映されます。",
+  "update.action": "再読み込み",
+  "bottombar.random.short": "配色",
+  "bottombar.randomAll.short": "全部"
 }
