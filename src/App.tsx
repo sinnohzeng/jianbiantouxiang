@@ -1,12 +1,11 @@
 import { useEffect, useRef } from 'react'
-import { toast } from 'sonner'
 import { Toaster } from '@/components/ui/sonner'
 import { AppShell } from '@/app/AppShell'
 import { useTheme } from '@/app/theme'
 import { getCuratedByFamily, nearestWeight } from '@/fonts'
 import { I18nProvider, dictOf, useLocale, useT } from '@/i18n'
 import { DEFAULT_CONFIG, LOCALE_DEFAULT_FONT, type PartialConfig } from '@/state/config'
-import { initialConfigSource, initialHashBroken, useAvatarStore } from '@/state/store'
+import { initialConfigSource, useAvatarStore } from '@/state/store'
 
 const OWNED_DEFAULTS = {
   text: DEFAULT_CONFIG.text,
@@ -18,7 +17,7 @@ const OWNED_DEFAULTS = {
  *
  * 接管有三条边界。
  *
- * 一、只在配置来自默认值时接管，分享链接与本机存档都是用户自己的内容，一个字都不能改。
+ * 一、只在配置来自默认值时接管，本机存档是用户自己的内容，一个字都不能改。
  *
  * 二、用 ref 记住自己写进去的那份，当前值一旦不是自己写的就说明用户动过手，本次会话不再接管。
  * 不能拿“当前文字是不是某种语言的示例”当判据：`initialConfigSource()` 整场都是 `default`，
@@ -86,29 +85,6 @@ export function LocaleDefaults() {
 }
 
 /**
- * 分享链接读不出来时提示一次。
- *
- * 链接里带着配置载荷却解不开，多半是在聊天窗口或邮件里被截断了。
- * 不说一声的话，用户看到的是自己本机的旧配置，而几百毫秒后的一次 replaceState
- * 就把坏载荷换成了他自己的，现场都没了，他只会以为对方压根没把图做上去。
- */
-function ShareLinkNotice() {
-  const t = useT()
-  const { locale } = useLocale()
-  const shown = useRef(false)
-
-  useEffect(() => {
-    if (shown.current || !initialHashBroken()) return
-    // 字典还在路上，等它到货再弹，否则提示先闪一次英文
-    if (dictOf(locale) === null) return
-    shown.current = true
-    toast(t('share.invalid'))
-  }, [locale, t])
-
-  return null
-}
-
-/**
  * 标题与描述随界面语言走。SEO 不是这个站的重点，
  * 但分享到 IM 时抓的是这两条，得跟着语言变。
  */
@@ -136,7 +112,6 @@ function Shell() {
     <>
       <DocumentMeta />
       <LocaleDefaults />
-      <ShareLinkNotice />
       <AppShell />
       {/* 手机上底部被操作条占着，提示统一从顶部下来 */}
       <Toaster position="top-center" theme={resolved} closeButton />
@@ -145,7 +120,7 @@ function Shell() {
 }
 
 export default function App() {
-  // store 模块加载即读 URL hash 与 localStorage，并启动同步，这里不用再初始化一次
+  // store 模块加载即读 localStorage 并启动同步，这里不用再初始化一次
   return (
     <I18nProvider>
       <Shell />

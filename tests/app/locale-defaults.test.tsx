@@ -14,7 +14,7 @@ import { stopConfigSync, useAvatarStore } from '@/state/store'
 import { LocaleDefaults } from '@/App'
 
 /** 让用例能改初始配置来自哪一档，store 本体仍是真的。 */
-const source = vi.hoisted(() => ({ value: 'default' as 'hash' | 'storage' | 'default' }))
+const source = vi.hoisted(() => ({ value: 'default' as 'storage' | 'default' }))
 
 vi.mock('@/state/store', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/state/store')>()

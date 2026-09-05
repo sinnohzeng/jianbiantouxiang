@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_CONFIG, type AvatarConfig } from '@/state/config'
 import { PERSIST_KEY, savePersisted } from '@/state/persist'
-import { decodeConfigFromHash, encodeConfigToHash } from '@/state/url'
 import {
   DEFAULT_UI,
   SYNC_DEBOUNCE_MS,
@@ -220,10 +219,7 @@ describe('撤销与重做', () => {
     const before = store().config
     store().setConfig({ text: '第一次' })
     store().setConfig({ text: '第二次' })
-    expect(store().past.map((item) => item.text)).toEqual([
-      DEFAULT_CONFIG.text,
-      '第一次',
-    ])
+    expect(store().past.map((item) => item.text)).toEqual([DEFAULT_CONFIG.text, '第一次'])
 
     store().undo()
     expect(store().config.text).toBe('第一次')
@@ -278,6 +274,13 @@ describe('撤销与重做', () => {
 })
 
 describe('ui 状态', () => {
+  it('自动字号回写只进 ui，不碰配置、不进撤销栈', () => {
+    store().setUi({ autoFontSize: 0.37 })
+    expect(store().ui.autoFontSize).toBeCloseTo(0.37)
+    expect(store().config).toEqual(DEFAULT_CONFIG)
+    expect(store().past).toEqual([])
+  })
+
   it('setUi 局部更新，其余字段保持', () => {
     store().setUi({ activePanel: 'palette' })
     store().setUi({ fontStatus: 'loading' })
@@ -286,19 +289,19 @@ describe('ui 状态', () => {
 })
 
 describe('初始化优先级', () => {
-  it('URL hash 优先于 localStorage', () => {
+  it('有本机存档就用存档', () => {
     savePersisted({ ...DEFAULT_CONFIG, text: '存档' })
-    window.history.replaceState(null, '', encodeConfigToHash({ ...DEFAULT_CONFIG, text: '链接' }))
-    expect(readInitialConfig().text).toBe('链接')
-  })
-
-  it('hash 解不出来时用 localStorage', () => {
-    savePersisted({ ...DEFAULT_CONFIG, text: '存档' })
-    window.history.replaceState(null, '', '#c=坏数据')
     expect(readInitialConfig().text).toBe('存档')
   })
 
-  it('两者都没有时用默认配置', () => {
+  it('地址栏的 hash 不再是配置来源', () => {
+    // v4 的 #c= 分享链接已经退役，带着旧链接打开也只认本机存档
+    savePersisted({ ...DEFAULT_CONFIG, text: '存档' })
+    window.history.replaceState(null, '', '#c=eyJ0ZXh0Ijoi6ZO-5o6lIn0')
+    expect(readInitialConfig().text).toBe('存档')
+  })
+
+  it('没有存档时用默认配置', () => {
     expect(readInitialConfig()).toEqual(DEFAULT_CONFIG)
   })
 
@@ -311,12 +314,13 @@ describe('初始化优先级', () => {
     savePersisted({ ...DEFAULT_CONFIG, text: '存档' }, [
       { config: { ...DEFAULT_CONFIG, text: '历史' } },
     ])
-    window.history.replaceState(null, '', encodeConfigToHash({ ...DEFAULT_CONFIG, text: '链接' }))
     vi.resetModules()
     const fresh = await import('@/state/store')
     fresh.stopConfigSync()
-    expect(fresh.useAvatarStore.getState().config.text).toBe('链接')
-    expect(fresh.useAvatarStore.getState().history.map((item) => item.config.text)).toEqual(['历史'])
+    expect(fresh.useAvatarStore.getState().config.text).toBe('存档')
+    expect(fresh.useAvatarStore.getState().history.map((item) => item.config.text)).toEqual([
+      '历史',
+    ])
   })
 })
 
@@ -326,18 +330,17 @@ describe('防抖同步', () => {
     return raw ? ((JSON.parse(raw) as { config: AvatarConfig }).config ?? null) : null
   }
 
-  it('300 ms 后才写 localStorage 与 URL hash', () => {
+  it('300 ms 后才写 localStorage，且不碰地址栏', () => {
     vi.useFakeTimers()
     startConfigSync()
     store().setConfig({ text: '慢慢写' })
 
     vi.advanceTimersByTime(SYNC_DEBOUNCE_MS - 1)
     expect(persisted()).toBeNull()
-    expect(window.location.hash).toBe('')
 
     vi.advanceTimersByTime(1)
     expect(persisted()?.text).toBe('慢慢写')
-    expect(decodeConfigFromHash(window.location.hash)?.text).toBe('慢慢写')
+    expect(window.location.hash).toBe('')
   })
 
   it('连续改动只落一次盘', () => {
@@ -352,14 +355,14 @@ describe('防抖同步', () => {
     expect(persisted()?.text).toBe('三')
   })
 
-  it('只写 hash 不留浏览器历史', () => {
+  it('同步不碰浏览器历史与地址栏', () => {
     vi.useFakeTimers()
     const pushState = vi.spyOn(window.history, 'pushState')
     const replaceState = vi.spyOn(window.history, 'replaceState')
     startConfigSync()
     store().setConfig({ text: '不留痕' })
     vi.advanceTimersByTime(SYNC_DEBOUNCE_MS)
-    expect(replaceState).toHaveBeenCalled()
+    expect(replaceState).not.toHaveBeenCalled()
     expect(pushState).not.toHaveBeenCalled()
   })
 

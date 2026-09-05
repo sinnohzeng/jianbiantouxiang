@@ -28,6 +28,12 @@ export interface SliderFieldProps {
   className?: string
   /** 常驻数值输入，适合需要精确修改的行级参数。 */
   showInput?: boolean
+  /**
+   * 「自动」档。给了就在数值前放一个 aria-pressed 按钮：
+   * 自动态点亮，此时 value 是引擎算出来的值；用户拖滑杆或敲数字由调用方切成手动，
+   * 手动态点这个按钮回到自动。
+   */
+  auto?: { active: boolean; label: string; hint?: string; onReset: () => void }
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -52,6 +58,7 @@ export function SliderField({
   disabled = false,
   className,
   showInput = false,
+  auto,
 }: SliderFieldProps) {
   const labelId = useId()
   // draft 为 null 就是没在编辑。不另存一份同步态，省掉一个只为对齐外部值的 effect
@@ -77,6 +84,25 @@ export function SliderField({
         <span id={labelId} className="truncate text-sm font-medium">
           {label}
         </span>
+        {auto ? (
+          <button
+            type="button"
+            data-slot="slider-auto"
+            aria-pressed={auto.active}
+            title={auto.hint}
+            disabled={disabled}
+            onClick={auto.onReset}
+            // 放在标签与数值中间、靠右对齐；高度 44 与数值按钮同行等高，热区不压滑杆
+            className={cn(
+              'focus-visible:ring-ring/50 ml-auto h-11 min-w-11 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none',
+              auto.active
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'border-border text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {auto.label}
+          </button>
+        ) : null}
         {draft !== null || showInput ? (
           <Input
             ref={inputRef}

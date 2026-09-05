@@ -104,13 +104,26 @@ describe('auto 模式', () => {
     expect(result.secondary).toBeNull()
   })
 
-  it('水平补偿在求解阶段预留宽度余量', () => {
-    // 偏移 0.1 × 画布宽 1000 → 两侧各让 100，可用宽从 800 降到 600
-    const result = fit({
+  it('水平补偿不参与求解：字号照满宽算，越界只反映在 fits 上', () => {
+    // 单个 CJK 填满 800 宽的安全区，字号 800；偏移 0.1 × 画布宽 1000 = 100 px，
+    // 位移后右侧越出安全区，所以 fits 为假，但字号一个像素都不让
+    const plain = fit({ text: '中', typography: { padding: 0.1 } })
+    const shifted = fit({
       text: '中',
       typography: { padding: 0.1, lineOffsetsX: [0.1, 0] },
     })
-    expect(result.primary?.fontSizePx).toBeCloseTo(600, 0)
+    expect(shifted.primary?.fontSizePx).toBeCloseTo(plain.primary?.fontSizePx ?? 0, 0)
+    expect(shifted.contained).toBe(true)
+    expect(shifted.fits).toBe(false)
+  })
+
+  it('补偿小到位移后仍在安全区内时 fits 为真', () => {
+    // 手动 0.2：两个 CJK 块宽 400，安全区 800 两侧各余 200，偏移 20 px 放得下
+    const result = fit({
+      text: '中中',
+      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, lineOffsetsX: [0.02, 0] },
+    })
+    expect(result.primary?.block.width).toBeCloseTo(400)
     expect(result.fits).toBe(true)
   })
 

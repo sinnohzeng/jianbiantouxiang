@@ -1,8 +1,7 @@
 /**
  * URL 上的 ?lang= 只当一次性入口：首屏认下之后写进 localStorage 并从地址栏摘掉。
  *
- * 盯的是两件事：用户在顶栏切过语言，刷新不会被链接里的旧值顶回去；
- * 复制出去的分享链接不再把语言钉给下一个人（buildShareUrl 原样带 window.location.search）。
+ * 盯的是：用户在顶栏切过语言，刷新不会被链接里的旧值顶回去；地址栏上其余参数与锚点原样保留。
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -14,8 +13,6 @@ import {
   detectLocale,
   useLocale,
 } from '@/i18n'
-import { DEFAULT_CONFIG } from '@/state/config'
-import { buildShareUrl } from '@/state/url'
 import { memoryStorage } from '../setup'
 
 /** 直接摆好地址栏，jsdom 里改 location 只能走 history。 */
@@ -47,18 +44,18 @@ describe('consumeLocaleQuery', () => {
     expect(memoryStorage.getItem(LOCALE_STORAGE_KEY)).toBe('ja')
   })
 
-  it('摘掉 lang，其余查询串与 hash 原样保留', () => {
-    setUrl('/?probe=1&lang=ja&x=2#c=abc')
+  it('摘掉 lang，其余查询串与锚点原样保留', () => {
+    setUrl('/?probe=1&lang=ja&x=2#about')
     consumeLocaleQuery()
     expect(window.location.search).toBe('?probe=1&x=2')
-    expect(window.location.hash).toBe('#c=abc')
+    expect(window.location.hash).toBe('#about')
   })
 
   it('只有 lang 一个参数时问号一并去掉', () => {
-    setUrl('/?lang=ko#c=abc')
+    setUrl('/?lang=ko#about')
     consumeLocaleQuery()
     expect(window.location.search).toBe('')
-    expect(window.location.href).toContain('#c=abc')
+    expect(window.location.href).toContain('#about')
   })
 
   it('认不出的取值照样摘掉，但不写 localStorage', () => {
@@ -83,11 +80,11 @@ describe('consumeLocaleQuery', () => {
     expect(detectLocale()).toBe('en')
   })
 
-  it('消费之后分享链接不再钉语言', () => {
+  it('消费之后地址栏不再带 lang', () => {
     setUrl('/?lang=zh-CN')
-    expect(buildShareUrl(DEFAULT_CONFIG)).toContain('lang=zh-CN')
+    expect(window.location.search).toContain('lang=zh-CN')
     consumeLocaleQuery()
-    expect(buildShareUrl(DEFAULT_CONFIG)).not.toContain('lang=')
+    expect(window.location.search).not.toContain('lang=')
   })
 })
 
@@ -105,8 +102,8 @@ describe('I18nProvider 与 setLocale', () => {
     expect(window.location.search).toBe('?probe=1')
   })
 
-  it('顶栏切过语言之后，刷新与分享链接都跟着新语言走', async () => {
-    setUrl('/?lang=zh-CN#c=abc')
+  it('顶栏切过语言之后，刷新跟着新语言走，地址栏不再带 lang', async () => {
+    setUrl('/?lang=zh-CN#about')
     await act(async () => {
       render(
         <I18nProvider>
@@ -124,7 +121,6 @@ describe('I18nProvider 与 setLocale', () => {
     expect(window.location.search).toBe('')
     // 刷新
     expect(detectLocale()).toBe('en')
-    expect(buildShareUrl(DEFAULT_CONFIG)).not.toContain('lang=')
     expect(document.documentElement.lang).toBe('en')
   })
 })

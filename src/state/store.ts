@@ -16,7 +16,6 @@ import {
   type HistoryEntry,
 } from '@/state/history'
 import { loadPersisted, loadPersistedState, savePersisted } from '@/state/persist'
-import { decodeConfigFromHash, encodeConfigToHash, hasBrokenConfigHash } from '@/state/url'
 
 export type ActivePanel = 'text' | 'palette' | 'style' | 'canvas'
 export type FontStatus = 'idle' | 'loading' | 'ready' | 'fallback'
@@ -31,6 +30,13 @@ export interface UiState {
    */
   exportMounted: boolean
   fontStatus: FontStatus
+  /**
+   * 预览最近一次自动求得的基准字号，按画布短边比例，与 `typography.fontSize` 同一单位。
+   * 由 PreviewStage 在排版之后写入，只在 `sizeMode` 为 auto 时更新；
+   * 字号滑杆在自动态就显示它，用户一拖就以它为起点切到手动，画面不跳。
+   * 是派生值不是配置，不进存档与历史。
+   */
+  autoFontSize: number | null
 }
 
 /** 配置级撤销上限。配置对象本身很小，50 份足够回退一串误操作。 */
@@ -41,6 +47,7 @@ export const DEFAULT_UI: UiState = {
   exportOpen: false,
   exportMounted: false,
   fontStatus: 'idle',
+  autoFontSize: null,
 }
 
 type TypographyPatch = NonNullable<PartialConfig['typography']>
@@ -51,7 +58,7 @@ type ExportPatch = NonNullable<PartialConfig['exportOptions']>
 
 export interface AvatarStore {
   config: AvatarConfig
-  /** 撤销栈，只存在内存，不进 URL、存档或历史条。 */
+  /** 撤销栈，只存在内存，不进存档或历史条。 */
   past: AvatarConfig[]
   /** 重做栈。新的配置动作一出现就清空。 */
   future: AvatarConfig[]
@@ -120,40 +127,23 @@ function commitConfig(
 }
 
 /** 本次会话的初始配置是从哪来的。 */
-export type ConfigSource = 'hash' | 'storage' | 'default'
+export type ConfigSource = 'storage' | 'default'
 
 let configSource: ConfigSource = 'default'
 
 /**
- * 初始配置来自哪一档。'default' 表示既没有分享链接也没有本机存档，
- * 这时示例文字才由界面语言决定；另外两档都是用户自己的配置，不能覆盖。
+ * 初始配置来自哪一档。'default' 表示没有本机存档，
+ * 这时示例文字才由界面语言决定；'storage' 是用户自己的配置，不能覆盖。
  */
 export function initialConfigSource(): ConfigSource {
   return configSource
 }
 
-let brokenHash = false
-
 /**
- * 打开页面时那条分享链接带着配置却读不出来。
- *
- * 界面要据此提示一次：不然用户点进来看到的是自己本机的旧配置，
- * 而 300 ms 后的一次 replaceState 还会把链接里那段坏载荷换成他自己的，
- * 现场就没了，他只会以为对方发的链接没做上去。
+ * 初始配置：本机存档优先，没有就用默认。
+ * v5 起配置不再进 URL；要给测试或截图脚本喂配置，往 `PERSIST_KEY` 写一份存档再打开页面。
  */
-export function initialHashBroken(): boolean {
-  return brokenHash
-}
-
-/** 初始配置优先级：URL hash > localStorage > 默认。链接分享出去要能覆盖本机存档。 */
 export function readInitialConfig(): AvatarConfig {
-  const hash = typeof window === 'undefined' ? '' : window.location.hash
-  const shared = hash ? decodeConfigFromHash(hash) : null
-  if (shared) {
-    configSource = 'hash'
-    return shared
-  }
-  brokenHash = hasBrokenConfigHash(hash)
   const stored = loadPersisted()
   configSource = stored ? 'storage' : 'default'
   return stored ?? DEFAULT_CONFIG
@@ -269,21 +259,9 @@ let unsubscribe: (() => void) | null = null
 
 function writeSync(config: AvatarConfig, history: readonly HistoryEntry[]): void {
   savePersisted(config, history)
-  if (typeof window === 'undefined') return
-  try {
-    const { pathname, search } = window.location
-    // replaceState 而不是给 location.hash 赋值，后者每次调参都会往浏览器历史里塞一条
-    window.history.replaceState(
-      window.history.state,
-      '',
-      `${pathname}${search}${encodeConfigToHash(config)}`,
-    )
-  } catch {
-    // 部分嵌入环境禁用了 replaceState，存档已经落地，链接同步失败可以忍
-  }
 }
 
-/** 立刻把当前状态写进 localStorage 与 URL，导出前调用，别让用户复制到旧链接。 */
+/** 立刻把当前状态写进 localStorage，导出前调用，导出与存档才是同一份配置。 */
 export function flushConfigSync(): void {
   if (syncTimer !== null) {
     clearTimeout(syncTimer)

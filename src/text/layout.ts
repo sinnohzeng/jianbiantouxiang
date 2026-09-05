@@ -36,6 +36,8 @@ export interface GraphicSize {
 export interface TextLayout {
   lines: LayoutLine[]
   fontSizePx: number
+  /** 基准字号按画布短边的比例，自动档求解出来的值；界面用它做「拖一下就切手动」的起点。 */
+  fontRatio: number
   lineHeightPx: number
   letterSpacingPx: number
   /** canvas font 简写，绘制时直接用，省一次拼装。 */
@@ -202,6 +204,7 @@ export function layoutText(
   return {
     lines,
     fontSizePx: fit.primary?.fontSizePx ?? 0,
+    fontRatio: fit.ratio,
     lineHeightPx: fit.primary?.lineHeightPx ?? 0,
     letterSpacingPx: fit.primary?.letterSpacingPx ?? 0,
     font: fit.primary?.font ?? '',

@@ -3,7 +3,7 @@
  *
  * v4.0 把 v3 的三个用途（纯文字 / 状态徽章 / 图标徽章）收敛为一个两行徽章模型，
  * 见 specs/v4.0-two-line-badge/spec.md：
- * - `text` 最多两行，第三行起并入第二行，旧链接在 `normalizeConfig` 里迁移；
+ * - `text` 最多两行，第三行起并入第二行，旧存档在 `normalizeConfig` 里迁移；
  * - `layout.kind` 与自由排版字段（对齐、锚点、全局偏移、竖排、自动换行开关）退役，
  *   旧载荷里带着它们不报错，读进来即忽略；
  * - 版式只剩一个纵向栈：图标（可选）→ 第一行 → 第二行，水平居中、自动适配。
@@ -79,11 +79,23 @@ export const EXPORT_FORMATS = ['jpg', 'png', 'webp'] as const
 export const SIZE_TARGETS = ['none', '1mb', '2mb'] as const
 export const ICON_SOURCES = ['none', 'builtin', 'emoji', 'upload'] as const
 
-/** 图形标识最长 128 字符，防止坏链接把状态与 hash 无限撑大。 */
+/** 图形标识最长 128 字符，防止坏数据把状态与存档无限撑大。 */
 export const ICON_ID_MAX = 128
 
 /** 行级参数固定两档：两行模型之外没有第三行。 */
 export const LINE_OVERRIDE_MAX = 2
+
+/**
+ * 字号滑杆的步进（画布短边比例）。自动档回写给滑杆的值也按它向下对齐：
+ * 滑杆控件在触碰时会把值取整到步进，回写值不在网格上的话，轻触一下就会被取整到比求解上限更大的档，
+ * 画面没动、「超出安全区」却先亮了。
+ */
+export const FONT_SIZE_STEP = 0.005
+
+/** 向下对齐到字号步进网格，结果不大于输入，所以永远不越过求解器给的上限。 */
+export function snapFontRatio(ratio: number): number {
+  return Math.round(Math.floor(ratio / FONT_SIZE_STEP + 1e-9) * FONT_SIZE_STEP * 1000) / 1000
+}
 
 /** 次行相对首行的默认字号比例。 */
 export const STATUS_SECOND_LINE_SCALE = 0.62
@@ -149,7 +161,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
  * 韩文界面拿它渲染会被判成加载失败，整块掉回系统字体，字体按钮上写的名字与画面对不上。
  *
  * 谁来用它：src/App.tsx 的 LocaleDefaults，只在配置来自默认值这一档接管。
- * 分享链接与本机存档都是用户自己的配置，一个字段都不能按语言改，见 store 的 readInitialConfig。
+ * 本机存档是用户自己的配置，一个字段都不能按语言改，见 store 的 readInitialConfig。
  */
 export const LOCALE_DEFAULT_FONT: Record<Locale, string> = {
   'zh-CN': 'Noto Sans SC',
@@ -165,7 +177,7 @@ type DeepPartial<T> = T extends readonly unknown[]
     ? { [P in keyof T]?: DeepPartial<T[P]> }
     : T
 
-/** 递归的可选版本，用于接收链接、localStorage 与面板的局部更新。 */
+/** 递归的可选版本，用于接收 localStorage 与面板的局部更新。 */
 export type PartialConfig = DeepPartial<AvatarConfig>
 
 const HEX_RE = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i
@@ -258,7 +270,7 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
   const lay = isRecord(src.layout) ? src.layout : {}
   const icon = isRecord(lay.icon) ? lay.icon : {}
 
-  // 换行解释收敛到两行：旧链接的三行以上在这里并档，
+  // 换行解释收敛到两行：旧存档的三行以上在这里并档，
   // v4 载荷里被塞进多余换行也走同一条规则，渲染层不会见到第三行
   const [firstLine, secondLine] = twoLinesOf(str(src.text, d.text))
   const text = secondLine === '' ? firstLine : `${firstLine}\n${secondLine}`
@@ -271,7 +283,7 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
     2,
   )
   // v3.1 的状态徽章只有 layout.scale 一个自由度。v3.2 已把契约字段移除，
-  // 旧链接缺行级数组时在这里迁移，不能把用户调好的比例打回默认。
+  // 旧存档缺行级数组时在这里迁移，不能把用户调好的比例打回默认。
   if (!Array.isArray(tp.lineSizeScales) && lay.kind === 'status') {
     lineSizeScales[1] = num(lay.scale, STATUS_SECOND_LINE_SCALE, 0.2, 0.8)
   }

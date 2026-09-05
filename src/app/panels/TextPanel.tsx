@@ -17,14 +17,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useT } from '@/i18n'
-import { LINE_OVERRIDE_MAX, TEXT_EFFECTS, type TextEffect } from '@/state/config'
+import { FONT_SIZE_STEP, LINE_OVERRIDE_MAX, TEXT_EFFECTS, type TextEffect } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { twoLinesOf } from '@/text/wrap'
 import { weightsOf } from './font-entries'
 import { FontPickerLazy, IconPickerLazy } from './lazy'
 import { GraphicThumb } from './GraphicThumb'
 
-type SizeMode = 'auto' | 'manual'
 type ColorMode = 'auto' | 'custom'
 
 /** 常用文字色预设：白、黑、米白、明黄，配投影反色适配逐一验过。 */
@@ -64,6 +63,9 @@ export function TextPanel() {
   const setConfig = useAvatarStore((state) => state.setConfig)
   const setTypography = useAvatarStore((state) => state.setTypography)
   const setLayout = useAvatarStore((state) => state.setLayout)
+  const setUi = useAvatarStore((state) => state.setUi)
+  // 预览排版后回写的自动基准字号，与 fontSize 同一单位（画布短边比例）
+  const autoFontSize = useAvatarStore((state) => state.ui.autoFontSize)
   const [fontOpen, setFontOpen] = useState(false)
   // 字体选择器是懒加载的，挂上就等于拉 chunk，所以只在用户点开之后才挂
   const [fontMounted, setFontMounted] = useState(false)
@@ -244,19 +246,30 @@ export function TextPanel() {
       </PanelSection>
 
       <PanelSection title={t('panel.text.group.type')}>
-        <div className="flex flex-col gap-1.5">
-          <Label>{t('panel.text.sizeMode')}</Label>
-          <SegmentedControl<SizeMode>
-            name="text-size-mode"
-            label={t('panel.text.sizeMode')}
-            value={type.sizeMode}
-            options={[
-              { value: 'auto', label: t('panel.text.sizeMode.auto') },
-              { value: 'manual', label: t('panel.text.sizeMode.manual') },
-            ]}
-            onChange={(sizeMode) => setTypography({ sizeMode })}
-          />
-        </div>
+        {/* 字号：默认自动。滑杆在自动态显示引擎刚算出的值，一拖就以它为起点切到手动，
+            不会从上一次的手动值跳过去；「自动」按钮点亮表示自动态，手动态点它回去 */}
+        <SliderField
+          label={t('panel.text.fontSize')}
+          editLabel={t('panel.common.edit', { name: t('panel.text.fontSize') })}
+          value={type.sizeMode === 'auto' ? (autoFontSize ?? type.fontSize) : type.fontSize}
+          min={0.04}
+          max={0.92}
+          step={FONT_SIZE_STEP}
+          scale={100}
+          unit="%"
+          auto={{
+            active: type.sizeMode === 'auto',
+            label: t('panel.text.fontSize.auto'),
+            hint: t('panel.text.fontSize.autoHint'),
+            onReset: () => {
+              // 先清掉上一次的回写值：否则切回去的那一帧滑杆会先显示旧解再跳到新解。
+              // 清空后滑杆停在当前手动值上，等预览求解完再滑到自动值
+              setUi({ autoFontSize: null })
+              setTypography({ sizeMode: 'auto' })
+            },
+          }}
+          onChange={(fontSize) => setTypography({ sizeMode: 'manual', fontSize })}
+        />
 
         {hasFirst && hasSecond ? (
           <SliderField
@@ -318,20 +331,6 @@ export function TextPanel() {
           />
         ) : null}
 
-
-        <SliderField
-          label={t('panel.text.fontSize')}
-          editLabel={t('panel.common.edit', { name: t('panel.text.fontSize') })}
-          value={type.fontSize}
-          min={0.04}
-          max={0.92}
-          step={0.005}
-          scale={100}
-          unit="%"
-          disabled={type.sizeMode === 'auto'}
-          onChange={(fontSize) => setTypography({ fontSize })}
-        />
-
         <SliderField
           label={t('panel.text.padding')}
           editLabel={t('panel.common.edit', { name: t('panel.text.padding') })}
@@ -366,7 +365,6 @@ export function TextPanel() {
           unit=" em"
           onChange={(letterSpacing) => setTypography({ letterSpacing })}
         />
-
       </PanelSection>
 
       <PanelSection title={t('panel.text.group.effect')} defaultOpen={false}>

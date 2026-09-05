@@ -121,9 +121,7 @@ function dynamicKeys(): string[] {
     ...SIZE_TARGETS.map((target) => `export.size.${target}`),
     ...CURATED_ICON_CATEGORIES.map((category) => `icon.category.${category}`),
     ...EMOJI_GROUPS.map((group) => `icon.emoji.group.${group}`),
-    // ExportDrawer 的 setNotice(`export.${result}`)，取值来自 shareBlob 的返回
-    'export.shared',
-    'export.cancelled',
+    // BottomBar 的导出成功提示先存进变量再交给 t
     'export.downloaded',
   ]
 }

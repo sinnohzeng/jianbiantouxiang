@@ -67,20 +67,20 @@ test('导出抽屉能把 PNG 复制到剪贴板', async ({ context, page }) => {
   expect(copied).toBe(true)
 })
 
-test('改文字后复制的链接在新页面打开，文字一致', async ({ context, page }) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+test('改文字后刷新页面，文字从本机存档恢复，地址栏不带配置', async ({ page }) => {
   await openApp(page)
 
-  await page.locator('#avatar-text-first').fill('链接往返')
-  await page.locator('[data-slot="copy-link-action"]').click()
+  await page.locator('#avatar-text-first').fill('存档往返')
+  // 存档是 300 ms 防抖写入，等它落地再刷新
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('gradient-avatar:v3') ?? ''), {
+      timeout: 5000,
+    })
+    .toContain('存档往返')
+  expect(await page.evaluate(() => window.location.hash)).toBe('')
 
-  const shared = await page.evaluate(() => navigator.clipboard.readText())
-  expect(shared).toContain('#')
-
-  const opened = await context.newPage()
-  await opened.goto(shared)
-  await expect(opened.locator('#avatar-text-first')).toHaveValue('链接往返')
-  await opened.close()
+  await page.reload()
+  await expect(page.locator('#avatar-text-first')).toHaveValue('存档往返')
 })
 
 test('改文字后可以用键盘撤销与重做', async ({ page }) => {
@@ -126,11 +126,17 @@ test('常驻操作条：两个随机一级按钮与文字快捷入口', async ({
   await expect(page.locator('[data-slot="shuffle-color"]')).toBeVisible()
   await expect(page.locator('[data-slot="shuffle-all"]')).toBeVisible()
 
-  const hashBefore = await page.evaluate(() => window.location.hash)
+  // 随机颜色只换种子；比较存档里的 seed 字段，而不是「存档有没有写过」
+  const readSeed = () =>
+    page.evaluate(() => {
+      const raw = localStorage.getItem('gradient-avatar:v3')
+      if (!raw) return null
+      return (JSON.parse(raw) as { config: { seed: string } }).config.seed
+    })
+  const seedBefore = await readSeed()
   await page.locator('[data-slot="shuffle-color"]').click()
-  await expect
-    .poll(() => page.evaluate(() => window.location.hash), { timeout: 5000 })
-    .not.toBe(hashBefore)
+  await expect.poll(readSeed, { timeout: 5000 }).not.toBe(seedBefore)
+  expect(await readSeed()).toBeTruthy()
 
   // 文字入口一步切到文字页签并聚焦第一行
   await page.locator('[data-slot="edit-text"]').click()
@@ -233,4 +239,56 @@ test('环境光滑杆调低后刷新仍在', async ({ page }) => {
     'aria-valuenow',
     '0',
   )
+})
+
+test('网格参考线打开后刷新仍开，且不进导出画布', async ({ page }) => {
+  await openApp(page)
+
+  const toggle = page.locator('[data-slot="grid-toggle"]')
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+  await expect(page.locator('[data-slot="preview-grid"]')).toHaveCount(0)
+
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('[data-slot="preview-grid"]')).toHaveCount(1)
+  // 网格是 DOM 图层，不进着色器宿主，那里仍只有一张画布
+  await expect(page.locator('[data-slot="preview-shader"] canvas')).toHaveCount(1)
+
+  await page.reload()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.locator('[data-slot="grid-toggle"]')).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('[data-slot="preview-grid"]')).toHaveCount(1)
+})
+
+test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ page }) => {
+  await openApp(page)
+
+  const auto = page.locator('[data-slot="slider-auto"]')
+  await expect(auto).toHaveAttribute('aria-pressed', 'true')
+
+  // 自动态滑杆显示预览回写的求解值，得等首帧排版完成；
+  // 网络字体到货会再排一次，值可能再变一档，所以等它连续两次读数相同再取基线
+  const slider = page.locator('input[type="range"]').first()
+  await expect.poll(() => slider.inputValue(), { timeout: 5000 }).not.toBe('0.42')
+  await expect
+    .poll(
+      async () => {
+        const first = await slider.inputValue()
+        await page.waitForTimeout(400)
+        return first === (await slider.inputValue())
+      },
+      { timeout: 15000 },
+    )
+    .toBe(true)
+  const before = Number(await slider.inputValue())
+  expect(before).toBeGreaterThan(0.04)
+
+  await slider.focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(auto).toHaveAttribute('aria-pressed', 'false')
+  const after = Number(await slider.inputValue())
+  expect(after).toBeCloseTo(before + 0.005, 3)
+
+  await auto.click()
+  await expect(auto).toHaveAttribute('aria-pressed', 'true')
 })

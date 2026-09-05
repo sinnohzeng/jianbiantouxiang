@@ -13,8 +13,8 @@
  * 在上面取色并判断要不要加底板。探针走的是尾沿防抖，比预览再多等一档，拖滑杆时不会每帧起一次 WebGL。
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ScanIcon, TriangleAlertIcon } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Grid3x3Icon, ScanIcon, TriangleAlertIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { getRenderCaps } from '@/engine/caps'
 import { resolveColors } from '@/engine/colors'
@@ -36,12 +36,13 @@ import { drawText } from '@/text/draw'
 import { effectiveConfig } from '@/text/effective'
 import { safeArea } from '@/text/fit'
 import { layoutText } from '@/text/layout'
+import { GRID_DIVISIONS, usePreviewOverlays } from '@/app/preview-overlays'
 import { probeKey } from '@/app/probe-key'
 import { useThrottled } from '@/app/use-throttled'
 import { useIsMobile } from '@/hooks/use-media'
 import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
-import type { AvatarConfig } from '@/state/config'
+import { snapFontRatio, type AvatarConfig } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 
 /**
@@ -136,7 +137,8 @@ export function PreviewStage() {
   const probeChain = useRef<Promise<unknown>>(Promise.resolve())
 
   const [box, setBox] = useState({ width: 0, height: 0 })
-  const [guide, setGuide] = useState(false)
+  // 参考层开关记在 localStorage，刷新后还在；它们不属于配置，导出永远不画
+  const { guide, grid, setGuide, setGrid } = usePreviewOverlays()
   const [autoInk, setAutoInk] = useState(INK_LIGHT)
   const [autoPlate, setAutoPlate] = useState(false)
   const [overflow, setOverflow] = useState(false)
@@ -339,10 +341,20 @@ export function PreviewStage() {
       }
       drawText(textCtx, layout, drawConfig, ink)
       setOverflow(layout.overflow)
+
+      // 把自动求得的基准字号比例回写给面板：字号滑杆在自动态显示它，
+      // 用户一拖就从这个值切到手动。只在 auto 档写，手动档的 fontSizePx 就是用户自己的值。
+      // 向下对齐到滑杆步进：值在网格上，轻触滑杆不会被取整到比求解上限更大的一档
+      if (drawConfig.typography.sizeMode === 'auto') {
+        const snapped = snapFontRatio(layout.fontRatio)
+        if (useAvatarStore.getState().ui.autoFontSize !== snapped) {
+          setUi({ autoFontSize: snapped })
+        }
+      }
     })
 
     return () => cancelAnimationFrame(frame)
-  }, [preview, box, ink, plate, fontTick, graphic])
+  }, [preview, box, ink, plate, fontTick, graphic, setUi])
 
   const frameStyle = useMemo(() => {
     const { width, height, shape, radius } = preview.canvas
@@ -360,7 +372,39 @@ export function PreviewStage() {
     }
   }, [preview, box.width, box.height, isMobile])
 
-  const toggleGuide = useCallback(() => setGuide((on) => !on), [])
+  /**
+   * 网格：正方形格子，边长取画布短边的 1/12，从画框中心铺开，所以横竖各有一条格线正好过中心；
+   * 中心十字单独再画一层加粗。白色低透明度加 difference 混合，深浅底都看得见。
+   * 全部用 CSS 渐变画，不占 2D 画布，也不进导出。
+   */
+  const gridStyle = useMemo(() => {
+    const cell = Math.min(box.width, box.height) / GRID_DIVISIONS
+    if (!(cell > 0)) return undefined
+    const line = 'rgba(255, 255, 255, 0.28)'
+    const axis = 'rgba(255, 255, 255, 0.6)'
+    return {
+      backgroundImage: [
+        `linear-gradient(to right, ${axis} 0 1px, transparent 1px)`,
+        `linear-gradient(to bottom, ${axis} 0 1px, transparent 1px)`,
+        `linear-gradient(to right, ${line} 0 1px, transparent 1px)`,
+        `linear-gradient(to bottom, ${line} 0 1px, transparent 1px)`,
+      ].join(', '),
+      backgroundSize: [
+        `${box.width}px ${box.height}px`,
+        `${box.width}px ${box.height}px`,
+        `${cell}px ${cell}px`,
+        `${cell}px ${cell}px`,
+      ].join(', '),
+      // 十字线定在画框正中；格子从中心对齐，格线与十字重合
+      backgroundPosition: [
+        `${box.width / 2}px 0`,
+        `0 ${box.height / 2}px`,
+        `${box.width / 2}px ${box.height / 2}px`,
+        `${box.width / 2}px ${box.height / 2}px`,
+      ].join(', '),
+      backgroundRepeat: 'no-repeat, no-repeat, repeat, repeat',
+    }
+  }, [box.width, box.height])
 
   // 分隔符用中点而不是中文冒号，五种语言下读起来都不别扭
   const label =
@@ -393,6 +437,15 @@ export function PreviewStage() {
             style={{ mixBlendMode: 'screen' }}
           />
           <canvas ref={textRef} aria-hidden className="absolute inset-0 h-full w-full" />
+
+          {grid && gridStyle ? (
+            <div
+              aria-hidden
+              data-slot="preview-grid"
+              className="pointer-events-none absolute inset-0 mix-blend-difference"
+              style={gridStyle}
+            />
+          ) : null}
 
           {guide ? (
             <div aria-hidden className="absolute inset-0">
@@ -439,20 +492,39 @@ export function PreviewStage() {
           </p>
         ) : null}
 
-        <button
-          type="button"
-          aria-pressed={guide}
-          aria-label={t('preview.safeArea')}
-          title={t('preview.safeArea.hint')}
-          onClick={toggleGuide}
-          className={cn(
-            'tap-target absolute top-2 right-2 flex items-center justify-center rounded-full backdrop-blur-sm transition-colors',
-            'focus-visible:ring-ring/60 focus-visible:ring-3 focus-visible:outline-none',
-            guide ? 'bg-white/85 text-neutral-900' : 'bg-black/35 text-white hover:bg-black/50',
-          )}
-        >
-          <ScanIcon className="size-5" />
-        </button>
+        {/* 两个参考层开关竖着排在右上角：网格在上、安全区在下，都是 aria-pressed 的切换钮 */}
+        <div className="absolute top-2 right-2 flex flex-col gap-1.5">
+          <button
+            type="button"
+            data-slot="grid-toggle"
+            aria-pressed={grid}
+            aria-label={t('preview.grid')}
+            title={t('preview.grid.hint')}
+            onClick={() => setGrid(!grid)}
+            className={cn(
+              'tap-target flex items-center justify-center rounded-full backdrop-blur-sm transition-colors',
+              'focus-visible:ring-ring/60 focus-visible:ring-3 focus-visible:outline-none',
+              grid ? 'bg-white/85 text-neutral-900' : 'bg-black/35 text-white hover:bg-black/50',
+            )}
+          >
+            <Grid3x3Icon className="size-5" />
+          </button>
+          <button
+            type="button"
+            data-slot="guide-toggle"
+            aria-pressed={guide}
+            aria-label={t('preview.safeArea')}
+            title={t('preview.safeArea.hint')}
+            onClick={() => setGuide(!guide)}
+            className={cn(
+              'tap-target flex items-center justify-center rounded-full backdrop-blur-sm transition-colors',
+              'focus-visible:ring-ring/60 focus-visible:ring-3 focus-visible:outline-none',
+              guide ? 'bg-white/85 text-neutral-900' : 'bg-black/35 text-white hover:bg-black/50',
+            )}
+          >
+            <ScanIcon className="size-5" />
+          </button>
+        </div>
       </div>
 
       <div className="flex min-h-5 w-full max-w-full flex-col items-center gap-1 text-center">

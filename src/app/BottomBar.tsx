@@ -2,9 +2,9 @@
  * 主操作条。手机上固定在屏幕底部并让出 safe-area，桌面上就是面板列底部的一行。
  * 触控目标一律 44 px 起，尺寸档参考 `@reactbits-pro/mobile-4`。
  *
- * v4.0 起四个高频动作常驻一级：随机颜色（种子）、随机质感与配色、文字快捷入口、
- * 复制链接，全部图标态加 tooltip；桌面端操作条住在 380 px 面板列里，
- * 带文案排不下，导出是唯一带文案的主行动。
+ * 三个高频动作常驻一级：随机颜色（种子）、随机质感与配色、文字快捷入口，
+ * 全部图标态加 tooltip；桌面端操作条住在面板列里，带文案排不下，导出是唯一带文案的主行动。
+ * v5 起没有「复制链接」：配置不进 URL，分享靠导出的图。
  * 导出按钮带同步锁与三态（idle / working / done）：working 至少 600 ms 可见，
  * 成功后 400 ms 确认态再解锁，连点窗口约一秒，失败立即解锁可重试。
  */
@@ -13,7 +13,6 @@ import { useCallback, useRef, useState } from 'react'
 import {
   CheckIcon,
   DownloadIcon,
-  Link2Icon,
   Loader2Icon,
   SettingsIcon,
   ShuffleIcon,
@@ -21,7 +20,6 @@ import {
   TypeIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { copyText } from '@/app/clipboard'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
@@ -31,7 +29,6 @@ import { isWeChat } from '@/export/share'
 import { releaseCanvas } from '@/export/canvas'
 import { queueHistoryThumbnail } from '@/app/history-thumb'
 import { flushConfigSync, useAvatarStore } from '@/state/store'
-import { buildShareUrl } from '@/state/url'
 
 /** loading 态最短展示时长：太快完成的导出也看得见状态，吸收补点。 */
 const MIN_WORKING_MS = 600
@@ -71,16 +68,6 @@ export function BottomBar() {
       input.scrollIntoView({ block: 'center' })
     })
   }, [setUi])
-
-  const onCopyLink = useCallback(() => {
-    // 先把当前配置落进 URL，再复制，别让用户拿到上一版的链接
-    flushConfigSync()
-    const url = buildShareUrl(useAvatarStore.getState().config)
-    void copyText(url).then((ok) => {
-      if (ok) toast.success(t('common.copied'))
-      else toast.error(t('common.copyFailed'))
-    })
-  }, [t])
 
   // 导出三态：working 期间禁用，done 是成功后的短暂确认态。
   // busyRef 是同步锁：exporting 是渲染闭包，同一帧里的两次点击会都读到 false，
@@ -176,19 +163,6 @@ export function BottomBar() {
           className="tap-target"
         >
           <TypeIcon aria-hidden />
-        </Button>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-lg"
-          data-slot="copy-link-action"
-          onClick={onCopyLink}
-          aria-label={t('bottombar.copyLink')}
-          title={t('bottombar.copyLink')}
-          className="tap-target"
-        >
-          <Link2Icon aria-hidden />
         </Button>
 
         <div className="ml-auto flex min-w-0 flex-1 lg:flex-none">

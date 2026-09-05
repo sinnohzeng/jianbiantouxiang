@@ -41,7 +41,7 @@ describe('两行栈', () => {
     const result = layout(TWO)
     expect(result.lines).toHaveLength(2)
     const [first, second] = result.lines
-    const gap = (second!.y - second!.ascent) - (first!.y + first!.descent)
+    const gap = second!.y - second!.ascent - (first!.y + first!.descent)
     expect(gap).toBeCloseTo(first!.fontSizePx * 0.18, 5)
   })
 
@@ -108,6 +108,97 @@ describe('行级水平补偿互相独立', () => {
     })
     expect(after.lines).toHaveLength(1)
     expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x + 100)
+  })
+
+  describe('自动字号下同样独立', () => {
+    // v4.0 的回归只盖住 manual：auto 档里求解器曾按补偿预留宽度余量，
+    // 第一行一动基准字号就缩，第二行跟着变小变位，用户看到的正是「第一行影响第二行」
+    const AUTO: PartialConfig = {
+      text: '甲甲甲甲\n乙乙',
+      typography: { sizeMode: 'auto', padding: 0.1, effect: 'plain' },
+    }
+
+    it('往左移第一行：两行字号都不变，第二行像素位置不变', () => {
+      const before = layout(AUTO)
+      const after = layout({
+        ...AUTO,
+        typography: { ...AUTO.typography, lineOffsetsX: [-0.1, 0] },
+      })
+      expect(after.lines[0]!.fontSizePx).toBeCloseTo(before.lines[0]!.fontSizePx)
+      expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x - 100)
+      expect(after.lines[1]!.fontSizePx).toBeCloseTo(before.lines[1]!.fontSizePx)
+      expect(after.lines[1]!.x).toBeCloseTo(before.lines[1]!.x)
+      expect(after.lines[1]!.y).toBeCloseTo(before.lines[1]!.y)
+    })
+
+    it('移第二行：第一行字号与位置都不变', () => {
+      const before = layout(AUTO)
+      const after = layout({
+        ...AUTO,
+        typography: { ...AUTO.typography, lineOffsetsX: [0, 0.08] },
+      })
+      expect(after.lines[0]!.fontSizePx).toBeCloseTo(before.lines[0]!.fontSizePx)
+      expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x)
+      expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y)
+      expect(after.lines[1]!.x).toBeCloseTo(before.lines[1]!.x + 80)
+    })
+
+    it('第二行贴满安全区时，第二行的补偿不会让它自己折行', () => {
+      // v4.0 的余量扣在被补偿的那一行上：第二行 6 个 CJK 宽 744，可用宽被 0.1 的补偿压到 600 就折成两行
+      const LONG_SECOND: PartialConfig = {
+        text: '甲甲甲甲\n乙乙乙乙乙乙',
+        typography: { sizeMode: 'auto', padding: 0.1, effect: 'plain' },
+      }
+      const before = layout(LONG_SECOND)
+      const after = layout({
+        ...LONG_SECOND,
+        typography: { ...LONG_SECOND.typography, lineOffsetsX: [0, 0.1] },
+      })
+      expect(after.lines).toHaveLength(2)
+      expect(after.lines[0]!.fontSizePx).toBeCloseTo(before.lines[0]!.fontSizePx)
+      expect(after.lines[1]!.x).toBeCloseTo(before.lines[1]!.x + 100)
+      expect(after.overflow).toBe(true)
+    })
+
+    it('排版结果带基准字号比例，与 fontSize 同一单位', () => {
+      const result = layout(AUTO)
+      // 四个 CJK 填满 800 宽的安全区 → 基准 200 px，短边 1000 → 比例 0.2
+      expect(result.fontRatio).toBeCloseTo(0.2, 2)
+      const manual = layout({
+        ...AUTO,
+        typography: { ...AUTO.typography, sizeMode: 'manual', fontSize: 0.3 },
+      })
+      expect(manual.fontRatio).toBeCloseTo(0.3)
+    })
+
+    it('手动档：第一行贴满安全区时，补偿不再让它折行推动第二行', () => {
+      // v4.0 里余量扣掉 100 px 后第一行折成两行，块高增加，第二行被推下去 103 px
+      const MANUAL: PartialConfig = {
+        text: '甲甲甲甲\n乙乙',
+        typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+      }
+      const before = layout(MANUAL)
+      const after = layout({
+        ...MANUAL,
+        typography: { ...MANUAL.typography, lineOffsetsX: [0.05, 0] },
+      })
+      expect(after.lines).toHaveLength(2)
+      expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x + 50)
+      expect(after.lines[1]!.x).toBeCloseTo(before.lines[1]!.x)
+      expect(after.lines[1]!.y).toBeCloseTo(before.lines[1]!.y)
+    })
+
+    it('位移后越出安全区要报 overflow，但不缩字号', () => {
+      // 四个 CJK 填满 800 宽的安全区，字号 200；往左拉 10% 后左边越出 100 px
+      const before = layout(AUTO)
+      const after = layout({
+        ...AUTO,
+        typography: { ...AUTO.typography, lineOffsetsX: [-0.1, 0] },
+      })
+      expect(before.overflow).toBe(false)
+      expect(after.overflow).toBe(true)
+      expect(after.fontSizePx).toBeCloseTo(before.fontSizePx)
+    })
   })
 })
 

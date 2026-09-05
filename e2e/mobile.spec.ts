@@ -42,24 +42,22 @@ test('底栏点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => 
   expect(encoded.hitTarget).toBe(true)
 })
 
-test('改文字后复制的链接在新页面打开，文字一致', async ({ context, page }) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+test('改文字后刷新页面，文字从本机存档恢复', async ({ page }) => {
   await openApp(page)
 
   const firstLine = page.locator('#avatar-text-first')
   await centreBetweenBars(page, firstLine)
   await firstLine.fill('手机往返')
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('gradient-avatar:v3') ?? ''), {
+      timeout: 5000,
+    })
+    .toContain('手机往返')
 
-  await page.locator('[data-slot="copy-link-action"]').click()
-  const shared = await page.evaluate(() => navigator.clipboard.readText())
-  expect(shared).toContain('#')
-
-  const opened = await context.newPage()
-  await opened.goto(shared)
-  const restored = opened.locator('#avatar-text-first')
-  await centreBetweenBars(opened, restored)
+  await page.reload()
+  const restored = page.locator('#avatar-text-first')
+  await centreBetweenBars(page, restored)
   await expect(restored).toHaveValue('手机往返')
-  await opened.close()
 })
 
 test('切换语言后 html[lang] 与标题都跟着变', async ({ page }) => {

@@ -75,7 +75,7 @@ export const LOCALE_STORAGE_KEY = 'gradient-avatar:locale'
 /**
  * URL 上的语言参数，方便把某一语言的链接直接发出去。
  * 它只是一次性入口：首屏认下之后由 `consumeLocaleQuery` 写进 localStorage 并从地址栏摘掉，
- * 免得它一直压过用户在顶栏选的语言，也免得跟着分享链接传给下一个人。
+ * 免得它一直压过用户在顶栏选的语言，也免得地址栏一直挂着一个过时的参数。
  */
 export const LOCALE_QUERY_KEY = 'lang'
 
@@ -136,8 +136,7 @@ function stripLocaleQuery(): Locale | null {
 
 /**
  * 消费掉 URL 上的 ?lang=：认下它带的语言写进 localStorage，再把参数摘掉。
- * 这样用户在顶栏切过语言之后刷新不会被链接里的旧值顶回去，
- * 复制出去的分享链接（`buildShareUrl` 与 store 的 replaceState 都原样带 search）也不再钉语言。
+ * 这样用户在顶栏切过语言之后刷新不会被链接里的旧值顶回去，地址栏也不会一直挂着一个已经过时的参数。
  */
 export function consumeLocaleQuery(): Locale | null {
   const carried = stripLocaleQuery()
@@ -215,7 +214,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = locale
   }, [locale])
 
-  // ?lang= 只当一次性入口：首屏认过就从地址栏摘掉，别压过用户后来的选择，也别跟着分享链接走
+  // ?lang= 只当一次性入口：首屏认过就从地址栏摘掉，别压过用户后来的选择
   useEffect(() => {
     consumeLocaleQuery()
   }, [])

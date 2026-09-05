@@ -17,7 +17,7 @@ import {
   TextPanel,
 } from '@/app/panels'
 import { DEFAULT_CONFIG, type AvatarConfig } from '@/state/config'
-import { useAvatarStore } from '@/state/store'
+import { DEFAULT_UI, useAvatarStore } from '@/state/store'
 
 beforeAll(() => {
   // Base UI 的弹层组件要这几个浏览器 API，jsdom 里没有
@@ -58,7 +58,7 @@ function config(): AvatarConfig {
 }
 
 beforeEach(() => {
-  useAvatarStore.setState({ config: DEFAULT_CONFIG, history: [] })
+  useAvatarStore.setState({ config: DEFAULT_CONFIG, history: [], ui: { ...DEFAULT_UI } })
 })
 
 afterEach(() => {
@@ -112,14 +112,14 @@ describe('TextPanel', () => {
     fireEvent.change(firstLine(container), { target: { value: '飞书' } })
     fireEvent.change(secondLine(container), { target: { value: '效率先锋' } })
 
-    // 滑杆总数 = 行级三个 + 排版组四个 + 效果组强度一个起步，数下限不认文案
+    // 滑杆总数 = 字号一个 + 行级三个 + 排版组三个 + 效果组强度一个起步，数下限不认文案
     const ranges = container.querySelectorAll('input[type="range"]')
     expect(ranges.length).toBeGreaterThanOrEqual(7)
 
-    // 前三个行级滑杆依次是：次行字号、第一行补偿、第二行补偿
-    fireEvent.change(ranges[0]!, { target: { value: '0.7' } })
-    fireEvent.change(ranges[1]!, { target: { value: '0.02' } })
-    fireEvent.change(ranges[2]!, { target: { value: '-0.03' } })
+    // 排版组第一条是字号，之后三个行级滑杆依次是：次行字号、第一行补偿、第二行补偿
+    fireEvent.change(ranges[1]!, { target: { value: '0.7' } })
+    fireEvent.change(ranges[2]!, { target: { value: '0.02' } })
+    fireEvent.change(ranges[3]!, { target: { value: '-0.03' } })
     expect(config().typography.lineSizeScales[1]).toBeCloseTo(0.7)
     expect(config().typography.lineOffsetsX).toEqual([0.02, -0.03])
   })
@@ -131,9 +131,30 @@ describe('TextPanel', () => {
 
     const before = config().typography.lineOffsetsX
     const ranges = container.querySelectorAll<HTMLInputElement>('input[type="range"]')
-    // 第一个行级滑杆就是第一行补偿
-    fireEvent.change(ranges[0]!, { target: { value: '0.05' } })
+    // 字号之后的第一个行级滑杆就是第一行补偿
+    fireEvent.change(ranges[1]!, { target: { value: '0.05' } })
     expect(config().typography.lineOffsetsX).toEqual([0.05, before[1] ?? 0])
+  })
+
+  it('字号：默认自动态，拖滑杆以自动值为起点切到手动，点「自动」回去', () => {
+    useAvatarStore.setState({ ui: { ...useAvatarStore.getState().ui, autoFontSize: 0.31 } })
+    const { container } = mount(<TextPanel />)
+    expect(config().typography.sizeMode).toBe('auto')
+
+    const autoButton = container.querySelector<HTMLButtonElement>('[data-slot="slider-auto"]')
+    expect(autoButton?.getAttribute('aria-pressed')).toBe('true')
+
+    // 自动态滑杆显示的是预览回写的自动值，不是配置里陈旧的手动值 0.42
+    const slider = container.querySelector<HTMLInputElement>('input[type="range"]')
+    expect(Number(slider!.value)).toBeCloseTo(0.31)
+
+    fireEvent.change(slider!, { target: { value: '0.33' } })
+    expect(config().typography.sizeMode).toBe('manual')
+    expect(config().typography.fontSize).toBeCloseTo(0.33)
+    expect(autoButton?.getAttribute('aria-pressed')).toBe('false')
+
+    fireEvent.click(autoButton!)
+    expect(config().typography.sizeMode).toBe('auto')
   })
 
   it('图标开关：选了图形才算开，清除按钮一键回纯文字', () => {

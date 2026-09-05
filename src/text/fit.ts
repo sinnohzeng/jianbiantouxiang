@@ -46,7 +46,7 @@ export interface ParagraphFit {
   font: string
   /** 水平补偿，画布宽比例。落位时纯位移，只动自己这一段。 */
   offset: number
-  /** 这一段在预留补偿余量后是否放得进安全区。 */
+  /** 这一段按补偿位移之后是否仍留在安全区内。求解不看它，只用来报「超出安全区」。 */
   fits: boolean
 }
 
@@ -58,7 +58,18 @@ export interface StackFit {
   gapPx: number
   width: number
   height: number
+  /**
+   * 基准字号按画布短边的比例，与 `typography.fontSize` 同一单位。
+   * 自动档的求解结果从这里读，不要拿 `primary.fontSizePx / 短边` 反推：主行的行级比例可能不是 1。
+   */
+  ratio: number
+  /** 位移之后整栈是否仍在安全区内，界面据此提示。 */
   fits: boolean
+  /**
+   * 不计补偿时整栈是否放得进安全区。二分只认这一条：补偿是用户的视觉微调，
+   * 拉一下不该让字号跟着缩，否则第 i 行的补偿会经由基准字号牵连其余行。
+   */
+  contained: boolean
   safeWidth: number
   safeHeight: number
 }
@@ -71,7 +82,7 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 /**
- * 单段横排：在去掉补偿余量后的宽度里换行并度量。
+ * 单段横排：在完整的安全区宽度里换行并度量，补偿不参与，它只在落位时做位移。
  * 块高按各行墨迹的并集算，避免行高偏小时首尾被切。
  */
 function composeParagraph(
@@ -107,7 +118,10 @@ function composeParagraph(
   lines.forEach((line, index) => {
     const previous = lines[index - 1]
     const advance =
-      index === 0 ? 0 : Math.max(previous?.fontSizePx ?? fontSizePx, line.fontSizePx) * config.typography.lineHeight
+      index === 0
+        ? 0
+        : Math.max(previous?.fontSizePx ?? fontSizePx, line.fontSizePx) *
+          config.typography.lineHeight
     const baseline = (raw[index - 1] ?? 0) + advance + (index === 0 ? line.ascent : 0)
     raw.push(baseline)
     top = Math.min(top, baseline - line.ascent)
@@ -204,8 +218,10 @@ interface Slot {
  * 两个都放开会有无穷多组解落在安全框里，出图就不稳定了。
  * 第一行为空、第二行有内容时晋升主行按满比例渲染，参数不跟槽位走。
  *
- * 水平补偿在求解阶段只用来预留宽度余量：居中落位加偏移后要留在安全区内，
- * 等价于段宽不超过「安全区宽 − 2 × |补偿| × 画布宽」。落位时的位移见 layout 层。
+ * 水平补偿完全不参与求解：换行与二分都按完整的安全区宽度算，落位时再纯位移（见 layout 层）。
+ * 位移后越出安全区只反映在 `fits` 上，交给界面提示，不回头缩字号。
+ * v4.0 曾在求解阶段按「安全区宽 − 2 × |补偿| × 画布宽」预留余量，结果是 auto 档里
+ * 拖第一行的补偿会压小基准字号，第二行跟着缩、跟着动，正是用户看到的「第一行影响第二行」。
  */
 export function fitStack(
   config: AvatarConfig,
@@ -243,19 +259,24 @@ export function fitStack(
     gapPx: 0,
     width: 0,
     height: 0,
+    ratio: clamp(typography.fontSize, MIN_FONT_RATIO, MAX_FONT_RATIO),
     fits: true,
+    contained: true,
     safeWidth: box.width,
     safeHeight: box.height,
   }
   if (slots.length === 0) return empty
 
-  const build = (ratio: number): StackFit => {
-    const baseSize = clamp(ratio, MIN_FONT_RATIO, MAX_FONT_RATIO) * shortSide
+  const maxWidth = Math.max(1, box.width)
+
+  const build = (rawRatio: number): StackFit => {
+    const ratio = clamp(rawRatio, MIN_FONT_RATIO, MAX_FONT_RATIO)
+    const baseSize = ratio * shortSide
     const parts = slots.map((slot): ParagraphFit => {
       const fontSizePx = baseSize * slot.scale
-      const offsetRoom = 2 * Math.abs(slot.offset) * width
-      const maxWidth = Math.max(1, box.width - offsetRoom)
       const block = composeParagraph(config, slot.text, fontSizePx, maxWidth, measure)
+      // 居中落位再位移 offset × 画布宽，左右两侧各要多出这么多才不越界
+      const shiftedWidth = block.width + 2 * Math.abs(slot.offset) * width
       return {
         block,
         fontSizePx,
@@ -263,26 +284,24 @@ export function fitStack(
         letterSpacingPx: letterSpacingPxOf(config, fontSizePx),
         font: fontString(config, fontSizePx),
         offset: slot.offset,
-        fits: block.width <= maxWidth + EPS,
+        fits: shiftedWidth <= box.width + EPS,
       }
     })
     const primary = parts[0] ?? null
     const secondary = parts[1] ?? null
     const gapPx = primary && secondary ? primary.fontSizePx * STATUS_GAP_RATIO : 0
     const blockWidth = Math.max(primary?.block.width ?? 0, secondary?.block.width ?? 0)
-    const blockHeight =
-      (primary?.block.height ?? 0) + gapPx + (secondary?.block.height ?? 0)
+    const blockHeight = (primary?.block.height ?? 0) + gapPx + (secondary?.block.height ?? 0)
+    const contained = blockWidth <= box.width + EPS && blockHeight <= box.height + EPS
     return {
       primary,
       secondary,
       gapPx,
       width: blockWidth,
       height: blockHeight,
-      fits:
-        (primary?.fits ?? true) &&
-        (secondary?.fits ?? true) &&
-        blockWidth <= box.width + EPS &&
-        blockHeight <= box.height + EPS,
+      ratio,
+      fits: contained && (primary?.fits ?? true) && (secondary?.fits ?? true),
+      contained,
       safeWidth: box.width,
       safeHeight: box.height,
     }
@@ -309,7 +328,7 @@ export function fitStack(
     for (let i = 0; i < FIT_ITERATIONS; i += 1) {
       const mid = (low + high) / 2
       const candidate = build(mid)
-      if (candidate.fits && !(strict && !tidy(candidate))) {
+      if (candidate.contained && !(strict && !tidy(candidate))) {
         best = candidate
         low = mid
       } else {
