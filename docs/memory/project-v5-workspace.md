@@ -34,3 +34,4 @@ metadata:
 - 2026-09-05：owner 在 `inbox/`（已 gitignore）投放 lark.svg、doubao-work.png、Qoder.png、workbuddy 图标；已并入 `assets/brand/`
   与 `scripts/brand-list.json`（58 个品牌，13 个带纯白变体）。Qoder 是 potrace 描摹，WorkBuddy 去掉了 filter 光斑，豆包工作只有 266px 位图。
 - §B 定稿：方向乙三列工作台、检查器带、手机 28svh 加分隔条、brand 图形源、showcase 懒 chunk（motion + React Bits）；切片顺序 B4 → W1 → W2 → S1 → B7。
+- 2026-09-05 下半场：W2 三列工作台、M1 手机长按直存、S1 炫技层全部落地并推送。检查器行是紧凑两行式，三段挤一行会把滑杆压到 0 宽，Base UI 会直接把滑块藏起来。首屏预算已降级为报告。

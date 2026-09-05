@@ -5,10 +5,13 @@
  *
  * 两种排布：`stack` 是挑选栏里的上下两行；`row` 是检查器带的
  * “标签 | 滑杆 | 数字框”一行，桌面 32 px 高，手机仍撑到 44 px。
+ *
+ * 数值变化时框里的数走一段弹簧过渡，只影响显示，真实值仍然一步到位。
  */
 
 import { useEffect, useId, useRef, useState } from 'react'
 import { RotateCcwIcon } from 'lucide-react'
+import { useAnimatedNumber } from '@/app/showcase/use-animated-number'
 import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
@@ -95,7 +98,9 @@ export function SliderField({
   const inputRef = useRef<HTMLInputElement>(null)
   const editing = draft !== null
   const row = layout === 'row'
+  // display 是真实值，重置钮的判定与提交都读它；shown 是平滑过渡中的显示值
   const display = toDisplay(value, scale, precision)
+  const shown = toDisplay(useAnimatedNumber(value, !editing), scale, precision)
 
   useEffect(() => {
     if (editing) inputRef.current?.select()
@@ -147,7 +152,7 @@ export function SliderField({
           row ? 'h-11 w-20 px-1.5 lg:h-8' : 'h-11 w-24',
         )}
         inputMode="decimal"
-        value={draft ?? `${display}${unit}`}
+        value={draft ?? `${shown}${unit}`}
         aria-label={editLabel}
         disabled={disabled}
         onFocus={() => setDraft(display)}
@@ -167,7 +172,7 @@ export function SliderField({
         disabled={disabled}
         onClick={() => setDraft(display)}
       >
-        {display}
+        {shown}
         {unit}
       </button>
     )

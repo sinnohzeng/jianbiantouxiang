@@ -20,6 +20,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { queueHistoryThumbnail } from '@/app/history-thumb'
+import { BurstFlash, useBurst } from '@/app/showcase/Burst'
+import { useShowcase } from '@/app/showcase/config'
+import { SelectionIndicator } from '@/app/showcase/SelectionIndicator'
 import { paletteThumbCss, parseHexList } from '@/palettes/color'
 import { harmonize, type HarmonyScheme } from '@/palettes/harmony'
 import {
@@ -48,6 +51,9 @@ export function PaletteSection() {
   const setConfig = useAvatarStore((state) => state.setConfig)
   const randomize = useAvatarStore((state) => state.randomize)
   const pushHistory = useAvatarStore((state) => state.pushHistory)
+
+  const showcase = useShowcase()
+  const burst = useBurst()
 
   const [tone, setTone] = useState<ToneFilter>('all')
   const [family, setFamily] = useState<FamilyFilter>('all')
@@ -100,20 +106,24 @@ export function PaletteSection() {
   return (
     <SectionCard title={t('panel.palette.title')}>
       {/* 与底栏同一个动作提到一级：换种子就是换一张，最高频，放在配色节顶上 */}
-      <Button
-        type="button"
-        data-slot="palette-shuffle"
-        className="tap-target h-11 w-full"
-        title={t('bottombar.random.hint')}
-        onClick={() => {
-          randomize()
-          pushHistory()
-          queueHistoryThumbnail()
-        }}
-      >
-        <ShuffleIcon aria-hidden />
-        {t('bottombar.random')}
-      </Button>
+      <span className="relative flex">
+        <Button
+          type="button"
+          data-slot="palette-shuffle"
+          className="tap-target h-11 w-full"
+          title={t('bottombar.random.hint')}
+          onClick={() => {
+            randomize()
+            pushHistory()
+            queueHistoryThumbnail()
+            burst.fire()
+          }}
+        >
+          <ShuffleIcon aria-hidden />
+          {t('bottombar.random')}
+        </Button>
+        <BurstFlash token={burst.token} />
+      </span>
 
       <div className="flex flex-col gap-2">
         <SegmentedControl<ToneFilter>
@@ -175,10 +185,17 @@ export function PaletteSection() {
                     if (event.target.checked) setConfig({ palette: palette.id })
                   }}
                 />
-                {/* 选中态的描边就是这套配色本身：外层垫一圈渐变，内层缩进 3 px 露出来 */}
+                {/* 炫技层在跑时选中描边是一枚共享元素，在磁贴之间滑过去 */}
+                {active ? (
+                  <SelectionIndicator
+                    id={`palette-tile-${uid}`}
+                    className="ring-foreground/55 rounded-xl ring-2"
+                  />
+                ) : null}
+                {/* 关掉炫技层时退回原来的做法：外层垫一圈本配色的渐变，内层缩进 3 px 露出来 */}
                 <span
                   className="peer-focus-visible:ring-ring/50 flex flex-col gap-1 rounded-xl p-[3px] peer-focus-visible:ring-3"
-                  style={active ? { backgroundImage: thumb } : undefined}
+                  style={active && !showcase ? { backgroundImage: thumb } : undefined}
                 >
                   <span
                     aria-hidden="true"

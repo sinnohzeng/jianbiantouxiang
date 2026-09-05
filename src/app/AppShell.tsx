@@ -9,12 +9,13 @@
  *
  * 视觉顺序由 grid 的行列指定，DOM 顺序按手机来排：预览、分隔条、挑选栏、检查器带、操作条。
  *
+ * 底色由 ShowcaseBackground 决定：能跑就是极光着色器，跑不了退回 CSS 光晕。
+ *
  * 整棵树外面套一层错误边界，两个懒加载岛各自再套一层：chunk 拉不到时
  * React 会在 render 阶段重新抛出，没有边界接住就整页白屏，连刷新的入口都没有。
  */
 
 import { Suspense, useEffect, type CSSProperties } from 'react'
-import { AmbientBackground } from '@/app/AmbientBackground'
 import { BottomBar } from '@/app/BottomBar'
 import {
   ErrorBoundary,
@@ -22,6 +23,7 @@ import {
   reloadOnceForModuleError,
 } from '@/app/error-boundary'
 import { PreviewStage } from '@/app/PreviewStage'
+import { ShowcaseBackground } from '@/app/showcase/ShowcaseBackground'
 import { TopBar } from '@/app/TopBar'
 import { usePreviewHeight } from '@/app/preview-height'
 import { Inspector } from '@/app/workspace/Inspector'
@@ -53,7 +55,7 @@ function AppShellBody() {
 
   return (
     <div className="relative flex min-h-dvh flex-col lg:h-dvh lg:min-h-0 lg:overflow-hidden">
-      <AmbientBackground />
+      <ShowcaseBackground />
       <TopBar />
 
       <main

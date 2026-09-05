@@ -5,6 +5,8 @@
  *
  * 探测到不支持 WebP 编码时不止把选项摘掉，还要把配置里的 format 复位：
  * 存档里留着 format=webp 的话，换到不支持的浏览器会导出一个内容是 PNG 的 .webp。
+ *
+ * 出图成功时在结果区放一次粒子，预览框同时弹一下，与底栏两个随机同一套。
  */
 
 import { useCallback, useEffect, useState } from 'react'
@@ -30,6 +32,7 @@ import { blobToDataUrl, isWeChat } from '@/export/share'
 import { useT } from '@/i18n'
 import { SIZE_TARGETS, type AvatarConfig } from '@/state/config'
 import { queueHistoryThumbnail } from '@/app/history-thumb'
+import { BurstFlash, useBurst } from '@/app/showcase/Burst'
 import { flushConfigSync, useAvatarStore } from '@/state/store'
 
 export interface ExportDrawerProps {
@@ -65,6 +68,9 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState<Done | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  // 出图成功时在结果区放一次粒子，预览框同时弹一下
+  const burst = useBurst()
+  const fireBurst = burst.fire
 
   useEffect(() => {
     let alive = true
@@ -139,13 +145,14 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
       })
       pushHistory()
       queueHistoryThumbnail()
+      fireBurst()
     } catch {
       setNotice('export.failed')
     } finally {
       if (artifact) releaseCanvas(artifact.canvas)
       setBusy(false)
     }
-  }, [busy, config, pushHistory, wechat])
+  }, [busy, config, fireBurst, pushHistory, wechat])
 
   const copyImage = useCallback(async () => {
     if (busy) return
@@ -217,7 +224,8 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
           ) : null}
 
           {done ? (
-            <div data-slot="export-result" className="flex flex-col gap-2">
+            <div data-slot="export-result" className="relative flex flex-col gap-2">
+              <BurstFlash token={burst.token} className="size-64" />
               <p className="text-sm">{t('export.done', { name: done.filename })}</p>
               <p className="text-muted-foreground text-xs">
                 {t('export.result', {

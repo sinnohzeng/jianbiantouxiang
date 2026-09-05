@@ -38,6 +38,8 @@ import { safeArea } from '@/text/fit'
 import { layoutText } from '@/text/layout'
 import { GRID_DIVISIONS, usePreviewOverlays } from '@/app/preview-overlays'
 import { usePreviewSaveImage } from '@/app/preview-save-image'
+import { PreviewFrame } from '@/app/showcase/PreviewFrame'
+import { usePreviewFx } from '@/app/showcase/preview-fx'
 import { probeKey } from '@/app/probe-key'
 import { useThrottled } from '@/app/use-throttled'
 import { useIsMobile, useMediaQuery } from '@/hooks/use-media'
@@ -151,6 +153,15 @@ export function PreviewStage() {
   const [graphic, setGraphic] = useState<Graphic | null>(null)
 
   const caps = useMemo(() => getRenderCaps(), [])
+  // 进场、悬停倾斜与随机时的一下弹动，全部由炫技层给，关掉时这里退回裸元素。
+  // 就地解构：ref 要以裸标识符的形式落到 ref 属性上，挂在对象上会被 react-hooks 判成渲染期读 ref
+  const {
+    hostRef: fxHostRef,
+    className: fxClassName,
+    tilt: fxTilt,
+    onPointerMove: onFxPointerMove,
+    onPointerLeave: onFxPointerLeave,
+  } = usePreviewFx()
   const preview = useThrottled(config, PREVIEW_THROTTLE_MS)
   // v4 起图标不属于任何「用途」，设置了就进栈，来源与标识直接读
   const iconSource = preview.layout.icon.source
@@ -421,8 +432,14 @@ export function PreviewStage() {
 
   return (
     <div className="flex w-full flex-col items-center gap-2">
-      <div className="relative w-full max-w-full" style={{ width: frameStyle.width }}>
-        <div
+      <div
+        ref={fxHostRef}
+        className={cn('relative w-full max-w-full', fxClassName)}
+        style={{ width: frameStyle.width }}
+        onPointerMove={onFxPointerMove}
+        onPointerLeave={onFxPointerLeave}
+      >
+        <PreviewFrame
           ref={frameRef}
           role="img"
           aria-label={label}
@@ -501,7 +518,15 @@ export function PreviewStage() {
               <div className="progress-indeterminate h-full w-1/5 rounded-full bg-white/95" />
             </div>
           ) : null}
-        </div>
+
+          {/* 跟着指针走的高光。只在桌面挂：触屏没有悬停，那张可长按保存的图也不该被它罩住 */}
+          {fxTilt ? (
+            <div
+              aria-hidden
+              className="showcase-preview-glow pointer-events-none absolute inset-0"
+            />
+          ) : null}
+        </PreviewFrame>
 
         {/* 角标与按钮挂在外层而不是画框里：画框 overflow-hidden 加大圆角，
             圆形与大圆角形状下贴角的元素会被裁掉一半，热区跟着一起没了 */}
@@ -514,8 +539,9 @@ export function PreviewStage() {
           </p>
         ) : null}
 
-        {/* 两个参考层开关竖着排在右上角：网格在上、安全区在下，都是 aria-pressed 的切换钮 */}
-        <div className="absolute top-2 right-2 flex flex-col gap-1.5">
+        {/* 两个参考层开关。桌面竖着贴在画框右上角；手机预览只有 28svh，两个 44 px 的圆钮
+            压上去要盖掉半个字，所以缩到 36 px 挪去右下角，那里通常是空的渐变；热区靠伪元素补回 44 px */}
+        <div className="absolute right-2 bottom-2 flex flex-row gap-1 lg:top-2 lg:bottom-auto lg:flex-col lg:gap-1.5">
           <button
             type="button"
             data-slot="grid-toggle"
@@ -524,12 +550,14 @@ export function PreviewStage() {
             title={t('preview.grid.hint')}
             onClick={() => setGrid(!grid)}
             className={cn(
-              'tap-target flex items-center justify-center rounded-full backdrop-blur-sm transition-colors',
+              'lg:tap-target flex size-9 items-center justify-center rounded-full backdrop-blur-sm transition-colors',
+              // 缩到 36 px 之后靠外扩的伪元素补回 44 px 触控热区
+              'relative after:absolute after:-inset-1 lg:after:hidden',
               'focus-visible:ring-ring/60 focus-visible:ring-3 focus-visible:outline-none',
               grid ? 'bg-white/85 text-neutral-900' : 'bg-black/35 text-white hover:bg-black/50',
             )}
           >
-            <Grid3x3Icon className="size-5" />
+            <Grid3x3Icon className="size-4 lg:size-5" />
           </button>
           <button
             type="button"
@@ -539,12 +567,14 @@ export function PreviewStage() {
             title={t('preview.safeArea.hint')}
             onClick={() => setGuide(!guide)}
             className={cn(
-              'tap-target flex items-center justify-center rounded-full backdrop-blur-sm transition-colors',
+              'lg:tap-target flex size-9 items-center justify-center rounded-full backdrop-blur-sm transition-colors',
+              // 缩到 36 px 之后靠外扩的伪元素补回 44 px 触控热区
+              'relative after:absolute after:-inset-1 lg:after:hidden',
               'focus-visible:ring-ring/60 focus-visible:ring-3 focus-visible:outline-none',
               guide ? 'bg-white/85 text-neutral-900' : 'bg-black/35 text-white hover:bg-black/50',
             )}
           >
-            <ScanIcon className="size-5" />
+            <ScanIcon className="size-4 lg:size-5" />
           </button>
         </div>
       </div>

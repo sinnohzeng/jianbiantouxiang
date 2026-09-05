@@ -3,6 +3,7 @@
  *
  * 桌面是第三列，标题常驻；手机是内容区末尾的“微调”节，默认收起。
  * 收起只是把这块藏起来，不卸载：断点在 1024 处来回穿越时不该把编辑到一半的数字框弄丢。
+ * 各分组按 40 ms 的节拍淡入上浮，节拍由外层 StaggerRoot 统一给。
  */
 
 import { useId, useMemo, useState, type ReactNode } from 'react'
@@ -17,6 +18,7 @@ import {
   type PartialConfig,
 } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
+import { StaggerItem, StaggerRoot } from '@/app/showcase/stagger'
 import { twoLinesOf } from '@/text/wrap'
 import { withLineValue } from '@/app/workspace/shared'
 import { cn } from '@/lib/utils'
@@ -45,10 +47,10 @@ function Row(props: RowProps) {
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-0.5">
+    <StaggerItem className="flex flex-col gap-0.5">
       <h3 className="text-muted-foreground px-1 text-xs font-medium">{title}</h3>
       {children}
-    </div>
+    </StaggerItem>
   )
 }
 
@@ -105,7 +107,7 @@ export function Inspector() {
 
       {/* 两列档（1024 到 1279）检查器带落在预览下方，分组按两栏紧凑排，高度减半；
           三列档回到一条竖带 */}
-      <div
+      <StaggerRoot
         id={bodyId}
         className={cn(
           'flex-col gap-3 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-5 xl:grid-cols-1',
@@ -341,7 +343,7 @@ export function Inspector() {
             />
           </Group>
         ) : null}
-      </div>
+      </StaggerRoot>
     </section>
   )
 }

@@ -198,3 +198,52 @@
 .progress-indeterminate {
   animation: progress-slide 1.4s ease-in-out infinite;
 }
+
+/*
+ * 炫技层的三块纯 CSS 装饰。三块都只在炫技层在跑时挂上对应类名，
+ * prefers-reduced-motion 下组件根本不渲染它们，不靠上面的全局冻结兜底。
+ */
+
+/* 预览框：桌面悬停的 3D 倾斜与随机时的一下弹动，合成一条 transform */
+.showcase-preview {
+  transform: perspective(1200px) rotateX(var(--showcase-tilt-x, 0deg))
+    rotateY(var(--showcase-tilt-y, 0deg)) scale(var(--showcase-pulse, 1));
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* 跟着指针走的高光。soft-light 在深浅两种画面上都不会糊成一块白 */
+.showcase-preview-glow {
+  background: radial-gradient(
+    30% 30% at var(--showcase-px, 50%) var(--showcase-py, 50%),
+    rgba(255, 255, 255, 0.72),
+    rgba(255, 255, 255, 0) 70%
+  );
+  mix-blend-mode: soft-light;
+  opacity: var(--showcase-glow, 0);
+  transition: opacity 220ms ease;
+}
+
+/*
+ * 一次性粒子的淡入淡出，时长与 Burst.tsx 的 BURST_MS 对齐。
+ * 只动 transform 的缩放：居中靠的是 Tailwind 的 translate 属性，
+ * 在 transform 里再写一遍 translate(-50%, -50%) 会与它叠加，元素会偏出半个身位。
+ */
+@keyframes showcase-burst-fade {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  22% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.25);
+  }
+}
+
+.showcase-burst {
+  animation: showcase-burst-fade 900ms ease-out forwards;
+}

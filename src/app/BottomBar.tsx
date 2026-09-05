@@ -7,6 +7,7 @@
  * v5 起没有「复制链接」：配置不进 URL，分享靠导出的图。
  * 导出按钮带同步锁与三态（idle / working / done）：working 至少 600 ms 可见，
  * 成功后 400 ms 确认态再解锁，连点窗口约一秒，失败立即解锁可重试。
+ * 两个随机按钮点一下会在按钮上方放一次粒子，预览框同时弹一下，都归炫技层管。
  */
 
 import { useCallback, useRef, useState } from 'react'
@@ -28,6 +29,7 @@ import { downloadBlob } from '@/export/download'
 import { isWeChat } from '@/export/share'
 import { releaseCanvas } from '@/export/canvas'
 import { queueHistoryThumbnail } from '@/app/history-thumb'
+import { BurstFlash, useBurst } from '@/app/showcase/Burst'
 import { flushConfigSync, useAvatarStore } from '@/state/store'
 
 /** loading 态最短展示时长：太快完成的导出也看得见状态，吸收补点。 */
@@ -45,18 +47,26 @@ export function BottomBar() {
   const randomizeAll = useAvatarStore((state) => state.randomizeAll)
   const pushHistory = useAvatarStore((state) => state.pushHistory)
   const setUi = useAvatarStore((state) => state.setUi)
+  // 两个随机各有一次粒子；fire 同时让预览框弹一下
+  const colorBurst = useBurst()
+  const allBurst = useBurst()
+
+  const fireColor = colorBurst.fire
+  const fireAll = allBurst.fire
 
   const onShuffle = useCallback(() => {
     randomize()
     pushHistory()
     queueHistoryThumbnail()
-  }, [randomize, pushHistory])
+    fireColor()
+  }, [randomize, pushHistory, fireColor])
 
   const onShuffleAll = useCallback(() => {
     randomizeAll()
     pushHistory()
     queueHistoryThumbnail()
-  }, [randomizeAll, pushHistory])
+    fireAll()
+  }, [randomizeAll, pushHistory, fireAll])
 
   const onEditText = useCallback(() => {
     // v5 起没有页签，两行输入常驻在挑选栏第一节；手机上它在预览下方，顺手滚进视野
@@ -124,31 +134,38 @@ export function BottomBar() {
       )}
     >
       <div className="flex h-14 items-center gap-2 px-3 lg:h-auto lg:px-3 lg:py-2">
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon-lg"
-          data-slot="shuffle-color"
-          onClick={onShuffle}
-          title={t('bottombar.random.hint')}
-          aria-label={t('bottombar.random')}
-          className="tap-target"
-        >
-          <ShuffleIcon aria-hidden />
-        </Button>
+        {/* 粒子层挂在按钮外面这一圈里：它不吃指针事件，也不该改变按钮自身的尺寸 */}
+        <span className="relative inline-flex">
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon-lg"
+            data-slot="shuffle-color"
+            onClick={onShuffle}
+            title={t('bottombar.random.hint')}
+            aria-label={t('bottombar.random')}
+            className="tap-target"
+          >
+            <ShuffleIcon aria-hidden />
+          </Button>
+          <BurstFlash token={colorBurst.token} />
+        </span>
 
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon-lg"
-          data-slot="shuffle-all"
-          onClick={onShuffleAll}
-          title={t('bottombar.randomAll.hint')}
-          aria-label={t('bottombar.randomAll')}
-          className="tap-target"
-        >
-          <SparklesIcon aria-hidden />
-        </Button>
+        <span className="relative inline-flex">
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon-lg"
+            data-slot="shuffle-all"
+            onClick={onShuffleAll}
+            title={t('bottombar.randomAll.hint')}
+            aria-label={t('bottombar.randomAll')}
+            className="tap-target"
+          >
+            <SparklesIcon aria-hidden />
+          </Button>
+          <BurstFlash token={allBurst.token} />
+        </span>
 
         <Button
           type="button"

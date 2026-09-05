@@ -9,6 +9,9 @@ package-lock.json
 # shadcn 生成的原语，跟随上游，不做本仓格式化
 src/components/ui
 
+# registry 装入的 React Bits 组件，同样跟随上游；本仓的改动写在各文件头部
+src/components/showcase
+
 # 索引产物由生成器负责，格式化只会重排大文件
 src/graphics/generated
 

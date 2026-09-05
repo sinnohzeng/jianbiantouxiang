@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { AppShell } from '@/app/AppShell'
+import { ShowcaseMotionProvider } from '@/app/showcase/motion'
+import { ShowcasePreloader } from '@/app/showcase/Preloader'
 import { useTheme } from '@/app/theme'
 import { getCuratedByFamily, nearestWeight } from '@/fonts'
 import { I18nProvider, dictOf, useLocale, useT } from '@/i18n'
@@ -109,13 +111,16 @@ function Shell() {
   const { resolved } = useTheme()
 
   return (
-    <>
+    // motion 的特性从这一处注入，炫技层关掉时它连提供者一起不挂
+    <ShowcaseMotionProvider>
       <DocumentMeta />
       <LocaleDefaults />
       <AppShell />
+      {/* 首屏加载动画盖在最上层，会话内只播一次 */}
+      <ShowcasePreloader />
       {/* 手机上底部被操作条占着，提示统一从顶部下来 */}
       <Toaster position="top-center" theme={resolved} closeButton />
-    </>
+    </ShowcaseMotionProvider>
   )
 }
 

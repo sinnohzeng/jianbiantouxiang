@@ -26,6 +26,7 @@ import {
 import { Slider } from '@/components/ui/slider'
 import { AboutDialog } from '@/app/AboutDialog'
 import { BrandMark } from '@/app/BrandMark'
+import { BrandTitle } from '@/app/showcase/BrandTitle'
 import { useAmbientLevel } from '@/app/ambient'
 import { THEME_MODES, useTheme, type ThemeMode } from '@/app/theme'
 import { LOCALES, useLocale, useT, type Locale } from '@/i18n'
@@ -89,8 +90,9 @@ export function TopBar() {
     <header className="bg-background/70 supports-[backdrop-filter]:bg-background/55 sticky top-0 z-30 flex h-14 items-center gap-2 border-b px-3 backdrop-blur-md lg:px-6">
       <div className="flex min-w-0 items-center gap-2">
         <BrandMark className="size-7 shrink-0 drop-shadow-sm" />
-        {/* 全站唯一的 h1。品牌名就是页面主标题，另起一个隐藏标题反而多一层噪音 */}
-        <h1 className="truncate text-sm font-semibold tracking-tight">{t('app.name')}</h1>
+        {/* 全站唯一的 h1。品牌名就是页面主标题，另起一个隐藏标题反而多一层噪音；
+            炫技层在跑时它逐字模糊入场，只播一次 */}
+        <BrandTitle text={t('app.name')} className="text-sm font-semibold tracking-tight" />
         <span className="text-muted-foreground hidden truncate text-xs xl:inline">
           {t('app.slogan')}
         </span>

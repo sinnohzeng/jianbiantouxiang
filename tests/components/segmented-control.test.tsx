@@ -33,6 +33,9 @@ beforeAll(async () => {
   expect(indexCss, '没读到 src/index.css').toContain('--muted-foreground')
 })
 
+/** 装文字的那一层。选中项前面还叠着炫技层的共享描边，按 data-slot 排掉。 */
+const CONTENT_SPAN = 'span:not([data-slot="selection-indicator"])'
+
 const OPTIONS = [
   { value: 'analogous', label: 'Analogous' },
   { value: 'complementary', label: 'Complementary' },
@@ -87,7 +90,8 @@ describe('SegmentedControl 窄屏', () => {
       // flex-1 的项默认 min-width:auto，没有 min-w-0 就缩不下去
       expect(label.className).toContain('flex-1')
       expect(label.className).toContain('min-w-0')
-      expect(label.querySelector('span')!.className).toContain('min-w-0')
+      // 选中项前面还有一枚炫技层的共享描边，按 data-slot 排掉，取真正装文字的那一层
+      expect(label.querySelector(CONTENT_SPAN)!.className).toContain('min-w-0')
     }
   })
 
@@ -124,7 +128,7 @@ describe('SegmentedControl 对比度', () => {
     // 凹槽底是 --muted，文字的底色就是它
     expect(group.className).toContain('bg-muted')
 
-    const styled = container.querySelector('label > span')!
+    const styled = container.querySelector(`label > ${CONTENT_SPAN}`)!
     const matched = /(?:^|\s)text-([a-z-]+)\/(\d+)(?:\s|$)/.exec(styled.className)
     expect(matched, `未选中态没取到带透明度的文字色：${styled.className}`).not.toBeNull()
 

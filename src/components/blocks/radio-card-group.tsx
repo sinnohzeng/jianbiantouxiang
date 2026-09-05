@@ -1,9 +1,12 @@
 /**
  * radio card 组，与 SegmentedControl 同一范式（@reactbits-pro/settings-form-3），
  * 区别只在每张卡多一块示意图与一句说明，用于质感这种需要看图才能选的项。
+ * 选中描边同样交给带 layoutId 的共享元素，换卡时滑过去而不是两边各闪一下。
  */
 
 import { useId, type ReactNode } from 'react'
+import { useShowcase } from '@/app/showcase/config'
+import { SelectionIndicator } from '@/app/showcase/SelectionIndicator'
 import { cn } from '@/lib/utils'
 
 export interface RadioCardOption<T extends string> {
@@ -32,6 +35,7 @@ export function RadioCardGroup<T extends string>({
   className,
 }: RadioCardGroupProps<T>) {
   const uid = useId()
+  const showcase = useShowcase()
   return (
     <div role="radiogroup" aria-label={label} className={cn('grid grid-cols-2 gap-2', className)}>
       {options.map((option) => (
@@ -47,10 +51,17 @@ export function RadioCardGroup<T extends string>({
               if (event.target.checked) onChange(option.value)
             }}
           />
+          {value === option.value ? (
+            <SelectionIndicator
+              id={`radio-card-${name}-${uid}`}
+              className="border-primary ring-primary/30 z-10 rounded-xl border ring-2"
+            />
+          ) : null}
           <span
             className={cn(
               'border-border bg-card flex min-h-11 flex-col gap-2 rounded-xl border p-2 transition-colors',
-              'hover:border-foreground/30 peer-checked:border-primary peer-checked:ring-primary/30 peer-checked:ring-2',
+              'hover:border-foreground/30',
+              !showcase && 'peer-checked:border-primary peer-checked:ring-primary/30 peer-checked:ring-2',
               'peer-focus-visible:ring-ring/50 peer-focus-visible:ring-3',
               'motion-reduce:transition-none',
             )}

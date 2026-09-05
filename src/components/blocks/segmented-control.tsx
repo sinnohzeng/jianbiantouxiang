@@ -2,9 +2,14 @@
  * 分段控件，范式取自 @reactbits-pro/settings-form-3：
  * role="radiogroup" 包一组 label，真实 input[type=radio] 用 sr-only 藏起来，
  * 选中态靠 peer-checked 切类。比自造按钮组多拿到原生键盘与表单语义。
+ *
+ * 炫技层在跑时，选中底板换成一枚带 layoutId 的共享元素，在选项之间滑过去，
+ * 静态的 peer-checked 底板同时让位，免得两块底板叠在一起互相打架。
  */
 
 import { useId, type ReactNode } from 'react'
+import { useShowcase } from '@/app/showcase/config'
+import { SelectionIndicator } from '@/app/showcase/SelectionIndicator'
 import { cn } from '@/lib/utils'
 
 export interface SegmentedOption<T extends string> {
@@ -37,6 +42,7 @@ export function SegmentedControl<T extends string>({
   className,
 }: SegmentedControlProps<T>) {
   const uid = useId()
+  const showcase = useShowcase()
   return (
     <div
       role="radiogroup"
@@ -65,13 +71,20 @@ export function SegmentedControl<T extends string>({
               if (event.target.checked) onChange(option.value)
             }}
           />
+          {value === option.value ? (
+            <SelectionIndicator
+              id={`segmented-${name}-${uid}`}
+              className="bg-background rounded-md shadow-xs"
+            />
+          ) : null}
           <span
             className={cn(
               // 未选中态不用 text-muted-foreground：浅色主题下它压在 bg-muted 上只有 4.38:1，
               // 14 px 正文不达 WCAG AA 的 4.5:1。前景色压到 65% 后浅色 5.17:1、深色 6.20:1，
               // 深色的观感几乎不变（明度 0.715 到 0.740），只把浅色那一档补上来
-              'text-foreground/65 flex h-full w-full min-w-0 items-center justify-center gap-1.5 rounded-md px-2 text-sm font-medium transition-colors',
-              'peer-hover:text-foreground peer-checked:bg-background peer-checked:text-foreground peer-checked:shadow-xs',
+              'text-foreground/65 relative flex h-full w-full min-w-0 items-center justify-center gap-1.5 rounded-md px-2 text-sm font-medium transition-colors',
+              'peer-hover:text-foreground peer-checked:text-foreground',
+              !showcase && 'peer-checked:bg-background peer-checked:shadow-xs',
               'peer-focus-visible:ring-ring/50 peer-focus-visible:ring-3',
               'motion-reduce:transition-none',
             )}

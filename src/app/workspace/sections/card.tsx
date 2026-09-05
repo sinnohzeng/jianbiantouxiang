@@ -1,8 +1,10 @@
 /**
  * 挑选栏里的一张卡片。标题常驻、不折叠：一眼看全是 v5 工作台的前提。
+ * 卡片本身就是进场编排的一项，节拍由外面的 StaggerRoot 给。
  */
 
 import { useId, type ReactNode } from 'react'
+import { StaggerItem } from '@/app/showcase/stagger'
 import { cn } from '@/lib/utils'
 
 export interface SectionCardProps {
@@ -16,7 +18,8 @@ export interface SectionCardProps {
 export function SectionCard({ title, action, children, className }: SectionCardProps) {
   const titleId = useId()
   return (
-    <section
+    <StaggerItem
+      as="section"
       aria-labelledby={titleId}
       className={cn('bg-card/60 rounded-2xl border p-3 backdrop-blur-sm', className)}
     >
@@ -27,6 +30,6 @@ export function SectionCard({ title, action, children, className }: SectionCardP
         {action}
       </div>
       <div className="flex flex-col gap-3">{children}</div>
-    </section>
+    </StaggerItem>
   )
 }

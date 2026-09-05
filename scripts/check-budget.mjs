@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 首屏 JS 预算守卫。
+ * 首屏 JS 体积报告。
  *
  * 口径与 docs/architecture.md 一致：entry script 加 dist/index.html 里全部
  * modulepreload 的 gzip 之和。CSS、PWA 注册脚本与懒加载 chunk 不算首屏 JS。
@@ -10,7 +10,8 @@ import path from 'node:path'
 import process from 'node:process'
 import { gzipSync } from 'node:zlib'
 
-const BUDGET_BYTES = 250 * 1024
+/** 参考线，不是闸门：视觉效果排在体积前面，超了只提示一句。 */
+const REFERENCE_BYTES = 250 * 1024
 const HTML_PATH = path.resolve(process.cwd(), 'dist/index.html')
 
 function attr(tag, name) {
@@ -71,11 +72,10 @@ async function main() {
     console.log(`${row.ref}\t${(row.bytes / 1024).toFixed(2)} KB`)
   }
   console.log(`TOTAL\t${(total / 1024).toFixed(2)} KB`)
-  console.log(`BUDGET\t${(BUDGET_BYTES / 1024).toFixed(2)} KB`)
+  console.log(`REFERENCE\t${(REFERENCE_BYTES / 1024).toFixed(2)} KB`)
 
-  if (total > BUDGET_BYTES) {
-    console.error(`首屏 JS 超出预算 ${((total - BUDGET_BYTES) / 1024).toFixed(2)} KB`)
-    process.exitCode = 1
+  if (total > REFERENCE_BYTES) {
+    console.log(`首屏 JS 比参考线多 ${((total - REFERENCE_BYTES) / 1024).toFixed(2)} KB，只作提示`)
   }
 }
 

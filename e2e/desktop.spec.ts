@@ -376,3 +376,27 @@ test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ pa
   await auto.click()
   await expect(auto).toHaveAttribute('aria-pressed', 'true')
 })
+
+test('炫技层背景挂着自己的 WebGL 画布，预览与导出都不受影响', async ({ page }) => {
+  test.setTimeout(PROBE_TIMEOUT_MS)
+  await openApp(page)
+
+  // 极光背景走懒 chunk，toHaveCount 自带重试，等它到货
+  const backdrop = page.locator('[data-slot="showcase-background"]')
+  await expect(backdrop).toHaveCount(1)
+  await expect(backdrop.locator('canvas')).toHaveCount(1)
+
+  // 两个 WebGL 上下文并存：预览那一份仍然只有一张画布，没有被背景挤掉或重建
+  await expect(page.locator('[data-slot="preview-shader"] canvas')).toHaveCount(1)
+
+  // 导出走离屏合成，与页面装饰无关，结果与加炫技层之前一致
+  const encoded = await probeEncode(page)
+  expect(encoded.type).toBe('image/jpeg')
+  expect(encoded.bytes).toBeGreaterThan(0)
+  expect(encoded.bytes).toBeLessThanOrEqual(1024 * 1024)
+  expect(encoded.hitTarget).toBe(true)
+
+  const stats = await probeStats(page)
+  expect(stats.opaque).toBe(stats.width * stats.height)
+  expect(stats.colors).toBeGreaterThan(16)
+})
