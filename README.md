@@ -56,6 +56,7 @@ Cloudflare Pages：构建命令 `npm run build`，输出目录 `dist`，Node 版
 - Vite 8、React 19、TypeScript、Tailwind CSS v4、shadcn/ui（Base UI 底层）、zustand。
 - 渲染引擎是 [@paper-design/shaders](https://github.com/paper-design/shaders)（Apache-2.0）的 `staticMeshGradient`、`meshGradient`、`warp`、`grainGradient` 四个着色器，项目只做种子映射、离屏渲染与限幅。
 - 内置图标来自 lucide-react 1.37（ISC），emoji 索引来自 emojibase-data 15.0.0（MIT），emoji 图形来自 Noto Emoji v2.047（Apache-2.0）；索引产物入库，选择器按需加载。
+- 内置品牌图形 58 个，文件随站点同源分发，索引与加载器都是懒 chunk，不占首屏预算。
 - 颜色计算用 culori，全部在 OKLCH 空间做。
 - 首屏 JS 控制在 250 KB gzip 以内，着色器与字体选择器按需加载。
 
@@ -74,8 +75,10 @@ Cloudflare Pages：构建命令 `npm run build`，输出目录 `dist`，Node 版
 
 v3 是整体重写。v2 的 SVG 多层径向渐变、SVG 导出与命令行工具都已下线：渲染换成了着色器，头像也只需要位图。要用旧版本，切到 `v2.3.0` 标签。变更细节见 `CHANGELOG.md`。
 
-## 致谢
+## 素材与致谢
 
+- 内置品牌图形取自 [dashboard-icons](https://github.com/homarr-labs/dashboard-icons)（Apache-2.0）。图形本身按该许可分发，各品牌名称与标识的商标权归其所有者，本项目不主张任何权利，也不代表与这些品牌有关联或获得其背书。
+- 飞书、豆包工作、WorkBuddy 三个图形用的是 owner 手上的官方素材，Qoder 是照官方标识描摹的矢量。清单在 `scripts/brand-list.json`，跑 `npm run gen:brand` 重出。
 - [Justin Jay Wang](https://justinjay.wang/methods-for-random-gradients/) 的多层径向渐变方法是 v1 与 v2 的出发点。
 - [Paper](https://paper.design) 开源的 shader 库让 v3 的四种质感不必从零写 GLSL。
 
@@ -84,6 +87,8 @@ v3 是整体重写。v2 的 SVG 多层径向渐变、SVG 导出与命令行工�
 Gradient Avatar turns a few characters into a soft, luminous gradient avatar, entirely in the browser. Try it at <https://jianbian.zixuan.net>.
 
 What it does: four WebGL2 textures (mesh, flow, silk, and grain without circular ripple seeds); 26 palettes plus OKLCH palette generation from one or two seed colors; any Google Font, with CJK fonts loaded as unicode-range slices; auto-fit typography with 15% padding, 1.03 line height, and per-line size and nudge controls; one-click browser download and PNG clipboard copy; JPG, PNG, and WebP export with a file-size target; safe-area and grid overlays for the preview only; settings persist locally; five UI languages; installable as a PWA.
+
+Assets: brand graphics come from [dashboard-icons](https://github.com/homarr-labs/dashboard-icons) (Apache-2.0); every brand name and logo remains the trademark of its owner, and their inclusion implies no affiliation or endorsement.
 
 Development: `npm install && npm run dev` (Node 24+). Deploy to Cloudflare Pages with `npm run build` and output directory `dist`.
 

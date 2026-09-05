@@ -15,6 +15,7 @@ import zhHK from '@/i18n/zh-HK.json'
 import { LOCALES, dictOf, loadDict, translate, type Locale } from '@/i18n'
 import { STYLE_LIST } from '@/engine/styles'
 import { CURATED_ICON_CATEGORIES } from '@/graphics/curated'
+import { BRAND_CATEGORIES } from '@/graphics/generated/brand-index'
 import { EMOJI_GROUPS } from '@/graphics/emoji-index'
 import { SIZE_TARGETS, TEXT_EFFECTS } from '@/state/config'
 
@@ -120,6 +121,7 @@ function dynamicKeys(): string[] {
     ...['white', 'black', 'cream', 'yellow'].map((key) => `panel.text.color.preset.${key}`),
     ...SIZE_TARGETS.map((target) => `export.size.${target}`),
     ...CURATED_ICON_CATEGORIES.map((category) => `icon.category.${category}`),
+    ...BRAND_CATEGORIES.map((category) => `icon.brand.category.${category}`),
     ...EMOJI_GROUPS.map((group) => `icon.emoji.group.${group}`),
     // BottomBar 的导出成功提示先存进变量再交给 t
     'export.downloaded',

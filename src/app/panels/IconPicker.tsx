@@ -21,10 +21,12 @@ import {
 import { SegmentedControl } from '@/components/blocks/segmented-control'
 import { CURATED_ICON_CATEGORIES, CURATED_ICONS } from '@/graphics/curated'
 import { loadEmojiEntries, type EmojiEntry } from '@/graphics/emoji-index'
+import type { BrandCategory, BrandEntry } from '@/graphics/generated/brand-index'
 import type { LucideIconNode } from '@/graphics/types'
 import { GraphicUploadError, registerUploadedGraphic } from '@/graphics/upload'
 import { useIsMobile } from '@/hooks/use-media'
 import { useLocale, useT } from '@/i18n'
+import { cn } from '@/lib/utils'
 import type { IconSource } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 
@@ -35,6 +37,21 @@ export interface IconPickerProps {
 
 const EMOJI_LIMIT = 240
 const FULL_ICON_LIMIT = 200
+
+/** 渐变底上默认用纯白变体，没有纯白件的品牌退回原色。 */
+type BrandVariant = 'color' | 'white'
+
+interface BrandIndex {
+  entries: readonly BrandEntry[]
+  categories: readonly BrandCategory[]
+}
+
+/** 一个品牌在当前变体下真正要用的文件名与静态资源地址。 */
+function brandFileOf(entry: BrandEntry, variant: BrandVariant): { id: string; url: string } {
+  const id = variant === 'white' && entry.white ? entry.white : entry.id
+  const ext = id === entry.id ? entry.ext : 'svg'
+  return { id, url: `${import.meta.env.BASE_URL}brand/${id}.${ext}` }
+}
 
 function LucideGlyph({ nodes }: { nodes: readonly LucideIconNode[] }) {
   return (
@@ -79,15 +96,17 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
   const config = useAvatarStore((state) => state.config)
   const setLayout = useAvatarStore((state) => state.setLayout)
 
+  // upload 与 none 都没有对应的模式页，落回内置图标那一页
+  const iconSource = config.layout.icon.source
   const initialMode: IconSource =
-    config.layout.icon.source === 'emoji' ? 'emoji' : config.layout.icon.source === 'none'
-      ? 'builtin'
-      : config.layout.icon.source
+    iconSource === 'emoji' || iconSource === 'brand' ? iconSource : 'builtin'
   const [mode, setMode] = useState<IconSource>(initialMode)
   const [query, setQuery] = useState('')
   const [curatedNodes, setCuratedNodes] = useState<Record<string, LucideIconNode[]> | null>(null)
   const [fullNodes, setFullNodes] = useState<Record<string, LucideIconNode[]> | null>(null)
   const [emojiEntries, setEmojiEntries] = useState<EmojiEntry[] | null>(null)
+  const [brandIndex, setBrandIndex] = useState<BrandIndex | null>(null)
+  const [brandVariant, setBrandVariant] = useState<BrandVariant>('white')
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -183,6 +202,41 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
       .filter((group) => group.list.length > 0)
   }, [emojiResults])
 
+  useEffect(() => {
+    if (!open || mode !== 'brand' || brandIndex) return
+    let cancelled = false
+    void import('@/graphics/generated/brand-index')
+      .then((module) => {
+        if (!cancelled) {
+          setBrandIndex({ entries: module.BRAND_INDEX, categories: module.BRAND_CATEGORIES })
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setBrandIndex({ entries: [], categories: [] })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [brandIndex, mode, open])
+
+  const brandResults = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!brandIndex) return []
+    return brandIndex.categories
+      .map((category) => ({
+        category,
+        list: brandIndex.entries.filter(
+          (entry) =>
+            entry.category === category &&
+            (hit(entry.zh, q) ||
+              hit(entry.en, q) ||
+              hit(entry.id, q) ||
+              entry.aliases.some((alias) => hit(alias, q))),
+        ),
+      }))
+      .filter((group) => group.list.length > 0)
+  }, [brandIndex, query])
+
   const choose = (source: IconSource, id: string): void => {
     setLayout({ icon: { source, id } })
     onOpenChange(false)
@@ -199,9 +253,25 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
     }
   }
 
+  const chooseVariant = (next: BrandVariant): void => {
+    setBrandVariant(next)
+    const icon = config.layout.icon
+    if (icon.source !== 'brand' || !brandIndex) return
+    const entry = brandIndex.entries.find((item) => item.id === icon.id || item.white === icon.id)
+    if (!entry) return
+    const { id } = brandFileOf(entry, next)
+    if (id !== icon.id) setLayout({ icon: { source: 'brand', id } })
+  }
+
   const modeOptions = [
     { value: 'builtin' as const, label: t('icon.builtin') },
     { value: 'emoji' as const, label: t('icon.emoji') },
+    { value: 'brand' as const, label: t('icon.brand') },
+  ]
+
+  const variantOptions = [
+    { value: 'color' as const, label: t('icon.brand.variant.color') },
+    { value: 'white' as const, label: t('icon.brand.variant.white') },
   ]
 
   const builtinPanel = (
@@ -276,6 +346,54 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
     </>
   )
 
+  const brandPanel = (
+    <>
+      {brandResults.map((group) => (
+        <CommandGroup
+          key={`brand:${group.category}`}
+          heading={t(`icon.brand.category.${group.category}`)}
+        >
+          {group.list.map((entry) => {
+            const file = brandFileOf(entry, brandVariant)
+            return (
+              <CommandItem
+                key={`brand:${file.id}`}
+                value={`brand:${file.id}`}
+                data-checked={
+                  (config.layout.icon.source === 'brand' && config.layout.icon.id === file.id) ||
+                  undefined
+                }
+                className="min-h-11"
+                onSelect={() => choose('brand', file.id)}
+              >
+                <span
+                  className={cn(
+                    'flex size-6 shrink-0 items-center justify-center rounded-sm',
+                    // 纯白件压在浅色列表上会看不见，给它垫一块深底，观感也贴近渐变底
+                    brandVariant === 'white' ? 'bg-foreground/75' : 'bg-muted',
+                  )}
+                >
+                  <img src={file.url} alt="" loading="lazy" className="size-4.5" />
+                </span>
+                <span className="truncate">{locale.startsWith('zh') ? entry.zh : entry.en}</span>
+              </CommandItem>
+            )
+          })}
+        </CommandGroup>
+      ))}
+      {brandResults.length === 0 ? (
+        <CommandEmpty>{brandIndex ? t('icon.empty') : t('icon.loading')}</CommandEmpty>
+      ) : null}
+    </>
+  )
+
+  const searchHint =
+    mode === 'emoji'
+      ? t('icon.search.emoji')
+      : mode === 'brand'
+        ? t('icon.search.brand')
+        : t('icon.search.builtin')
+
   const panel = (
     <Command shouldFilter={false} className="min-h-0">
       <div className="p-2 pb-0">
@@ -289,12 +407,23 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
       </div>
       <CommandInput
         className="h-11 text-base md:text-base"
-        placeholder={mode === 'emoji' ? t('icon.search.emoji') : t('icon.search.builtin')}
+        placeholder={searchHint}
         value={query}
         onValueChange={setQuery}
       />
+      {mode === 'brand' ? (
+        <div data-slot="brand-variant" className="p-2 pb-0">
+          <SegmentedControl
+            name="brand-variant"
+            label={t('icon.brand.variant')}
+            value={brandVariant}
+            options={variantOptions}
+            onChange={chooseVariant}
+          />
+        </div>
+      ) : null}
       <CommandList className="max-h-[58vh]">
-        {mode === 'builtin' ? builtinPanel : emojiPanel}
+        {mode === 'builtin' ? builtinPanel : mode === 'emoji' ? emojiPanel : brandPanel}
       </CommandList>
       <CommandSeparator />
       <div className="flex flex-col gap-1.5 p-2">
@@ -335,7 +464,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
         <DrawerContent className="h-[85dvh] max-h-[85dvh]">
           <DrawerHeader className="text-left">
             <DrawerTitle>{t('icon.title')}</DrawerTitle>
-            <DrawerDescription>{t('icon.search.builtin')}</DrawerDescription>
+            <DrawerDescription>{searchHint}</DrawerDescription>
           </DrawerHeader>
           <div className="min-h-0 flex-1 overflow-hidden px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
             {content}
@@ -350,7 +479,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
       open={open}
       onOpenChange={onOpenChange}
       title={t('icon.title')}
-      description={t('icon.search.builtin')}
+      description={searchHint}
       className="p-0"
     >
       {content}

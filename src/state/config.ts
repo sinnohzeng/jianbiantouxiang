@@ -15,7 +15,7 @@ import type { Locale } from '@/i18n'
 export type StyleId = 'mesh' | 'flow' | 'silk' | 'grain'
 export type Shape = 'square' | 'rounded' | 'circle'
 export type TextEffect = 'plain' | 'outline' | 'shadow' | 'glow' | 'pill'
-export type IconSource = 'none' | 'builtin' | 'emoji' | 'upload'
+export type IconSource = 'none' | 'builtin' | 'emoji' | 'brand' | 'upload'
 
 export interface AvatarConfig {
   v: 4
@@ -58,7 +58,7 @@ export interface AvatarConfig {
     graphic: number // 0.3..0.8
     icon: {
       source: IconSource
-      /** builtin 是 lucide 名，emoji 是去 FE0F 的码点串，upload 是本次会话 id。 */
+      /** builtin 是 lucide 名，emoji 是去 FE0F 的码点串，brand 是品牌文件名，upload 是本次会话 id。 */
       id: string
     }
   }
@@ -77,7 +77,7 @@ export const SIZE_MODES = ['auto', 'manual'] as const
 export const COLOR_MODES = ['auto', 'custom'] as const
 export const EXPORT_FORMATS = ['jpg', 'png', 'webp'] as const
 export const SIZE_TARGETS = ['none', '1mb', '2mb'] as const
-export const ICON_SOURCES = ['none', 'builtin', 'emoji', 'upload'] as const
+export const ICON_SOURCES = ['none', 'builtin', 'emoji', 'brand', 'upload'] as const
 
 /** 图形标识最长 128 字符，防止坏数据把状态与存档无限撑大。 */
 export const ICON_ID_MAX = 128

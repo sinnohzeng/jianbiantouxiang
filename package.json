@@ -31,6 +31,7 @@
     "screenshots": "node scripts/screenshots.mjs",
     "gen:icons": "node scripts/gen-icon-index.ts",
     "gen:app-icons": "node scripts/gen-app-icons.mjs",
+    "gen:brand": "node scripts/gen-brand-icons.mjs",
     "gen:emoji": "node scripts/gen-emoji-index.ts",
     "samples": "node scripts/samples.mjs",
     "budget": "node scripts/check-budget.mjs"

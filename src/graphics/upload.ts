@@ -73,12 +73,45 @@ const ATTRS = new Set([
   'paint-order',
   'clip-rule',
   'clip-path',
+  'style',
   'gradientUnits',
   'gradientTransform',
   'offset',
   'stop-color',
   'stop-opacity',
 ])
+
+/**
+ * `style` 属性里放行的声明。
+ *
+ * 上游素材大量把填色写在 `style="fill:#133c9a"` 里，Figma 导出的 SVG 也是这个写法，
+ * 整条属性丢掉就等于丢掉原色。只收这一批与上色直接相关的属性，`behavior`、`expression`
+ * 这类能引出行为的声明连名字都不在表里。
+ */
+const STYLE_PROPS = new Set([
+  'fill',
+  'fill-opacity',
+  'fill-rule',
+  'stroke',
+  'stroke-width',
+  'stroke-opacity',
+  'stroke-linecap',
+  'stroke-linejoin',
+  'stroke-dasharray',
+  'opacity',
+  'stop-color',
+  'stop-opacity',
+  'color',
+  'clip-rule',
+  'paint-order',
+])
+
+/**
+ * 取值：一个或多个取值词，逗号与空格分隔。
+ * 词形只认 hex、颜色关键字、带不带单位的数值、百分比、`rgb()` / `rgba()`、指向文档内 id 的 `url()`。
+ */
+const STYLE_VALUE =
+  /^(?:(?:#[0-9a-f]{3,8}|[a-z][a-z-]*|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|pt|em|rem|%)?|rgba?\([\d\s.,%/]*\)|url\(#[\w.:-]+\))[\s,]*)+$/i
 
 const DRAWINGS = new Set([
   'path',
@@ -115,6 +148,24 @@ function isInternalReference(value: string): boolean {
   return target.startsWith('#')
 }
 
+/**
+ * 按属性与取值双重白名单重建 `style`。留不下任何声明就返回空串，调用方据此不写这个属性。
+ * `url()` 沿用 `isInternalReference`，只认指向文档内 id 的引用。
+ */
+function sanitizeStyle(value: string): string {
+  const kept: string[] = []
+  for (const declaration of value.split(';')) {
+    const at = declaration.indexOf(':')
+    if (at < 0) continue
+    const name = declaration.slice(0, at).trim().toLowerCase()
+    const raw = declaration.slice(at + 1).trim()
+    if (!STYLE_PROPS.has(name) || raw === '') continue
+    if (!isInternalReference(raw) || !STYLE_VALUE.test(raw)) continue
+    kept.push(`${name}:${raw}`)
+  }
+  return kept.join(';')
+}
+
 function cloneSafe(
   element: Element,
   document: XMLDocument,
@@ -131,7 +182,13 @@ function cloneSafe(
       clean.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns', SVG_NS)
       continue
     }
-    if (!ATTRS.has(name) || /^on/i.test(name) || !isInternalReference(attr.value)) continue
+    if (!ATTRS.has(name) || /^on/i.test(name)) continue
+    if (name === 'style') {
+      const style = sanitizeStyle(attr.value)
+      if (style !== '') clean.setAttribute('style', style)
+      continue
+    }
+    if (!isInternalReference(attr.value)) continue
     clean.setAttribute(name, attr.value)
   }
 
@@ -167,7 +224,7 @@ function viewBoxSize(root: Element): { width: number; height: number } {
   return { width: 512, height: 512 }
 }
 
-/** 白名单重建 SVG。未知元素整支丢弃，未知属性删除，外部引用不保留。 */
+/** 白名单重建 SVG。未知元素整支丢弃，未知属性删除，外部引用不保留，`style` 按声明再过一层。 */
 export function sanitizeSvg(source: string): string {
   const document = new DOMParser().parseFromString(source, 'image/svg+xml')
   const parserError = document.getElementsByTagName('parsererror')[0]

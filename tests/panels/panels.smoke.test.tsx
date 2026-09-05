@@ -16,6 +16,7 @@ import {
   StylePanel,
   TextPanel,
 } from '@/app/panels'
+import { IconPicker } from '@/app/panels/IconPicker'
 import { DEFAULT_CONFIG, type AvatarConfig } from '@/state/config'
 import { DEFAULT_UI, useAvatarStore } from '@/state/store'
 
@@ -327,5 +328,26 @@ describe('HistoryStrip', () => {
     expect(items).toHaveLength(1)
     fireEvent.click(items[0]!)
     expect(config().text).toBe('旧的一版')
+  })
+})
+
+describe('IconPicker', () => {
+  it('品牌页能切到并列出飞书', async () => {
+    mount(<IconPicker open onOpenChange={() => {}} />)
+
+    const brand = document.querySelector<HTMLInputElement>(
+      'input[data-group="icon-source"][value="brand"]',
+    )
+    expect(brand).not.toBeNull()
+    fireEvent.click(brand!)
+
+    // 索引是懒加载的，等它落地再断言；界面语言随环境，中英文名都认
+    expect(await screen.findByRole('option', { name: /飞书|Lark/ })).toBeTruthy()
+
+    // 渐变底上默认走单白变体
+    const white = document.querySelector<HTMLInputElement>(
+      'input[data-group="brand-variant"][value="white"]',
+    )
+    expect(white?.checked).toBe(true)
   })
 })

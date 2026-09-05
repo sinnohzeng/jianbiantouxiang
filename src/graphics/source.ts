@@ -1,8 +1,8 @@
 import type { Graphic, GraphicIcon } from './types'
 
 /**
- * 图形来源的分派入口。三个实现都按需 import，主界面只带这一份小模块，
- * 不会因为引用 source.ts 就把图标索引或 emoji 标签拖进首屏 chunk。
+ * 图形来源的分派入口。四个实现都按需 import，主界面只带这一份小模块，
+ * 不会因为引用 source.ts 就把图标索引、emoji 标签或品牌索引拖进首屏 chunk。
  */
 export async function loadGraphic(icon: GraphicIcon): Promise<Graphic | null> {
   if (icon.source === 'none' || icon.id === '') return null
@@ -14,6 +14,10 @@ export async function loadGraphic(icon: GraphicIcon): Promise<Graphic | null> {
     if (icon.source === 'emoji') {
       const { loadEmojiGraphic } = await import('./emoji')
       return await loadEmojiGraphic(icon.id)
+    }
+    if (icon.source === 'brand') {
+      const { loadBrandGraphic } = await import('./brand')
+      return await loadBrandGraphic(icon.id)
     }
     if (icon.source === 'upload') {
       const { getUploadedGraphic } = await import('./upload')

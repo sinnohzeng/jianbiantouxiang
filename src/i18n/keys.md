@@ -74,6 +74,16 @@
 | `font.upload.hint`                | 支持 TTF、OTF、WOFF、WOFF2，只在当前会话有效，分享出去对方看不到                                                 |
 | `font.upload.tooLarge`            | 字体文件太大，请换一个更小的                                                                                     |
 | `icon.all`                        | 全部图标                                                                                                         |
+| `icon.brand`                      | 品牌                                                                                                             |
+| `icon.brand.category.ai`          | AI                                                                                                               |
+| `icon.brand.category.brand`       | 其他品牌                                                                                                         |
+| `icon.brand.category.cloud`       | 云与支付                                                                                                         |
+| `icon.brand.category.dev`         | 开发                                                                                                             |
+| `icon.brand.category.office`      | 协作与办公                                                                                                       |
+| `icon.brand.category.social`      | 社交与内容                                                                                                       |
+| `icon.brand.variant`              | 品牌配色                                                                                                         |
+| `icon.brand.variant.color`        | 原色                                                                                                             |
+| `icon.brand.variant.white`        | 单白                                                                                                             |
 | `icon.builtin`                    | 内置图标                                                                                                         |
 | `icon.category.business`          | 商务                                                                                                             |
 | `icon.category.common`            | 常用                                                                                                             |
@@ -98,6 +108,7 @@
 | `icon.emoji.group.8`              | 符号                                                                                                             |
 | `icon.emoji.group.9`              | 旗帜                                                                                                             |
 | `icon.loading`                    | 图形索引加载中                                                                                                   |
+| `icon.search.brand`               | 搜索品牌名或别名                                                                                                 |
 | `icon.search.builtin`             | 搜索中英文关键词或图标名                                                                                         |
 | `icon.search.emoji`               | 搜索 emoji 名称或标签                                                                                            |
 | `icon.source`                     | 图形来源                                                                                                         |

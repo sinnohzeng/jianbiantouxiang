@@ -182,6 +182,42 @@ test('图标徽章能用中文搜到棕榈 emoji 并导出', async ({ page }) =>
   expect(encoded.hitTarget).toBe(true)
 })
 
+test('图标徽章能在品牌页搜到 GitHub 并导出', async ({ page }) => {
+  test.setTimeout(PROBE_TIMEOUT_MS)
+  await openApp(page)
+
+  await page.locator('[data-slot="text-icon-switch"]').click()
+  await page.locator('label:has(input[data-group="icon-source"][value="brand"])').click()
+  await page.locator('[data-slot="command-input"]').fill('GitHub')
+  // 名字精确匹配，免得选中同样命中的 GitHub Copilot
+  await page.getByRole('option', { name: 'GitHub', exact: true }).click()
+
+  // 默认单白变体，GitHub 有纯白件，存档里落的是 github-light
+  const readIcon = () =>
+    page.evaluate(() => {
+      const raw = localStorage.getItem('gradient-avatar:v3')
+      if (!raw) return null
+      return (
+        JSON.parse(raw) as {
+          config: { layout: { icon: { source: string; id: string } } }
+        }
+      ).config.layout.icon
+    })
+  await expect.poll(async () => (await readIcon())?.source, { timeout: 5000 }).toBe('brand')
+  expect((await readIcon())?.id).toBe('github-light')
+
+  await page.locator('#avatar-text-first').fill('产品设计部')
+
+  const download = page.waitForEvent('download')
+  await page.locator('[data-slot="export-action"]').click()
+  const file = await download
+  expect(file.suggestedFilename()).toMatch(/_\d{8}-\d{6}\.jpg$/)
+
+  const encoded = await probeEncode(page)
+  expect(encoded.bytes).toBeGreaterThan(0)
+  expect(encoded.hitTarget).toBe(true)
+})
+
 test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
   test.setTimeout(PROBE_TIMEOUT_MS)
   await openApp(page)

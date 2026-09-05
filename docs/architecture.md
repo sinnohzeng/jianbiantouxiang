@@ -141,13 +141,16 @@ v4 只有一种版式：图标（可选）→ 第一行 → 第二行的纵向�
 
 ## 图形来源
 
-`src/graphics/source.ts` 是唯一分派入口：内置图标、emoji 与上传图形都按需 `import()`，主界面不带索引。三种来源统一返回 `Graphic`，调用方不认识具体实现。
+`src/graphics/source.ts` 是唯一分派入口：内置图标、emoji、品牌图形与上传图形都按需 `import()`，主界面不带索引。四种来源统一返回 `Graphic`，调用方不认识具体实现。
 
 | 来源 | 索引 | 图形 |
 | --- | --- | --- |
 | 内置图标 | lucide-react 1.37 的 1790 个主图标；精选 162 个随选择器小索引加载，全库 470 KB 原始数据只在搜索超出精选时加载 | `__iconNode` 转 `Path2D`，按文字色描边，并复用文字效果 |
 | emoji | emojibase-data 15.0.0 的 1879 个可分组条目，五种语言各一份标签 chunk | 按码点取 Noto Emoji v2.047 单个 SVG，fetch 转 Blob 再画，保留原色 |
+| 品牌 | `src/graphics/generated/brand-index.ts` 的 58 个条目，六类分组，带中英文名、别名与纯白变体名 | 同源静态文件 `public/brand/<id>.svg\|png`，SVG 走 fetch 加消毒再转 Blob，PNG 直接 `Image`，保留原色 |
 | 上传 | 无索引，模块级会话注册表 | SVG 先经元素与属性白名单重建；PNG / WebP 直接 `Image`，保留原色 |
+
+品牌图形的清单真源是 `scripts/brand-list.json`，`npm run gen:brand` 把远端条目从 homarr-labs/dashboard-icons 拉下来、把 `assets/brand/` 里 owner 提供的素材拷过去，统一落到 `public/brand/`，同时生成索引；两个产物都不手改。配置里存的是文件名，纯白变体（如 `github-light`）是独立文件名，选择器的“原色 / 单白”分段切的就是它。索引与加载器都只在图形选择器或 `loadGraphic` 命中 brand 时才 `import()`，不进首屏预算。SVG 与上传路径同过一遍 `sanitizeSvg`，取不到或解析失败只 `console.warn` 并让图形位留空。
 
 上传 SVG 只保留常见绘图元素、渐变、裁剪与安全展示属性；未知元素整支丢弃，未知属性删除，`url()` 只允许内部引用。文件字节只在模块级会话注册表里，不写盘；配置里留的是 `source: 'upload'` 加会话 id，会随存档与历史落盘，刷新后注册表已空，图形位留空、面板仍显示上传来源，用户重新上传即可。加载失败同样只让图形位留空，渐变、文字与导出继续可用。
 
@@ -206,7 +209,7 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 - 要拆的包，主 chunk 里一个符号都不能静态引用。`@paper-design/shaders` 只从 `shader-mount.ts`、`shader-noise.ts` 与 `shaders/*.ts` 三个薄模块进来，全部走 `import()`。
 - 不用 `const { X } = await import('包名')` 从包入口取符号，命名空间访问挡住 tree-shaking。要拆就先写一个只 `export { X } from '包名'` 的本地模块，再动态 import 它。
-- 懒组件一挂进树就立刻拉 chunk。导出抽屉、字体选择器与历史条都走 `panels/lazy.ts`，并且只在真要显示时才挂上，之后一直留着。这个挂载闩是 store 的 `ui.exportMounted`，由 `setUi` 从 `exportOpen` 派生。图形选择器同走 `lazy.ts`，没点开前不拉 cmdk 与索引；内置全库、emoji 标签也只在对应搜索模式需要时加载。
+- 懒组件一挂进树就立刻拉 chunk。导出抽屉、字体选择器与历史条都走 `panels/lazy.ts`，并且只在真要显示时才挂上，之后一直留着。这个挂载闩是 store 的 `ui.exportMounted`，由 `setUi` 从 `exportOpen` 派生。图形选择器同走 `lazy.ts`，没点开前不拉 cmdk 与索引；内置全库、emoji 标签与品牌索引也只在对应搜索模式需要时加载。
 
 详细口径见 `docs/engineering-lessons.md`。
 
@@ -214,7 +217,7 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 | 层 | 命令 | 覆盖 |
 | --- | --- | --- |
-| 单测 | `npm test` | `tests/` 与 `src/` 同名，jsdom 环境，覆盖种子映射、排版与自动填满、补偿独立性、图标排版、SVG 消毒、图形绘制消费端、索引结构、自动取色、体积二分、预览参考层存取、字典对齐 |
+| 单测 | `npm test` | `tests/` 与 `src/` 同名，jsdom 环境，覆盖种子映射、排版与自动填满、补偿独立性、图标排版、SVG 消毒、品牌图形加载、图形绘制消费端、索引结构、自动取色、体积二分、预览参考层存取、字典对齐 |
 | 端到端 | `npm run e2e` | 两个 project：`desktop` 跑 1440 桌面，`iphone-15` 跑设备模拟。覆盖内置图标、emoji、上传 SVG、手机底部抽屉、存档刷新恢复、网格开关留存、字号自动态切手动与既有导出路径 |
 | 视觉 | `npm run screenshots` | 桌面 1440、iPhone 15、iPhone SE 三个设备各截深浅两套主题，输出到 `.screenshots/` |
 
