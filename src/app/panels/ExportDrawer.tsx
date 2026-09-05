@@ -263,7 +263,10 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
           ) : null}
         </div>
 
-        <DrawerFooter className="grid gap-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:grid-cols-2">
+        {/* 上面那块是滚动区，内容会一直滑到这条底下。DrawerFooter 默认 pt-0，
+            不给它一条边和一段上边距的话，滚到中途时按钮就直接贴在上一个控件上。
+            加边加留白之后它读作一条固定的动作条，与工作台底部那条操作条同一套语言 */}
+        <DrawerFooter className="bg-background grid gap-2 border-t pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:grid-cols-2">
           <Button
             type="button"
             data-slot="export-run"

@@ -110,7 +110,7 @@ test('改文字后可以用键盘撤销与重做', async ({ page }) => {
 test('切换语言后 html[lang] 与标题都跟着变', async ({ page }) => {
   await openApp(page)
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN')
-  await expect(page).toHaveTitle(/渐变头像生成器/)
+  await expect(page).toHaveTitle(/渐变头像/)
 
   await page.locator('[data-slot="language-menu"]').click()
   await page.getByRole('menuitem', { name: '日本語' }).click()
@@ -322,13 +322,26 @@ test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
   expect(encoded.hitTarget).toBe(true)
 })
 
-test('关于对话框展示版本号', async ({ page }) => {
+test('关于是一个独立页面，带版本号，能走回工具', async ({ page }) => {
   await openApp(page)
 
+  // v5.1 起它不是浮层，是 /about 这张真实的静态页，能单独分享一个链接出去
   await page.locator('[data-slot="about-action"]').click()
-  const dialog = page.getByRole('dialog')
-  await expect(dialog).toBeVisible()
-  await expect(dialog.getByText(/版本 \d+\.\d+\.\d+/)).toBeVisible()
+  await expect(page).toHaveURL(/\/about$/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('渐变头像')
+  await expect(page.locator('[data-slot="app-version"]')).toHaveText(/\d+\.\d+\.\d+/)
+
+  // 关于页不拉工具那份 chunk，只有自己那一小段脚本
+  await expect(page.locator('[data-slot="workspace"]')).toHaveCount(0)
+
+  await page.getByRole('link', { name: '开始做图' }).first().click()
+  await expect(page.locator('[data-slot="workspace"]')).toHaveCount(1)
+})
+
+test('赞赏区没配就不出现', async ({ page }) => {
+  await page.goto('/about')
+  // SUPPORT_LINKS 与 SUPPORT_QRS 全空时整块不渲染，页面上不留空壳
+  await expect(page.locator('[data-slot="support"]')).toBeHidden()
 })
 
 test('操作条的更多菜单里恢复默认，确认后回到默认档', async ({ page }) => {

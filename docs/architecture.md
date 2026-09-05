@@ -27,6 +27,7 @@
 | `src/app/` | 应用外壳、顶栏、底部操作条、实时预览与参考层开关、预览高度、氛围背景、主题状态 |
 | `src/app/workspace/` | 挑选栏两列（文字、图标 / 配色、质感）、微调面板、手机分隔条 |
 | `src/app/panels/` | 导出抽屉、字体选择器、图形选择器、历史条四个重件 |
+| `src/about/` | 关于页那一小段脚本与赞赏配置。正文在根目录的 `about.html` 里 |
 | `src/components/ui/` | shadcn 生成的原语，本仓不改写、不格式化 |
 | `src/components/blocks/` | 界面复用件：分段控件、radio card、带数值框与重置钮的滑杆、颜色格、可折叠分组 |
 | `src/engine/` | 质感定义与参数映射、种子、预览挂载、离屏渲染、设备能力探测、无 WebGL2 兜底 |
@@ -63,10 +64,16 @@
 列模板与落位全在 `src/index.css` 的 `[data-slot='workspace']` 一段，断点乘开合共四套；
 `display` 也归那里管，工具层排在组件层之后，class 里留一个 `flex` 就会压掉 `display: contents`。
 
-操作条只占预览那一列，不横跨整个工作台：挑选栏底下压一条通栏的操作条，
+只有画框那一列分上下两行，左边几列一律跨满两行。操作条只占画框那一列，
+左边如果也停在第一行末尾，底下就空出一条与操作条等高的带子，挑选栏白白少掉五六十像素可视高度。
+
+操作条只占画框那一列，不横跨整个工作台：挑选栏底下压一条通栏的操作条，
 会让人以为它管的是左边那两列，而它管的其实是画面。
-它有多宽随微调开合在 524 到 1696 之间跳，所以文案露多少由容器查询决定而不是视口断点，
-窄下去按分量倒序收：先收微调与更多，再收两个随机，最后才轮到导出。
+它有多宽随微调开合在 524 到 1696 之间跳，所以文案长短由容器查询决定而不是视口断点：
+宽的时候给全称，窄下去换两三个字的短称。五个按钮一律带字，没有只剩图标那一档，
+图标认不出来的按钮用户得点一次才知道是干嘛的。长短两版都在 DOM 里，
+露哪一版只由 `index.css` 定，span 上不能挂 `hidden` 这类工具类，
+工具层排在组件层之后会把容器查询的 `display` 压掉。
 手机上它固定在屏幕底并让出 safe-area，图标在上、短文案在下的五格。
 
 挑选栏分列的依据是使用频率：改文字与换配色是最常用的两件事，让它们同屏并排，不用先切页签也不用滚一屏。
@@ -294,7 +301,11 @@ headless chromium 默认没有 GPU，WebGL2 靠 `--use-angle=swiftshader` 等启
 
 `npm run build` 先 `tsc -b` 再 `vite build`，产物在 `dist/`。CI 在每次 push 与 pull request 上跑 lint、typecheck、单测、构建四步，Node 24。
 
-Cloudflare Pages 的构建命令是 `npm run build`，输出目录 `dist`，Node 版本读 `.node-version`。`public/_headers` 给全站发安全头、给 `/assets/*` 发一年不可变缓存，`public/_redirects` 做单页回退，两份文件随构建进入输出目录。
+站点是两个入口，不是单页应用：`index.html` 是工具本体，`about.html` 是关于页。
+`appType` 必须是 mpa，spa 那一档会把 `/about` 也兜回 `index.html`，开发与 `vite preview` 上就永远看不到关于页。
+同理 service worker 关掉了导航兜底，否则装过 PWA 的人打开 `/about` 会拿到缓存里的 `index.html`。
+
+Cloudflare Pages 的构建命令是 `npm run build`，输出目录 `dist`，Node 版本读 `.node-version`。`public/_headers` 给全站发安全头、给 `/assets/*` 发一年不可变缓存；`public/_redirects` 里 `/about` 那条排在通配兜底之前，两份文件随构建进入输出目录。
 
 PWA 由 `vite-plugin-pwa` 生成 manifest 与 service worker，预缓存覆盖 js、css、html、svg、png、woff2。
 注册不走插件注入的那段脚本，改在 `src/app/sw-update.ts` 自己注册：只有拿到 registration 才能主动轮询新版本。

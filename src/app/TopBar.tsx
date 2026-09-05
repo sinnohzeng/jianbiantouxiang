@@ -27,7 +27,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { AboutDialog } from '@/app/AboutDialog'
 import { ErrorBoundary } from '@/app/error-boundary'
 import { HistoryStripLazy } from '@/app/panels/lazy'
 import { BrandMark } from '@/app/BrandMark'
@@ -76,7 +75,6 @@ export function TopBar() {
   const hasHistory = useAvatarStore((state) => state.history.length > 0)
   const [historyMounted, setHistoryMounted] = useState(false)
   const ThemeIcon = THEME_ICON[mode]
-  const [aboutOpen, setAboutOpen] = useState(false)
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -102,8 +100,13 @@ export function TopBar() {
       <div className="flex min-w-0 items-center gap-2">
         <BrandMark className="size-7 shrink-0 drop-shadow-sm" />
         {/* 全站唯一的 h1。品牌名就是页面主标题，另起一个隐藏标题反而多一层噪音；
-            炫技层在跑时它逐字模糊入场，只播一次 */}
-        <BrandTitle text={t('app.name')} className="text-sm font-semibold tracking-tight" />
+            炫技层在跑时它逐字模糊入场，只播一次。
+            手机上只留品牌图标：顶栏那点宽度分给六个按钮之后剩不下几十像素，
+            名字会被截成半个字，比干脆不显示更糟。用 sr-only 不用 hidden，
+            读屏与文档大纲里这条标题还在 */}
+        <span className="sr-only sm:not-sr-only sm:flex sm:min-w-0">
+          <BrandTitle text={t('app.name')} className="text-sm font-semibold tracking-tight" />
+        </span>
         <span className="text-muted-foreground hidden truncate text-xs xl:inline">
           {t('app.slogan')}
         </span>
@@ -204,17 +207,17 @@ export function TopBar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <button
-          type="button"
+        {/* 关于是一个独立页面，不是浮层：介绍与技术说明有几屏长，塞进对话框既读不下去，
+            也没法单独分享一个链接出去 */}
+        <a
+          href="/about"
           data-slot="about-action"
           className={iconButton}
           aria-label={t('topbar.about')}
           title={t('topbar.about')}
-          onClick={() => setAboutOpen(true)}
         >
           <InfoIcon className="size-5" />
-        </button>
-        <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
+        </a>
       </div>
     </header>
   )

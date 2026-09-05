@@ -64,7 +64,9 @@ export function ColorField({
                 title={preset.label}
                 onClick={() => onChange(normalizeHex(preset.hex, preset.hex))}
                 className={cn(
-                  'border-border size-11 cursor-pointer rounded-lg border transition-colors',
+                  // 色块按行等分而不是钉死 44 见方：预设有七个，44 的方块在挑选栏那一列
+                  // 放不下第七个，末尾会孤零零折下去一个。高度仍是 44，触控热区够
+                  'border-border h-11 min-w-9 flex-1 basis-9 cursor-pointer rounded-lg border transition-colors',
                   active && 'border-primary ring-ring/50 ring-3',
                 )}
                 style={{ backgroundColor: preset.hex }}

@@ -5,8 +5,9 @@
  * 会让人以为它管的是左边那两列，而它管的其实是画面。
  * 每个按钮都带可见文案：只有图标时没人认得出哪个是哪个，touch target 再大也没用。
  * 手机上是图标在上、11 px 短文案在下；桌面是图标加文案的一行。
- * 桌面上文案露多少由操作条自己有多宽决定，容器查询写在 index.css，
- * 因为它只有预览那一列宽，微调一开合就换一个量级，视口断点在这里给不出答案。
+ * 五个按钮一律带字，没有只剩图标那一档：图标认不出来的按钮，用户得点一次才知道是干嘛的。
+ * 宽的时候给全称，窄下去换成两三个字的短称，长短两版都在 DOM 里，由 index.css 的容器查询挑一版。
+ * 那里也说明了为什么 span 上不能挂 hidden 工具类。
  * 分量按频次给：随机颜色与导出是实心，其余是描边的安静态，微调点亮时换主色。
  * v5 起没有「文字」快捷键位：两行输入常驻在挑选栏第一节，一眼就看得见，再给它一个入口是重复。
  * v5 起没有「复制链接」：配置不进 URL，分享靠导出的图。
@@ -214,12 +215,12 @@ export function BottomBar() {
           className={cn(item, accent)}
         >
           <ShuffleIcon className={iconClass} aria-hidden />
-          {/* 手机那格只有七十来像素宽，桌面上这条也只有预览那一列宽，两处各给一版，
-              露哪一版看容器宽度。aria-label 常驻，收到只剩图标也还有可访问名 */}
+          {/* 长短两版都在 DOM 里，露哪一版由容器宽度定。
+              这两个 span 不能带 hidden：工具层排在组件层之后，会把容器查询的 display 压掉 */}
           <span data-label="short" className={labelClass}>
             {t('bottombar.random.short')}
           </span>
-          <span data-label="full" className={cn(labelClass, 'hidden')}>
+          <span data-label="full" className={labelClass}>
             {t('bottombar.random')}
           </span>
           <Ripple token={colorRipple.token} />
@@ -237,7 +238,7 @@ export function BottomBar() {
           <span data-label="short" className={labelClass}>
             {t('bottombar.randomAll.short')}
           </span>
-          <span data-label="full" className={cn(labelClass, 'hidden')}>
+          <span data-label="full" className={labelClass}>
             {t('bottombar.randomAll')}
           </span>
           <Ripple token={allRipple.token} />

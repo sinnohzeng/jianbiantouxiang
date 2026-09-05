@@ -63,7 +63,7 @@ test('改文字后刷新页面，文字从本机存档恢复', async ({ page }) 
 test('切换语言后 html[lang] 与标题都跟着变', async ({ page }) => {
   await openApp(page)
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN')
-  await expect(page).toHaveTitle(/渐变头像生成器/)
+  await expect(page).toHaveTitle(/渐变头像/)
 
   await page.locator('[data-slot="language-menu"]').click()
   await page.getByRole('menuitem', { name: '한국어' }).click()

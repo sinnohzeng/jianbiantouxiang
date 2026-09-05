@@ -18,7 +18,7 @@ const readDict: DictReader = (locale) =>
     fs.readFileSync(path.resolve(import.meta.dirname, `./src/i18n/${locale}.json`), 'utf8'),
   ) as Record<string, string>
 
-/** 版本号注入运行时，关于对话框展示，来源就是 package.json 的 version。 */
+/** 版本号注入运行时，关于页展示，来源就是 package.json 的 version。 */
 const pkg = JSON.parse(
   fs.readFileSync(path.resolve(import.meta.dirname, './package.json'), 'utf8'),
 ) as { version: string }
@@ -57,6 +57,12 @@ function localizedManifests(): Plugin {
 }
 
 export default defineConfig({
+  /*
+   * 两个入口：工具本体 index.html，关于页 about.html。
+   * appType 必须是 mpa，spa 那档会把 /about 也兜回 index.html，
+   * 开发与 vite preview 上就永远看不到关于页。
+   */
+  appType: 'mpa',
   plugins: [
     react(),
     tailwindcss(),
@@ -69,6 +75,9 @@ export default defineConfig({
       manifest: localizedManifest(manifestLocale, readDict),
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // 站点是两个真实页面，不是单页应用。留着导航兜底会让装过 PWA 的人
+        // 打开 /about 拿到缓存里的 index.html
+        navigateFallback: null,
       },
     }),
     localizedManifests(),
@@ -76,6 +85,14 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
+    },
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(import.meta.dirname, './index.html'),
+        about: path.resolve(import.meta.dirname, './about.html'),
+      },
     },
   },
   define: {

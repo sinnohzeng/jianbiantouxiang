@@ -120,14 +120,16 @@ describe('五份 manifest 描述同一个应用', () => {
   })
 })
 
-describe('默认语言那份与多语言化之前的产物一致', () => {
-  it('name、short_name、description 逐字未变', () => {
+describe('默认语言那份取自字典', () => {
+  // 改成盯字典而不是盯一串写死的文案：产品名与介绍会改，
+  // 这一条要守的是「manifest 与界面同一个名字」，不是「名字永远不变」
+  it('name、short_name、description 与 zh-CN 字典逐字一致', () => {
+    const dict = readDict('zh-CN')
     const manifest = localizedManifest('zh-CN', readDict)
-    expect(manifest.name).toBe('渐变头像生成器 · Gradient Avatar')
-    expect(manifest.short_name).toBe('渐变头像')
-    expect(manifest.description).toBe(
-      '纯前端的渐变头像生成器。选配色与质感，导出可直接用作群聊、账号与部门标识的图片。',
-    )
+    expect(manifest.name).toBe(dict['app.title'])
+    expect(manifest.short_name).toBe(dict['app.shortName'])
+    expect(manifest.description).toBe(dict['app.description'])
+    expect(manifest.name).toContain('渐变头像')
   })
 
   it('主题色与分类未变', () => {

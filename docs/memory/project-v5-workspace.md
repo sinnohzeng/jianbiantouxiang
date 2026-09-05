@@ -55,5 +55,16 @@ metadata:
   改这一段一定要按 1280 / 1366 / 1440 / 1536 / 1600 / 1920 / 2560 七档乘开合两态实测，别照设计稿猜数。
 - 样张配色分三张排（`SHEETS = 3`）。37 套挤成两张时第二张高度过万像素，
   软件渲染下 Chromium 报 “Unable to capture screenshot”；README 对应也是三张加一张文字效果。
+- 2026-09-05 发布 5.1.0。产品名收成「渐变头像」（去掉「生成器」），手机顶栏不显示名字（sr-only 不是 hidden，h1 还在）；
+  关于从对话框改成 `/about` 这张独立静态页，站点因此变成 index.html 加 about.html 两个入口的 mpa 构建，
+  service worker 关掉导航兜底、`_redirects` 里 `/about` 排在通配之前，否则装过 PWA 的人打开会拿到 index.html。
+  关于页不挂 React，只有一小段脚本填版本号与渲染赞赏入口。
+- 赞赏入口的骨架在 `src/about/support.ts`：链接与收款码留空就整块不渲染。owner 还没开户，
+  开好之后只需要把链接填进去（收款码放 `public/support/`），不用改别的。
+- 操作条五个按钮一律带字，没有只剩图标那一档。长短两版文案都在 DOM 里，
+  露哪一版只由 index.css 的容器查询定；span 上挂 `hidden` 会被工具层压掉容器查询的 display，
+  结果是两版都不显示，5.0.0 就是这么把两个随机按钮变成光秃秃图标的，e2e 的 toContainText 读 textContent 抓不到。
+- 左边几列要跨满两行（`grid-row: 1 / -1`），只有画框那一列分上下。操作条只占画框那一列之后，
+  左边如果也停在第一行，底下会空出一条与操作条等高的带子。
 - 进场幕布（preloader）读秒期间会吃掉所有点击，e2e 里所有「打开就点」的用例都会失败。
   现在读秒一结束就 `pointer-events-none`，`openApp` 等的是 `[data-slot="preloader"][data-loading="true"]` 消失。

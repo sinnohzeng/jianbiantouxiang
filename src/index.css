@@ -192,19 +192,26 @@
     flex-direction: column;
   }
 
-  /* 挑选栏并作一列 */
+  /*
+   * 只有画框那一列分两行（上面画框、下面操作条），左边几列一律跨满两行。
+   * 操作条只占画框那一列，左边如果也停在第一行末尾，底下就空出一条与操作条等高的带子，
+   * 挑选栏白白少掉五六十像素的可视高度，看起来像没到底。
+   */
   @media (min-width: 64rem) {
     [data-slot='workspace'][data-inspector='closed'] {
       grid-template-columns: minmax(0, var(--pick-w)) minmax(0, 1fr);
     }
     [data-inspector='closed'] > [data-slot='pick-columns'] {
-      grid-area: 1 / 1;
+      grid-column: 1;
+      grid-row: 1 / -1;
     }
     [data-inspector='closed'] > [data-slot='preview-pane'] {
-      grid-area: 1 / 2;
+      grid-column: 2;
+      grid-row: 1;
     }
     [data-inspector='closed'] > [data-slot='bottom-bar'] {
-      grid-area: 2 / 2;
+      grid-column: 2;
+      grid-row: 2;
     }
 
     [data-slot='workspace'][data-inspector='open'] {
@@ -214,16 +221,20 @@
         minmax(0, 1fr);
     }
     [data-inspector='open'] > [data-slot='inspector-dock'] {
-      grid-area: 1 / 1;
+      grid-column: 1;
+      grid-row: 1 / -1;
     }
     [data-inspector='open'] > [data-slot='pick-columns'] {
-      grid-area: 1 / 2;
+      grid-column: 2;
+      grid-row: 1 / -1;
     }
     [data-inspector='open'] > [data-slot='preview-pane'] {
-      grid-area: 1 / 3;
+      grid-column: 3;
+      grid-row: 1;
     }
     [data-inspector='open'] > [data-slot='bottom-bar'] {
-      grid-area: 2 / 3;
+      grid-column: 3;
+      grid-row: 2;
     }
   }
 
@@ -236,16 +247,20 @@
       display: contents;
     }
     [data-inspector='closed'] [data-slot='pick-column'] {
-      grid-area: 1 / 1;
+      grid-column: 1;
+      grid-row: 1 / -1;
     }
     [data-inspector='closed'] [data-slot='pick-column-color'] {
-      grid-area: 1 / 2;
+      grid-column: 2;
+      grid-row: 1 / -1;
     }
     [data-inspector='closed'] > [data-slot='preview-pane'] {
-      grid-area: 1 / 3;
+      grid-column: 3;
+      grid-row: 1;
     }
     [data-inspector='closed'] > [data-slot='bottom-bar'] {
-      grid-area: 2 / 3;
+      grid-column: 3;
+      grid-row: 2;
     }
   }
 
@@ -262,16 +277,20 @@
       display: contents;
     }
     [data-inspector='open'] [data-slot='pick-column'] {
-      grid-area: 1 / 2;
+      grid-column: 2;
+      grid-row: 1 / -1;
     }
     [data-inspector='open'] [data-slot='pick-column-color'] {
-      grid-area: 1 / 3;
+      grid-column: 3;
+      grid-row: 1 / -1;
     }
     [data-inspector='open'] > [data-slot='preview-pane'] {
-      grid-area: 1 / 4;
+      grid-column: 4;
+      grid-row: 1;
     }
     [data-inspector='open'] > [data-slot='bottom-bar'] {
-      grid-area: 2 / 4;
+      grid-column: 4;
+      grid-row: 2;
     }
   }
 
@@ -294,42 +313,46 @@
   }
 
   /*
-   * 操作条按自己有多宽决定文案露不露，而不是按视口。
-   * 它落在预览那一列里，同一个视口宽度下，微调开合会让这一列从 1056 掉到 736，
-   * 看视口宽度的断点在这里给不出正确答案。收起的顺序按分量倒着来：
-   * 先收次级动作的文案，再收两个随机，最后才轮到导出。
-   * 每个按钮都另有 aria-label，文案收掉不影响可访问名。
+   * 操作条按自己有多宽决定文案长短，而不是按视口。
+   * 它落在画框那一列里，同一个视口宽度下微调一开合就换一个量级，视口断点在这里给不出答案。
+   *
+   * 五个按钮一律带字，不存在只剩图标那一档：图标认不出来的按钮，用户得点一次才知道是干嘛的。
+   * 宽的时候给全称，窄下去换成两三个字的短称。长短两版都写在 DOM 里，由这里挑一版露出来。
+   *
+   * 露不露只在这里定，span 上不许再挂 hidden 之类的工具类：
+   * 工具层整体排在组件层之后，一个 hidden 就会把这里的 display:block 压掉，
+   * 结果是两版都不显示，按钮变成光秃秃一个图标。
    */
   [data-slot='bottom-bar'] {
     container: bar / inline-size;
   }
 
-  /* 手机上它是通栏一条、按钮竖排，文案一直在，所以整段只管桌面 */
-  @media (min-width: 64rem) {
-    @container bar (min-width: 38rem) {
-      [data-slot='bottom-bar'] [data-label='short'] {
-        display: none;
-      }
-      [data-slot='bottom-bar'] [data-label='full'] {
-        display: block;
-      }
-    }
+  [data-slot='bottom-bar'] [data-label='full'] {
+    display: none;
+  }
 
-    @container bar (max-width: 34rem) {
+  @container bar (min-width: 36rem) {
+    [data-slot='bottom-bar'] [data-label='short'] {
+      display: none;
+    }
+    [data-slot='bottom-bar'] [data-label='full'] {
+      display: block;
+    }
+  }
+
+  /*
+   * 兜底两档，正常布局到不了这么窄：真被挤到这儿，先收两个次级动作的文案，再收导出。
+   * 手机那一档是通栏一条、按钮竖排，宽度够，所以只管桌面。
+   */
+  @media (min-width: 64rem) {
+    @container bar (max-width: 26rem) {
       [data-slot='inspector-toggle'] [data-label],
       [data-slot='more-menu'] [data-label] {
         display: none;
       }
     }
 
-    @container bar (max-width: 30rem) {
-      [data-slot='shuffle-color'] [data-label],
-      [data-slot='shuffle-all'] [data-label] {
-        display: none;
-      }
-    }
-
-    @container bar (max-width: 22rem) {
+    @container bar (max-width: 21rem) {
       [data-slot='export-action'] [data-label] {
         display: none;
       }

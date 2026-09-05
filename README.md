@@ -1,6 +1,6 @@
-# 渐变头像生成器
+# 渐变头像
 
-输入几个字，得到一张柔光渐变的头像。线上地址：<https://jianbian.zixuan.net>。English summary: see [below](#english).
+输入几个字，得到一张柔光渐变的头像。线上地址：<https://jianbian.zixuan.net>，项目与技术介绍在 <https://jianbian.zixuan.net/about>。English summary: see [below](#english).
 
 ![配色 × 四种质感样张，第一组](docs/assets/samples/styles-x-palettes-1.jpg)
 

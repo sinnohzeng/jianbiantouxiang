@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#fbf9f6" />
+    <meta
+      name="description"
+      content="渐变头像是一个纯前端的头像生成工具。这一页讲它是什么、怎么用，以及渲染、排版、字体与导出是怎么实现的。"
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="关于 · 渐变头像" />
+    <meta
+      property="og:description"
+      content="渐变头像是一个纯前端的头像生成工具。这一页讲它是什么、怎么用，以及渲染、排版、字体与导出是怎么实现的。"
+    />
+    <meta property="og:image" content="/icon-512.png" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <title>关于 · 渐变头像</title>
+    <script>
+      // 与 index.html 同一段：首帧前定好主题，避免深色偏好下先闪一下白底
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('gradient-avatar:theme')
+          var dark =
+            stored === 'dark' ||
+            ((stored === null || stored === 'system') &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          var root = document.documentElement
+          root.classList.toggle('dark', dark)
+          root.style.colorScheme = dark ? 'dark' : 'light'
+          var meta = document.querySelector('meta[name="theme-color"]')
+          if (meta) meta.setAttribute('content', dark ? '#1b1a17' : '#fbf9f6')
+        } catch (error) {
+          void error
+        }
+      })()
+    </script>
+  </head>
+  <body class="bg-background text-foreground min-h-dvh">
+    <!-- 品牌标的渐变只定义一份，页面上两处标都引它。SVG 的 url(#id) 按整个文档解析 -->
+    <svg aria-hidden="true" class="absolute size-0" focusable="false">
+      <defs>
+        <linearGradient id="mark-a" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#e86a3d" />
+          <stop offset="0.48" stop-color="#8d7cf0" />
+          <stop offset="1" stop-color="#3d9ef2" />
+        </linearGradient>
+        <radialGradient id="mark-b" cx="0.34" cy="0.2" r="0.62">
+          <stop offset="0" stop-color="#ffffff" stop-opacity="0.34" />
+          <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+    </svg>
+    <!-- 背景光晕。取品牌标那三个色，纯 CSS，不为一页介绍起 WebGL -->
+    <div aria-hidden="true" class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      <div
+        class="absolute -top-48 -left-40 size-[42rem] rounded-full bg-[#e86a3d] opacity-[0.13] blur-[130px] dark:opacity-[0.10]"
+      ></div>
+      <div
+        class="absolute -top-24 right-[-18rem] size-[40rem] rounded-full bg-[#8d7cf0] opacity-[0.12] blur-[130px] dark:opacity-[0.10]"
+      ></div>
+      <div
+        class="absolute bottom-[-22rem] left-1/3 size-[46rem] rounded-full bg-[#3d9ef2] opacity-[0.10] blur-[140px] dark:opacity-[0.08]"
+      ></div>
+    </div>
+
+    <header
+      class="bg-background/70 supports-[backdrop-filter]:bg-background/55 sticky top-0 z-30 border-b backdrop-blur-md"
+    >
+      <div class="mx-auto flex h-14 w-full max-w-3xl items-center gap-2 px-5">
+        <a href="/" class="flex min-w-0 items-center gap-2" aria-label="回到渐变头像">
+          <svg viewBox="0 0 512 512" aria-hidden="true" class="size-7 shrink-0 drop-shadow-sm">
+            <rect width="512" height="512" rx="112" ry="112" fill="url(#mark-a)" />
+            <rect width="512" height="512" rx="112" ry="112" fill="url(#mark-b)" />
+            <text
+              x="256"
+              y="256"
+              text-anchor="middle"
+              dominant-baseline="central"
+              font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif"
+              font-weight="700"
+              font-size="300"
+              fill="#ffffff"
+            >
+              渐
+            </text>
+          </svg>
+          <span class="truncate text-sm font-semibold tracking-tight">渐变头像</span>
+        </a>
+
+        <nav class="ml-auto flex items-center gap-1.5">
+          <a
+            href="https://github.com/sinnohzeng/jianbiantouxiang"
+            target="_blank"
+            rel="noreferrer noopener"
+            class="text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm transition-colors"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true" class="size-4" fill="currentColor">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.23.87 1.23.87.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.36-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.56.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+              />
+            </svg>
+            <span class="hidden sm:inline">GitHub</span>
+          </a>
+          <a
+            href="/"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 items-center rounded-full px-4 text-sm font-medium transition-colors"
+          >
+            开始做图
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-3xl px-5 pt-14 pb-24">
+      <section class="flex flex-col items-start gap-5">
+        <svg viewBox="0 0 512 512" aria-hidden="true" class="size-16 drop-shadow-md">
+          <rect width="512" height="512" rx="112" ry="112" fill="url(#mark-a)" />
+          <rect width="512" height="512" rx="112" ry="112" fill="url(#mark-b)" />
+          <text
+            x="256"
+            y="256"
+            text-anchor="middle"
+            dominant-baseline="central"
+            font-family="'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif"
+            font-weight="700"
+            font-size="300"
+            fill="#ffffff"
+          >
+            渐
+          </text>
+        </svg>
+
+        <div class="flex flex-col gap-3">
+          <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">渐变头像</h1>
+          <p class="text-muted-foreground max-w-2xl text-lg leading-8 text-balance">
+            输入几个字，浏览器当场算出一张柔光质感的渐变图，导出就能当头像用。
+          </p>
+        </div>
+
+        <p
+          class="border-border bg-card/70 text-muted-foreground inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs"
+        >
+          <span class="bg-chart-4 size-1.5 rounded-full"></span>
+          <span>版本 <span data-slot="app-version">-</span></span>
+          <span class="bg-border h-3 w-px"></span>
+          <span>MIT 开源</span>
+        </p>
+      </section>
+
+      <section class="mt-16 flex flex-col gap-4">
+        <h2 class="text-xl font-semibold tracking-tight">这是什么</h2>
+        <p class="text-foreground/85 leading-8">
+          一个做头像的小工具。填一到两行字，挑一套配色和一种质感，右边实时出图，点导出就下载。
+          图是在你自己的浏览器里算出来的，没有账号，不上传，也没有一行埋点。
+        </p>
+        <p class="text-foreground/85 leading-8">
+          起因是公司群里几十号人挂着默认灰头像，部门想要个统一标识，又不值得为这点事排一次设计。
+          缺的是一个十秒钟能出一张不难看的图的东西。
+        </p>
+      </section>
+
+      <section class="mt-14 flex flex-col gap-4">
+        <h2 class="text-xl font-semibold tracking-tight">怎么用</h2>
+        <ol class="text-foreground/85 flex flex-col gap-3 leading-8">
+          <li class="flex gap-3">
+            <span
+              class="bg-secondary text-secondary-foreground mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+              >1</span
+            >
+            <span>打开就是工作台。左边两列填字与挑配色，右边是画框，改什么都当场看得见。</span>
+          </li>
+          <li class="flex gap-3">
+            <span
+              class="bg-secondary text-secondary-foreground mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+              >2</span
+            >
+            <span>不知道要什么样的，就连点几下随机，看到顺眼的停下来。</span>
+          </li>
+          <li class="flex gap-3">
+            <span
+              class="bg-secondary text-secondary-foreground mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+              >3</span
+            >
+            <span>点导出直接下载。手机上长按预览图就能存进相册，不用先点导出。</span>
+          </li>
+        </ol>
+      </section>
+
+      <section class="mt-14 flex flex-col gap-5">
+        <h2 class="text-xl font-semibold tracking-tight">技术实现</h2>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <article class="border-border bg-card/70 flex flex-col gap-2 rounded-2xl border p-5">
+            <h3 class="text-sm font-semibold">渲染</h3>
+            <p class="text-muted-foreground text-sm leading-6">
+              四种质感是 WebGL2 片元着色器实时算的，不是叠现成的图。同一份配置在同一台设备上每次输出一致，
+              换一个种子就是一张新图。没有 WebGL2 的浏览器回落到 2D 近似渐变，导出拿到的也是这一张。
+            </p>
+          </article>
+          <article class="border-border bg-card/70 flex flex-col gap-2 rounded-2xl border p-5">
+            <h3 class="text-sm font-semibold">排版</h3>
+            <p class="text-muted-foreground text-sm leading-6">
+              字号是解出来的，不是拍脑袋定的。二分搜索能把两行塞进安全框的最大字号，中文逐字换行、
+              拉丁按词换行。给某一行加水平补偿只挪那一行，其余行的字号与坐标一个像素都不动。
+            </p>
+          </article>
+          <article class="border-border bg-card/70 flex flex-col gap-2 rounded-2xl border p-5">
+            <h3 class="text-sm font-semibold">字体</h3>
+            <p class="text-muted-foreground text-sm leading-6">
+              Google Fonts 全库按需加载，中文按 unicode-range 切片，Noto Sans SC 整包 1.1 MB，
+              实际只下载用到的那几十 KB。也可以直接上传本地的 TTF、OTF、WOFF、WOFF2。
+            </p>
+          </article>
+          <article class="border-border bg-card/70 flex flex-col gap-2 rounded-2xl border p-5">
+            <h3 class="text-sm font-semibold">图标</h3>
+            <p class="text-muted-foreground text-sm leading-6">
+              lucide 精选进首屏、全库懒加载，emoji 跨平台取同一份 Noto SVG，另有 58 个品牌标志。
+              上传的 SVG 按白名单重建，未知元素整支丢弃，不做黑名单修补。
+            </p>
+          </article>
+          <article class="border-border bg-card/70 flex flex-col gap-2 rounded-2xl border p-5">
+            <h3 class="text-sm font-semibold">导出</h3>
+            <p class="text-muted-foreground text-sm leading-6">
+              离屏合成走与预览同一套参数，JPEG 质量二分压到选定的体积档以内。预览与导出是两条独立路径，
+              共用引擎、文字、图标三个模块，所以调一个参数只落在一处。
+            </p>
+          </article>
+          <article class="border-border bg-card/70 flex flex-col gap-2 rounded-2xl border p-5">
+            <h3 class="text-sm font-semibold">界面</h3>
+            <p class="text-muted-foreground text-sm leading-6">
+              桌面上挑选栏拆不拆两列，判据是还剩多少宽度给画框，不是照着视口宽度写死断点。
+              底部操作条按自己有多宽换长短文案，因为它的宽度随微调面板开合在几百像素之间跳。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="mt-14 flex flex-col gap-4">
+        <h2 class="text-xl font-semibold tracking-tight">隐私</h2>
+        <p class="text-foreground/85 leading-8">
+          没有后端，没有数据库，没有埋点，也没有 cookie。所有配置存在你浏览器的 localStorage 里，
+          清掉浏览器数据就没了。上传的字体与 SVG 只在当前这次会话里有效，关掉页面就不在了。
+          装成 PWA 之后断网也能用；部署了新版本，开着的标签页会自己发现并提示刷新。
+        </p>
+      </section>
+
+      <section class="mt-14 flex flex-col gap-4">
+        <h2 class="text-xl font-semibold tracking-tight">技术栈</h2>
+        <ul class="flex flex-wrap gap-2">
+          <li
+            class="border-border bg-card/70 text-muted-foreground rounded-full border px-3 py-1 text-xs"
+          >
+            React 19
+          </li>
+          <li
+            class="border-border bg-card/70 text-muted-foreground rounded-full border px-3 py-1 text-xs"
+          >
+            TypeScript 6
+          </li>
+          <li
+            class="border-border bg-card/70 text-muted-foreground rounded-full border px-3 py-1 text-xs"
+          >
+            Vite 8
+          </li>
+          <li
+            class="border-border bg-card/70 text-muted-foreground rounded-full border px-3 py-1 text-xs"
+          >
+            Tailwind CSS v4
+          </li>
+          <li
+            class="border-border bg-card/70 text-muted-foreground rounded-full border px-3 py-1 text-xs"
+          >
+            shadcn（Base UI）
+          </li>
+          <li
+            class="border-border bg-card/70 text-muted-foreground rounded-full border px-3 py-1 text-xs"
+          >
+            zustand
+          </li>
+          <li
+            class="border-border bg-card/70 text-muted-foreground rounded-full border px-3 py-1 text-xs"
+          >
+            WebGL2
+          </li>
+          <li
+            class="border-border bg-card/70 text-muted-foreground rounded-full border px-3 py-1 text-xs"
+          >
+            Vitest
+          </li>
+          <li
+            class="border-border bg-card/70 text-muted-foreground rounded-full border px-3 py-1 text-xs"
+          >
+            Playwright
+          </li>
+          <li
+            class="border-border bg-card/70 text-muted-foreground rounded-full border px-3 py-1 text-xs"
+          >
+            Cloudflare Pages
+          </li>
+        </ul>
+        <p class="text-muted-foreground text-sm leading-7">
+          37 套配色、4 种质感、5 种文字效果、5 种界面语言；641 条单元测试与 32 条端到端用例，
+          推到 main 即部署。
+        </p>
+      </section>
+
+      <!-- 赞赏区。SUPPORT_LINKS / SUPPORT_QRS 全空时 main.ts 不渲染，整块不出现 -->
+      <section data-slot="support" hidden class="mt-14 flex flex-col gap-4">
+        <h2 class="text-xl font-semibold tracking-tight">支持一下</h2>
+        <p class="text-foreground/85 leading-8">
+          这个工具免费，没有广告，也不打算收费。如果它替你省了一次找设计的功夫，
+          可以请我喝一杯，纯自愿，不影响任何功能。
+        </p>
+        <div data-slot="support-list" class="grid gap-3 sm:grid-cols-2"></div>
+      </section>
+
+      <section class="mt-14 flex flex-col gap-4">
+        <h2 class="text-xl font-semibold tracking-tight">English</h2>
+        <p class="text-muted-foreground leading-7">
+          Gradient Avatar turns a line or two of text into a soft-light gradient image you can use
+          as a chat avatar, profile mark or team badge. Four shader textures run on WebGL2, the font
+          size is solved by binary search rather than guessed, Google Fonts are sliced by
+          unicode-range, and the export path binary-searches JPEG quality to hit a size target.
+          Everything runs in your browser: no account, no upload, no analytics. Source is on GitHub
+          under the MIT license.
+        </p>
+      </section>
+    </main>
+
+    <footer class="border-border/60 border-t">
+      <div
+        class="text-muted-foreground mx-auto flex w-full max-w-3xl flex-col gap-2 px-5 py-8 text-xs sm:flex-row sm:items-center sm:justify-between"
+      >
+        <p>渐变头像 · 基于 MIT 许可开源</p>
+        <p class="flex items-center gap-3">
+          <a href="/" class="hover:text-foreground underline-offset-4 hover:underline">开始做图</a>
+          <a
+            href="https://github.com/sinnohzeng/jianbiantouxiang"
+            target="_blank"
+            rel="noreferrer noopener"
+            class="hover:text-foreground underline-offset-4 hover:underline"
+            >源码</a
+          >
+        </p>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/about/main.ts"></script>
+  </body>
+</html>
