@@ -220,6 +220,7 @@
   "preview.font.upload": "このフォントは前回のセッションでアップロードされたものです。再度アップロードしてください。システムフォントに戻します",
   "preview.grid": "グリッド",
   "preview.grid.hint": "薄いグリッドと中心線を重ねます。プレビューのみに表示され、位置合わせと余白の確認に使えます",
+  "preview.longPressSave": "画像を長押しすると JPG で保存できます",
   "preview.label": "プレビュー",
   "preview.overflow": "テキストがセーフエリアからはみ出しています",
   "preview.plate.badge": "下地を自動追加",

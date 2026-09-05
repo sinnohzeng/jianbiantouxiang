@@ -229,6 +229,7 @@
 | `preview.font.upload` | 该字体是本机上传的，刷新后需要重新上传，已回落系统字体 |
 | `preview.grid` | 网格参考线 |
 | `preview.grid.hint` | 铺一层浅色方格与中心十字，只在预览里显示，方便核对对齐与留白 |
+| `preview.longPressSave` | 长按图片可直接保存为 JPG |
 | `preview.label`                   | 预览                                                                                                             |
 | `preview.overflow`                | 文字超出安全区                                                                                                   |
 | `preview.plate.badge`             | 已自动加底板                                                                                                     |

@@ -220,6 +220,7 @@
   "preview.font.upload": "이 글꼴은 이전 세션에서 업로드한 파일이라 다시 업로드해야 합니다. 시스템 글꼴로 되돌렸습니다",
   "preview.grid": "격자",
   "preview.grid.hint": "옅은 격자와 중심선을 겹쳐 표시합니다. 미리보기에만 보이며 정렬과 여백 확인에 씁니다",
+  "preview.longPressSave": "이미지를 길게 누르면 JPG로 저장됩니다",
   "preview.label": "미리보기",
   "preview.overflow": "문구가 안전 영역을 벗어났습니다",
   "preview.plate.badge": "받침 자동 추가",

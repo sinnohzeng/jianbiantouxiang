@@ -120,3 +120,25 @@ test('拖分隔条后预览变矮，刷新仍是新高度', async ({ page }) => 
   const restored = (await preview.boundingBox())!.height
   expect(Math.abs(restored - after)).toBeLessThan(2)
 })
+
+test('预览上盖着可长按保存的 JPG，改文字会换新图，网格不进图', async ({ page }) => {
+  test.setTimeout(PROBE_TIMEOUT_MS)
+  await openApp(page)
+
+  const image = page.locator('[data-slot="preview-save-image"]')
+  await expect(image).toBeVisible({ timeout: 20_000 })
+  const first = await image.getAttribute('src')
+  expect(first?.startsWith('data:image/jpeg;base64,')).toBe(true)
+  expect((first ?? '').length).toBeGreaterThan(5000)
+
+  // 网格是预览参考层，长按存下来的图里不该有它
+  await page.locator('[data-slot="grid-toggle"]').click()
+  await page.waitForTimeout(1200)
+  expect(await image.getAttribute('src')).toBe(first)
+
+  // 改文字后重新出图
+  await page.locator('#avatar-text-first').fill('产品设计部')
+  await expect
+    .poll(async () => (await image.getAttribute('src')) !== first, { timeout: 20_000 })
+    .toBe(true)
+})

@@ -227,6 +227,13 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 `app.sampleText` 是每种语言的默认示例文字。判据是当前文字仍等于某种语言的示例，所以用户一旦自己打过字就再也不会被顶掉。
 
+## 手机端的长按直存
+
+触屏浏览器的长按保存只认真正的 `<img>`，微信还只接受 `http(s)` 与 `data:` 地址，`blob:` 会保存失败。
+所以 `preview-save-image.ts` 在预览停稳 600 毫秒后按导出管线合成一张 JPG，转 data URL 盖在预览画布之上、
+参考线之下，长按它直接出系统的保存菜单。排程去抖、页面不可见时不排、新配置来了旧结果作废，
+合成失败就留着上一张。桌面不铺这张图，走下载。
+
 ## 代码分割与体积
 
 首屏 JS 不设上限，v5.0 工作台落地后实测 205.10 KB。`npm run budget` 只是报一次数，不再是闸门：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。

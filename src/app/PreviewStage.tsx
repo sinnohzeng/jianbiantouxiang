@@ -37,9 +37,10 @@ import { effectiveConfig } from '@/text/effective'
 import { safeArea } from '@/text/fit'
 import { layoutText } from '@/text/layout'
 import { GRID_DIVISIONS, usePreviewOverlays } from '@/app/preview-overlays'
+import { usePreviewSaveImage } from '@/app/preview-save-image'
 import { probeKey } from '@/app/probe-key'
 import { useThrottled } from '@/app/use-throttled'
-import { useIsMobile } from '@/hooks/use-media'
+import { useIsMobile, useMediaQuery } from '@/hooks/use-media'
 import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { snapFontRatio, type AvatarConfig } from '@/state/config'
@@ -139,6 +140,10 @@ export function PreviewStage() {
   const [box, setBox] = useState({ width: 0, height: 0 })
   // 参考层开关记在 localStorage，刷新后还在；它们不属于配置，导出永远不画
   const { guide, grid, setGuide, setGrid } = usePreviewOverlays()
+  // 触屏才铺那张可长按保存的图；桌面用下载，叠一张静态图只会挡住实时预览
+  const coarsePointer = useMediaQuery('(pointer: coarse)')
+  const canLongPress = isMobile || coarsePointer
+  const saveImage = usePreviewSaveImage(config, canLongPress)
   const [autoInk, setAutoInk] = useState(INK_LIGHT)
   const [autoPlate, setAutoPlate] = useState(false)
   const [overflow, setOverflow] = useState(false)
@@ -442,6 +447,19 @@ export function PreviewStage() {
           />
           <canvas ref={textRef} aria-hidden className="absolute inset-0 h-full w-full" />
 
+          {/* 触屏上盖一张成品 JPG：长按它直接走系统的保存图片，不用先点导出。
+              它压在实时画布之上、参考线之下，参考线本身不吃指针事件，长按能穿到这里 */}
+          {saveImage ? (
+            <img
+              src={saveImage}
+              alt={t('preview.longPressSave')}
+              data-slot="preview-save-image"
+              className="absolute inset-0 h-full w-full object-cover"
+              // 长按菜单靠它，别被全局的 select-none 一类样式关掉
+              style={{ WebkitTouchCallout: 'default' }}
+            />
+          ) : null}
+
           {grid && gridStyle ? (
             <div
               aria-hidden
@@ -532,6 +550,9 @@ export function PreviewStage() {
       </div>
 
       <div className="flex min-h-5 w-full max-w-full flex-col items-center gap-1 text-center">
+        {canLongPress ? (
+          <p className="text-muted-foreground text-xs">{t('preview.longPressSave')}</p>
+        ) : null}
         {/* live region 要常驻，内容从空变成有字才播报得出来；
             它也必须待在 role="img" 之外，img 的子树整棵不进无障碍树 */}
         <p role="status" className="sr-only">

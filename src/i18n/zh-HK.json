@@ -220,6 +220,7 @@
   "preview.font.upload": "該字型是本機上傳的，重新整理後需要重新上傳，已回落系統字型",
   "preview.grid": "網格參考線",
   "preview.grid.hint": "鋪一層淺色方格與中心十字，只在預覽裡顯示，方便核對對齊與留白",
+  "preview.longPressSave": "長按圖片可直接儲存為 JPG",
   "preview.label": "預覽",
   "preview.overflow": "文字超出安全區",
   "preview.plate.badge": "已自動加底板",

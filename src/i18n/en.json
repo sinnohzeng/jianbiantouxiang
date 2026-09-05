@@ -220,6 +220,7 @@
   "preview.font.upload": "That font was uploaded in a previous session and needs uploading again, falling back to a system font",
   "preview.grid": "Grid",
   "preview.grid.hint": "Overlays a faint square grid with centre lines, preview only, for checking alignment and spacing",
+  "preview.longPressSave": "Press and hold the image to save it as a JPG",
   "preview.label": "Preview",
   "preview.overflow": "Text overflows the safe area",
   "preview.plate.badge": "Plate added",
