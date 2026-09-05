@@ -27,4 +27,10 @@ metadata:
 - 默认配方（投影 40%、白字）已在代码里；owner 说的「描边」就是投影的观感。配色表 `text`
   设计值向白色收敛、胶囊底降级、重跑样张，这些归 §B5，等 owner 给最终配方一起做。
 - 撤销栈每次配置变更入栈（拖一次滑杆多条）是已知债，本轮没改，写在 spec §5。
-- 飞书品牌 SVG：没有找到许可明确的公开矢量源就不内置，留 todo 让 owner 提供，不多花心思。
+- 飞书品牌 SVG：dashboard-icons（homarr-labs，Apache-2.0，商标归各品牌）有 `lark`，没有 feishu / bytedance / douyin / dingtalk；已加 `dashboard-icons` MCP（`claude mcp add dashboard-icons -- npx -y mcp-remote https://dashboardicons.com/api/mcp`），品牌图标从它取。
+- 智能体用量（2026-09-04 owner 定）：核查、对抗检验、评审、验收每轮合计不超过 5 个，一遍单人评审；实现切片交 Opus 5。这轮 §A 的 40 个智能体评审是反例，别再来。
+- §B 已定方向乙（两层平铺）：挑选类控件占首屏与大尺寸，数值微调收成一条紧凑检查器带；整体风格要「足够炫技」，shadcnblocks 与 React Bits Pro 的动效能用上就用上，这个项目同时是秀肌肉的作品。
+- 典型用法（owner 口述）：改文字、可能加图标、随机刷配色挑一张好看的，极少数调补偿；边距字号等默认值由 owner 上手后定，大多数人不会手调。默认配方必须足够好看。
+- 2026-09-05：owner 在 `inbox/`（已 gitignore）投放 lark.svg、doubao-work.png、Qoder.png、workbuddy 图标；已并入 `assets/brand/`
+  与 `scripts/brand-list.json`（58 个品牌，13 个带纯白变体）。Qoder 是 potrace 描摹，WorkBuddy 去掉了 filter 光斑，豆包工作只有 266px 位图。
+- §B 定稿：方向乙三列工作台、检查器带、手机 28svh 加分隔条、brand 图形源、showcase 懒 chunk（motion + React Bits）；切片顺序 B4 → W1 → W2 → S1 → B7。

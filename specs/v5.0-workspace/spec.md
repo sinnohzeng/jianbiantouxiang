@@ -68,19 +68,103 @@
 - README 与 architecture 只描述现状：删「分享」相关段落，改「补偿参与包围盒计算」这一句。
 - 项目记忆 `docs/memory/project-v3-rewrite.md` 里「用 `#c=` 喂配置」的操作口径改为存档注入。
 
-## 4. §B 桌面工作台与控件（待定稿）
+## 4. §B 工作台、控件、手机预览、品牌图形与炫技层（已拍板：方向乙）
 
-以下方向已定，具体信息架构等 owner 回答后写入：
+典型使用是改两行字、可能加个图标、随机刷配色挑一张顺眼的，极少数人调视觉补偿。
+布局围绕这个来：挑选类控件占首屏、尺寸大；数值微调收成一条紧凑的检查器带。
+整体气质要压得住场，动效与着色器能上的都上，但首屏预算与 reduced-motion 是硬约束。
 
-- B1 桌面端全部分组同时可见，不再有页签与折叠；具体是「预览居中、两侧各一列」还是
-  「预览在右、左侧多列」取决于同事的典型使用深度，见本轮汇报里的那一个问题。
-- B2 控件形态按参数性质分派：离散档位用分段或磁贴，连续量用滑杆加常驻数字输入与步进，
-  颜色用色块加预设，字重用磁贴。不再「一切皆滑杆」。
-- B3 手机端预览高度压到约 28svh，并支持上下拖拽分隔条调节，状态存 localStorage。
-- B4 内置品牌图形：新增 `builtin-svg` 一类，内置几份与飞书相关的 SVG，随 lucide 索引一起在
-  选择器里展示；素材来源见调研沉淀，没有公开可用的由 owner 提供。
-- B5 默认配方与配色文字色：owner 调好后给一套明确配置作为 `DEFAULT_CONFIG`；
-  内置配色的 `text` 设计值向白色收敛并重跑样张。最后一起做。
+### B1 桌面两层平铺工作台
+
+- 断点与网格：
+  - ≥1280：三列 `[380px | minmax(0,1fr) | 320px]`。左列挑选栏，中列预览，右列检查器带。
+    三列各自在顶栏之下独立滚动（高度 `calc(100svh - 3.5rem)`），预览列内容垂直居中。
+  - 1024 到 1279：两列 `[360px | minmax(0,1fr)]`，检查器带落到预览下方，按两栏紧凑网格排。
+  - <1024：手机纵向栈，见 B3。
+- 页签、手风琴全部取消。挑选栏自上而下五节，每节一张卡片，标题常驻：
+  1. 文字：两行输入（高 44px）与第二行右侧的图标开关沿用；效果分段（无 / 描边 / 投影 / 发光 / 胶囊）；
+     文字色分段（自动 / 自定）加色块。
+  2. 图形：当前图形磁贴 72px（无图形时是虚线空位），旁边“更换”“清除”；点磁贴或“更换”打开 IconPicker。
+  3. 配色：色调分段与色系筛选沿用；配色缩略图改成 4 列渐变磁贴（高 56px，名字在下，选中态渐变描边）；
+     “随机配色”放大成主按钮并带流光；自定义色与种子生成器留在本节末尾、默认折叠，是全站仅有的两处折叠。
+  4. 风格：四种风格 2×2 磁贴，每块用当前配色画一小张 CSS 渐变示意。
+  5. 画布：形状分段（方 / 圆角 / 圆）与尺寸预设胶囊沿用，宽高输入保留。
+- 检查器带按“标签 | 滑杆 | 数字框”一行 32px 排，分组小标题：
+  - 排版：字号（含自动按钮，必须是全页第一个 `input[type=range]`，e2e 依赖）、字重（改为分段 400 / 500 / 600 / 700 / 800）、行距、字距、边距；
+  - 逐行：第 1、2 行缩放，第 1、2 行水平补偿；
+  - 效果：效果强度，胶囊三参只在效果为胶囊时显示；
+  - 风格：强度、柔和、颗粒、缩放、旋转、高光；
+  - 画布：圆角只在形状为圆角时显示。
+  - 每行悬停出现“重置”小按钮回默认值。
+- 代码落点：新建 `src/app/workspace/`（`PickColumn.tsx` 五节、`Inspector.tsx`、`MobileDivider.tsx`），
+  `AppShell.tsx` 重排；删除 `TextPanel` `PalettePanel` `StylePanel` `CanvasPanel` 与 `SegmentedTabs`。
+  `PanelSection` 只在自定义色与种子生成器两处沿用。
+- e2e 依赖的槽位不改名：`preview-pane` `grid-toggle` `guide-toggle` `slider-auto` `shuffle-color`
+  `shuffle-all` `edit-text` `line-input` `icon-toggle`、图标选择入口与导出相关槽位。
+
+### B2 控件形态
+
+- `SliderField` 加常驻数字框 `data-slot="slider-number"`：显示沿用 `format`，无 `format` 时按 step 的小数位；
+  回车或失焦提交，按 step 对齐并夹在范围内；`onChange` 语义不变。
+- 离散量一律分段或磁贴：字重、效果、颜色模式、形状、色调、风格。不再“一切皆滑杆”。
+- `ColorField` 加预设色块行：白、黑、暖白、暖黑与当前配色前四色。
+- 触控目标手机 44px，桌面 32px。
+
+### B3 手机预览与拖拽分隔
+
+- 预览区高度由 CSS 变量 `--preview-h` 决定，默认 `28svh`，范围 `[20svh, 60svh]`；
+  画布边长 `min(100vw - 32px, var(--preview-h) - 40px)`。
+- 预览与内容之间放分隔条 `data-slot="preview-divider"`：28px 高触控区，中间 36×4 圆角把手；
+  指针拖动改高度，双击回默认；`role="separator"` `aria-orientation="horizontal"` 带 `aria-valuenow`，
+  键盘上下键每次 4svh。
+- 高度存 localStorage `gradient-avatar:preview-height`，模块 `src/app/preview-height.ts` 与 overlays 同构。
+- 预览仍 sticky 在顶栏下；内容区是挑选栏五节，末尾一节“微调”收着检查器带，默认收起。底栏不变。
+
+### B4 品牌图形（`icon.source = 'brand'`）
+
+- `IconSource` 加 `'brand'`，`icon.id` 是品牌文件名（如 `lark` `github-light` `qoder-white`）。
+- 清单 `scripts/brand-list.json` 是唯一真源：id、中文名、英文名、别名、类别、纯白变体；
+  远端条目来自 homarr-labs/dashboard-icons（Apache-2.0，商标归各品牌），带 `file` 的条目来自 `assets/brand/`
+  （owner 提供的官方素材：飞书 lark、豆包工作位图、Qoder 描摹矢量、WorkBuddy 图标）。
+- 生成脚本 `scripts/gen-brand-icons.mjs`（`npm run gen:brand`）：远端条目从 jsDelivr 拉取，本地条目直接拷贝，
+  统一落到 `public/brand/<id>.svg|png`，并生成 `src/graphics/generated/brand-index.ts`
+  （id、zh、en、aliases、category、ext、white）。生成物勿手改。
+- 变体规则：渐变底上默认用纯白变体，没有则原色。IconPicker 品牌页顶部分段“原色 / 单白”切换可见变体；
+  已选品牌切换变体时直接写回 `icon.id`。
+- 加载：`loadGraphic` 新分支 `import('./brand')`。SVG 走 `fetch(BASE_URL + 'brand/<id>.svg')` → `sanitizeSvg` →
+  Image；PNG 直接 Image。结果 `kind: 'image'`，保原色，与 upload 同路径，带内存缓存；404 或解析失败回 null，
+  图形不画、不报错。
+- IconPicker 模式分段加“品牌”，搜索命中中文名、英文名、别名（沿用 `hit()`），列表按类别分组：
+  协作与办公、AI、开发、社交与内容、云与支付、其他品牌；每项 `<img loading="lazy">` 缩略图。
+- 归属：README“素材与致谢”加 dashboard-icons 与商标说明。SECURITY 不变，静态同源资产仍过 `sanitizeSvg`。
+- `inbox/` 已 gitignore，是 owner 投放素材的入口；并入清单后原件不进仓。
+
+### B6 炫技层（showcase）
+
+- 原则：首屏预算不动，预算只算 entry 与 modulepreload；炫技代码全部走 `src/app/showcase/` 懒 chunk，
+  首帧之后在 `requestIdleCallback` 里挂载；`prefers-reduced-motion: reduce` 时整个 chunk 不加载；
+  环境光滑杆为 0 时背景着色器不挂。
+- 依赖：`motion`（`LazyMotion` + `m`，domAnimation 特性懒加载）进主包做布局与进场动画；
+  React Bits 组件经 `./node_modules/.bin/shadcn add @reactbits-starter/<item>` 安装，落到 `src/components/showcase/`
+  （CLI 若放进 `src/components/ui/` 就移出，`ui/` 仍不手改）；不引入 three.js、ogl 这类超过 60 KB gzip 的运行时。
+- 清单按收益排序，前四项本轮必做：
+  1. 背景：桌面端换成 React Bits 一款可传颜色的 canvas / WebGL 背景（候选 `aurora-blur-tw` `silk-waves-tw`
+     `watercolor-tw` `glass-flow-tw`，动手前用 shadcn MCP 看源码，选不依赖 three.js 且接受颜色 props 的那款），
+     颜色取当前配色前三色，透明度接环境光滑杆；手机与 reduced-motion 保留现有 CSS 光晕。
+  2. 进场编排：挑选栏五节与检查器分组 stagger 淡入上浮（间隔 40ms），预览框从 0.96 缩放加 8px 模糊到清晰（500ms）。
+  3. 选中态流动：配色磁贴、风格磁贴、分段控件的选中描边用 `layoutId` 共享元素在选项间滑动。
+  4. 随机按钮：点击触发 `star-burst-tw` 粒子（挂在按钮上方一层 `pointer-events-none`），预览框 1.02 弹一下。
+  5. 标题：顶栏应用名用 `staggered-text-tw` 首帧逐字模糊入场，只播一次。
+  6. 预览悬停：桌面端指针在预览框上时不超过 4° 的 3D 倾斜与随指针的高光，自写 CSS 变量版。
+  7. 数字框：值变化时 `useSpring` 平滑计数。
+  8. 导出成功：抽屉里再来一次 `star-burst-tw`。
+- 每项都受 `VITE_SHOWCASE=0` 一键关闭，仅供排查；生产恒开。
+- 光标特效与预加载动画页不做。
+
+### B5 默认配方与配色文字色
+
+owner 试用本轮成果后给一套明确配置作为 `DEFAULT_CONFIG`；内置配色的 `text` 设计值向白色收敛并重跑样张。
+版本号升 5.0.0 与 tag 在这一步之后。
 
 ## 5. 边界（不做）
 
@@ -88,6 +172,8 @@
 - 网格不做吸附、不做刻度数字、不做自定义格数。
 - 不保留任何读 hash 的隐藏通道；测试与调试统一走存档注入。
 - 撤销栈仍按每次配置变更入栈，拖滑杆一次进多条：这是既有行为，本轮不改，记入待办。
+- 炫技层不上光标特效、不做预加载动画页、不引入 three.js；手机端不挂背景着色器。
+- 品牌图形不做在线搜索与自定义上传合流，清单外的品牌走上传。
 
 ## 6. 验证
 
@@ -98,3 +184,5 @@
   拖动后 `sizeMode` 变 manual 且预览无跳变（断言滑杆 `aria-valuenow` 前后连续）。
 - 闸门：`npm run lint && npm run typecheck && npm test && npm run build && npm run budget`，
   改界面另跑 `npm run e2e`；截图目检网格与自动态字号。
+- §B：brand 加载四态单测；数字框对齐与夹取单测；preview-height 存取单测；reduced-motion 不加载 showcase 单测。
+  e2e 桌面加品牌页选 GitHub 导出、showcase 背景存在且导出不变；手机加分隔条拖拽留存。预算数字写进 CHANGELOG。

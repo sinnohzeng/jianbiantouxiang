@@ -55,13 +55,57 @@
 - CHANGELOG 加「未发布」段，四个切片各一条；版本号与标签等 §B 落地后按 major 一次定。
 - 闸门全绿后 commit 加 push。
 
-## §B 切片（待定稿后追加）
+## §B 切片（已定稿）
 
-- B1 工作台布局、B2 控件形态、B3 手机端预览与拖拽分隔、B4 内置品牌图形、B5 默认配方。
-- 每个切片先在本文件补一节，再动手。
+执行切片交给 Opus 5 子智能体，每个切片一个智能体，不做 git，不读 `.env.local`；主对话跑闸门、目检、提交。
+验收类智能体全轮合计不超过 5 个，只在 W2 与 S1 结束后各做一遍单人评审。
+
+## 切片 B4：品牌图形
+
+1. `scripts/gen-brand-icons.mjs`：读 `scripts/brand-list.json`，远端条目按 `source + id + '.svg'`（含 `white` 变体）
+   拉取，本地条目从 `file` / `whiteFile` 拷贝；写 `public/brand/`，生成 `src/graphics/generated/brand-index.ts`
+   （`BRAND_INDEX: readonly BrandEntry[]`，`BRAND_CATEGORIES`）。`package.json` 加 `gen:brand`。跑一次并提交生成物。
+2. `src/state/config.ts`：`IconSource` 加 `'brand'`；`src/graphics/brand.ts` 新建，`source.ts` 加分支；
+   `Graphic` 走 `kind: 'image'`。
+3. `IconPicker.tsx`：模式分段加“品牌”，变体分段“原色 / 单白”，分类分组与缩略图；
+   i18n 新键 `icon.brand` `icon.search.brand` `icon.brand.variant` `icon.brand.variant.color` `icon.brand.variant.white`
+   与 `icon.brand.category.{office,ai,dev,social,cloud,brand}`，五个字典与 `keys.md` 同步。
+4. 测试：`tests/graphics/brand.test.ts`（fetch 打桩：SVG 成功、PNG 成功、404 回 null、缓存命中）；
+   `tests/panels/panels.smoke.test.tsx` 加品牌页切换用例；e2e 桌面加“图标徽章能在品牌页选到 GitHub 并导出”。
+5. README“素材与致谢”与 `docs/architecture.md` 图形一节补 brand 来源。
+
+## 切片 W1：控件形态
+
+1. `SliderField` 数字框与重置按钮；`ColorField` 预设色块；字重分段组件（沿用 `SegmentedControl`）。
+2. 单测覆盖数字框提交对齐与夹取。
+
+## 切片 W2：工作台与手机预览
+
+1. `src/app/workspace/PickColumn.tsx` `Inspector.tsx` `MobileDivider.tsx`，`src/app/preview-height.ts`。
+2. `AppShell.tsx` 三档断点重排；`PreviewStage.tsx` 手机边长公式接 `--preview-h`。
+3. 删除四个旧面板与 `SegmentedTabs`，i18n 去掉页签键、加分组标题键，`keys.md` 同步。
+4. 测试：`tests/panels/panels.smoke.test.tsx` 改为 `tests/app/workspace.smoke.test.tsx`；
+   `tests/app/preview-height.test.ts`；e2e 手机加“拖分隔条后预览变矮且刷新留存”，桌面用例选择器对齐。
+5. `npm run screenshots` 重出 README 截图。
+
+## 切片 S1：炫技层
+
+1. 装 `motion`；`./node_modules/.bin/shadcn add @reactbits-starter/star-burst-tw @reactbits-starter/staggered-text-tw`
+   与选定的背景组件；落到 `src/components/showcase/`。
+2. `src/app/showcase/` 懒 chunk：`ShowcaseGate`（reduced-motion 与 `VITE_SHOWCASE` 判定）、背景、进场编排、
+   选中态流动、随机粒子；其余项量力。
+3. 单测：reduced-motion 下不发起 showcase 动态导入；e2e 桌面断言 `data-slot="showcase-background"` 存在且导出无变化。
+4. `npm run budget` 仍在 250 KB 内，写下新数字。
+
+## 切片 B7：收尾
+
+CHANGELOG、architecture、engineering-lessons、记忆文件；B5 由 owner 试用后另起一轮。
 
 ## 风险与对策
 
 - A1 改求解语义后长文本加大补偿会越出安全区：`fits` 仍按位移后外沿判定，界面提示照旧。
 - A2 的 `setUi` 在 rAF 回调里触发订阅：只在值变化时写，且面板只订阅这一个字段。
 - A4 删除 hash 后，截图与调试失去喂配置的通道：用存档注入替代，写进记忆与 contributing。
+- W2 一次性删四个面板，e2e 选择器大面积失效：先列出所有 data-slot 与角色名再动手，槽位名不改。
+- S1 的 React Bits 组件可能带 GSAP 或 three.js：安装后看 `package.json` diff，超过 60 KB gzip 的运行时换方案。
+- brand 的 PNG 条目只有 266px，放大到导出尺寸会糊：清单里标 `ext: png`，选择器不额外提示，等 owner 拿到矢量替换。

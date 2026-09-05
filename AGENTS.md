@@ -25,6 +25,12 @@ npm run lint && npm run typecheck && npm test && npm run build && npm run budget
 - 界面文案一律走 i18n key，五份字典同步改；配色名与家族名例外，它们在 `src/palettes/palettes.ts` 里自带五语。
 - 提交信息用 Conventional Commits，类型英文、描述中文，不带署名或协作者尾注。
 
+## 智能体规模
+
+- 这是轻量级项目。核查、对抗检验、评审、验收类子智能体每轮合计不超过 5 个；一遍单人评审只报闸门（lint、typecheck、单测、e2e、budget）抓不到的问题，不做多轮反驳投票。
+- 实现切片与机械改动交给 Opus 5 子智能体；主会话的用量留给设计与取舍。
+- 子智能体不做 git 操作，不读 `.env.local`。
+
 ## 改默认值
 
 同步更新 `DEFAULT_CONFIG`、对应 spec、README、architecture、CHANGELOG 与测试，并补一条显式旧值的用例。配置不进 URL；存档缺字段时由 `normalizeConfig` 补当前默认值。
