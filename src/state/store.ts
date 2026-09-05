@@ -17,11 +17,9 @@ import {
 } from '@/state/history'
 import { loadPersisted, loadPersistedState, savePersisted } from '@/state/persist'
 
-export type ActivePanel = 'text' | 'palette' | 'style' | 'canvas'
 export type FontStatus = 'idle' | 'loading' | 'ready' | 'fallback'
 
 export interface UiState {
-  activePanel: ActivePanel
   exportOpen: boolean
   /**
    * 导出抽屉打开过没有。抽屉是懒加载的，挂上就等于拉 chunk，
@@ -43,7 +41,6 @@ export interface UiState {
 export const UNDO_MAX = 50
 
 export const DEFAULT_UI: UiState = {
-  activePanel: 'text',
   exportOpen: false,
   exportMounted: false,
   fontStatus: 'idle',

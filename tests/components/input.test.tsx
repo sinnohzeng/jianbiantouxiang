@@ -8,7 +8,7 @@
  */
 
 import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { ColorField } from '@/components/blocks/color-field'
 import { SliderField } from '@/components/blocks/slider-field'
 import { Input } from '@/components/ui/input'
@@ -32,7 +32,7 @@ describe('Input 字号', () => {
     expect(shrinkOnMobile(screen.getByLabelText('色值').className)).toEqual([])
   })
 
-  it('滑杆的数值编辑框在手机档保持 16 px', () => {
+  it('滑杆的数值框在手机档保持 16 px', () => {
     render(
       <SliderField
         label="字号"
@@ -43,8 +43,22 @@ describe('Input 字号', () => {
         onChange={() => {}}
       />,
     )
-    // 数值先是按钮，点开才换成输入框
-    fireEvent.click(screen.getByRole('button', { name: '编辑字号' }))
+    // v5 起数值框常驻，不必再点开
     expect(shrinkOnMobile(screen.getByLabelText('编辑字号').className)).toEqual([])
+  })
+
+  it('检查器带那一行的数值框同样不收缩字号', () => {
+    render(
+      <SliderField
+        layout="row"
+        label="行高"
+        editLabel="编辑行高"
+        value={1.03}
+        min={0.85}
+        max={2}
+        onChange={() => {}}
+      />,
+    )
+    expect(shrinkOnMobile(screen.getByLabelText('编辑行高').className)).toEqual([])
   })
 })

@@ -1,4 +1,4 @@
-import { isWeChat } from '@/export/share'
+import { blobToDataUrl, isWeChat } from '@/export/share'
 import { afterEach, describe, expect, it } from 'vitest'
 
 const patched: string[] = []
@@ -30,5 +30,12 @@ describe('isWeChat', () => {
   it('普通浏览器不算微信', () => {
     stubUserAgent('Mozilla/5.0 (Macintosh) Chrome/140.0 Safari/537.36')
     expect(isWeChat()).toBe(false)
+  })
+})
+
+describe('blobToDataUrl', () => {
+  it('把 Blob 读成带 MIME 的 data URL', async () => {
+    const url = await blobToDataUrl(new Blob(['hi'], { type: 'image/jpeg' }))
+    expect(url).toBe('data:image/jpeg;base64,aGk=')
   })
 })

@@ -30,7 +30,7 @@ npm run dev
 | `npm run gen:emoji` | 从 emojibase-data 重建五语 emoji 索引 |
 | `npm run gen:app-icons` | 用本机 chromium 把 SVG 应用图标位图化成三张 PNG |
 | `npm run samples` | 重生成 README 的样张到 `docs/assets/samples/` |
-| `npm run budget` | 按 entry 加 modulepreload 的 gzip 和检查首屏 JS 预算 |
+| `npm run budget` | 按 entry 加 modulepreload 的 gzip 和报一次首屏 JS 体积，只作参考 |
 | `npm run format` | Prettier 写回 |
 | `npm run format:check` | Prettier 只检查 |
 

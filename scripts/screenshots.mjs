@@ -61,8 +61,10 @@ async function main() {
         written.push(shot)
 
         if (target.mobile) {
+          // 整页图按 CSS 像素截。v5 起手机端五节全部平铺，页面高到三千多 CSS px，
+          // 再乘设备像素比就越过 chromium 单张截图的高度上限，直接报 Unable to capture screenshot
           const full = path.join(OUT_DIR, `${base}-full.png`)
-          await page.screenshot({ path: full, fullPage: true })
+          await page.screenshot({ path: full, fullPage: true, scale: 'css' })
           written.push(full)
         }
 

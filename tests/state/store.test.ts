@@ -282,9 +282,9 @@ describe('ui 状态', () => {
   })
 
   it('setUi 局部更新，其余字段保持', () => {
-    store().setUi({ activePanel: 'palette' })
+    store().setUi({ autoFontSize: 0.21 })
     store().setUi({ fontStatus: 'loading' })
-    expect(store().ui).toEqual({ ...DEFAULT_UI, activePanel: 'palette', fontStatus: 'loading' })
+    expect(store().ui).toEqual({ ...DEFAULT_UI, autoFontSize: 0.21, fontStatus: 'loading' })
   })
 })
 

@@ -31,7 +31,7 @@ export default defineConfig({
     },
     {
       name: 'iphone-15',
-      testMatch: /(smoke|mobile)\.spec\.ts$/,
+      testMatch: /(smoke|mobile|wechat)\.spec\.ts$/,
       use: {
         // devices['iPhone 15'] 的 defaultBrowserType 是 webkit，必须显式覆盖成 chromium，
         // 否则 swiftshader 启动参数不生效、WebGL2 不可用

@@ -91,3 +91,32 @@ test('手机上图形选择器走底部抽屉且无横向滚动', async ({ page 
   await page.getByRole('option', { name: /棕榈树/ }).click()
   await expect(page.locator('[data-slot="graphic-picker"]')).toContainText('1f334')
 })
+
+test('拖分隔条后预览变矮，刷新仍是新高度', async ({ page }) => {
+  await openApp(page)
+
+  const preview = page.locator('[data-slot="preview-pane"]')
+  const divider = page.locator('[data-slot="preview-divider"]')
+  await expect(divider).toBeVisible()
+
+  const before = (await preview.boundingBox())!.height
+  const handle = (await divider.boundingBox())!
+  const x = handle.x + handle.width / 2
+  const y = handle.y + handle.height / 2
+
+  // 往上拖就是把预览压矮，范围下限 20svh 会自己夹住
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  await page.mouse.move(x, y - 120, { steps: 8 })
+  await page.mouse.up()
+
+  await expect
+    .poll(async () => (await preview.boundingBox())?.height ?? before, { timeout: 5000 })
+    .toBeLessThan(before - 10)
+  const after = (await preview.boundingBox())!.height
+
+  await page.reload()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  const restored = (await preview.boundingBox())!.height
+  expect(Math.abs(restored - after)).toBeLessThan(2)
+})

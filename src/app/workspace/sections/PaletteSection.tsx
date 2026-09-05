@@ -1,10 +1,10 @@
 /**
- * 配色面板：内置配色网格、自定义色板、种子色生成三段。
- * 每格是真实渐变缩略图而不是圆点，选色时看到的就是画面里的走向。
+ * 配色节：随机主按钮、明暗与家族筛选、四列渐变磁贴，自定义色与种子生成器折在末尾。
+ * 磁贴是真实渐变缩略图而不是圆点，选色时看到的就是画面里的走向。
  */
 
 import { useId, useMemo, useState } from 'react'
-import { PlusIcon, XIcon } from 'lucide-react'
+import { PlusIcon, ShuffleIcon, XIcon } from 'lucide-react'
 import { ColorField } from '@/components/blocks/color-field'
 import { PanelSection } from '@/components/blocks/panel-section'
 import { SegmentedControl } from '@/components/blocks/segmented-control'
@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { queueHistoryThumbnail } from '@/app/history-thumb'
 import { paletteThumbCss, parseHexList } from '@/palettes/color'
 import { harmonize, type HarmonyScheme } from '@/palettes/harmony'
 import {
@@ -31,7 +32,7 @@ import {
 import { useLocale, useT } from '@/i18n'
 import { normalizeHex } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
-import { cn } from '@/lib/utils'
+import { SectionCard } from './card'
 
 type ToneFilter = 'all' | PaletteTone
 type FamilyFilter = 'all' | PaletteFamilyId
@@ -39,12 +40,14 @@ type FamilyFilter = 'all' | PaletteFamilyId
 const CUSTOM_MIN = 2
 const CUSTOM_MAX = 6
 
-export function PalettePanel() {
+export function PaletteSection() {
   const t = useT()
   const uid = useId()
   const { locale } = useLocale()
   const config = useAvatarStore((state) => state.config)
   const setConfig = useAvatarStore((state) => state.setConfig)
+  const randomize = useAvatarStore((state) => state.randomize)
+  const pushHistory = useAvatarStore((state) => state.pushHistory)
 
   const [tone, setTone] = useState<ToneFilter>('all')
   const [family, setFamily] = useState<FamilyFilter>('all')
@@ -95,55 +98,71 @@ export function PalettePanel() {
   }
 
   return (
-    <div className="flex flex-col">
-      <PanelSection title={t('panel.palette.builtin')}>
-        <div className="flex flex-col gap-2">
-          <SegmentedControl<ToneFilter>
-            name="palette-tone"
-            label={t('panel.palette.tone')}
-            value={tone}
-            options={[
-              { value: 'all', label: t('panel.palette.tone.all') },
-              { value: 'light', label: t('panel.palette.tone.light') },
-              { value: 'dark', label: t('panel.palette.tone.dark') },
-            ]}
-            onChange={setTone}
-          />
-          <Select
-            items={familyItems}
-            value={family}
-            onValueChange={(next) => {
-              if (typeof next === 'string') setFamily(next as FamilyFilter)
-            }}
-          >
-            {/* 原语给的 data-[size=default]:h-8 带变体，优先级压过裸 h-11，只能同样带变体覆盖 */}
-            <SelectTrigger
-              className="w-full data-[size=default]:h-11"
-              aria-label={t('panel.palette.family')}
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(familyItems).map(([id, name]) => (
-                <SelectItem key={id} value={id}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+    <SectionCard title={t('panel.palette.title')}>
+      {/* 与底栏同一个动作提到一级：换种子就是换一张，最高频，放在配色节顶上 */}
+      <Button
+        type="button"
+        data-slot="palette-shuffle"
+        className="tap-target h-11 w-full"
+        title={t('bottombar.random.hint')}
+        onClick={() => {
+          randomize()
+          pushHistory()
+          queueHistoryThumbnail()
+        }}
+      >
+        <ShuffleIcon aria-hidden />
+        {t('bottombar.random')}
+      </Button>
 
-        {visible.length === 0 ? (
-          <p className="text-muted-foreground py-4 text-center text-sm">
-            {t('panel.palette.empty')}
-          </p>
-        ) : (
-          <div
-            role="radiogroup"
-            aria-label={t('panel.palette.builtin')}
-            className="grid grid-cols-2 gap-2"
+      <div className="flex flex-col gap-2">
+        <SegmentedControl<ToneFilter>
+          name="palette-tone"
+          label={t('panel.palette.tone')}
+          value={tone}
+          options={[
+            { value: 'all', label: t('panel.palette.tone.all') },
+            { value: 'light', label: t('panel.palette.tone.light') },
+            { value: 'dark', label: t('panel.palette.tone.dark') },
+          ]}
+          onChange={setTone}
+        />
+        <Select
+          items={familyItems}
+          value={family}
+          onValueChange={(next) => {
+            if (typeof next === 'string') setFamily(next as FamilyFilter)
+          }}
+        >
+          {/* 原语给的 data-[size=default]:h-8 带变体，优先级压过裸 h-11，只能同样带变体覆盖 */}
+          <SelectTrigger
+            className="w-full data-[size=default]:h-11"
+            aria-label={t('panel.palette.family')}
           >
-            {visible.map((palette) => (
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(familyItems).map(([id, name]) => (
+              <SelectItem key={id} value={id}>
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {visible.length === 0 ? (
+        <p className="text-muted-foreground py-4 text-center text-sm">{t('panel.palette.empty')}</p>
+      ) : (
+        <div
+          role="radiogroup"
+          aria-label={t('panel.palette.builtin')}
+          className="grid grid-cols-4 gap-2"
+        >
+          {visible.map((palette) => {
+            const active = config.palette === palette.id
+            const thumb = paletteThumbCss(palette.colors)
+            return (
               <label key={palette.id} className="relative cursor-pointer">
                 <input
                   type="radio"
@@ -151,24 +170,30 @@ export function PalettePanel() {
                   name={`palette-${uid}`}
                   data-group="palette"
                   value={palette.id}
-                  checked={config.palette === palette.id}
+                  checked={active}
                   onChange={(event) => {
                     if (event.target.checked) setConfig({ palette: palette.id })
                   }}
                 />
-                <span className="border-border peer-checked:border-primary peer-checked:ring-primary/30 peer-focus-visible:ring-ring/50 flex flex-col gap-1.5 rounded-xl border p-1.5 transition-colors peer-checked:ring-2 peer-focus-visible:ring-3 motion-reduce:transition-none">
+                {/* 选中态的描边就是这套配色本身：外层垫一圈渐变，内层缩进 3 px 露出来 */}
+                <span
+                  className="peer-focus-visible:ring-ring/50 flex flex-col gap-1 rounded-xl p-[3px] peer-focus-visible:ring-3"
+                  style={active ? { backgroundImage: thumb } : undefined}
+                >
                   <span
                     aria-hidden="true"
-                    className="block h-11 w-full rounded-lg"
-                    style={{ backgroundImage: paletteThumbCss(palette.colors) }}
+                    className="border-border/60 block h-14 w-full rounded-lg border"
+                    style={{ backgroundImage: thumb }}
                   />
-                  <span className="truncate px-0.5 text-xs">{palette.name[locale]}</span>
+                  <span className="truncate text-center text-[11px] leading-tight">
+                    {palette.name[locale]}
+                  </span>
                 </span>
               </label>
-            ))}
-          </div>
-        )}
-      </PanelSection>
+            )
+          })}
+        </div>
+      )}
 
       <PanelSection title={t('panel.palette.custom')} defaultOpen={false}>
         <p className="text-muted-foreground text-xs">{t('panel.palette.custom.hint')}</p>
@@ -242,8 +267,7 @@ export function PalettePanel() {
       <PanelSection title={t('panel.palette.seed')} defaultOpen={false}>
         <div className="flex flex-col gap-1.5">
           {/* ColorField 内部那个 input[type=color] 的 id 是 useId 生成的，外面拿不到，
-              所以这里不写 htmlFor：可访问名由 ColorField 自己的 aria-label 给，
-              与同文件里其余几处 ColorField 的写法一致 */}
+              所以这里不写 htmlFor：可访问名由 ColorField 自己的 aria-label 给 */}
           <Label>{t('panel.palette.seed.base')}</Label>
           <ColorField
             label={t('panel.palette.seed.base')}
@@ -295,9 +319,9 @@ export function PalettePanel() {
           {t('panel.palette.seed.apply')}
         </Button>
         {plateHint ? (
-          <p className={cn('text-muted-foreground text-xs')}>{t('panel.palette.seed.plate')}</p>
+          <p className="text-muted-foreground text-xs">{t('panel.palette.seed.plate')}</p>
         ) : null}
       </PanelSection>
-    </div>
+    </SectionCard>
   )
 }

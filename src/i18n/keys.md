@@ -27,7 +27,7 @@
 | `bottombar.randomAll`             | 随机配色与质感                                                                                                   |
 | `bottombar.randomAll.hint` | 质感、配色与种子一起换 |
 | `bottombar.text` | 文字 |
-| `bottombar.text.hint` | 跳到文字面板并聚焦第一行 |
+| `bottombar.text.hint` | 聚焦第一行输入框 |
 | `common.copyFailed` | 复制失败 |
 | `export.bg`                       | 底色                                                                                                             |
 | `export.bg.hint`                  | JPG 与圆角外的区域用这个颜色填充                                                                                 |
@@ -54,7 +54,7 @@
 | `export.size.none`                | 不限制                                                                                                           |
 | `export.title`                    | 导出                                                                                                             |
 | `export.tooLarge`                 | 压到质量下限仍超出目标体积，建议降低分辨率                                                                       |
-| `export.wechat`                   | 微信里长按图片可以保存到相册                                                                                     |
+| `export.wechat` | 微信里固定生成 JPG，长按下面的图片就能保存到相册 |
 | `export.working`                  | 正在合成                                                                                                         |
 | `font.all`                        | 全部字体                                                                                                         |
 | `font.curated.jp`                 | 精选日文                                                                                                         |
@@ -138,14 +138,18 @@
 | `panel.canvas.shape.circle`       | 圆形                                                                                                             |
 | `panel.canvas.shape.rounded`      | 圆角                                                                                                             |
 | `panel.canvas.shape.square`       | 方形                                                                                                             |
-| `panel.canvas.size`               | 尺寸                                                                                                             |
 | `panel.canvas.title`              | 画布                                                                                                             |
 | `panel.canvas.width`              | 宽                                                                                                               |
 | `panel.common.edit`               | 编辑{name}                                                                                                       |
 | `panel.common.hex`                | 十六进制色值                                                                                                     |
+| `panel.common.reset` | 把{name}重置为默认 |
+| `panel.graphic.change` | 更换 |
 | `panel.graphic.current`           | 当前图形                                                                                                         |
 | `panel.graphic.empty`             | 先选一个图形                                                                                                     |
 | `panel.graphic.scale`             | 图形比例                                                                                                         |
+| `panel.graphic.title` | 图形 |
+| `panel.inspector.group.line` | 逐行 |
+| `panel.inspector.title` | 微调 |
 | `panel.layout.scale`              | 次行字号                                                                                                         |
 | `panel.palette.builtin`           | 内置配色                                                                                                         |
 | `panel.palette.custom`            | 自定义配色                                                                                                       |
@@ -175,14 +179,12 @@
 | `panel.palette.tone.dark`         | 深色系                                                                                                           |
 | `panel.palette.tone.light`        | 浅色系                                                                                                           |
 | `panel.style.highlight`           | 光感                                                                                                             |
-| `panel.style.params`              | 参数                                                                                                             |
 | `panel.style.pick`                | 选质感                                                                                                           |
 | `panel.style.seed`                | 种子                                                                                                             |
 | `panel.style.seed.copy`           | 复制种子                                                                                                         |
 | `panel.style.seed.hint`           | 同一个种子在任何设备上都得到同一张图                                                                             |
 | `panel.style.seed.new`            | 换个种子                                                                                                         |
 | `panel.style.title`               | 质感                                                                                                             |
-| `panel.tabs.label`                | 参数分组                                                                                                         |
 | `panel.text.color`                | 文字颜色                                                                                                         |
 | `panel.text.color.auto`           | 自动                                                                                                             |
 | `panel.text.color.auto.hint`      | 按文字下方画面的明度选白或深灰，并保证对比度达标                                                                 |
@@ -203,7 +205,6 @@
 | `panel.text.fontSize.auto` | 自动 |
 | `panel.text.fontSize.autoHint` | 按内容自动填满；拖动滑杆即改为手动 |
 | `panel.text.fontWeight`           | 字重                                                                                                             |
-| `panel.text.group.basic`          | 基础                                                                                                             |
 | `panel.text.group.effect`         | 效果                                                                                                             |
 | `panel.text.group.type`           | 排版                                                                                                             |
 | `panel.text.icon` | 图标 |
@@ -221,6 +222,8 @@
 | `panel.text.pill.padding`         | 胶囊内边距                                                                                                       |
 | `panel.text.pill.radius`          | 胶囊圆角                                                                                                         |
 | `panel.text.title`                | 文字                                                                                                             |
+| `preview.divider` | 预览高度 |
+| `preview.divider.hint` | 上下拖动改变预览高度，双击恢复默认 |
 | `preview.font.fallback`           | 字体没加载成功，已回落系统字体                                                                                   |
 | `preview.font.loading`            | 字体加载中                                                                                                       |
 | `preview.font.upload` | 该字体是本机上传的，刷新后需要重新上传，已回落系统字体 |

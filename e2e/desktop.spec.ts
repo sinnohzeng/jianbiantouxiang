@@ -119,6 +119,54 @@ test('不带 probe 参数时不挂探针', async ({ page }) => {
   expect(installed).toBe(false)
 })
 
+test('三列工作台：挑选栏、预览、检查器带常驻，没有页签', async ({ page }) => {
+  await openApp(page)
+
+  // v5 起页签与手风琴全部取消，五节卡片与检查器带一屏之内都在
+  await expect(page.locator('[role="tablist"]')).toHaveCount(0)
+  await expect(page.locator('[data-slot="pick-column"]')).toBeVisible()
+  await expect(page.locator('[data-slot="inspector"]')).toBeVisible()
+  await expect(page.locator('[data-slot="bottom-bar"]')).toBeVisible()
+
+  // 检查器带每一行都有常驻数字框，数量与滑杆一致
+  const sliders = await page.locator('[data-slot="inspector"] input[type="range"]').count()
+  expect(sliders).toBeGreaterThan(6)
+  await expect(page.locator('[data-slot="inspector"] [data-slot="slider-number"]')).toHaveCount(
+    sliders,
+  )
+})
+
+test('配色节的随机主按钮换种子', async ({ page }) => {
+  await openApp(page)
+
+  const readSeed = () =>
+    page.evaluate(() => {
+      const raw = localStorage.getItem('gradient-avatar:v3')
+      if (!raw) return null
+      return (JSON.parse(raw) as { config: { seed: string } }).config.seed
+    })
+  const before = await readSeed()
+  await page.locator('[data-slot="palette-shuffle"]').click()
+  await expect.poll(readSeed, { timeout: 5000 }).not.toBe(before)
+})
+
+test('检查器带：改过的参数出现重置钮，点一下回默认', async ({ page }) => {
+  await openApp(page)
+
+  // 边距是排版组第四行，默认 15%
+  const padding = page.locator('[data-slot="inspector"] input[type="range"]').nth(3)
+  await expect(padding).toHaveValue('0.15')
+  await padding.focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(padding).toHaveValue('0.155')
+
+  const reset = page.locator('[data-slot="inspector"] [data-slot="slider-reset"]')
+  await expect(reset).toHaveCount(1)
+  await reset.click()
+  await expect(padding).toHaveValue('0.15')
+  await expect(page.locator('[data-slot="inspector"] [data-slot="slider-reset"]')).toHaveCount(0)
+})
+
 test('常驻操作条：两个随机一级按钮与文字快捷入口', async ({ page }) => {
   await openApp(page)
 
@@ -138,7 +186,7 @@ test('常驻操作条：两个随机一级按钮与文字快捷入口', async ({
   await expect.poll(readSeed, { timeout: 5000 }).not.toBe(seedBefore)
   expect(await readSeed()).toBeTruthy()
 
-  // 文字入口一步切到文字页签并聚焦第一行
+  // 文字入口一步聚焦第一行
   await page.locator('[data-slot="edit-text"]').click()
   await expect(page.locator('#avatar-text-first')).toBeFocused({ timeout: 5000 })
 })

@@ -1,22 +1,21 @@
 /**
- * 画布面板：尺寸预设与自定义宽高、形状与圆角、导出底色。
+ * 画布节：尺寸预设胶囊与宽高输入、形状分段、导出底色。
  * 宽高输入框保持 16 px 字号，iOS 上聚焦不会把整页放大。
  *
- * 换形状不动边距。圆形遮罩带来的收缩由 text/fit 的 safeArea 按几何算，
- * 不必在这里替用户改边距滑杆。
+ * 换形状不动边距。圆形遮罩带来的收缩由 text/fit 的 safeArea 按几何算。
+ * 圆角比例在检查器带里，只在形状是圆角时出现。
  */
 
 import { CircleIcon, SquareIcon } from 'lucide-react'
 import { ColorField } from '@/components/blocks/color-field'
-import { PanelSection } from '@/components/blocks/panel-section'
 import { SegmentedControl } from '@/components/blocks/segmented-control'
-import { SliderField } from '@/components/blocks/slider-field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useT } from '@/i18n'
 import { CANVAS_MAX, CANVAS_MIN, type Shape } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { cn } from '@/lib/utils'
+import { SectionCard } from './card'
 
 interface Preset {
   id: string
@@ -48,7 +47,7 @@ function clampSide(value: number, fallback: number): number {
   return Math.min(CANVAS_MAX, Math.max(CANVAS_MIN, Math.round(value)))
 }
 
-export function CanvasPanel() {
+export function CanvasSection() {
   const t = useT()
   const config = useAvatarStore((state) => state.config)
   const setCanvas = useAvatarStore((state) => state.setCanvas)
@@ -78,60 +77,58 @@ export function CanvasPanel() {
   )
 
   return (
-    <div className="flex flex-col">
-      <PanelSection title={t('panel.canvas.size')}>
-        <div className="flex flex-col gap-1.5">
-          <Label>{t('panel.canvas.preset.avatar')}</Label>
-          {renderPresets(AVATAR_PRESETS, t('panel.canvas.preset.avatar'))}
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label>{t('panel.canvas.preset.banner')}</Label>
-          {renderPresets(BANNER_PRESETS, t('panel.canvas.preset.banner'))}
-        </div>
+    <SectionCard title={t('panel.canvas.title')}>
+      <div className="flex flex-col gap-1.5">
+        <Label>{t('panel.canvas.preset.avatar')}</Label>
+        {renderPresets(AVATAR_PRESETS, t('panel.canvas.preset.avatar'))}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label>{t('panel.canvas.preset.banner')}</Label>
+        {renderPresets(BANNER_PRESETS, t('panel.canvas.preset.banner'))}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label>{t('panel.canvas.preset.portrait')}</Label>
+        {renderPresets(PORTRAIT_PRESETS, t('panel.canvas.preset.portrait'))}
+      </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Label>{t('panel.canvas.preset.portrait')}</Label>
-          {renderPresets(PORTRAIT_PRESETS, t('panel.canvas.preset.portrait'))}
+      <div className="flex flex-col gap-1.5">
+        <Label>{t('panel.canvas.preset.custom')}</Label>
+        <div className="flex items-center gap-2">
+          <Input
+            className="h-11"
+            type="number"
+            inputMode="numeric"
+            min={CANVAS_MIN}
+            max={CANVAS_MAX}
+            aria-label={t('panel.canvas.width')}
+            value={canvas.width}
+            onChange={(event) =>
+              setCanvas({ width: clampSide(event.target.valueAsNumber, canvas.width) })
+            }
+          />
+          <span aria-hidden="true" className="text-muted-foreground text-sm">
+            ×
+          </span>
+          <Input
+            className="h-11"
+            type="number"
+            inputMode="numeric"
+            min={CANVAS_MIN}
+            max={CANVAS_MAX}
+            aria-label={t('panel.canvas.height')}
+            value={canvas.height}
+            onChange={(event) =>
+              setCanvas({ height: clampSide(event.target.valueAsNumber, canvas.height) })
+            }
+          />
         </div>
+        <p className="text-muted-foreground text-xs">
+          {t('panel.canvas.range', { min: CANVAS_MIN, max: CANVAS_MAX })}
+        </p>
+      </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Label>{t('panel.canvas.preset.custom')}</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              className="h-11"
-              type="number"
-              inputMode="numeric"
-              min={CANVAS_MIN}
-              max={CANVAS_MAX}
-              aria-label={t('panel.canvas.width')}
-              value={canvas.width}
-              onChange={(event) =>
-                setCanvas({ width: clampSide(event.target.valueAsNumber, canvas.width) })
-              }
-            />
-            <span aria-hidden="true" className="text-muted-foreground text-sm">
-              ×
-            </span>
-            <Input
-              className="h-11"
-              type="number"
-              inputMode="numeric"
-              min={CANVAS_MIN}
-              max={CANVAS_MAX}
-              aria-label={t('panel.canvas.height')}
-              value={canvas.height}
-              onChange={(event) =>
-                setCanvas({ height: clampSide(event.target.valueAsNumber, canvas.height) })
-              }
-            />
-          </div>
-          <p className="text-muted-foreground text-xs">
-            {t('panel.canvas.range', { min: CANVAS_MIN, max: CANVAS_MAX })}
-          </p>
-        </div>
-      </PanelSection>
-
-      <PanelSection title={t('panel.canvas.shape')}>
+      <div className="flex flex-col gap-1.5">
+        <Label>{t('panel.canvas.shape')}</Label>
         <SegmentedControl<Shape>
           name="canvas-shape"
           label={t('panel.canvas.shape')}
@@ -155,22 +152,10 @@ export function CanvasPanel() {
           ]}
           onChange={(shape) => setCanvas({ shape })}
         />
-        {canvas.shape === 'rounded' ? (
-          <SliderField
-            label={t('panel.canvas.radius')}
-            editLabel={t('panel.common.edit', { name: t('panel.canvas.radius') })}
-            value={canvas.radius}
-            min={0}
-            max={0.5}
-            step={0.01}
-            scale={100}
-            unit="%"
-            onChange={(radius) => setCanvas({ radius })}
-          />
-        ) : null}
-      </PanelSection>
+      </div>
 
-      <PanelSection title={t('export.bg')}>
+      <div className="flex flex-col gap-1.5">
+        <Label>{t('export.bg')}</Label>
         <ColorField
           label={t('export.bg')}
           hexLabel={t('panel.common.hex')}
@@ -178,7 +163,7 @@ export function CanvasPanel() {
           onChange={(bgColor) => setExportOptions({ bgColor })}
         />
         <p className="text-muted-foreground text-xs">{t('export.bg.hint')}</p>
-      </PanelSection>
-    </div>
+      </div>
+    </SectionCard>
   )
 }

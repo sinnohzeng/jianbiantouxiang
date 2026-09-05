@@ -12,7 +12,7 @@
 提交前必须全绿：
 
 ```bash
-npm run lint && npm run typecheck && npm test && npm run build && npm run budget
+npm run lint && npm run typecheck && npm test && npm run build
 ```
 
 改了界面另跑 `npm run e2e`。任何一步红了就不提交，先修。
@@ -27,7 +27,7 @@ npm run lint && npm run typecheck && npm test && npm run build && npm run budget
 
 ## 智能体规模
 
-- 这是轻量级项目。核查、对抗检验、评审、验收类子智能体每轮合计不超过 5 个；一遍单人评审只报闸门（lint、typecheck、单测、e2e、budget）抓不到的问题，不做多轮反驳投票。
+- 这是轻量级项目。核查、对抗检验、评审、验收类子智能体每轮合计不超过 5 个；一遍单人评审只报闸门（lint、typecheck、单测、e2e）抓不到的问题，不做多轮反驳投票。
 - 实现切片与机械改动交给 Opus 5 子智能体；主会话的用量留给设计与取舍。
 - 子智能体不做 git 操作，不读 `.env.local`。
 

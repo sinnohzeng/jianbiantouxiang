@@ -360,7 +360,11 @@ export function PreviewStage() {
     const { width, height, shape, radius } = preview.canvas
     // 长边贴住上限，短边按比例收窄，正方形与非正方形共用一套算法
     const widthFactor = width >= height ? 1 : width / height
-    const edge = isMobile ? 'min(calc(100vw - 32px), 44svh)' : 'min(70vh, 720px)'
+    // 手机上预览区高度由用户拖的 --preview-h 决定；桌面上由外壳按断点给出 --preview-max，
+    // 它是这一列留给预览的净空，两列档要给下面的检查器带让位，三列档几乎占满整列
+    const edge = isMobile
+      ? 'min(calc(100vw - 32px), calc(var(--preview-h) - 40px))'
+      : 'min(var(--preview-max, 70vh), 720px)'
     const shortSide = Math.min(box.width, box.height)
     const corner =
       shape === 'circle' ? '50%' : shape === 'rounded' ? `${shortSide * radius}px` : '0px'

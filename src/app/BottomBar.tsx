@@ -1,9 +1,9 @@
 /**
- * 主操作条。手机上固定在屏幕底部并让出 safe-area，桌面上就是面板列底部的一行。
+ * 主操作条。手机上固定在屏幕底部并让出 safe-area，桌面上是中列预览下方的一行。
  * 触控目标一律 44 px 起，尺寸档参考 `@reactbits-pro/mobile-4`。
  *
  * 三个高频动作常驻一级：随机颜色（种子）、随机质感与配色、文字快捷入口，
- * 全部图标态加 tooltip；桌面端操作条住在面板列里，带文案排不下，导出是唯一带文案的主行动。
+ * 全部图标态加 tooltip；桌面端操作条住在预览正下方，带文案排不下，导出是唯一带文案的主行动。
  * v5 起没有「复制链接」：配置不进 URL，分享靠导出的图。
  * 导出按钮带同步锁与三态（idle / working / done）：working 至少 600 ms 可见，
  * 成功后 400 ms 确认态再解锁，连点窗口约一秒，失败立即解锁可重试。
@@ -59,15 +59,12 @@ export function BottomBar() {
   }, [randomizeAll, pushHistory])
 
   const onEditText = useCallback(() => {
-    setUi({ activePanel: 'text' })
-    // 等页签渲染完再聚焦；手机上输入框在预览下方，顺手滚进视野
-    requestAnimationFrame(() => {
-      const input = document.querySelector<HTMLInputElement>('[data-slot="text-line1"]')
-      if (!input) return
-      input.focus()
-      input.scrollIntoView({ block: 'center' })
-    })
-  }, [setUi])
+    // v5 起没有页签，两行输入常驻在挑选栏第一节；手机上它在预览下方，顺手滚进视野
+    const input = document.querySelector<HTMLInputElement>('[data-slot="text-line1"]')
+    if (!input) return
+    input.focus()
+    input.scrollIntoView({ block: 'center' })
+  }, [])
 
   // 导出三态：working 期间禁用，done 是成功后的短暂确认态。
   // busyRef 是同步锁：exporting 是渲染闭包，同一帧里的两次点击会都读到 false，
@@ -122,10 +119,11 @@ export function BottomBar() {
       aria-label={t('bottombar.actions')}
       className={cn(
         'bg-background/85 supports-[backdrop-filter]:bg-background/70 fixed inset-x-0 bottom-0 z-30 border-t backdrop-blur-md',
-        'safe-bottom lg:static lg:rounded-b-2xl lg:border-t lg:bg-transparent lg:pb-0 lg:backdrop-blur-none',
+        // 桌面上它是中列预览正下方的一格，不再钉在屏幕底
+        'safe-bottom lg:bg-card/60 lg:static lg:col-start-2 lg:row-start-2 lg:rounded-2xl lg:border lg:pb-0 lg:backdrop-blur-sm',
       )}
     >
-      <div className="flex h-14 items-center gap-2 px-3 lg:h-auto lg:px-3 lg:py-3">
+      <div className="flex h-14 items-center gap-2 px-3 lg:h-auto lg:px-3 lg:py-2">
         <Button
           type="button"
           variant="secondary"

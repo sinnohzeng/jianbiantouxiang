@@ -1,6 +1,7 @@
 /**
  * 导出抽屉：格式、体积档、设备上限提示与「下载」「复制图片」两个显式动作。
- * 微信内置浏览器拦 a[download]，只把结果画成 img 让用户长按保存。
+ * 微信内置浏览器拦 a[download]，长按也只认 http(s) 与 data: 地址，所以微信里固定出 JPG、
+ * 转成 data URL 画成 img 让用户长按保存；格式选择在微信里不显示。
  *
  * 探测到不支持 WebP 编码时不止把选项摘掉，还要把配置里的 format 复位：
  * 存档里留着 format=webp 的话，换到不支持的浏览器会导出一个内容是 PNG 的 .webp。
@@ -25,7 +26,7 @@ import { releaseCanvas } from '@/export/canvas'
 import { copyImageToClipboard, supportsClipboardImage } from '@/export/clipboard'
 import { downloadBlob } from '@/export/download'
 import { supportsWebP } from '@/export/encode'
-import { isWeChat } from '@/export/share'
+import { blobToDataUrl, isWeChat } from '@/export/share'
 import { useT } from '@/i18n'
 import { SIZE_TARGETS, type AvatarConfig } from '@/state/config'
 import { queueHistoryThumbnail } from '@/app/history-thumb'
@@ -80,13 +81,15 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
     }
   }, [setExportOptions])
 
-  // 换了新结果或组件卸载时释放上一张预览图占的 object URL
+  // 换了新结果或组件卸载时释放上一张预览图占的 object URL；微信里是 data URL，不用管
   useEffect(() => {
     const url = done?.previewUrl
     return () => {
-      if (url) URL.revokeObjectURL(url)
+      if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
     }
   }, [done])
+
+  const wechat = isWeChat()
 
   const { width, height } = config.canvas
   const caps = getRenderCaps()
@@ -113,11 +116,14 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
 
     let artifact: Awaited<ReturnType<typeof createExportArtifact>> | null = null
     try {
-      artifact = await createExportArtifact(config)
+      // 微信相册只认图片本身，扩展名无所谓；安卓微信对 PNG 的 base64 长按保存不稳定，固定出 JPG
+      artifact = await createExportArtifact(
+        wechat ? { ...config, exportOptions: { ...config.exportOptions, format: 'jpg' } } : config,
+      )
 
       let previewUrl: string | null = null
-      if (isWeChat()) {
-        previewUrl = URL.createObjectURL(artifact.blob)
+      if (wechat) {
+        previewUrl = await blobToDataUrl(artifact.blob)
         setNotice('export.wechat')
       } else {
         downloadBlob(artifact.blob, artifact.filename)
@@ -139,7 +145,7 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
       if (artifact) releaseCanvas(artifact.canvas)
       setBusy(false)
     }
-  }, [busy, config, pushHistory])
+  }, [busy, config, pushHistory, wechat])
 
   const copyImage = useCallback(async () => {
     if (busy) return
@@ -176,16 +182,18 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
         </DrawerHeader>
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-2 pb-4">
-          <div className="flex flex-col gap-1.5">
-            <Label>{t('export.format')}</Label>
-            <SegmentedControl<Format>
-              name="export-format"
-              label={t('export.format')}
-              value={config.exportOptions.format}
-              options={formatOptions}
-              onChange={(format) => setExportOptions({ format })}
-            />
-          </div>
+          {wechat ? null : (
+            <div className="flex flex-col gap-1.5">
+              <Label>{t('export.format')}</Label>
+              <SegmentedControl<Format>
+                name="export-format"
+                label={t('export.format')}
+                value={config.exportOptions.format}
+                options={formatOptions}
+                onChange={(format) => setExportOptions({ format })}
+              />
+            </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
             <Label>{t('export.size')}</Label>
@@ -224,7 +232,10 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
                 <img
                   src={done.previewUrl}
                   alt={t('export.preview')}
-                  className="border-border w-full rounded-xl border"
+                  data-slot="export-image"
+                  className="border-border w-full rounded-xl border select-auto"
+                  // 微信与 iOS 的长按菜单靠 touch-callout，抽屉里别被全局样式关掉
+                  style={{ WebkitTouchCallout: 'default' }}
                 />
               ) : null}
             </div>

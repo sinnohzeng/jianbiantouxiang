@@ -24,10 +24,11 @@
 | --- | --- |
 | `src/main.tsx` | 挂 React 根，接上系统主题监听，按条件装端到端探针 |
 | `src/App.tsx` | 套 i18n Provider，让文档标题与默认示例文字跟随界面语言 |
-| `src/app/` | 应用外壳、顶栏、底部操作条、实时预览与参考层开关、氛围背景、主题状态 |
-| `src/app/panels/` | 文字、配色、质感、画布四个面板，加导出抽屉、字体选择器、图形选择器、历史条 |
+| `src/app/` | 应用外壳、顶栏、底部操作条、实时预览与参考层开关、预览高度、氛围背景、主题状态 |
+| `src/app/workspace/` | 挑选栏五节（文字、图形、配色、质感、画布）、检查器带、手机分隔条 |
+| `src/app/panels/` | 导出抽屉、字体选择器、图形选择器、历史条四个重件 |
 | `src/components/ui/` | shadcn 生成的原语，本仓不改写、不格式化 |
-| `src/components/blocks/` | 面板复用件：分段控件、radio card、带数值的滑杆、颜色格、可折叠分组 |
+| `src/components/blocks/` | 界面复用件：分段控件、radio card、带数值框与重置钮的滑杆、颜色格、可折叠分组 |
 | `src/engine/` | 质感定义与参数映射、种子、预览挂载、离屏渲染、设备能力探测、无 WebGL2 兜底 |
 | `src/engine/shaders/` | 四段 fragment shader 源码，一种质感一份 chunk |
 | `src/text/` | 文字量测、换行、自动填满、排版、绘制、自动取色 |
@@ -43,6 +44,31 @@
 | `e2e/` | Playwright 用例，`smoke` 两档都跑，`desktop` 与 `mobile` 各归一档 |
 | `scripts/screenshots.mjs` | 设备模拟截图，输出到 `.screenshots/` |
 | `public/` | 图标、`_headers`、`_redirects`，随构建进入 `dist/` |
+
+## 界面结构
+
+顶栏之下是一棵组件树，用断点切三种形态，不按视口宽度分支渲染：两套树会让状态与焦点在断点处丢失。
+视觉顺序由 CSS grid 的行列指定，DOM 顺序按手机排，预览、分隔条、挑选栏、检查器带、操作条。
+
+| 断点 | 形态 |
+| --- | --- |
+| ≥1280 | 三列 `[380px \| 1fr \| 320px]`：左挑选栏、中预览与操作条、右检查器带，三列各自滚 |
+| 1024 到 1279 | 两列 `[360px \| 1fr]`：检查器带落到预览与操作条下方，分组按两栏紧凑排，自身限高滚动 |
+| <1024 | 纵向栈：预览 sticky 在顶栏下，下面一条可拖的分隔条，再往下是挑选栏五节与收起的“微调”，操作条固定在屏幕底 |
+
+挑选栏是五张标题常驻的卡片，只放“挑”的动作：两行文字、字体与字重、文字效果与颜色、图形、配色磁贴、质感磁贴与种子、画布尺寸与形状。
+没有页签，没有手风琴，全站只剩自定义配色、种子色生成与手机端“微调”三处折叠。
+
+检查器带收全部数值微调，一行“标签 | 滑杆 | 数字框”，分排版、逐行、图形、效果、质感、画布六组，
+用不上的组不出现（没有图形就没有图形组，不是圆角就没有圆角）。每行的数字框常驻，回车或失焦按步进对齐并夹回区间；
+给了默认值的行在偏离默认时多出一个重置钮，桌面悬停或聚焦才显形，触控设备常显。
+字号那一行不给默认值：回默认由「自动」按钮承担。
+
+预览尺寸两条路。手机上由 `--preview-h`（默认 28svh，范围 20 到 60）决定预览区高度，画布边长取
+`min(100vw - 32px, var(--preview-h) - 40px)`；分隔条拖动改这个变量，双击回默认，上下键每次 4svh，值存
+localStorage `gradient-avatar:preview-height`，模块 `src/app/preview-height.ts` 与参考层开关同构。
+桌面上由外壳按断点给出 `--preview-max`，也就是这一列留给预览的净空，画框取 `min(var(--preview-max), 720px)`，
+两列档要给下面的检查器带让位，三列档几乎占满整列。
 
 ## 共享契约
 
@@ -110,7 +136,7 @@ flowchart TD
 
 ## 四种质感
 
-`src/engine/styles.ts` 是引擎里唯一知道 shader uniform 名字的地方。面板只认 `styleParams` 的五个滑杆，渲染层只认 `StyleRenderPlan`，换 shader 或调区间都只动这一个文件。
+`src/engine/styles.ts` 是引擎里唯一知道 shader uniform 名字的地方。检查器带只认 `styleParams` 的五个滑杆，渲染层只认 `StyleRenderPlan`，换 shader 或调区间都只动这一个文件。
 
 | 质感 | 底层 shader | 参数映射要点 |
 | --- | --- | --- |
@@ -152,7 +178,7 @@ v4 只有一种版式：图标（可选）→ 第一行 → 第二行的纵向�
 
 品牌图形的清单真源是 `scripts/brand-list.json`，`npm run gen:brand` 把远端条目从 homarr-labs/dashboard-icons 拉下来、把 `assets/brand/` 里 owner 提供的素材拷过去，统一落到 `public/brand/`，同时生成索引；两个产物都不手改。配置里存的是文件名，纯白变体（如 `github-light`）是独立文件名，选择器的“原色 / 单白”分段切的就是它。索引与加载器都只在图形选择器或 `loadGraphic` 命中 brand 时才 `import()`，不进首屏预算。SVG 与上传路径同过一遍 `sanitizeSvg`，取不到或解析失败只 `console.warn` 并让图形位留空。
 
-上传 SVG 只保留常见绘图元素、渐变、裁剪与安全展示属性；未知元素整支丢弃，未知属性删除，`url()` 只允许内部引用。文件字节只在模块级会话注册表里，不写盘；配置里留的是 `source: 'upload'` 加会话 id，会随存档与历史落盘，刷新后注册表已空，图形位留空、面板仍显示上传来源，用户重新上传即可。加载失败同样只让图形位留空，渐变、文字与导出继续可用。
+上传 SVG 只保留常见绘图元素、渐变、裁剪与安全展示属性；未知元素整支丢弃，未知属性删除，`url()` 只允许内部引用。文件字节只在模块级会话注册表里，不写盘；配置里留的是 `source: 'upload'` 加会话 id，会随存档与历史落盘，刷新后注册表已空，图形位留空、图形节仍显示上传来源，用户重新上传即可。加载失败同样只让图形位留空，渐变、文字与导出继续可用。
 
 ## 字体
 
@@ -181,13 +207,13 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 ## 状态与持久化
 
-单个 zustand store 持有 `config`、`history` 与 `ui` 三段。面板只调 `setConfig` 一类的动作，动作内部逐层深合并再过一遍 `normalizeConfig`。
+单个 zustand store 持有 `config`、`history` 与 `ui` 三段。界面只调 `setConfig` 一类的动作，动作内部逐层深合并再过一遍 `normalizeConfig`。
 
 初始配置只有两档：localStorage 存档、默认值。配置不进 URL；地址栏上只有三个与配置无关的查询参数：`?lang=` 首屏消费后摘掉，`?probe=1` 装端到端探针，`?samples=1` 打开样张页。`initialConfigSource()` 记下它来自哪一档，默认示例文字只在 `default` 这一档才跟随界面语言。存档缺字段时由 `normalizeConfig` 补当前默认值。
 
 状态变更后攒 300 ms 写一次 localStorage，不碰 `history`。导出前调 `flushConfigSync()` 立刻落盘，导出与存档才是同一份配置。要给端到端或截图脚本喂配置，用 `page.addInitScript` 往 `PERSIST_KEY`（`gradient-avatar:v3`）写一份 `{ v: 3, config }` 再打开页面。
 
-预览参考层（安全区、网格）的开关与环境光强度一样是「怎么看」而不是「出什么图」：各自是模块级状态加 localStorage（`gradient-avatar:overlays`、`gradient-avatar:ambient`），不进 `AvatarConfig`，导出永远不画。网格是 CSS 渐变画的 DOM 图层，放在着色器宿主之外，格子边长取画框短边的 1/12，从中心铺开，中心十字加粗，白色低透明度加 `mix-blend-mode: difference`，深浅底都可辨。
+预览参考层（安全区、网格）的开关、手机预览高度与环境光强度一样是「怎么看」而不是「出什么图」：各自是模块级状态加 localStorage（`gradient-avatar:overlays`、`gradient-avatar:preview-height`、`gradient-avatar:ambient`），不进 `AvatarConfig`，导出永远不画。网格是 CSS 渐变画的 DOM 图层，放在着色器宿主之外，格子边长取画框短边的 1/12，从中心铺开，中心十字加粗，白色低透明度加 `mix-blend-mode: difference`，深浅底都可辨。
 
 历史最多 8 条，按 `configHash` 去重，与配置一起进同一份存档。存档键名带版本号，换结构时旧数据自然失效。
 
@@ -201,9 +227,9 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 `app.sampleText` 是每种语言的默认示例文字。判据是当前文字仍等于某种语言的示例，所以用户一旦自己打过字就再也不会被顶掉。
 
-## 代码分割与首屏预算
+## 代码分割与体积
 
-首屏 JS 上限 250 KB gzip，v5.0 实测 203.23 KB。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
+首屏 JS 不设上限，v5.0 工作台落地后实测 205.10 KB。`npm run budget` 只是报一次数，不再是闸门：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
 
 三条规则守住这个上限。
 
@@ -217,8 +243,8 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 | 层 | 命令 | 覆盖 |
 | --- | --- | --- |
-| 单测 | `npm test` | `tests/` 与 `src/` 同名，jsdom 环境，覆盖种子映射、排版与自动填满、补偿独立性、图标排版、SVG 消毒、品牌图形加载、图形绘制消费端、索引结构、自动取色、体积二分、预览参考层存取、字典对齐 |
-| 端到端 | `npm run e2e` | 两个 project：`desktop` 跑 1440 桌面，`iphone-15` 跑设备模拟。覆盖内置图标、emoji、上传 SVG、手机底部抽屉、存档刷新恢复、网格开关留存、字号自动态切手动与既有导出路径 |
+| 单测 | `npm test` | `tests/` 与 `src/` 同名，jsdom 环境，覆盖种子映射、排版与自动填满、补偿独立性、图标排版、SVG 消毒、品牌图形加载、图形绘制消费端、索引结构、自动取色、体积二分、预览参考层与预览高度存取、数字框对齐与重置、工作台冒烟、字典对齐 |
+| 端到端 | `npm run e2e` | 两个 project：`desktop` 跑 1440 桌面，`iphone-15` 跑设备模拟。覆盖内置图标、emoji、品牌图形、上传 SVG、三列工作台常驻、检查器带重置钮、手机分隔条拖拽留存、手机底部抽屉、存档刷新恢复、网格开关留存、字号自动态切手动与既有导出路径 |
 | 视觉 | `npm run screenshots` | 桌面 1440、iPhone 15、iPhone SE 三个设备各截深浅两套主题，输出到 `.screenshots/` |
 
 headless chromium 默认没有 GPU，WebGL2 靠 `--use-angle=swiftshader` 等启动参数走软件渲染。`devices['iPhone 15']` 的默认浏览器是 webkit，project 里必须显式覆盖成 chromium，否则那几个参数不生效。
@@ -236,7 +262,7 @@ PWA 由 `vite-plugin-pwa` 生成 manifest 与 service worker，注册方式是�
 ## 能力边界
 
 - 没有 WebGL2 的浏览器会拿到静态近似图。预览是多层 CSS `radial-gradient`，导出是同源同种子的 2D 近似，两者构图一致，界面明确提示。
-- 导出尺寸受设备限制。`caps.ts` 同时探测 WebGL 上限与 2D 画布面积上限，取较小值，超出时按上限渲染再放大，导出面板显示本机的最高原生边长。探测结果缓存 7 天。
+- 导出尺寸受设备限制。`caps.ts` 同时探测 WebGL 上限与 2D 画布面积上限，取较小值，超出时按上限渲染再放大，导出抽屉显示本机的最高原生边长。探测结果缓存 7 天。
 - 主“导出”按钮直接触发浏览器下载；导出抽屉提供“下载”与“复制图片”两个显式动作。微信内置浏览器拦截 `a[download]`，那里改为提示长按图片保存。
 - WebP 只在 `toBlob('image/webp')` 实际返回 `image/webp` 的浏览器里提供，不引入 WASM 编码器。PNG 无损，体积不可控，靠界面提示。
 - 上传的字体与图形只在本次会话有效：文件字节不写盘，配置里只留一个会话内的引用，刷新后字体回落系统字体、图形位留空，界面提示重新上传。

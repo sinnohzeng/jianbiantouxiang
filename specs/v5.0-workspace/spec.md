@@ -72,7 +72,8 @@
 
 典型使用是改两行字、可能加个图标、随机刷配色挑一张顺眼的，极少数人调视觉补偿。
 布局围绕这个来：挑选类控件占首屏、尺寸大；数值微调收成一条紧凑的检查器带。
-整体气质要压得住场，动效与着色器能上的都上，但首屏预算与 reduced-motion 是硬约束。
+整体气质要压得住场，动效与着色器能上的都上。体积与首开速度不是约束：这不是搜索首页，多等两三秒也行，
+慢就上加载动画；reduced-motion 仍然尊重。
 
 ### B1 桌面两层平铺工作台
 
@@ -141,16 +142,18 @@
 
 ### B6 炫技层（showcase）
 
-- 原则：首屏预算不动，预算只算 entry 与 modulepreload；炫技代码全部走 `src/app/showcase/` 懒 chunk，
-  首帧之后在 `requestIdleCallback` 里挂载；`prefers-reduced-motion: reduce` 时整个 chunk 不加载；
-  环境光滑杆为 0 时背景着色器不挂。
-- 依赖：`motion`（`LazyMotion` + `m`，domAnimation 特性懒加载）进主包做布局与进场动画；
-  React Bits 组件经 `./node_modules/.bin/shadcn add @reactbits-starter/<item>` 安装，落到 `src/components/showcase/`
-  （CLI 若放进 `src/components/ui/` 就移出，`ui/` 仍不手改）；不引入 three.js、ogl 这类超过 60 KB gzip 的运行时。
+- 优先级：炫技需求高于本轮其余维护性约束。体积、文件大小、首开速度都不是考虑项，该加载的都加载；
+  `npm run budget` 不再是闸门，只留作体积报告。炫技代码放 `src/app/showcase/`，可以走懒 chunk 也可以进主包，
+  以效果与实现顺手为准。`prefers-reduced-motion: reduce` 时不播动效；环境光滑杆为 0 时背景着色器不挂；
+  标签页不可见时暂停渲染；WebGL 起不来时静默回落到现有 CSS 光晕。
+- 依赖：粒子、背景、文字动效一律优先用 React Bits Pro / starter 现成组件，不自建；经
+  `./node_modules/.bin/shadcn add @reactbits-starter/<item>` 安装，落到 `src/components/showcase/`
+  （CLI 若放进 `src/components/ui/` 就移出，`ui/` 仍不手改）。组件带来的 `three` `@react-three/fiber` `motion` `gsap`
+  照装，只要求它们不进 entry。`motion` 同时用于工作台自己的布局与进场动画。
 - 清单按收益排序，前四项本轮必做：
-  1. 背景：桌面端换成 React Bits 一款可传颜色的 canvas / WebGL 背景（候选 `aurora-blur-tw` `silk-waves-tw`
-     `watercolor-tw` `glass-flow-tw`，动手前用 shadcn MCP 看源码，选不依赖 three.js 且接受颜色 props 的那款），
-     颜色取当前配色前三色，透明度接环境光滑杆；手机与 reduced-motion 保留现有 CSS 光晕。
+  1. 背景：React Bits 背景组件，候选顺序 `aurora-blur-tw` → `silk-waves-tw` → `watercolor-tw` → `glass-flow-tw`，
+     取第一款能接颜色 props、能铺满视口的；颜色取当前配色前三色，透明度接环境光滑杆。桌面与手机都开，
+     手机把渲染分辨率压到 0.5 DPR；reduced-motion 与 WebGL 失败时保留现有 CSS 光晕。
   2. 进场编排：挑选栏五节与检查器分组 stagger 淡入上浮（间隔 40ms），预览框从 0.96 缩放加 8px 模糊到清晰（500ms）。
   3. 选中态流动：配色磁贴、风格磁贴、分段控件的选中描边用 `layoutId` 共享元素在选项间滑动。
   4. 随机按钮：点击触发 `star-burst-tw` 粒子（挂在按钮上方一层 `pointer-events-none`），预览框 1.02 弹一下。
@@ -158,8 +161,24 @@
   6. 预览悬停：桌面端指针在预览框上时不超过 4° 的 3D 倾斜与随指针的高光，自写 CSS 变量版。
   7. 数字框：值变化时 `useSpring` 平滑计数。
   8. 导出成功：抽屉里再来一次 `star-burst-tw`。
+  9. 加载动画：`preloader-tw` 盖住首屏直到字体与首帧就绪，最长 2.5 秒，会话内只播一次；加载慢就让它多转一会儿，不追首开。
+  10. 第二梯队，量力：预览框外圈 `frame-border-tw` 噪点描边；历史条用 `animated-list-tw` 进出场。
 - 每项都受 `VITE_SHOWCASE=0` 一键关闭，仅供排查；生产恒开。
-- 光标特效与预加载动画页不做。
+- 光标特效不做，工具型页面里跟手的自定义光标会碍事；其余能上的都上。
+
+### B8 手机端长按直存（不经导出抽屉）
+
+- 触屏设备（`(pointer: coarse)`，与现有 `isMobile` 二者取或）上，预览框内叠一张 `<img data-slot="preview-save-image">`，
+  内容就是当前配置按导出管线生成的 JPG（`format` 固定 jpg，`sizeTarget` 沿用配置）的 data URL，
+  `-webkit-touch-callout: default`，长按即出系统的“保存图片”，微信、Safari、Chrome 一致。
+- 生成时机：预览每次重绘稳定后去抖 600ms，`requestIdleCallback` 里跑 `createExportArtifact`；新任务到来时旧结果作废；
+  `document.hidden` 时不跑；生成期间保留上一张，首张出来前显示实时画布。
+- 层级：图片盖在实时画布之上、网格与安全区参考线之下（参考线 `pointer-events-none`，长按穿透到图片）；
+  右上角两个开关按钮仍在最上层。图片与画框同圆角同尺寸，`object-fit: cover`。
+- 提示：预览下方一行“长按图片可直接保存为 JPG”（新键 `preview.longPressSave`），只在触屏显示。
+- 底栏导出与导出抽屉照旧；微信里抽屉的 data URL 路径保留，作为第二条路。桌面端不叠图片，仍靠下载。
+- e2e（iphone 项目）：首屏后 `preview-save-image` 的 src 以 `data:image/jpeg;base64,` 开头；改第一行文字后 src 变化；
+  开网格开关后 src 不变（网格不进图片）。
 
 ### B5 默认配方与配色文字色
 
@@ -172,7 +191,7 @@ owner 试用本轮成果后给一套明确配置作为 `DEFAULT_CONFIG`；内置
 - 网格不做吸附、不做刻度数字、不做自定义格数。
 - 不保留任何读 hash 的隐藏通道；测试与调试统一走存档注入。
 - 撤销栈仍按每次配置变更入栈，拖滑杆一次进多条：这是既有行为，本轮不改，记入待办。
-- 炫技层不上光标特效、不做预加载动画页、不引入 three.js；手机端不挂背景着色器。
+- 炫技层不上光标特效。体积与首开速度不设红线。
 - 品牌图形不做在线搜索与自定义上传合流，清单外的品牌走上传。
 
 ## 6. 验证
@@ -182,7 +201,7 @@ owner 试用本轮成果后给一套明确配置作为 `DEFAULT_CONFIG`；内置
   只剩存档与默认两档。
 - e2e：底栏没有 `copy-link-action`；随机按钮后存档变化；网格开关刷新留存；字号滑杆在自动态
   拖动后 `sizeMode` 变 manual 且预览无跳变（断言滑杆 `aria-valuenow` 前后连续）。
-- 闸门：`npm run lint && npm run typecheck && npm test && npm run build && npm run budget`，
+- 闸门：`npm run lint && npm run typecheck && npm test && npm run build`，
   改界面另跑 `npm run e2e`；截图目检网格与自动态字号。
 - §B：brand 加载四态单测；数字框对齐与夹取单测；preview-height 存取单测；reduced-motion 不加载 showcase 单测。
-  e2e 桌面加品牌页选 GitHub 导出、showcase 背景存在且导出不变；手机加分隔条拖拽留存。预算数字写进 CHANGELOG。
+  e2e 桌面加品牌页选 GitHub 导出、showcase 背景存在且导出不变；手机加分隔条拖拽留存与长按直存图片。
