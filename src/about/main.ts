@@ -54,18 +54,40 @@ function linkCard(id: keyof typeof SUPPORT_LINKS, href: string): HTMLAnchorEleme
   return node
 }
 
+/*
+ * 收款码得让人真能扫到，所以竖着排、给足尺寸，缩略图那种大小扫不出来。
+ * 码本身必须压在白底上，深色主题下也不能让它跟着变暗。
+ */
 function qrCard(id: keyof typeof SUPPORT_QRS, src: string): HTMLDivElement {
   const text = SUPPORT_TEXT[id]
   const node = document.createElement('div')
   node.dataset.slot = `support-${id}`
-  node.className = CARD
+  node.className =
+    'border-border bg-card/70 flex flex-col items-center gap-3 rounded-2xl border p-5'
+
+  const plate = document.createElement('div')
+  plate.className = 'border-border rounded-xl border bg-white p-2'
 
   const image = document.createElement('img')
   image.src = src
+  image.width = 640
+  image.height = 640
+  image.loading = 'lazy'
   image.alt = `${text.label}收款码`
-  image.className = 'border-border size-20 shrink-0 rounded-xl border object-cover'
+  image.className = 'size-40 sm:size-44'
+  plate.appendChild(image)
 
-  node.append(image, caption(text.label, text.hint))
+  const label = caption(text.label, text.hint)
+  label.className = 'flex min-w-0 flex-col items-center gap-0.5'
+
+  node.append(plate, label)
+  return node
+}
+
+/** 两组各自成栅格：链接是一行一条的横卡，收款码是一列一张的竖卡，混在同一格里高度会被拉齐。 */
+function grid(): HTMLDivElement {
+  const node = document.createElement('div')
+  node.className = 'grid gap-3 sm:grid-cols-2'
   return node
 }
 
@@ -74,14 +96,20 @@ function support(): void {
   const list = document.querySelector<HTMLElement>('[data-slot="support-list"]')
   if (!section || !list || !hasSupport()) return
 
+  const links = grid()
   for (const [id, href] of Object.entries(SUPPORT_LINKS)) {
     if (!href) continue
-    list.appendChild(linkCard(id as keyof typeof SUPPORT_LINKS, href))
+    links.appendChild(linkCard(id as keyof typeof SUPPORT_LINKS, href))
   }
+  if (links.childElementCount > 0) list.appendChild(links)
+
+  const qrs = grid()
   for (const [id, src] of Object.entries(SUPPORT_QRS)) {
     if (!src) continue
-    list.appendChild(qrCard(id as keyof typeof SUPPORT_QRS, src))
+    qrs.appendChild(qrCard(id as keyof typeof SUPPORT_QRS, src))
   }
+  if (qrs.childElementCount > 0) list.appendChild(qrs)
+
   section.hidden = false
 }
 

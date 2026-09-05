@@ -23,11 +23,16 @@ export const SUPPORT_LINKS: Record<'afdian' | 'buymeacoffee' | 'githubSponsors',
   githubSponsors: '',
 }
 
-/** 收款码型入口：放图片路径，扫码付。 */
+/**
+ * 收款码型入口：放图片路径，扫码付。
+ *
+ * 图是从收款海报里裁出来的，只留码本身加一圈静区，静区是重画的纯白，
+ * 不从海报上取——支付宝那张白卡比静区窄，直接取会把蓝底和姓名一起带进来。
+ * 裁完用 jsQR 解过一遍，payload 与原图逐字一致，没有重新生成过二维码。
+ */
 export const SUPPORT_QRS: Record<'wechat' | 'alipay', string> = {
-  // 例如 /support/wechat.png
-  wechat: '',
-  alipay: '',
+  wechat: '/support/wechat.png',
+  alipay: '/support/alipay.png',
 }
 
 export const SUPPORT_TEXT: Record<SupportEntry['id'], { label: string; hint: string }> = {

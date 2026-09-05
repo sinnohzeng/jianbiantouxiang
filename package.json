@@ -1,6 +1,6 @@
 {
   "name": "gradient-avatar",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "private": true,
   "type": "module",
   "description": "输入几个字，秒出一张柔光质感的渐变头像",

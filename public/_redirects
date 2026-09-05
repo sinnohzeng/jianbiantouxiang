@@ -1,3 +1,4 @@
-# 关于页是一个真实的静态页，得排在兜底之前，否则会被下面那条吃掉
-/about  /about.html  200
+# 单页应用兜底。
+# /about 是一份真实的 about.html：静态资源在这条兜底之前解析，不会被吃掉。
+# 千万别再给 /about 写一条 200 重写到 /about.html —— Pages 会把重写后的 .html 路径 308 规范化回 /about，成死循环。
 /*  /index.html  200

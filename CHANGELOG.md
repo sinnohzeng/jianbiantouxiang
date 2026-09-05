@@ -5,6 +5,28 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [5.2.0] - 2026-09-05
+
+### 新增
+
+- **赞赏区上线**：关于页的「支持一下」接上微信与支付宝收款码。码是从收款海报里裁出来的，只留码本身加一圈重画的纯白静区，裁完用 jsQR 把原图与成品各解一遍、比对 payload 逐字一致才落盘，没有重新生成过二维码。收款码竖排展示，尺寸给到能真扫得出来，深色主题下压在白底上；两张图不进 PWA 预缓存，不让每个装应用的人先下 200 KB
+
+### 变更
+
+- **滚动条统一收细，轨道透明**：原生粗滚动条最扎眼的不是宽度，是那条从头贯到底的不透明轨道，卡片全是圆角玻璃质感，旁边杵一根实心灰柱子，整页被切成几块。现在轨道透明、滑块细且安静，指到哪一栏、焦点落在哪一栏，哪一栏的滑块才提上来。只用标准属性 `scrollbar-width` / `scrollbar-color`，不写 `::-webkit-scrollbar`：Chromium 里只要 `scrollbar-width` 不是 `auto`，webkit 那套伪元素整个作废，两套写一起必有一套是死代码
+
+### 修复
+
+- **`/about` 线上打不开，报 `ERR_TOO_MANY_REDIRECTS`**：`_redirects` 里那条 `/about  /about.html  200` 是多余且有害的。Cloudflare Pages 的静态资源层自带 HTML 规范化，`/about.html` 一定 308 到 `/about`，这条规范化对重写之后的内部路径同样生效，于是重写与规范化互相咬成死循环。删掉这条即可：静态资源在 `_redirects` 的通配兜底之前解析，`/about` 由资源层自己映射到 `about.html`
+
+### 验证
+
+- 单测 641 条全绿；`npm run e2e` 33 条全绿（赞赏区那条从「没配就不出现」改成「按配置渲染且图真的取到了」，断言 `naturalWidth`）
+- `npm run lint`、`npm run typecheck`、`npm run build` 全绿
+- `/about` 的死循环与修复都用 `wrangler pages dev dist` 在本地逐条复现并确认，跑的是与线上同一套资源层逻辑
+- 滚动条加 `--disable-features=OverlayScrollbar` 截图核对：本机 Chromium 默认走 macOS 悬浮滚动条，静息态什么都不画，不强制经典滚动条就看不到实际效果
+- 关于页赞赏区深浅两色与手机档逐张看图核对
+
 ## [5.1.0] - 2026-09-05
 
 ### 新增

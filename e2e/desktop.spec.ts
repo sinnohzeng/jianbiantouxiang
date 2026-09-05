@@ -338,10 +338,18 @@ test('关于是一个独立页面，带版本号，能走回工具', async ({ pa
   await expect(page.locator('[data-slot="workspace"]')).toHaveCount(1)
 })
 
-test('赞赏区没配就不出现', async ({ page }) => {
+test('赞赏区按配置渲染，收款码图真的取到了', async ({ page }) => {
   await page.goto('/about')
-  // SUPPORT_LINKS 与 SUPPORT_QRS 全空时整块不渲染，页面上不留空壳
-  await expect(page.locator('[data-slot="support"]')).toBeHidden()
+  await expect(page.locator('[data-slot="support"]')).toBeVisible()
+
+  for (const id of ['wechat', 'alipay']) {
+    const image = page.locator(`[data-slot="support-${id}"] img`)
+    await expect(image).toBeVisible()
+    // 路径写错时 img 照样在 DOM 里，只有 naturalWidth 会归零
+    await expect
+      .poll(() => image.evaluate((el: HTMLImageElement) => el.naturalWidth))
+      .toBeGreaterThan(0)
+  }
 })
 
 test('操作条的更多菜单里恢复默认，确认后回到默认档', async ({ page }) => {

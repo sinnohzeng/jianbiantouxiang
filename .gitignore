@@ -13,3 +13,4 @@ playwright-report/
 .superpowers/
 .playwright-mcp/
 inbox/
+.wrangler/

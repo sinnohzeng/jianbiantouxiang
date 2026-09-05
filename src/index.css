@@ -145,6 +145,31 @@
   select {
     font-size: max(16px, 1rem);
   }
+
+  /*
+   * 滚动条统一收细，轨道透明。
+   *
+   * 原生粗滚动条在这套壳里最扎眼的不是宽度，是那条从头贯到底的不透明轨道：
+   * 卡片全是圆角玻璃质感，旁边杵一根实心灰柱子，整页被切成几块。
+   * 轨道给 transparent，柱子就没了，只剩一条随内容走的滑块。
+   *
+   * 只用标准属性，不写 ::-webkit-scrollbar：Chromium 里只要 scrollbar-width 不是 auto，
+   * webkit 那套伪元素整个作废，两套写一起必有一套是死代码。
+   * 标准属性自 Chrome 121 / Edge 121 / Firefox 64 / Safari 18.2 起可用。
+   *
+   * macOS 默认的悬浮滚动条本来就细且不占位，这里改的是「一直显示」那一档，
+   * 也就是 Windows、Linux 和把系统设成始终显示滚动条的 Mac 看到的样子。
+   */
+  :root {
+    --scrollbar-thumb: color-mix(in oklab, var(--foreground) 18%, transparent);
+    --scrollbar-thumb-active: color-mix(in oklab, var(--foreground) 38%, transparent);
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  /* 不继承，得逐个挂 */
+  * {
+    scrollbar-width: thin;
+  }
 }
 
 @layer components {
@@ -368,6 +393,29 @@
   [data-slot='pick-column-color'],
   [data-slot='inspector-dock'] {
     scrollbar-gutter: stable;
+  }
+
+  /*
+   * 指到哪一栏、焦点落在哪一栏，哪一栏的滑块才提上来，旁边那栏保持安静。
+   *
+   * 里面这三列得把静息色写回去：:hover 沿祖先链一路成立，外层壳一亮，
+   * scrollbar-color 又是继承属性，会一路灌给每个子列，结果是碰一下两条全亮，白分栏了。
+   */
+  [data-slot='pick-column'],
+  [data-slot='pick-column-color'],
+  [data-slot='inspector-dock'] {
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  [data-slot='pick-columns']:hover,
+  [data-slot='pick-columns']:focus-within,
+  [data-slot='pick-column']:hover,
+  [data-slot='pick-column']:focus-within,
+  [data-slot='pick-column-color']:hover,
+  [data-slot='pick-column-color']:focus-within,
+  [data-slot='inspector-dock']:hover,
+  [data-slot='inspector-dock']:focus-within {
+    scrollbar-color: var(--scrollbar-thumb-active) transparent;
   }
 }
 
