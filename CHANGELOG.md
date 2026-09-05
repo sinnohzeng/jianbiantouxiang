@@ -5,6 +5,34 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [未发布]
+
+v5.0 工作台与债务清理，规约见 `specs/v5.0-workspace/`。§A 已落地，§B（桌面全平铺工作台、控件形态、手机预览高度、品牌图形、默认配方）待定稿；整轮按 major 发布。
+
+### 新增
+
+- **网格参考线**：预览右上角新增网格开关，与安全区参考线并列；正方形格子取画布短边的 1/12 从中心铺开，中心十字加粗，白色低透明度加 difference 混合，深浅底都可辨；只在预览显示，不进导出；开关状态存 localStorage（`gradient-avatar:overlays`）
+- **字号自动与手动无缝**：字号滑杆常驻可用，自动态显示预览刚求出的字号（按滑杆步进向下对齐，轻触不会越过求解上限），一拖就以它为起点切成手动，画面不跳；旁边「自动」按钮一键回到自动；「字号模式」分段控件删除
+
+### 修复
+
+- **行级补偿彻底独立**：补偿不再参与求解器（此前按补偿预留宽度余量，自动档里两行共用的基准字号会跟着缩，手动档里贴满的第一行会被挤到折行），换行与二分按完整安全区算，落位纯位移；位移后越界只反映在「超出安全区」提示里，不缩字号；补上自动档回归用例
+
+### 移除
+
+- **URL 配置分享**：删除「复制链接」按钮、`#c=` 编解码、坏链接提示与 `history.replaceState` 同步；初始配置只剩本机存档与默认两档，地址栏不再挂配置载荷；`export/share.ts` 里没有调用方的 Web Share 代码一并删除
+- 相关词条 `bottombar.copyLink`、`common.copied`、`share.invalid`、`panel.text.sizeMode.*`；`common.copyFailed` 改为通用「复制失败」
+
+### 变更
+
+- README、architecture、contributing、AGENTS.md、SECURITY.md 与项目记忆同步：分享链接相关描述删除，端到端与截图喂配置改为往 localStorage 写存档；补上 `budget`、`samples`、`gen:app-icons` 三条命令，删掉 v4 已退役的竖排描述
+- 重复的 `export.done` 词条去重
+
+### 验证
+
+- 单测 611 条全绿；`npx playwright test` 24 条全绿（新增网格留存、字号自动态切手动、存档刷新恢复）
+- `npm run lint`、`npm run typecheck`、`npm run build`、`npm run budget`（首屏 203.23 KB gzip）全绿
+
 ## [4.0.1] - 2026-09-02
 
 ### 修复

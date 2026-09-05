@@ -1,6 +1,6 @@
 # ADR-0004 导出：浏览器原生编码与目标体积二分
 
-- 状态：部分被 [ADR-0005](0005-direct-export-and-clipboard.md) 取代（导出入口与分享优先级）
+- 状态：部分被 [ADR-0005](0005-direct-export-and-clipboard.md) 取代（导出入口与分享优先级）；「配置写进 URL hash」一条已于 v5.0 撤销，配置只存本机，见 `specs/v5.0-workspace/spec.md` §A4
 - 日期：2026-08-29
 
 ## 决策

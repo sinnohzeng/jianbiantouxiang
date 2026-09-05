@@ -33,8 +33,8 @@ plan.md 开头有一张「落地范围」表，spec.md 里标了「v3.2」的小
   三者缺一就别加取值：枚举校验会让老版本把未知取值退回 `text`，这是有意的向前兼容路径。
 - 跨模块契约加了字段，同一轮必须补一条**在消费端**断言的用例，判据见
   `docs/engineering-lessons.md` 的「契约里加了字段，不等于有人读它」。v3.1 就栽在这里。
-- 视觉类改动收工前跑一遍真实浏览器。起 `npm run dev`，用 `#c=<base64url(配置差异)>` 喂配置，
-  `page.reload()` 之后截图（只改 hash 是同文档导航，应用只在模块初始化时读一次 hash）。
+- 视觉类改动收工前跑一遍真实浏览器。起 `npm run dev`，用 `page.addInitScript` 往 localStorage 的
+  `gradient-avatar:v3` 写 `{ v: 3, config }` 再打开页面截图（v5.0 起配置不进 URL，应用只在模块初始化时读一次存档）。
 
 ## v3.1.1（2026-08-29 深夜）
 
@@ -61,7 +61,7 @@ plan.md 开头有一张「落地范围」表，spec.md 里标了「v3.2」的小
 
 **How to apply:**
 - 改默认值时，默认值、显式旧值兼容用例、README、architecture、CHANGELOG 与 spec 要同轮更新。
-- URL hash 只编码与当前默认值的差异；省略字段的旧链接会跟随新默认值，显式字段不会。
+- 存档缺字段时由 `normalizeConfig` 补当前默认值（v5.0 起配置不再进 URL，这条只对存档成立）。
 - 颗粒形状池保留 wave 与 corners，别把 ripple 加回来；它是同心圆观感的直接来源。
 - 行级字号只做前置与常驻输入，不扩展成自由排版，也不把所有滑杆都改成常驻输入。
 
@@ -94,8 +94,8 @@ v3.2.0 先发布，本轮按补丁级发布为 3.2.1。
 **Why:** v3.1 只落状态徽章，图标徽章没有图形来源会变成画不出东西的预留区；本版把契约、排版、三种来源、选择器、导出与文档接成完整链路。
 
 **How to apply:**
-- `layout.kind` 现在是 `text` / `status` / `logo`；`layout.graphic` 与 `layout.icon` 同轮存在。`layout.scale` 已移除，旧状态徽章链接靠 `normalizeConfig` 迁移到第二行行级字号，不要把它加回契约。
-- 上传图形只存在模块级会话注册表；`encodeConfigToHash` 会把 `upload` 降级为 `none`。不要把上传 id 写进存档或历史。
+- `layout.kind` 现在是 `text` / `status` / `logo`；`layout.graphic` 与 `layout.icon` 同轮存在。`layout.scale` 已移除，旧状态徽章存档靠 `normalizeConfig` 迁移到第二行行级字号，不要把它加回契约。
+- 上传图形的字节只存在模块级会话注册表；配置里的 `upload` 引用会随存档落盘，刷新后图形位留空、提示重新上传（v5.0 起没有 URL 通道，原来「分享时降级为 none」的逻辑随之删除）。
 - 图形索引是生成产物：lucide 1790 个主图标、emoji 1879 个条目与五语标签由 `npm run gen:icons` / `gen:emoji` 生成，产物与脚本同批提交，不手改。
 - SVG 消毒只走白名单重建。新增 SVG 能力前先看 `docs/engineering-lessons.md` 的 v3.2 一节，不要退回黑名单修补。
 - 图形选择器与全部索引都懒加载。首屏实测 200.22 KB gzip，预算仍为 250 KB；改图形入口时先跑 build 看 chunk 清单。

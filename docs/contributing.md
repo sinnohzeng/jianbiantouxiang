@@ -8,7 +8,7 @@ Node.js 24 以上，npm 随 Node 安装。克隆后 `npm install` 即可，构�
 
 ```bash
 git clone https://github.com/sinnohzeng/jianbiantouxiang.git
-cd gradient-avatar
+cd jianbiantouxiang
 npm install
 npm run dev
 ```
@@ -28,6 +28,8 @@ npm run dev
 | `npm run screenshots` | 三个设备各截深浅两套主题到 `.screenshots/` |
 | `npm run gen:icons` | 从 lucide-react 重建内置图标索引 |
 | `npm run gen:emoji` | 从 emojibase-data 重建五语 emoji 索引 |
+| `npm run gen:app-icons` | 用本机 chromium 把 SVG 应用图标位图化成三张 PNG |
+| `npm run samples` | 重生成 README 的样张到 `docs/assets/samples/` |
 | `npm run budget` | 按 entry 加 modulepreload 的 gzip 和检查首屏 JS 预算 |
 | `npm run format` | Prettier 写回 |
 | `npm run format:check` | Prettier 只检查 |
@@ -55,7 +57,7 @@ Conventional Commits，类型用英文，描述用中文，一行说清这次做
 
 ```
 feat: 配色面板支持粘贴 hex 列表
-fix: 竖排文字在圆形画布上被裁掉一列
+fix: 第一行补偿在自动字号下不再牵动第二行
 docs: 补齐字体加载链的说明
 ```
 
@@ -76,8 +78,8 @@ docs: 补齐字体加载链的说明
 | 档次 | 触发条件 |
 | --- | --- |
 | patch | 修复、文案与 i18n 调整、格式、文档与规约、依赖更新；没有新增用户可见行为 |
-| minor | 新功能、新控件、新入口、契约只增不改；旧分享链接与旧存档仍然有效 |
-| major | `AvatarConfig` 契约语义变更（旧分享链接失效）、移除既有功能、大规模重写 |
+| minor | 新功能、新控件、新入口、契约只增不改；旧存档仍然有效 |
+| major | `AvatarConfig` 契约语义变更（旧存档需要迁移或作废）、移除既有功能、大规模重写 |
 
 流程：
 
@@ -120,7 +122,8 @@ docs: 补齐字体加载链的说明
 - 新增或改动纯逻辑要带 Vitest 用例，放进 `tests/` 下的同名目录。合成、编码、字体加载这类有外部依赖的模块把依赖抽成参数，用例不必拉起 WebGL 与网络。
 - 改动界面要跑 `npm run e2e`，再跑 `npm run screenshots` 并逐张看图。截图脚本打的是 `npm run preview` 的地址，先构建再截。
 - 端到端断言画面走 `window.__gradientAvatarProbe`，它只在开发模式或 URL 带 `?probe=1` 时装。要断言导出产物就用探针的 `encode()`，不要去猜下载文件的落点。
-- 改默认值要同步更新 `DEFAULT_CONFIG`、对应 spec、README、architecture、CHANGELOG 和测试；还要补一条显式旧值的用例。URL hash 只编码与当前默认值的差异，省略字段的旧链接会按新默认值渲染。
+- 改默认值要同步更新 `DEFAULT_CONFIG`、对应 spec、README、architecture、CHANGELOG 和测试；还要补一条显式旧值的用例。存档缺字段时由 `normalizeConfig` 补当前默认值。
+- 端到端或截图要喂任意配置时，配置不进 URL，用 `page.addInitScript` 往 localStorage 的 `gradient-avatar:v3` 写一份 `{ v: 3, config }` 再打开页面；应用只在模块初始化时读一次存档。
 - 新增 i18n key 后跑一遍 `npm test`，`tests/i18n/keys.test.ts` 会扫源码核对五份字典。
 
 ## 文档

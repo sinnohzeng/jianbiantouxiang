@@ -27,7 +27,7 @@ npm run lint && npm run typecheck && npm test && npm run build && npm run budget
 
 ## 改默认值
 
-同步更新 `DEFAULT_CONFIG`、对应 spec、README、architecture、CHANGELOG 与测试，并补一条显式旧值的用例。URL hash 只编码与默认值的差异，省略字段的旧链接会按新默认值渲染。
+同步更新 `DEFAULT_CONFIG`、对应 spec、README、architecture、CHANGELOG 与测试，并补一条显式旧值的用例。配置不进 URL；存档缺字段时由 `normalizeConfig` 补当前默认值。
 
 ## 收尾
 
