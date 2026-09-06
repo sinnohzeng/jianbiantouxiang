@@ -17,7 +17,7 @@ export async function loadGraphic(icon: GraphicIcon): Promise<Graphic | null> {
     }
     if (icon.source === 'brand') {
       const { loadBrandGraphic } = await import('./brand')
-      return await loadBrandGraphic(icon.id)
+      return await loadBrandGraphic(icon.id, icon.mono)
     }
     if (icon.source === 'upload') {
       const { getUploadedGraphic } = await import('./upload')

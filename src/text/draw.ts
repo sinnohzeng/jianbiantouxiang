@@ -163,7 +163,12 @@ export function drawText(
 }
 
 /** 画一段同号的行：先按效果补底层，再落正文那一遍。 */
-function paintRun(ctx: CanvasRenderingContext2D, run: Run, config: AvatarConfig, color: string): void {
+function paintRun(
+  ctx: CanvasRenderingContext2D,
+  run: Run,
+  config: AvatarConfig,
+  color: string,
+): void {
   const { effect, effectStrength } = config.typography
   ctx.font = run.font
   ctx.fillStyle = color

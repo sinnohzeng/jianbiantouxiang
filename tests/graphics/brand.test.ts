@@ -6,7 +6,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 2h20v20H2z"/></svg>'
+const SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 2h20v20H2z"/></svg>'
 
 /** 会真的触发 onload 的假 Image；naturalWidth 为 0 时走 brand.ts 的兜底尺寸。 */
 class FakeImage {
@@ -92,6 +93,39 @@ describe('品牌图形加载', () => {
     await loadBrandGraphic('github-light')
 
     expect(fetchMock).toHaveBeenCalledWith('/brand/github-light.svg')
+  })
+
+  it('单色档有官方单色稿就取官方稿', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, text: async () => SVG })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { loadBrandGraphic } = await brandModule()
+    await loadBrandGraphic('github', true)
+
+    // 上游给 github 配了 github-light，它保留了品牌自己处理过的镂空与留白
+    expect(fetchMock).toHaveBeenCalledWith('/brand/github-light.svg')
+  })
+
+  it('单色档没有官方单色稿就取原色稿，压平交给绘制期', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, text: async () => SVG })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { loadBrandGraphic } = await brandModule()
+    await loadBrandGraphic('lark', true)
+
+    expect(fetchMock).toHaveBeenCalledWith('/brand/lark.svg')
+  })
+
+  it('同一品牌的原色稿与官方单色稿各缓存一份，互不顶替', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, text: async () => SVG })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { loadBrandGraphic } = await brandModule()
+    const color = await loadBrandGraphic('github', false)
+    const mono = await loadBrandGraphic('github', true)
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(mono).not.toBe(color)
   })
 
   it('404 回 null，只 warn 不抛', async () => {

@@ -108,6 +108,7 @@ export function PreviewStage() {
   // v4 起图标不属于任何「用途」，设置了就进栈，来源与标识直接读
   const iconSource = preview.layout.icon.source
   const iconId = preview.layout.icon.id
+  const iconMono = preview.layout.icon.mono
   const safeGuide = useMemo(
     () => safeArea(preview, box.width, box.height),
     [preview, box.width, box.height],
@@ -171,20 +172,20 @@ export function PreviewStage() {
     return () => observer.disconnect()
   }, [])
 
-  // 图形与字体不同，只在来源与 id 变化时加载。配置里其他滑杆不该重复拉网络或索引 chunk。
+  // 图形与字体不同，只在来源、id 与单色档变化时加载。配置里其他滑杆不该重复拉网络或索引 chunk。
   useEffect(() => {
     let cancelled = false
     const task =
       iconSource === 'none' || iconId === ''
         ? Promise.resolve(null)
-        : loadGraphic({ source: iconSource, id: iconId })
+        : loadGraphic({ source: iconSource, id: iconId, mono: iconMono })
     void task.then((next) => {
       if (!cancelled) setGraphic(next)
     })
     return () => {
       cancelled = true
     }
-  }, [iconSource, iconId])
+  }, [iconSource, iconId, iconMono])
 
   // 字体：加载完成才重绘，否则 canvas 会先用回退字形画一遍
   useEffect(() => {
@@ -354,7 +355,7 @@ export function PreviewStage() {
         <div
           aria-hidden
           data-slot="preview-bloom"
-          className="pointer-events-none absolute inset-x-5 -bottom-9 top-1/3 opacity-55 blur-[64px] dark:opacity-40"
+          className="pointer-events-none absolute inset-x-5 top-1/3 -bottom-9 opacity-55 blur-[64px] dark:opacity-40"
           style={{
             background: frameStyle.background,
             borderRadius: frameStyle.borderRadius,
@@ -450,9 +451,7 @@ export function PreviewStage() {
               className="showcase-preview-glow pointer-events-none absolute inset-0"
             />
           ) : null}
-
         </PreviewFrame>
-
       </div>
 
       <div className="flex min-h-5 w-full max-w-full flex-col items-center gap-1 text-center">

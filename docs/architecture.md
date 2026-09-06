@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | 构建 | Vite 8、`@vitejs/plugin-react`、`vite-plugin-pwa` | 单包根目录应用，产物在 `dist/` |
 | 语言 | TypeScript 6 | `strict` 加 `noUncheckedIndexedAccess`，路径别名只用 `@/` |
-| 框架 | React 19 | 无路由，单页单视图 |
+| 框架 | React 19 | 无路由，两个入口：`index.html`、`about.html`（`appType: 'mpa'`，详见“构建与部署”） |
 | 样式 | Tailwind CSS v4、`@tailwindcss/vite` | 主题走 CSS 变量，深浅两套 |
 | 组件 | shadcn/ui（CLI 4，Base UI 底层）、lucide-react、cmdk、sonner | 原语在 `src/components/ui/`，跟随上游 |
 | 状态 | zustand 5 | 单 store，模块加载即读本机存档 |
@@ -33,7 +33,7 @@
 | `src/engine/` | 质感定义与参数映射、种子、预览挂载、离屏渲染、设备能力探测、无 WebGL2 兜底 |
 | `src/engine/shaders/` | 四段 fragment shader 源码，一种质感一份 chunk |
 | `src/text/` | 文字量测、换行、自动填满、排版、绘制、明暗判定 |
-| `src/palettes/` | 26 套内置配色、OKLCH 色彩工具、种子色和谐生成 |
+| `src/palettes/` | 37 套内置配色、OKLCH 色彩工具、种子色和谐生成 |
 | `src/fonts/` | 精选清单、fontsource 目录缓存、css2 与镜像加载链、本地上传注册 |
 | `src/graphics/` | 图形来源分派、lucide Path2D、Noto Emoji、上传消毒、五语 emoji 索引、图形绘制 |
 | `src/graphics/generated/` | lucide 全库与精选索引、emoji 基础索引与五语标签，由 `npm run gen:icons` / `gen:emoji` 生成 |
@@ -86,7 +86,7 @@
 收起时整块不渲染而不是藏起来：Base UI 的滑杆在挂载那一刻量控件宽度，在 `display:none` 里挂上就量到 0，
 之后即使显示出来滑块也一直是 `visibility: hidden`，键盘与拖动全部失灵。
 每行的数字框常驻，回车或失焦按步进对齐并夹回区间；给了默认值的行在偏离默认时多出一个重置钮，
-桌面悬停或聚焦才显形，触控设备常显。字号那一行不给默认值：回默认由「自动」按钮承担。
+桌面悬停或聚焦才显形，触控设备常显。字号那一行不给默认值：回默认由“自动”按钮承担。
 
 最近生成收在顶栏右上角的浮层里，与撤销重做同一处落点：三个都是“回到刚才那一版”。
 一键恢复默认在操作条的“更多”菜单里，带一次确认；它走撤销栈，确认之后还能撤销回去。
@@ -109,7 +109,7 @@ localStorage `gradient-avatar:preview-height`，模块 `src/app/preview-height.t
 | `palette`、`customColors` | 内置配色 id 或 `custom`，自定义时给 2 到 6 个 hex | 配色、引擎 |
 | `canvas` | 宽高、形状、圆角比例 | 合成、导出 |
 | `typography` | 字体与来源、字重、字号模式与字号、行级字号比例与水平补偿、边距、行高、字间距、文字效果与强度、取色模式与颜色、胶囊底参数 | 文字、字体 |
-| `layout` | 图形比例与图形来源；v4 起无用途分派，图标、第一行、第二行一个纵向栈 | 文字排版、图形 |
+| `layout` | 图形比例、图形来源与品牌单色开关（`icon.mono`，仅品牌来源生效，默认 `false`）；v4 起无用途分派，图标、第一行、第二行一个纵向栈 | 文字排版、图形 |
 | `exportOptions` | 格式、体积档、底色 | 编码 |
 
 同一模块另外导出三个函数。`DEFAULT_CONFIG` 是默认值的唯一定义处；`normalizeConfig` 把任意局部输入补成完整配置，数值按区间夹值、枚举做合法性校验，任何输入都不抛错；`configHash` 对键排序后做 FNV-1a，用作历史去重与渲染去重的标记。
@@ -180,13 +180,11 @@ v4 只有一种版式：图标（可选）→ 第一行 → 第二行的纵向�
 
 每一行可以按 `lineOffsetsX` 做水平视觉补偿。补偿不参与求解：换行与二分都按完整安全区宽度算，落位时做纯位移，改第 i 行只动第 i 行，其余行的字号与坐标一个像素都不变。位移后越出安全区只反映在 `overflow` 提示里，不缩字号。次行字号乘 `lineSizeScales[1]`；绘制层按行设置 `ctx.font`，描边、投影、发光的尺度也随之按行走。第一行为空、第二行有内容是合法槽位（图标加说明文字），空槽位留住，补偿参数跟着内容走。
 
-字号有自动与手动两档。自动档由 `fitStack` 求解，`TextLayout.fontRatio` 带出求得的基准比例，预览每次排版后把它写进 store 的 `ui.autoFontSize`。这是派生值，不进配置与存档。字号滑杆常驻可用：自动态显示这个回写值，一拖就以它为起点切成手动，旁边的「自动」按钮把 `sizeMode` 拨回自动，画面全程不跳。
+字号有自动与手动两档。自动档由 `fitStack` 求解，`TextLayout.fontRatio` 带出求得的基准比例，预览每次排版后把它写进 store 的 `ui.autoFontSize`。这是派生值，不进配置与存档。字号滑杆常驻可用：自动态显示这个回写值，一拖就以它为起点切成手动，旁边的“自动”按钮把 `sizeMode` 拨回自动，画面全程不跳。
 
 安全框由 `typography.padding` 从画布四边扣出，默认值 0.15；`typography.lineHeight` 默认 1.03。量宽一律走 canvas `measureText`，CJK 逐字换行、拉丁按词换行。
 
-文字色就是用户挑的那一个，预览与导出读同一个字段，没有第二条判定路径。
-v5 之前这里有一套自动取色加自动底板：预览另开一条离屏 WebGL 探针取色，够不到对比度就悄悄换成胶囊底。
-它的问题不是不准，是没人知道当前这个颜色是谁定的。`src/text/ink.ts` 只留纯色彩数学，供配色表与选择器判明暗。
+文字色就是用户挑的那一个，预览与导出读同一个字段，没有第二条判定路径。`src/text/ink.ts` 只留纯色彩数学，供配色表与选择器判明暗。
 
 图标进栈在 `layoutText` 里落位。图形先按安全框高度的 `layout.graphic` 等比缩放，宽度超出时改按宽度约束，占栈顶；文字拿到剩余高度，两行一起缩小到放得下为止。文字为空时图形居中，图形缺失时文字退回整块安全框居中。
 
@@ -198,10 +196,14 @@ v5 之前这里有一套自动取色加自动底板：预览另开一条离屏 W
 | --- | --- | --- |
 | 内置图标 | lucide-react 1.37 的 1790 个主图标；精选 162 个随选择器小索引加载，全库 470 KB 原始数据只在搜索超出精选时加载 | `__iconNode` 转 `Path2D`，按文字色描边，并复用文字效果 |
 | emoji | emojibase-data 15.0.0 的 1879 个可分组条目，五种语言各一份标签 chunk | 按码点取 Noto Emoji v2.047 单个 SVG，fetch 转 Blob 再画，保留原色 |
-| 品牌 | `src/graphics/generated/brand-index.ts` 的 58 个条目，六类分组，带中英文名、别名与纯白变体名 | 同源静态文件 `public/brand/<id>.svg\|png`，SVG 走 fetch 加消毒再转 Blob，PNG 直接 `Image`，保留原色 |
+| 品牌 | `src/graphics/generated/brand-index.ts` 的 58 个条目，六类分组，带中英文名、别名与官方单色变体名（`white` 字段，14 个条目有值） | 同源静态文件 `public/brand/<id>.svg\|png`，SVG 走 fetch 加消毒再转 Blob，PNG 直接 `Image`，保留原色 |
 | 上传 | 无索引，模块级会话注册表 | SVG 先经元素与属性白名单重建；PNG / WebP 直接 `Image`，保留原色 |
 
-品牌图形的清单真源是 `scripts/brand-list.json`，`npm run gen:brand` 把远端条目从 homarr-labs/dashboard-icons 拉下来、把 `assets/brand/` 里 owner 提供的素材拷过去，统一落到 `public/brand/`，同时生成索引；两个产物都不手改。配置里存的是文件名，纯白变体（如 `github-light`）是独立文件名，选择器的“原色 / 单白”分段切的就是它。索引与加载器都只在图形选择器或 `loadGraphic` 命中 brand 时才 `import()`，不进首屏预算。SVG 与上传路径同过一遍 `sanitizeSvg`，取不到或解析失败只 `console.warn` 并让图形位留空。
+品牌图形的清单真源是 `scripts/brand-list.json`，`npm run gen:brand` 把远端条目从 homarr-labs/dashboard-icons 拉下来、把 `assets/brand/` 里 owner 提供的素材拷过去，统一落到 `public/brand/`，同时生成索引；两个产物都不手改。
+
+单色由 `layout.icon.mono` 这个布尔字段控制，只在 `icon.source === 'brand'` 时生效，默认 `false`。58 个品牌里 14 个有上游给的官方单色稿（如 `github-light`），`brand.ts` 的 `fileOf()` 命中就取它，保留品牌自己处理过的镂空与留白；其余 44 个取原色稿交给绘制期处理。`src/graphics/draw.ts` 的 `paintMono()` 把图形画到一张按落位尺寸开的离屏画布，`globalCompositeOperation = 'source-in'` 填当前文字色再贴回主画布，官方单色稿与原色稿走同一条着色路径，预览与导出共用；离屏画布不缓存，取不到 2D 上下文就退回原色绘制。挑选栏“图标”节的分段控件与选择器里的分段控件读写同一份配置字段。
+
+索引与加载器都只在图形选择器或 `loadGraphic` 命中 brand 时才 `import()`，不进首屏预算。SVG 与上传路径同过一遍 `sanitizeSvg`，取不到或解析失败只 `console.warn` 并让图形位留空。
 
 上传 SVG 只保留常见绘图元素、渐变、裁剪与安全展示属性；未知元素整支丢弃，未知属性删除，`url()` 只允许内部引用。文件字节只在模块级会话注册表里，不写盘；配置里留的是 `source: 'upload'` 加会话 id，会随存档与历史落盘，刷新后注册表已空，图形位留空、图形节仍显示上传来源，用户重新上传即可。加载失败同样只让图形位留空，渐变、文字与导出继续可用。
 
@@ -268,14 +270,12 @@ staggered-text、preloader），随它们进来的 three、@react-three/fiber、
 手机按 0.5 DPR 渲染。导出走的是 `src/export/` 的离屏合成，与页面装饰完全无关，装饰层不进导出画布。
 
 随机与导出成功的那一下反馈是纯 CSS 的一圈涟漪加预览框弹动，见 `showcase/Ripple.tsx`。
-5.0 之前这里挂的是 star-burst 着色器粒子：它铺满自己那块方形画布，摆在一百多像素的按钮上边界一览无余，
-点一下像一团方形色块炸开，换成 CSS 之后按钮再小也不会露边界，也不必为一次反馈起 WebGL 上下文。
 
 进场幕布在读秒结束的那一刻起停止吃指针事件：抽走要放完整段动画，期间界面已经露出来了，继续挡着点击就是假死。
 
 ## 代码分割与体积
 
-首屏 JS 不设上限，v5.0 炫技层落地后实测 252.08 KB，250 KB 只是脚本里的参考线。`npm run budget` 只是报一次数，不再是闸门：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
+首屏 JS 不设上限，当前实测 245.56 KB gzip，250 KB 只是脚本里的参考线。`npm run budget` 只是报一次数，不再是闸门：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
 
 三条规则守住这个上限。
 
@@ -290,7 +290,7 @@ staggered-text、preloader），随它们进来的 three、@react-three/fiber、
 | 层 | 命令 | 覆盖 |
 | --- | --- | --- |
 | 单测 | `npm test` | `tests/` 与 `src/` 同名，jsdom 环境，覆盖种子映射、排版与自动填满、补偿独立性、图标排版、SVG 消毒、品牌图形加载、图形绘制消费端、索引结构、明暗判定、体积二分、预览参考层与预览高度存取、数字框对齐与重置、工作台冒烟、字典对齐 |
-| 端到端 | `npm run e2e` | 两个 project：`desktop` 跑 1440 桌面，`iphone-15` 跑设备模拟。覆盖内置图标、emoji、品牌图形、上传 SVG、双列工作台与微调默认收起、预览区无滚动条、微调重置钮、更多菜单里的恢复默认、手机分隔条拖拽留存、手机底部抽屉、存档刷新恢复、网格开关留存、字号自动态切手动与既有导出路径 |
+| 端到端 | `npm run e2e` | 两个 project：`desktop` 跑 1440 桌面，`iphone-15` 跑设备模拟。覆盖内置图标、emoji、品牌图形、品牌单色切换、上传 SVG、双列工作台与微调默认收起、预览区无滚动条、微调重置钮、更多菜单里的恢复默认、手机分隔条拖拽留存、手机底部抽屉、存档刷新恢复、网格开关留存、字号自动态切手动、关于页独立成页、赞赏区渲染、炫技层背景、微信长按保存与既有导出路径 |
 | 视觉 | `npm run screenshots` | 桌面 1440、iPhone 15、iPhone SE 三个设备各截深浅两套主题，输出到 `.screenshots/` |
 
 headless chromium 默认没有 GPU，WebGL2 靠 `--use-angle=swiftshader` 等启动参数走软件渲染。`devices['iPhone 15']` 的默认浏览器是 webkit，project 里必须显式覆盖成 chromium，否则那几个参数不生效。
@@ -303,15 +303,15 @@ headless chromium 默认没有 GPU，WebGL2 靠 `--use-angle=swiftshader` 等启
 
 站点是两个入口，不是单页应用：`index.html` 是工具本体，`about.html` 是关于页。
 `appType` 必须是 mpa，spa 那一档会把 `/about` 也兜回 `index.html`，开发与 `vite preview` 上就永远看不到关于页。
-同理 service worker 关掉了导航兜底，否则装过 PWA 的人打开 `/about` 会拿到缓存里的 `index.html`。
+同理 `vite.config.ts` 里把 `workbox.navigateFallback` 设成 `null`，关掉 service worker 的导航兜底，否则装过 PWA 的人打开 `/about` 会拿到缓存里的 `index.html`。
 
-Cloudflare Pages 的构建命令是 `npm run build`，输出目录 `dist`，Node 版本读 `.node-version`。`public/_headers` 给全站发安全头、给 `/assets/*` 发一年不可变缓存；`public/_redirects` 里 `/about` 那条排在通配兜底之前，两份文件随构建进入输出目录。
+Cloudflare Pages 的构建命令是 `npm run build`，输出目录 `dist`，Node 版本读 `.node-version`。`public/_headers` 给全站发安全头、给 `/assets/*` 发一年不可变缓存；`public/_redirects` 只留一条 `/*  /index.html  200` 给单页应用兜底，`/about` 由 Pages 的静态资源层在这条兜底之前自己解析，映射到 `about.html`，不需要也不能再给它单独写一条重写规则：`/about.html` 会被资源层的 HTML 规范化 308 回 `/about`，与重写规则互相咬成死循环。两份文件随构建进入输出目录。
 
 PWA 由 `vite-plugin-pwa` 生成 manifest 与 service worker，预缓存覆盖 js、css、html、svg、png、woff2。
 注册不走插件注入的那段脚本，改在 `src/app/sw-update.ts` 自己注册：只有拿到 registration 才能主动轮询新版本。
 service worker 默认只在页面加载时查一次更新，标签页开着不关就一直停在旧版本；这里每 15 分钟问一次，
 回到前台与窗口重新聚焦时再各问一次。发现新版本不闷声重载，弹一条不自动消失的提示，
-点「刷新」才 skipWaiting 加重载：当场重载会把正在敲的字打断。不点也不影响使用，下次进来自然是新版。
+点“刷新”才 skipWaiting 加重载：当场重载会把正在敲的字打断。不点也不影响使用，下次进来自然是新版。
 
 ## 能力边界
 

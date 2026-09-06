@@ -29,12 +29,13 @@ npm run dev
 | `npm run gen:icons` | 从 lucide-react 重建内置图标索引 |
 | `npm run gen:emoji` | 从 emojibase-data 重建五语 emoji 索引 |
 | `npm run gen:app-icons` | 用本机 chromium 把 SVG 应用图标位图化成三张 PNG |
+| `npm run gen:brand` | 按 `scripts/brand-list.json` 拉取或拷贝品牌图形，重建 `src/graphics/generated/brand-index.ts` |
 | `npm run samples` | 重生成 README 的样张到 `docs/assets/samples/` |
 | `npm run budget` | 按 entry 加 modulepreload 的 gzip 和报一次首屏 JS 体积，只作参考 |
 | `npm run format` | Prettier 写回 |
 | `npm run format:check` | Prettier 只检查 |
 
-提交前至少跑 `npm run lint && npm run typecheck && npm test && npm run build`，CI 跑的就是这四步。
+提交前至少跑 `npm run lint && npm run format:check && npm run typecheck && npm test && npm run build`，CI 的 check job 跑的就是这五步；e2e job 只在 main 分支的 push 与手动触发时跑，失败会把 `playwright-report/` 与 `test-results/` 上传成制品，不用只靠日志猜。
 
 ## 目录约定
 
@@ -42,14 +43,16 @@ npm run dev
 
 | 放什么 | 放哪 |
 | --- | --- |
-| 纯逻辑 | `src/engine/`、`src/text/`、`src/palettes/`、`src/fonts/`、`src/export/`、`src/state/` 六个库目录之一 |
-| 页面结构与面板 | `src/app/` 与 `src/app/panels/` |
+| 纯逻辑 | `src/engine/`、`src/text/`、`src/palettes/`、`src/fonts/`、`src/export/`、`src/state/`、`src/graphics/` 七个库目录之一 |
+| 工具本体的页面结构、面板与工作台分区 | `src/app/`、`src/app/panels/`、`src/app/workspace/` |
+| 首屏演示动效 | `src/app/showcase/` 与 `src/components/showcase/` |
+| 关于页 | `src/about/`，纯静态入口，不挂 React 树，样式复用 `src/index.css` |
 | shadcn 原语 | `src/components/ui/`，由 CLI 生成，不手改 |
 | 跨面板复用的组合件 | `src/components/blocks/` |
 | 单测 | `tests/`，目录与文件名跟 `src/` 对齐 |
 | 端到端 | `e2e/`，文件名决定跑在哪一档 |
 
-每个库目录有一个 `index.ts` 作为对外出口，跨目录引用走出口，不深挖到内部文件。
+七个库目录里，`engine`、`text`、`palettes`、`fonts`、`export`、`state` 各有一个 `index.ts` 作为对外出口，跨目录引用走出口，不深挖到内部文件；`src/graphics/` 没有出口文件，按需直接引用内部模块（如 `@/graphics/draw`、`@/graphics/source`）。
 
 ## 提交
 
@@ -97,7 +100,7 @@ docs: 补齐字体加载链的说明
 - 模块内引用用相对路径，跨目录一律用 `@/` 别名，不写 `../../`。
 - 格式交给 Prettier：单引号、不加分号、行宽 100、尾随逗号。`src/components/ui`、`docs/`、`specs/` 与根目录的长文档都在 `.prettierignore` 里，改这些文件不必也不要跑格式化。
 - 新组件按这个顺序找：先看 `src/components/ui/` 的 shadcn 原语够不够用，不够就去付费 registry 找可借鉴的范式并按本仓需要改造，都不合适才自己写。`src/components/blocks/` 里的件都在文件头注明了范式来源。
-- 界面文案一律走 i18n key，源码里不出现硬编码的中文或英文文案。key 是扁平的点分命名，一级前缀就是区域，现有的是 `app`、`panel`、`style`、`preview`、`export`、`font`、`topbar`、`bottombar`、`history`、`theme`、`locale`、`common`。加 key 要同时改五份字典，少一份 typecheck 就报错。配色名不进字典，它在 `src/palettes/palettes.ts` 里自带五语。
+- 界面文案一律走 i18n key，源码里不出现硬编码的中文或英文文案。key 是扁平的点分命名，一级前缀就是区域，现有的是 `about`、`app`、`bottombar`、`common`、`export`、`font`、`history`、`icon`、`locale`、`panel`、`preview`、`reset`、`style`、`theme`、`topbar`、`update`。加 key 要同时改五份字典，少一份 typecheck 就报错。配色名不进字典，它在 `src/palettes/palettes.ts` 里自带五语。
 - 触控目标不小于 44 px，输入类控件字号不小于 16 px，后者是为了避开 iOS 聚焦时的自动缩放。
 - 装饰性动画要读 `prefers-reduced-motion`。用 `usePrefersReducedMotion()` 或 CSS 媒体查询，做法是把时长归零而不是移除元素，布局才不会跟着跳。
 
@@ -146,5 +149,28 @@ docs: 补齐字体加载链的说明
 | 项目记忆：跨会话维护口径 | `docs/memory/` |
 
 常驻文档只写现状。不要在 `README.md` 或 `architecture.md` 里写“本次改了什么”“相比上一版”，那些进 `CHANGELOG.md`。
+
+### 分层与记忆准入
+
+上面九行按半衰期归到三层：
+
+| 层 | 落点 | 写什么 | 谁读 |
+| --- | --- | --- | --- |
+| 常驻文档 | `README.md`、`docs/architecture.md`、`docs/contributing.md`、`AGENTS.md` | 现状。同一事实只定义一次，别处给指针 | 人与智能体，每次 |
+| 冻结快照 | `specs/<version>/`、`docs/adr/`、`CHANGELOG.md` | 当时为什么这么定、否决了什么、改了什么；写完封存不回写 | 按需 |
+| 项目记忆 | `docs/memory/` | 前两层都推不出来的当前事实 | 按需，索引常驻 |
+
+一条事实要不要写进 `docs/memory/`，过四问，全过才准入：
+
+1. 能从代码或配置读出来吗？能，就不进。
+2. 能从 `git log` 或 `CHANGELOG.md` 读出来吗？能，就不进。
+3. 属于“现状”吗？属于，就进常驻文档，记忆最多留一行指针。
+4. 是踩过的坑吗？是，就进 `docs/engineering-lessons.md`，那里才是教训的 SSOT。
+
+四问都不命中的才是记忆该收的：owner 的偏好与授权、协作口径、外部约束，以及跨会话才用得上而代码里看不出来的约定。
+
+规约与计划是当轮意图快照，实现开始后不再回写正文：需求或设计变了就在新一轮规约里重写，不追溯改旧规约。
+每轮收尾时在 `spec.md` 尾部补一节“实到范围”，把与正文不同的地方一次性列清并指向 `CHANGELOG.md` 对应版本段，
+再把头部状态行改成已封存。
 
 需要多文件改动的新功能先写规约再写计划再动手，一句话能描述的改动直接做。

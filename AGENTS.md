@@ -6,16 +6,17 @@
 
 - 先读 `docs/contributing.md`（约定）与 `docs/architecture.md`（模块与数据流）。多文件改动先看 `specs/` 里有没有对应规约，有就照规约做。
 - Node 24 以上。`npm ci` 装依赖，构建与测试不需要任何密钥。
+- 常驻文档、冻结快照、项目记忆三层怎么分工，一条事实该不该进 `docs/memory/`，规约何时封存：见 `docs/contributing.md`“分层与记忆准入”一节，这里不复述。
 
 ## 验证闸门
 
 提交前必须全绿：
 
 ```bash
-npm run lint && npm run typecheck && npm test && npm run build
+npm run lint && npm run format:check && npm run typecheck && npm test && npm run build
 ```
 
-改了界面另跑 `npm run e2e`。任何一步红了就不提交，先修。
+改了界面另跑 `npm run e2e`。任何一步红了就不提交，先修。命令与 CI 各 job 的对应关系见 `docs/contributing.md`。
 
 ## 边界
 
@@ -27,13 +28,12 @@ npm run lint && npm run typecheck && npm test && npm run build
 
 ## 智能体规模
 
-- 这是轻量级项目。核查、对抗检验、评审、验收类子智能体每轮合计不超过 5 个；一遍单人评审只报闸门（lint、typecheck、单测、e2e）抓不到的问题，不做多轮反驳投票。
-- 实现切片与机械改动交给 Opus 5 子智能体；主会话的用量留给设计与取舍。
+- 核查、对抗检验、评审、验收类子智能体每轮合计不超过 5 个，一遍单人评审只报闸门（lint、format:check、typecheck、单测、build、e2e）抓不到的问题；分工细则见 `docs/contributing.md`“智能体协作”一节，这里不复述。
 - 子智能体不做 git 操作，不读 `.env.local`。
 
 ## 改默认值
 
-同步更新 `DEFAULT_CONFIG`、对应 spec、README、architecture、CHANGELOG 与测试，并补一条显式旧值的用例。配置不进 URL；存档缺字段时由 `normalizeConfig` 补当前默认值。
+同步更新哪些文件、旧值用例与 `normalizeConfig` 兜底，见 `docs/contributing.md`“测试”一节，这里不复述。
 
 ## 收尾
 

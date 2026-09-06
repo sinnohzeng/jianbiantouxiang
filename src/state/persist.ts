@@ -70,10 +70,7 @@ export function loadPersisted(): AvatarConfig | null {
 }
 
 /** 存档超过 400 KB 时从最旧一条开始丢缩略图，配置本身仍然全量保留。 */
-function fitStorage(
-  config: AvatarConfig,
-  history: readonly HistoryEntry[],
-): HistoryEntry[] {
+function fitStorage(config: AvatarConfig, history: readonly HistoryEntry[]): HistoryEntry[] {
   const limit = 400 * 1024
   let entries = history.slice(0, HISTORY_MAX)
   while (JSON.stringify({ v: PERSIST_VERSION, config, history: entries }).length > limit) {

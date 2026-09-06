@@ -44,7 +44,9 @@ export function HistoryStrip() {
             entry.config.canvas.shape === 'circle' && 'rounded-full',
           )}
           style={
-            entry.thumb ? undefined : { backgroundImage: paletteThumbCss(paletteColors(entry.config)) }
+            entry.thumb
+              ? undefined
+              : { backgroundImage: paletteThumbCss(paletteColors(entry.config)) }
           }
         >
           {entry.thumb ? (

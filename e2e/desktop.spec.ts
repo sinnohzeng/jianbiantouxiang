@@ -3,10 +3,13 @@
  * 只跑 desktop project，分派见 playwright.config.ts 的 testMatch。
  */
 
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import {
   APP_URL,
+  POLL_TIMEOUT_MS,
+  PROBE_TEST_TIMEOUT_MS,
   PROBE_TIMEOUT_MS,
+  SETTLE_TIMEOUT_MS,
   openApp,
   openInspector,
   probeEncode,
@@ -29,7 +32,7 @@ test('预览挂着 WebGL 画布，合成结果不是一张平色', async ({ page
 })
 
 test('点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => {
-  test.setTimeout(PROBE_TIMEOUT_MS)
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
   const download = page.waitForEvent('download')
@@ -58,7 +61,7 @@ test('点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => {
 })
 
 test('导出抽屉能把 PNG 复制到剪贴板', async ({ context, page }) => {
-  test.setTimeout(PROBE_TIMEOUT_MS)
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await openApp(page)
 
@@ -84,7 +87,7 @@ test('改文字后刷新页面，文字从本机存档恢复，地址栏不带�
   // 存档是 300 ms 防抖写入，等它落地再刷新
   await expect
     .poll(() => page.evaluate(() => localStorage.getItem('gradient-avatar:v3') ?? ''), {
-      timeout: 15_000,
+      timeout: SETTLE_TIMEOUT_MS,
     })
     .toContain('存档往返')
   expect(await page.evaluate(() => window.location.hash)).toBe('')
@@ -218,12 +221,12 @@ test('常驻操作条：两个随机一级按钮', async ({ page }) => {
     })
   const seedBefore = await readSeed()
   await page.locator('[data-slot="shuffle-color"]').click()
-  await expect.poll(readSeed, { timeout: 5000 }).not.toBe(seedBefore)
+  await expect.poll(readSeed, { timeout: POLL_TIMEOUT_MS }).not.toBe(seedBefore)
   expect(await readSeed()).toBeTruthy()
 })
 
 test('图标徽章能选内置棕榈图标并导出', async ({ page }) => {
-  test.setTimeout(PROBE_TIMEOUT_MS)
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
   await page.locator('[data-slot="text-icon-switch"]').click()
@@ -242,7 +245,7 @@ test('图标徽章能选内置棕榈图标并导出', async ({ page }) => {
 })
 
 test('图标徽章能用中文搜到棕榈 emoji 并导出', async ({ page }) => {
-  test.setTimeout(PROBE_TIMEOUT_MS)
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
   await page.locator('[data-slot="text-icon-switch"]').click()
@@ -261,8 +264,23 @@ test('图标徽章能用中文搜到棕榈 emoji 并导出', async ({ page }) =>
   expect(encoded.hitTarget).toBe(true)
 })
 
+interface StoredIcon {
+  source: string
+  id: string
+  mono: boolean
+}
+
+/** 读本机存档里的图标那一位。写盘有防抖，调用方自己用 expect.poll 等。 */
+function readIcon(page: Page): Promise<StoredIcon | null> {
+  return page.evaluate(() => {
+    const raw = localStorage.getItem('gradient-avatar:v3')
+    if (!raw) return null
+    return (JSON.parse(raw) as { config: { layout: { icon: StoredIcon } } }).config.layout.icon
+  })
+}
+
 test('图标徽章能在品牌页搜到 GitHub 并导出', async ({ page }) => {
-  test.setTimeout(PROBE_TIMEOUT_MS)
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
   await page.locator('[data-slot="text-icon-switch"]').click()
@@ -271,19 +289,11 @@ test('图标徽章能在品牌页搜到 GitHub 并导出', async ({ page }) => {
   // 名字精确匹配，免得选中同样命中的 GitHub Copilot
   await page.getByRole('option', { name: 'GitHub', exact: true }).click()
 
-  // 默认单白变体，GitHub 有纯白件，存档里落的是 github-light
-  const readIcon = () =>
-    page.evaluate(() => {
-      const raw = localStorage.getItem('gradient-avatar:v3')
-      if (!raw) return null
-      return (
-        JSON.parse(raw) as {
-          config: { layout: { icon: { source: string; id: string } } }
-        }
-      ).config.layout.icon
-    })
-  await expect.poll(async () => (await readIcon())?.source, { timeout: 5000 }).toBe('brand')
-  expect((await readIcon())?.id).toBe('github-light')
+  // 存档里落的是品牌 id 本身，取原色稿还是官方单色稿由 icon.mono 在加载期定
+  await expect
+    .poll(async () => (await readIcon(page))?.source, { timeout: POLL_TIMEOUT_MS })
+    .toBe('brand')
+  expect((await readIcon(page))?.id).toBe('github')
 
   await page.locator('#avatar-text-first').fill('产品设计部')
 
@@ -297,8 +307,59 @@ test('图标徽章能在品牌页搜到 GitHub 并导出', async ({ page }) => {
   expect(encoded.hitTarget).toBe(true)
 })
 
+test('挑选栏能把没有官方单色稿的品牌切成单色并导出', async ({ page }) => {
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
+  await openApp(page)
+
+  await page.locator('[data-slot="text-icon-switch"]').click()
+  await page.locator('label:has(input[data-group="icon-source"][value="brand"])').click()
+  await page.locator('[data-slot="command-input"]').fill('飞书')
+  await page.getByRole('option', { name: /飞书|Lark/ }).click()
+
+  // 上游没给飞书配官方单色稿，压平在绘制期做，界面上照样切得动
+  const monoTile = page.locator('label:has(input[data-group="brand-mono"][value="mono"])')
+  await expect(monoTile).toBeVisible()
+  await monoTile.click()
+
+  await expect
+    .poll(async () => (await readIcon(page))?.mono, { timeout: POLL_TIMEOUT_MS })
+    .toBe(true)
+  expect((await readIcon(page))?.id).toBe('lark')
+
+  await page.locator('#avatar-text-first').fill('产品设计部')
+
+  const download = page.waitForEvent('download')
+  await page.locator('[data-slot="export-action"]').click()
+  const file = await download
+  expect(file.suggestedFilename()).toMatch(/_\d{8}-\d{6}\.jpg$/)
+
+  const encoded = await probeEncode(page)
+  expect(encoded.bytes).toBeGreaterThan(0)
+  expect(encoded.hitTarget).toBe(true)
+})
+
+test('单色那一档只跟着品牌来源出现', async ({ page }) => {
+  await openApp(page)
+
+  const monoControl = page.locator('[data-slot="brand-mono"]')
+  await expect(monoControl).toHaveCount(0)
+
+  // 内置图标没有单色一说，挑完这一档仍不该冒出来
+  await page.locator('[data-slot="text-icon-switch"]').click()
+  await page.locator('[data-slot="command-input"]').fill('棕榈')
+  await page.getByRole('option', { name: /棕榈树/ }).click()
+  await expect(page.locator('[data-slot="graphic-picker"]')).toContainText('palm')
+  await expect(monoControl).toHaveCount(0)
+
+  await page.locator('[data-slot="graphic-picker"]').click()
+  await page.locator('label:has(input[data-group="icon-source"][value="brand"])').click()
+  await page.locator('[data-slot="command-input"]').fill('飞书')
+  await page.getByRole('option', { name: /飞书|Lark/ }).click()
+  await expect(monoControl).toBeVisible()
+})
+
 test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
-  test.setTimeout(PROBE_TIMEOUT_MS)
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
   await page.locator('[data-slot="text-icon-switch"]').click()
@@ -402,7 +463,7 @@ test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ pa
   // 自动态滑杆显示预览回写的求解值，得等首帧排版完成；
   // 网络字体到货会再排一次，值可能再变一档，所以等它连续两次读数相同再取基线
   const slider = page.locator('input[type="range"]').first()
-  await expect.poll(() => slider.inputValue(), { timeout: 5000 }).not.toBe('0.42')
+  await expect.poll(() => slider.inputValue(), { timeout: POLL_TIMEOUT_MS }).not.toBe('0.42')
   await expect
     .poll(
       async () => {
@@ -410,7 +471,7 @@ test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ pa
         await page.waitForTimeout(400)
         return first === (await slider.inputValue())
       },
-      { timeout: 15000 },
+      { timeout: SETTLE_TIMEOUT_MS },
     )
     .toBe(true)
   const before = Number(await slider.inputValue())
@@ -427,7 +488,7 @@ test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ pa
 })
 
 test('炫技层背景挂着自己的 WebGL 画布，预览与导出都不受影响', async ({ page }) => {
-  test.setTimeout(PROBE_TIMEOUT_MS)
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
   // 极光背景走懒 chunk，toHaveCount 自带重试，等它到货

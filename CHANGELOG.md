@@ -5,6 +5,41 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [5.3.0] - 2026-09-05
+
+文档治理、CI 修复与品牌单色，规约见 `specs/v5.3-doc-governance-and-brand-mono/`。
+
+### 新增
+
+- **品牌标志能切单色，切换就在挑选栏上**：图标节的“换一个”旁边多一档“原色 / 单色”，只在当前图标来源是品牌时出现，不必再把选择器打开一次。单色不是钉死纯白而是跟随当前文字色，图标与文字同色才读作一件东西。上游 `dashboard-icons` 只给 58 个品牌里的 14 个配了官方单色稿，有官方稿的仍优先用官方稿（它保留了品牌自己处理过的镂空），其余 44 个取原色稿在绘制期按 alpha 压平；两条路径都走离屏画布加 `source-in` 着色，预览与导出同一条链路。此前点“单白”在没有官方稿的品牌上是静默失效的，画面纹丝不动也没有提示
+- **`_redirects` 的回归守卫**：一条单测读 `public/_redirects`，挡住任何指向 `.html` 的 200 重写，不只挡 `/about` 那一条字面。5.2.0 修掉的那个死循环此前只有一句注释在警告
+- **关于页与 service worker 补上单测**：`src/about/` 的赞赏区空态（5.2.0 把那条 e2e 改写之后就没人守了）、`sw-update` 的轮询间隔与回到前台复查，共三份新测试文件
+
+### 修复
+
+- **CI 在 main 上连红六轮没人拦**：红的一直是 e2e job，同一提交打 tag 那几次是绿的，因为 e2e 只在 `refs/heads/main` 跑，tag 只跑 check。本地全量 1.6 分钟全绿，runner 上同一套要 10 分钟并挂两条
+- **e2e 的测试超时与断言超时撞在一起**：Playwright 这两条是独立预算，测试超时会直接终止测试，不等断言用完自己那份。仓里七处把两者都设成 60 秒，结果断言永远拿不满预算，报出来的错一律是 `Test timeout exceeded`，真正的失败点被盖住。现在测试预算与断言预算分开算，并按 `process.env.CI` 分两档：runner 是 2 vCPU 跑 2 worker，两路 SwiftShader 上下文加 2048² 合成，实测比本机慢约六倍
+- **`playwright.config.ts` 的 worker 数与注释**：worker 在 CI 上钉死 2，不跟 runner 核数推断；那句“软件渲染下合成 1024 要几秒”停在默认画布还是 1024² 的时代，默认早已是 2048²
+- **`/about` 的部署口径在两处文档里还是错的**：`docs/architecture.md` 与项目记忆都把一条已删除且已判定有害的重写规则写成现行做法，照做会复现线上的 `ERR_TOO_MANY_REDIRECTS`。记忆那处更危险，它是给后续会话当操作指引读的
+
+### 变更
+
+- **文档按半衰期分三层，同一事实只定义一处**：常驻文档写现状，冻结快照（`specs/`、`docs/adr/`、`CHANGELOG.md`）写当时为什么这么定与否决了什么，项目记忆只收前两层都推不出来的当前事实。判据与准入四问写进 `docs/contributing.md`，`AGENTS.md` 只留一行指针
+- **项目记忆从按版本切分改成按主题**：`project-v3-rewrite.md` 与 `project-v5-workspace.md` 每发一版就长一截，合并成 `decisions-and-conventions.md` 与 `owner-preferences.md`，192 行压到 54 行。删掉的内容要么已在常驻文档里，要么已在本文件里，两条踩坑内容转入 `docs/engineering-lessons.md`
+- **规约改成当轮意图快照，不再回写正文**：现状的 SSOT 已经是常驻文档加代码，规约再维护一份必然漂。`specs/v5.0-workspace/` 补一节“实到范围”，一次性列清六处与实到实现相反的描述（微调列位、拆列断点、操作条跨度、参考层开关位置、文字色自动通道、字重与画布落点），然后封存
+- **闸门补齐**：`npm run format:check` 进 CI，此前它不在任何闸门里；`npm test` 去掉 `--passWithNoTests`，此前零用例也能绿；e2e 失败时上传 `playwright-report/` 与 `test-results/`，留存 7 天，红了能直接看不靠重跑
+- **常驻文档里的变更叙事清干净**：`docs/architecture.md` 三处、`README.md` 一处在讲“之前是什么样”，与本仓自己的约定相反，对应叙事本文件里都有
+- **事实性过期逐条修正**：导出体积默认档 1 MB 改 2 MB、配色 26 套改 37 套（中英文两处）、技术栈表的“单页单视图”改两个入口、库目录六个改七个、i18n 一级前缀 12 个改 16 个、命令表补 `npm run gen:brand`、e2e 覆盖清单补五类、ADR-0004 的默认尺寸改 2048×2048
+- **首屏体积归位成单一定义处**：这个数字原先在四处出现且互相打架，现在只在 `docs/architecture.md` 定义一次，别处给指针不复述数字
+- **词条“单白”改“单色”**：`icon.brand.variant.white` 改名 `icon.brand.variant.mono`，五份字典与 `keys.md` 同步；新增 `panel.graphic.mono`
+
+### 新增文档
+
+- `docs/adr/0006-multi-page-and-pages-routing.md`：站点从单入口改成 `appType: 'mpa'` 两入口、service worker 关掉导航兜底、`_redirects` 交给 Pages 资源层直接映射这条决策链，含被否决的 `/about` 200 重写方案与否决理由
+
+### 验证
+
+
 ## [5.2.0] - 2026-09-05
 
 ### 新增

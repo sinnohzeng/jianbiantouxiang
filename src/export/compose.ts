@@ -17,7 +17,8 @@ const deps: ComposeDeps<TextLayout> = {
   loadGraphicForConfig: (config) => loadGraphic(config.layout.icon),
   renderGradient,
   drawHighlight,
-  layoutText: (config, width, height, graphic) => layoutText(config, width, height, undefined, graphic),
+  layoutText: (config, width, height, graphic) =>
+    layoutText(config, width, height, undefined, graphic),
   drawText,
   drawGraphic,
 }

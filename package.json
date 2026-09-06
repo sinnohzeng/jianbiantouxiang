@@ -1,6 +1,6 @@
 {
   "name": "gradient-avatar",
-  "version": "5.2.0",
+  "version": "5.3.0",
   "private": true,
   "type": "module",
   "description": "输入几个字，秒出一张柔光质感的渐变头像",
@@ -25,7 +25,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc -b --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
     "screenshots": "node scripts/screenshots.mjs",

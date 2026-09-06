@@ -1,15 +1,5 @@
-export {
-  DEFAULT_PALETTE_ID,
-  PALETTES,
-  PLATE_HINT_IDS,
-  getPalette,
-  paletteColors,
-} from './palettes'
-export type {
-  Palette,
-  PaletteLocale,
-  PaletteTone,
-} from './palettes'
+export { DEFAULT_PALETTE_ID, PALETTES, PLATE_HINT_IDS, getPalette, paletteColors } from './palettes'
+export type { Palette, PaletteLocale, PaletteTone } from './palettes'
 export {
   TEXT_DARK,
   TEXT_LIGHT,

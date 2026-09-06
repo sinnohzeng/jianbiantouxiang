@@ -14,9 +14,7 @@ export type EmojiLabelEntry = readonly [label: string, tags?: readonly string[]]
 export function emojiIdOf(hexcode: string): string | null {
   const normalized = hexcode.trim().toLowerCase()
   if (!/^[0-9a-f]+(?:-[0-9a-f]+)*$/.test(normalized)) return null
-  const parts = normalized
-    .split('-')
-    .filter((part) => part !== 'fe0f' && part !== 'fe0e')
+  const parts = normalized.split('-').filter((part) => part !== 'fe0f' && part !== 'fe0e')
   return parts.length > 0 ? parts.join('_') : null
 }
 
@@ -33,9 +31,10 @@ function isUsable(entry: RawEmojiEntry): boolean {
 }
 
 /** 只收有官方分组与本地名称的条目，保证选择器能分栏且能搜索。 */
-export function buildEmojiIndex(
-  raw: readonly RawEmojiEntry[],
-): { base: EmojiBaseEntry[]; labels: EmojiLabelEntry[] } {
+export function buildEmojiIndex(raw: readonly RawEmojiEntry[]): {
+  base: EmojiBaseEntry[]
+  labels: EmojiLabelEntry[]
+} {
   const usable = raw.filter(isUsable).map((entry) => ({
     ...entry,
     id: emojiIdOf(entry.hexcode),

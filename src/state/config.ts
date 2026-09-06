@@ -61,6 +61,11 @@ export interface AvatarConfig {
       source: IconSource
       /** builtin 是 lucide 名，emoji 是去 FE0F 的码点串，brand 是品牌文件名，upload 是本次会话 id。 */
       id: string
+      /**
+       * 品牌标志的单色档。开着就把标志压成一块纯色剪影，颜色跟文字色走。
+       * 只对 `source === 'brand'` 生效，别的来源留着这一位也不参与绘制。
+       */
+      mono: boolean
     }
   }
   exportOptions: {
@@ -145,7 +150,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
   layout: {
     graphic: 0.52,
     graphicOffsetX: 0,
-    icon: { source: 'none', id: '' },
+    icon: { source: 'none', id: '', mono: false },
   },
   exportOptions: {
     format: 'jpg',
@@ -343,7 +348,8 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
       return {
         graphic: num(lay.graphic, d.layout.graphic, 0.3, 0.8),
         graphicOffsetX: num(lay.graphicOffsetX, d.layout.graphicOffsetX, -0.25, 0.25),
-        icon: { source, id },
+        // 契约版本不升：旧存档没有这一位，一律补 false，画面与升级前一致
+        icon: { source, id, mono: icon.mono === true },
       }
     })(),
     exportOptions: {

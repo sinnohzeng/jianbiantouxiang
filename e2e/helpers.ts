@@ -6,6 +6,7 @@
  */
 
 import { expect, type Locator, type Page } from '@playwright/test'
+import { CI_FACTOR } from './ci-factor'
 
 export const APP_URL = '/?probe=1&lang=zh-CN'
 
@@ -30,8 +31,29 @@ interface ProbeWindow {
   }
 }
 
-/** 合成与编码在软件渲染下要跑几秒，探针相关的用例统一放宽。 */
+/** 合成与编码在软件渲染下要跑几秒，探针相关的**断言**统一放宽。 */
 export const PROBE_TIMEOUT_MS = 60_000
+
+/** openApp 的余量：goto、探针挂载与进场幕布读秒都落在测试预算里，不占断言那一份。 */
+const OPEN_APP_BUDGET_MS = 30_000
+
+/**
+ * 探针用例的**测试**预算，给 test.setTimeout 用。
+ *
+ * 测试超时会直接终止测试，断言拿不满自己那份，报出来的错就变成 Test timeout exceeded，
+ * 把真正的失败点盖掉。所以它必须严格大于自己内含的最大断言预算，也就是 PROBE_TIMEOUT_MS：
+ * 一条用例最多串两次探针断言，再加一次 openApp 的余量。
+ */
+export const PROBE_TEST_TIMEOUT_MS = (PROBE_TIMEOUT_MS * 2 + OPEN_APP_BUDGET_MS) * CI_FACTOR
+
+/** expect.poll 等状态落到存档或界面的预算。 */
+export const POLL_TIMEOUT_MS = 5_000 * CI_FACTOR
+
+/** 等界面自己稳下来的预算：幕布读完秒、网络字体到货之后重排完成。 */
+export const SETTLE_TIMEOUT_MS = 15_000 * CI_FACTOR
+
+/** 等一张图真的算出来的预算：离屏合成加 JPEG 编码，软件渲染下这一步最慢。 */
+export const RENDER_TIMEOUT_MS = 30_000 * CI_FACTOR
 
 /**
  * 打开首页并等到界面与探针都就绪。
@@ -53,7 +75,7 @@ export async function waitReady(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await page
     .locator('[data-slot="preloader"][data-loading="true"]')
-    .waitFor({ state: 'detached', timeout: 15_000 })
+    .waitFor({ state: 'detached', timeout: SETTLE_TIMEOUT_MS })
 }
 
 /** 打开微调面板。v5 起它默认收起，开合状态落在 localStorage。 */

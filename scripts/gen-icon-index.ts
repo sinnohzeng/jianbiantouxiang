@@ -1,7 +1,11 @@
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { lucideIconEntries, serializeLucideIcons, type LucideIconSource } from '../build/icon-index.ts'
+import {
+  lucideIconEntries,
+  serializeLucideIcons,
+  type LucideIconSource,
+} from '../build/icon-index.ts'
 import { CURATED_ICONS } from '../src/graphics/curated.ts'
 
 const iconsDir = path.resolve(import.meta.dirname, '../node_modules/lucide-react/dist/esm/icons')
@@ -32,7 +36,8 @@ const entries = lucideIconEntries(sources)
 const entryNames = new Set(entries.map((entry) => entry.name))
 const missing = CURATED_ICONS.filter((icon) => !entryNames.has(icon.name))
 const curatedNames = new Set(CURATED_ICONS.map((icon) => icon.name))
-if (missing.length > 0) throw new Error(`精选图标不存在：${missing.map((icon) => icon.name).join(', ')}`)
+if (missing.length > 0)
+  throw new Error(`精选图标不存在：${missing.map((icon) => icon.name).join(', ')}`)
 const curated = entries.filter((entry) => curatedNames.has(entry.name))
 
 await mkdir(outputDir, { recursive: true })

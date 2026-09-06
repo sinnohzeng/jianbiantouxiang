@@ -12,11 +12,26 @@ import { sanitizeSvg } from './upload'
 
 const cache = new Map<string, Promise<Graphic | null>>()
 
-/** 品牌文件的扩展名。原色条目查索引，纯白变体一律是 SVG。 */
-function extensionOf(id: string): 'svg' | 'png' | null {
+interface BrandFile {
+  id: string
+  ext: 'svg' | 'png'
+}
+
+/**
+ * 当前档该取哪个文件。
+ *
+ * 单色档优先用上游给的官方单色稿，它保留了品牌自己处理过的镂空与留白；
+ * 上游只给了 14 个品牌，其余取原色稿，由 draw.ts 在绘制期按 alpha 压平。
+ * 官方单色稿一律是 SVG，存档里直接落着它的文件名时按原样取。
+ */
+function fileOf(id: string, mono: boolean): BrandFile | null {
   for (const entry of BRAND_INDEX) {
-    if (entry.id === id) return entry.ext
-    if (entry.white === id) return 'svg'
+    if (entry.id === id) {
+      return mono && entry.white
+        ? { id: entry.white, ext: 'svg' }
+        : { id: entry.id, ext: entry.ext }
+    }
+    if (entry.white === id) return { id, ext: 'svg' }
   }
   return null
 }
@@ -52,26 +67,29 @@ async function loadSvg(url: string): Promise<Graphic> {
   }
 }
 
-async function load(id: string): Promise<Graphic | null> {
-  const ext = extensionOf(id)
-  if (!ext) {
-    console.warn(`品牌图形不在索引里：${id}`)
-    return null
-  }
-  const url = `${import.meta.env.BASE_URL}brand/${id}.${ext}`
+async function load(file: BrandFile): Promise<Graphic | null> {
+  const url = `${import.meta.env.BASE_URL}brand/${file.id}.${file.ext}`
   try {
-    return ext === 'svg' ? await loadSvg(url) : graphicOf(await loadImage(url))
+    return file.ext === 'svg' ? await loadSvg(url) : graphicOf(await loadImage(url))
   } catch {
     console.warn(`品牌图形读不出来：${url}`)
     return null
   }
 }
 
-/** 按品牌文件名取图形，同一 id 只加载一次；失败的那次也记进缓存，不反复打网络。 */
-export function loadBrandGraphic(id: string): Promise<Graphic | null> {
-  const cached = cache.get(id)
+/**
+ * 按品牌 id 与单色档取图形。缓存键是真正取到的文件名，
+ * 同一品牌的原色稿与官方单色稿各缓存一份；失败的那次也记进缓存，不反复打网络。
+ */
+export function loadBrandGraphic(id: string, mono = false): Promise<Graphic | null> {
+  const file = fileOf(id, mono)
+  if (!file) {
+    console.warn(`品牌图形不在索引里：${id}`)
+    return Promise.resolve(null)
+  }
+  const cached = cache.get(file.id)
   if (cached) return cached
-  const task = load(id)
-  cache.set(id, task)
+  const task = load(file)
+  cache.set(file.id, task)
   return task
 }

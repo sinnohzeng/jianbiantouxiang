@@ -38,19 +38,24 @@ export interface IconPickerProps {
 const EMOJI_LIMIT = 240
 const FULL_ICON_LIMIT = 200
 
-/** 渐变底上默认用纯白变体，没有纯白件的品牌退回原色。 */
-type BrandVariant = 'color' | 'white'
-
 interface BrandIndex {
   entries: readonly BrandEntry[]
   categories: readonly BrandCategory[]
 }
 
-/** 一个品牌在当前变体下真正要用的文件名与静态资源地址。 */
-function brandFileOf(entry: BrandEntry, variant: BrandVariant): { id: string; url: string } {
-  const id = variant === 'white' && entry.white ? entry.white : entry.id
+/**
+ * 列表里那枚缩略图的地址。单色档有官方单色稿就用它，没有就先摆原色稿，
+ * 画面上的压平交给绘制期，列表不必自己再合成一遍。
+ */
+function brandThumbUrl(entry: BrandEntry, mono: boolean): string {
+  const id = mono && entry.white ? entry.white : entry.id
   const ext = id === entry.id ? entry.ext : 'svg'
-  return { id, url: `${import.meta.env.BASE_URL}brand/${id}.${ext}` }
+  return `${import.meta.env.BASE_URL}brand/${id}.${ext}`
+}
+
+/** 存档里落的可能是品牌 id，也可能是旧存档留下的官方单色稿文件名。 */
+function isChosen(entry: BrandEntry, iconId: string): boolean {
+  return iconId === entry.id || iconId === entry.white
 }
 
 function LucideGlyph({ nodes }: { nodes: readonly LucideIconNode[] }) {
@@ -106,7 +111,6 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
   const [fullNodes, setFullNodes] = useState<Record<string, LucideIconNode[]> | null>(null)
   const [emojiEntries, setEmojiEntries] = useState<EmojiEntry[] | null>(null)
   const [brandIndex, setBrandIndex] = useState<BrandIndex | null>(null)
-  const [brandVariant, setBrandVariant] = useState<BrandVariant>('white')
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -127,8 +131,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
       category,
       list: CURATED_ICONS.filter(
         (icon) =>
-          icon.category === category &&
-          (hit(icon.name, q) || hit(icon.zh, q) || hit(icon.en, q)),
+          icon.category === category && (hit(icon.name, q) || hit(icon.zh, q) || hit(icon.en, q)),
       ),
     })).filter((group) => group.list.length > 0)
   }, [query])
@@ -253,15 +256,8 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
     }
   }
 
-  const chooseVariant = (next: BrandVariant): void => {
-    setBrandVariant(next)
-    const icon = config.layout.icon
-    if (icon.source !== 'brand' || !brandIndex) return
-    const entry = brandIndex.entries.find((item) => item.id === icon.id || item.white === icon.id)
-    if (!entry) return
-    const { id } = brandFileOf(entry, next)
-    if (id !== icon.id) setLayout({ icon: { source: 'brand', id } })
-  }
+  // 单色档写进配置，与挑选栏的那个分段控件读同一份状态
+  const mono = config.layout.icon.mono
 
   const modeOptions = [
     { value: 'builtin' as const, label: t('icon.builtin') },
@@ -271,7 +267,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
 
   const variantOptions = [
     { value: 'color' as const, label: t('icon.brand.variant.color') },
-    { value: 'white' as const, label: t('icon.brand.variant.white') },
+    { value: 'mono' as const, label: t('icon.brand.variant.mono') },
   ]
 
   const builtinPanel = (
@@ -284,7 +280,11 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
               <CommandItem
                 key={`curated:${icon.name}`}
                 value={`curated:${icon.name}`}
-                data-checked={config.layout.icon.source === 'builtin' && config.layout.icon.id === icon.name || undefined}
+                data-checked={
+                  (config.layout.icon.source === 'builtin' &&
+                    config.layout.icon.id === icon.name) ||
+                  undefined
+                }
                 className="min-h-11"
                 onSelect={() => choose('builtin', icon.name)}
               >
@@ -303,7 +303,10 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
               <CommandItem
                 key={`all:${name}`}
                 value={`all:${name}`}
-                data-checked={config.layout.icon.source === 'builtin' && config.layout.icon.id === name || undefined}
+                data-checked={
+                  (config.layout.icon.source === 'builtin' && config.layout.icon.id === name) ||
+                  undefined
+                }
                 className="min-h-11"
                 onSelect={() => choose('builtin', name)}
               >
@@ -328,7 +331,10 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
             <CommandItem
               key={`emoji:${entry.id}`}
               value={`emoji:${entry.id}`}
-              data-checked={config.layout.icon.source === 'emoji' && config.layout.icon.id === entry.id || undefined}
+              data-checked={
+                (config.layout.icon.source === 'emoji' && config.layout.icon.id === entry.id) ||
+                undefined
+              }
               className="min-h-11"
               onSelect={() => choose('emoji', entry.id)}
             >
@@ -353,32 +359,29 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
           key={`brand:${group.category}`}
           heading={t(`icon.brand.category.${group.category}`)}
         >
-          {group.list.map((entry) => {
-            const file = brandFileOf(entry, brandVariant)
-            return (
-              <CommandItem
-                key={`brand:${file.id}`}
-                value={`brand:${file.id}`}
-                data-checked={
-                  (config.layout.icon.source === 'brand' && config.layout.icon.id === file.id) ||
-                  undefined
-                }
-                className="min-h-11"
-                onSelect={() => choose('brand', file.id)}
+          {group.list.map((entry) => (
+            <CommandItem
+              key={`brand:${entry.id}`}
+              value={`brand:${entry.id}`}
+              data-checked={
+                (config.layout.icon.source === 'brand' && isChosen(entry, config.layout.icon.id)) ||
+                undefined
+              }
+              className="min-h-11"
+              onSelect={() => choose('brand', entry.id)}
+            >
+              <span
+                className={cn(
+                  'flex size-6 shrink-0 items-center justify-center rounded-sm',
+                  // 官方单色稿是纯白的，压在浅色列表上会看不见，给它垫一块深底，观感也贴近渐变底
+                  mono && entry.white ? 'bg-foreground/75' : 'bg-muted',
+                )}
               >
-                <span
-                  className={cn(
-                    'flex size-6 shrink-0 items-center justify-center rounded-sm',
-                    // 纯白件压在浅色列表上会看不见，给它垫一块深底，观感也贴近渐变底
-                    brandVariant === 'white' ? 'bg-foreground/75' : 'bg-muted',
-                  )}
-                >
-                  <img src={file.url} alt="" loading="lazy" className="size-4.5" />
-                </span>
-                <span className="truncate">{locale.startsWith('zh') ? entry.zh : entry.en}</span>
-              </CommandItem>
-            )
-          })}
+                <img src={brandThumbUrl(entry, mono)} alt="" loading="lazy" className="size-4.5" />
+              </span>
+              <span className="truncate">{locale.startsWith('zh') ? entry.zh : entry.en}</span>
+            </CommandItem>
+          ))}
         </CommandGroup>
       ))}
       {brandResults.length === 0 ? (
@@ -416,9 +419,9 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
           <SegmentedControl
             name="brand-variant"
             label={t('icon.brand.variant')}
-            value={brandVariant}
+            value={mono ? 'mono' : 'color'}
             options={variantOptions}
-            onChange={chooseVariant}
+            onChange={(next) => setLayout({ icon: { mono: next === 'mono' } })}
           />
         </div>
       ) : null}

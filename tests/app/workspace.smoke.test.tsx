@@ -137,7 +137,7 @@ describe('挑选栏 · 图形节', () => {
     useAvatarStore.setState({
       config: {
         ...DEFAULT_CONFIG,
-        layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'emoji', id: '1f334' } },
+        layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'emoji', id: '1f334', mono: false } },
       },
     })
     const { container } = mount(<PickColumn />)
@@ -149,7 +149,7 @@ describe('挑选栏 · 图形节', () => {
     const clear = container.querySelector<HTMLButtonElement>('button[data-slot="icon-clear"]')
     expect(clear).not.toBeNull()
     fireEvent.click(clear!)
-    expect(config().layout.icon).toEqual({ source: 'none', id: '' })
+    expect(config().layout.icon).toEqual({ source: 'none', id: '', mono: false })
   })
 
   it('没有图形时磁贴是空位，也没有清除按钮', () => {
@@ -328,7 +328,10 @@ describe('微调面板', () => {
     useAvatarStore.setState({
       config: {
         ...DEFAULT_CONFIG,
-        layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'builtin', id: 'palmtree' } },
+        layout: {
+          ...DEFAULT_CONFIG.layout,
+          icon: { source: 'builtin', id: 'palmtree', mono: false },
+        },
       },
     })
     const { container } = mount(<Inspector />)
@@ -409,7 +412,7 @@ describe('HistoryStrip', () => {
 })
 
 describe('IconPicker', () => {
-  it('品牌页能切到并列出飞书', async () => {
+  it('品牌页能切到并列出飞书，单色档读的是配置里那一位', async () => {
     mount(<IconPicker open onOpenChange={() => {}} />)
 
     const brand = document.querySelector<HTMLInputElement>(
@@ -421,10 +424,79 @@ describe('IconPicker', () => {
     // 索引是懒加载的，等它落地再断言；界面语言随环境，中英文名都认
     expect(await screen.findByRole('option', { name: /飞书|Lark/ })).toBeTruthy()
 
-    // 渐变底上默认走单白变体
-    const white = document.querySelector<HTMLInputElement>(
-      'input[data-group="brand-variant"][value="white"]',
+    // 默认原色，切一下写回配置而不是选择器的局部 state
+    const mono = document.querySelector<HTMLInputElement>(
+      'input[data-group="brand-variant"][value="mono"]',
     )
-    expect(white?.checked).toBe(true)
+    expect(mono?.checked).toBe(false)
+    fireEvent.click(mono!)
+    expect(config().layout.icon.mono).toBe(true)
+  })
+
+  it('挑中的品牌落成品牌 id，单色档不再改写 id', async () => {
+    mount(<IconPicker open onOpenChange={() => {}} />)
+    fireEvent.click(
+      document.querySelector<HTMLInputElement>('input[data-group="icon-source"][value="brand"]')!,
+    )
+    fireEvent.click(
+      document.querySelector<HTMLInputElement>('input[data-group="brand-variant"][value="mono"]')!,
+    )
+    fireEvent.click(await screen.findByRole('option', { name: /飞书|Lark/ }))
+
+    expect(config().layout.icon).toEqual({ source: 'brand', id: 'lark', mono: true })
+  })
+})
+
+describe('挑选栏 · 品牌单色', () => {
+  function monoTiles(container: HTMLElement): HTMLInputElement[] {
+    return [...container.querySelectorAll<HTMLInputElement>('input[data-group="brand-mono"]')]
+  }
+
+  it('只有品牌来源才出现原色 / 单色这一档', () => {
+    const { container, rerender } = mount(<PickColumn />)
+    expect(monoTiles(container)).toHaveLength(0)
+
+    useAvatarStore.setState({
+      config: {
+        ...DEFAULT_CONFIG,
+        layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'emoji', id: '1f334', mono: false } },
+      },
+    })
+    rerender(
+      <I18nProvider>
+        <PickColumn />
+      </I18nProvider>,
+    )
+    expect(monoTiles(container)).toHaveLength(0)
+
+    useAvatarStore.setState({
+      config: {
+        ...DEFAULT_CONFIG,
+        layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'brand', id: 'lark', mono: false } },
+      },
+    })
+    rerender(
+      <I18nProvider>
+        <PickColumn />
+      </I18nProvider>,
+    )
+    expect(monoTiles(container)).toHaveLength(2)
+  })
+
+  it('切一下写回配置，撤销栈只多一格', () => {
+    useAvatarStore.setState({
+      config: {
+        ...DEFAULT_CONFIG,
+        layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'brand', id: 'lark', mono: false } },
+      },
+      past: [],
+    })
+    const { container } = mount(<PickColumn />)
+
+    const mono = monoTiles(container).find((tile) => tile.value === 'mono')
+    fireEvent.click(mono!)
+
+    expect(config().layout.icon.mono).toBe(true)
+    expect(useAvatarStore.getState().past).toHaveLength(1)
   })
 })

@@ -47,9 +47,7 @@ describe('buildFilename', () => {
   })
 
   it('文字为空回落到 avatar', () => {
-    expect(buildFilename(configOf(''), 'webp', NOW)).toBe(
-      'avatar_1024x1024_20260901-153012.webp',
-    )
+    expect(buildFilename(configOf(''), 'webp', NOW)).toBe('avatar_1024x1024_20260901-153012.webp')
   })
 
   it('文字全是非法字符时也回落到 avatar', () => {

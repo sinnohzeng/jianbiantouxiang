@@ -1,12 +1,12 @@
 # ADR-0004 导出：浏览器原生编码与目标体积二分
 
-- 状态：部分被 [ADR-0005](0005-direct-export-and-clipboard.md) 取代（导出入口与分享优先级）；「配置写进 URL hash」一条已于 v5.0 撤销，配置只存本机，见 `specs/v5.0-workspace/spec.md` §A4
+- 状态：部分被 [ADR-0005](0005-direct-export-and-clipboard.md) 取代（导出入口与分享优先级）；「配置写进 URL hash」一条已于 v5.0 撤销，配置只存本机，见 `specs/v5.0-workspace/spec.md` §A4；默认尺寸与体积档已改，现行值见 `src/state/config.ts` 的 `DEFAULT_CONFIG`，不在本文重复维护
 - 日期：2026-08-29
 
 ## 决策
 
 - 导出格式 JPG（默认）、PNG、WebP，全部用 `canvas.toBlob`；JPG 与 WebP 支持“目标 1 MB / 上限 2 MB / 不限制”三档，用质量二分逼近目标，下限 0.6，达不到提示降分辨率。
-- 默认尺寸 1024×1024，头像场景 JPG 约 150 到 300 KB；4096 及以上 PNG 提示体积。
+- 默认尺寸 2048×2048，体积档默认 2 MB；4096 及以上 PNG 提示体积。
 - WebP 只在 `toBlob('image/webp')` 实际返回 `image/webp` 的浏览器里提供，Safari（到 27 仍不支持）隐藏该选项。
 - 移动端优先 `navigator.share({ files })`，不可用时回落 `<a download>`。（此入口决策已被 ADR-0005 取代）
 - 尺寸上限运行时探测：WebGL `MAX_RENDERBUFFER_SIZE` / `MAX_TEXTURE_SIZE`（Android 只有 ≥ 4096 是全覆盖），2D 画布面积上限（iOS 17 及以下 4096²，iOS 18 起 8192²），超出时按上限渲染后放大并在导出面板提示。

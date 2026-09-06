@@ -125,11 +125,7 @@ const DRAWINGS = new Set([
 ])
 
 export type GraphicUploadErrorCode =
-  | 'too-large'
-  | 'unsupported-extension'
-  | 'invalid-svg'
-  | 'empty-graphic'
-  | 'failed'
+  'too-large' | 'unsupported-extension' | 'invalid-svg' | 'empty-graphic' | 'failed'
 
 export class GraphicUploadError extends Error {
   readonly code: GraphicUploadErrorCode
@@ -212,7 +208,11 @@ function cloneSafe(
 }
 
 function viewBoxSize(root: Element): { width: number; height: number } {
-  const raw = root.getAttribute('viewBox')?.trim().split(/[\s,]+/).map(Number)
+  const raw = root
+    .getAttribute('viewBox')
+    ?.trim()
+    .split(/[\s,]+/)
+    .map(Number)
   if (raw?.length === 4 && raw.slice(1).every((value) => Number.isFinite(value) && value > 0)) {
     return { width: raw[1] ?? 512, height: raw[3] ?? 512 }
   }

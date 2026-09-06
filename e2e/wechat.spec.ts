@@ -4,7 +4,7 @@
  */
 
 import { expect, test } from '@playwright/test'
-import { PROBE_TIMEOUT_MS, openApp } from './helpers'
+import { PROBE_TEST_TIMEOUT_MS, RENDER_TIMEOUT_MS, openApp } from './helpers'
 
 test.use({
   userAgent:
@@ -12,7 +12,7 @@ test.use({
 })
 
 test('微信里导出画成 data URL 的 JPG 图片供长按保存', async ({ page }) => {
-  test.setTimeout(PROBE_TIMEOUT_MS)
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
   // 主按钮在微信里只开抽屉，不触发下载
@@ -23,7 +23,7 @@ test('微信里导出画成 data URL 的 JPG 图片供长按保存', async ({ pa
 
   await drawer.locator('[data-slot="export-run"]').click()
   const image = drawer.locator('[data-slot="export-image"]')
-  await expect(image).toBeVisible({ timeout: 30_000 })
+  await expect(image).toBeVisible({ timeout: RENDER_TIMEOUT_MS })
   const src = await image.getAttribute('src')
   expect(src?.startsWith('data:image/jpeg;base64,')).toBe(true)
   expect((src ?? '').length).toBeGreaterThan(10_000)

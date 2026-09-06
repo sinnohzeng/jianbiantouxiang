@@ -150,7 +150,6 @@ describe('字距', () => {
       'fillText:猪',
     ])
   })
-
 })
 
 describe('逐行字号', () => {

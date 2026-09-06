@@ -75,12 +75,12 @@ function sleep(ms: number): Promise<void> {
 const item =
   'relative flex min-h-12 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border px-1 text-[11px] leading-none font-medium transition-colors focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none lg:h-10 lg:min-h-0 lg:flex-auto lg:flex-row lg:gap-1.5 lg:px-2.5 lg:text-sm'
 /** 次级动作：描边加卡片底，与背景拉开一层。 */
-const quiet = 'border-border bg-card/80 text-foreground hover:bg-accent hover:text-accent-foreground'
+const quiet =
+  'border-border bg-card/80 text-foreground hover:bg-accent hover:text-accent-foreground'
 /** 一级动作：实心。 */
 const accent = 'border-primary bg-primary text-primary-foreground hover:bg-primary/90'
 /** 点亮态：主色描边加淡底再套一圈环，与未点亮一眼分得开，又不跟两个实心按钮抢分量。 */
-const lit =
-  'border-primary ring-primary/60 bg-primary/12 text-primary ring-1 hover:bg-primary/20'
+const lit = 'border-primary ring-primary/60 bg-primary/12 text-primary ring-1 hover:bg-primary/20'
 const iconClass = 'size-5 shrink-0 lg:size-4'
 const labelClass = 'w-full truncate text-center'
 
@@ -169,7 +169,9 @@ export function BottomBar() {
     flushConfigSync()
     try {
       // Promise 必须在用户手势内交给 ClipboardItem，Safari 才允许稍后完成合成
-      const copied = await copyImageToClipboard(createClipboardBlob(useAvatarStore.getState().config))
+      const copied = await copyImageToClipboard(
+        createClipboardBlob(useAvatarStore.getState().config),
+      )
       if (!copied) {
         toast.error(t('export.copyFailed'))
         return

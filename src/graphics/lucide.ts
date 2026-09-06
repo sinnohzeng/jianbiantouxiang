@@ -48,7 +48,8 @@ function pathOf(nodes: readonly LucideIconNode[]): Path2D | null {
         .map(Number)
       if (points.length >= 4) {
         path.moveTo(points[0] ?? 0, points[1] ?? 0)
-        for (let i = 2; i + 1 < points.length; i += 2) path.lineTo(points[i] ?? 0, points[i + 1] ?? 0)
+        for (let i = 2; i + 1 < points.length; i += 2)
+          path.lineTo(points[i] ?? 0, points[i + 1] ?? 0)
         if (tag === 'polygon') path.closePath()
       }
     }

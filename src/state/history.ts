@@ -30,7 +30,5 @@ export function attachHistoryThumb(
   hash: string,
   thumb: string,
 ): HistoryEntry[] {
-  return list.map((entry) =>
-    configHash(entry.config) === hash ? { ...entry, thumb } : entry,
-  )
+  return list.map((entry) => (configHash(entry.config) === hash ? { ...entry, thumb } : entry))
 }

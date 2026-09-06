@@ -61,7 +61,8 @@ export function RadioCardGroup<T extends string>({
             className={cn(
               'border-border bg-card flex min-h-11 flex-col gap-2 rounded-xl border p-2 transition-colors',
               'hover:border-foreground/30',
-              !showcase && 'peer-checked:border-primary peer-checked:ring-primary/30 peer-checked:ring-2',
+              !showcase &&
+                'peer-checked:border-primary peer-checked:ring-primary/30 peer-checked:ring-2',
               'peer-focus-visible:ring-ring/50 peer-focus-visible:ring-3',
               'motion-reduce:transition-none',
             )}

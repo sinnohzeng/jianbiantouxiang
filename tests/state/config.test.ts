@@ -161,9 +161,7 @@ describe('normalizeConfig 的 layout 子树', () => {
   })
 
   it('kind 退役：旧用途字段读进来即忽略', () => {
-    expect(normalizeConfig({ layout: { kind: 'status' } }).layout).toEqual(
-      DEFAULT_CONFIG.layout,
-    )
+    expect(normalizeConfig({ layout: { kind: 'status' } }).layout).toEqual(DEFAULT_CONFIG.layout)
     expect('kind' in normalizeConfig({ layout: { kind: 'logo' } }).layout).toBe(false)
   })
 
@@ -184,7 +182,7 @@ describe('normalizeConfig 的 layout 子树', () => {
     expect(normalizeConfig({ layout: {} }).layout).toEqual({
       graphic: DEFAULT_CONFIG.layout.graphic,
       graphicOffsetX: DEFAULT_CONFIG.layout.graphicOffsetX,
-      icon: { source: 'none', id: '' },
+      icon: { source: 'none', id: '', mono: false },
     })
 
     // 水平补偿超界要夹回来，老存档没有这个字段就落到 0
@@ -198,7 +196,7 @@ describe('normalizeConfig 的 layout 子树', () => {
       },
     })
     expect(config.layout.graphic).toBe(0.3)
-    expect(config.layout.icon).toEqual({ source: 'emoji', id: '1f334' })
+    expect(config.layout.icon).toEqual({ source: 'emoji', id: '1f334', mono: false })
   })
 
   it('graphic 夹在 0.3..0.8，非法值回落默认', () => {
@@ -213,16 +211,37 @@ describe('normalizeConfig 的 layout 子树', () => {
 
   it('icon source 校验，none 强制清空 id，超长 id 拒绝', () => {
     expect(normalizeConfig({ layout: { icon: { source: 'photo', id: 'x' } } }).layout.icon).toEqual(
-      { source: 'none', id: '' },
+      { source: 'none', id: '', mono: false },
     )
     expect(
       normalizeConfig({ layout: { icon: { source: 'none', id: '1f334' } } }).layout.icon,
-    ).toEqual({ source: 'none', id: '' })
+    ).toEqual({ source: 'none', id: '', mono: false })
     expect(
       normalizeConfig({
         layout: { icon: { source: 'emoji', id: 'x'.repeat(129) } },
       }).layout.icon,
-    ).toEqual({ source: 'emoji', id: '' })
+    ).toEqual({ source: 'emoji', id: '', mono: false })
+  })
+
+  it('icon.mono 只认布尔真，旧存档一律补 false', () => {
+    // 契约版本没升，5.3 之前的存档里根本没有这一位
+    const legacy = normalizeConfig({
+      v: 4,
+      layout: { icon: { source: 'brand', id: 'github-light' } },
+    })
+    expect(legacy.layout.icon).toEqual({ source: 'brand', id: 'github-light', mono: false })
+
+    expect(
+      normalizeConfig({ layout: { icon: { source: 'brand', id: 'lark', mono: true } } }).layout.icon
+        .mono,
+    ).toBe(true)
+    // 'true'、1 这类真值不认，只有布尔真才算开
+    for (const truthy of ['true', 1, {}]) {
+      expect(
+        normalizeConfig({ layout: { icon: { source: 'brand', id: 'lark', mono: truthy } } }).layout
+          .icon.mono,
+      ).toBe(false)
+    }
   })
 
   it('行级字号与水平补偿夹值、补默认并限制长度', () => {

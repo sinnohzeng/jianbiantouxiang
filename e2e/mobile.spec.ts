@@ -4,7 +4,15 @@
  */
 
 import { expect, test } from '@playwright/test'
-import { PROBE_TIMEOUT_MS, centreBetweenBars, openApp, probeEncode, probeStats } from './helpers'
+import {
+  POLL_TIMEOUT_MS,
+  PROBE_TEST_TIMEOUT_MS,
+  RENDER_TIMEOUT_MS,
+  centreBetweenBars,
+  openApp,
+  probeEncode,
+  probeStats,
+} from './helpers'
 
 test('预览挂着 WebGL 画布，合成结果不是一张平色，且没有横向滚动', async ({ page }) => {
   await openApp(page)
@@ -25,7 +33,7 @@ test('预览挂着 WebGL 画布，合成结果不是一张平色，且没有横�
 })
 
 test('底栏点导出能出 JPG，非空且不超过 1 MB', async ({ page }) => {
-  test.setTimeout(PROBE_TIMEOUT_MS)
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
   // 底栏在最上层，不用手动滚；主按钮直接触发下载
@@ -50,7 +58,7 @@ test('改文字后刷新页面，文字从本机存档恢复', async ({ page }) 
   await firstLine.fill('手机往返')
   await expect
     .poll(() => page.evaluate(() => localStorage.getItem('gradient-avatar:v3') ?? ''), {
-      timeout: 5000,
+      timeout: POLL_TIMEOUT_MS,
     })
     .toContain('手机往返')
 
@@ -111,7 +119,7 @@ test('拖分隔条后预览变矮，刷新仍是新高度', async ({ page }) => 
   await page.mouse.up()
 
   await expect
-    .poll(async () => (await preview.boundingBox())?.height ?? before, { timeout: 5000 })
+    .poll(async () => (await preview.boundingBox())?.height ?? before, { timeout: POLL_TIMEOUT_MS })
     .toBeLessThan(before - 10)
   const after = (await preview.boundingBox())!.height
 
@@ -122,11 +130,11 @@ test('拖分隔条后预览变矮，刷新仍是新高度', async ({ page }) => 
 })
 
 test('预览上盖着可长按保存的 JPG，改文字会换新图，网格不进图', async ({ page }) => {
-  test.setTimeout(PROBE_TIMEOUT_MS)
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
   const image = page.locator('[data-slot="preview-save-image"]')
-  await expect(image).toBeVisible({ timeout: 20_000 })
+  await expect(image).toBeVisible({ timeout: RENDER_TIMEOUT_MS })
   const first = await image.getAttribute('src')
   expect(first?.startsWith('data:image/jpeg;base64,')).toBe(true)
   expect((first ?? '').length).toBeGreaterThan(5000)
@@ -140,6 +148,6 @@ test('预览上盖着可长按保存的 JPG，改文字会换新图，网格不�
   // 改文字后重新出图
   await page.locator('#avatar-text-first').fill('产品设计部')
   await expect
-    .poll(async () => (await image.getAttribute('src')) !== first, { timeout: 20_000 })
+    .poll(async () => (await image.getAttribute('src')) !== first, { timeout: RENDER_TIMEOUT_MS })
     .toBe(true)
 })

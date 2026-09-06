@@ -6,9 +6,8 @@
 
 表格与 `zh-CN.json` 逐条对齐，key 名与取值由 `tests/i18n/keys.test.ts` 双向断言；加 key 时两边一起改。
 
-
 | key                               | zh-CN                                                                            |
-| --------------------------------- | ---------------------------------------------------------------------------------- |
+| --------------------------------- | -------------------------------------------------------------------------------- |
 | `about.reset`                     | 恢复默认设置                                                                     |
 | `about.resetDone`                 | 已恢复默认设置，可用撤销退回                                                     |
 | `app.description`                 | 纯前端的渐变头像生成器。选配色与质感，导出可直接用作群聊、账号与部门标识的图片。 |
@@ -85,7 +84,7 @@
 | `icon.brand.category.social`      | 社交与内容                                                                       |
 | `icon.brand.variant`              | 品牌配色                                                                         |
 | `icon.brand.variant.color`        | 原色                                                                             |
-| `icon.brand.variant.white`        | 单白                                                                             |
+| `icon.brand.variant.mono`         | 单色                                                                             |
 | `icon.builtin`                    | 内置图标                                                                         |
 | `icon.category.business`          | 商务                                                                             |
 | `icon.category.common`            | 常用                                                                             |
@@ -146,6 +145,7 @@
 | `panel.graphic.current`           | 当前图标                                                                         |
 | `panel.graphic.empty`             | 还没选图标                                                                       |
 | `panel.graphic.intro`             | 在文字上方加一个小图：内置图标、emoji、品牌标志，或上传自己的图片                |
+| `panel.graphic.mono`              | 品牌单色                                                                         |
 | `panel.graphic.offset`            | 水平补偿                                                                         |
 | `panel.graphic.pick`              | 挑一个                                                                           |
 | `panel.graphic.scale`             | 图标大小                                                                         |

@@ -152,4 +152,3 @@ describe('getPalette 与 paletteColors', () => {
     expect(getPalette('glacier')!.colors[0]).toBe('#5FB4F5')
   })
 })
-

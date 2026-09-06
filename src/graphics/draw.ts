@@ -1,3 +1,4 @@
+import { createCanvas, releaseCanvas } from '@/export/canvas'
 import { INK_DARK, INK_LIGHT, isLightColor } from '@/text/ink'
 import type { AvatarConfig } from '@/state/config'
 import type { Rect } from '@/text/layout'
@@ -51,6 +52,38 @@ function paintLucide(
   ctx.restore()
 }
 
+/**
+ * 单色档的着色：先把图形画到一张按落位矩形开的离屏画布，
+ * 再用 source-in 把不透明的那部分整块填成当前文字色，最后贴回主画布。
+ *
+ * 合成状态全落在离屏那张上，主画布的 globalCompositeOperation 一路不动。
+ * 离屏画布不缓存，用完立刻缩到 1×1 交还显存：导出 8192 时图形也有上千像素见方。
+ * 拿不到 2D 上下文就回 false，调用方退回原色绘制，图形位不会因此空掉。
+ */
+function paintMono(
+  ctx: CanvasRenderingContext2D,
+  image: CanvasImageSource,
+  rect: Rect,
+  color: string,
+): boolean {
+  const width = Math.ceil(rect.width)
+  const height = Math.ceil(rect.height)
+  if (width <= 0 || height <= 0) return false
+  const offscreen = createCanvas(width, height)
+  try {
+    const off = offscreen.getContext('2d')
+    if (!off) return false
+    off.drawImage(image, 0, 0, width, height)
+    off.globalCompositeOperation = 'source-in'
+    off.fillStyle = color
+    off.fillRect(0, 0, width, height)
+    ctx.drawImage(offscreen, rect.x, rect.y, rect.width, rect.height)
+    return true
+  } finally {
+    releaseCanvas(offscreen)
+  }
+}
+
 /** 图形与文字共用效果口径；emoji 与上传图形保持原色，不做文字效果。 */
 export function drawGraphic(
   ctx: CanvasRenderingContext2D,
@@ -64,5 +97,9 @@ export function drawGraphic(
     paintLucide(ctx, graphic, rect, config, color)
     return
   }
+  // 单色只认品牌来源：界面上那个分段控件也只在品牌来源时出现，
+  // 换到 emoji 或上传图片之后这一位仍留着旧值，不能拿它去压平用户自己的图
+  const icon = config.layout.icon
+  if (icon.source === 'brand' && icon.mono && paintMono(ctx, graphic.image, rect, color)) return
   ctx.drawImage(graphic.image, rect.x, rect.y, rect.width, rect.height)
 }

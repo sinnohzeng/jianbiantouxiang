@@ -18,18 +18,18 @@ export function GraphicThumb({ icon, config, color }: GraphicThumbProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [graphic, setGraphic] = useState<Graphic | null>(null)
 
-  const { source, id } = icon
+  const { source, id, mono } = icon
   useEffect(() => {
     let cancelled = false
     const task =
-      source === 'none' || id === '' ? Promise.resolve(null) : loadGraphic({ source, id })
+      source === 'none' || id === '' ? Promise.resolve(null) : loadGraphic({ source, id, mono })
     void task.then((next) => {
       if (!cancelled) setGraphic(next)
     })
     return () => {
       cancelled = true
     }
-  }, [source, id])
+  }, [source, id, mono])
 
   useEffect(() => {
     const canvas = canvasRef.current

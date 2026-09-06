@@ -56,20 +56,32 @@ async function main() {
     await waitServer()
     const page = await browser.newPage({ viewport: { width: 1500, height: 1000 } })
     await page.goto(URL, { waitUntil: 'domcontentloaded' })
-    await page.waitForFunction(
-      () => globalThis.__gradientAvatarSamplesReady === true,
-      undefined,
-      { timeout: 240_000 },
-    )
+    await page.waitForFunction(() => globalThis.__gradientAvatarSamplesReady === true, undefined, {
+      timeout: 240_000,
+    })
     const pageRoot = page.locator('#samples')
     await pageRoot.waitFor({ state: 'visible' })
 
     const children = page.locator('#samples > div')
     await expectLocatorCount(children, 9)
-    await children.nth(2).screenshot({ path: path.join(OUT_DIR, 'styles-x-palettes-1.jpg'), type: 'jpeg', quality: 86 })
-    await children.nth(4).screenshot({ path: path.join(OUT_DIR, 'styles-x-palettes-2.jpg'), type: 'jpeg', quality: 86 })
-    await children.nth(6).screenshot({ path: path.join(OUT_DIR, 'styles-x-palettes-3.jpg'), type: 'jpeg', quality: 86 })
-    await children.nth(8).screenshot({ path: path.join(OUT_DIR, 'text-effects.jpg'), type: 'jpeg', quality: 86 })
+    await children.nth(2).screenshot({
+      path: path.join(OUT_DIR, 'styles-x-palettes-1.jpg'),
+      type: 'jpeg',
+      quality: 86,
+    })
+    await children.nth(4).screenshot({
+      path: path.join(OUT_DIR, 'styles-x-palettes-2.jpg'),
+      type: 'jpeg',
+      quality: 86,
+    })
+    await children.nth(6).screenshot({
+      path: path.join(OUT_DIR, 'styles-x-palettes-3.jpg'),
+      type: 'jpeg',
+      quality: 86,
+    })
+    await children
+      .nth(8)
+      .screenshot({ path: path.join(OUT_DIR, 'text-effects.jpg'), type: 'jpeg', quality: 86 })
     await page.close()
   } finally {
     await browser.close()

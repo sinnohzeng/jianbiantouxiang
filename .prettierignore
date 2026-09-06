@@ -26,3 +26,6 @@ SECURITY.md
 LICENSE
 docs
 specs
+
+# 本机 harness 配置，不是项目源码
+.claude

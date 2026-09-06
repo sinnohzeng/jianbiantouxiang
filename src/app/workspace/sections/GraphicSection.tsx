@@ -5,10 +5,14 @@
  * 所以标题下常驻一句话，把内置图标、emoji、品牌标志、上传图片四条来路直接摊开说。
  * 开关的语义沿用 v4：开就是拉起选择器去挑一个，关就把这一位清空回纯文字。
  * 图标大小在微调面板里，这里只管挑。
+ *
+ * 品牌标志多一档原色 / 单色，就摆在「换一个」旁边：切单色是挑完之后最常做的一步，
+ * 不该逼人再把选择器打开一次。它与选择器里那个分段控件读写同一位配置。
  */
 
 import { Suspense, useState } from 'react'
 import { ImagePlusIcon, XIcon } from 'lucide-react'
+import { SegmentedControl } from '@/components/blocks/segmented-control'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { useT } from '@/i18n'
@@ -29,6 +33,13 @@ export function GraphicSection() {
   const icon = config.layout.icon
   const enabled = icon.source !== 'none'
   const type = config.typography
+  // 单色只对品牌标志有意义：emoji 与上传的图压成剪影只会糊成一块
+  const isBrand = icon.source === 'brand'
+
+  const monoOptions = [
+    { value: 'color' as const, label: t('icon.brand.variant.color') },
+    { value: 'mono' as const, label: t('icon.brand.variant.mono') },
+  ]
 
   const openPicker = (): void => {
     setIconMounted(true)
@@ -68,11 +79,7 @@ export function GraphicSection() {
           )}
         >
           {enabled ? (
-            <GraphicThumb
-              icon={icon}
-              config={config}
-              color={type.color}
-            />
+            <GraphicThumb icon={icon} config={config} color={type.color} />
           ) : (
             <ImagePlusIcon className="size-6" aria-hidden />
           )}
@@ -101,6 +108,17 @@ export function GraphicSection() {
               >
                 <XIcon aria-hidden />
               </Button>
+            ) : null}
+            {isBrand ? (
+              <div data-slot="brand-mono" className="min-w-40 flex-1">
+                <SegmentedControl
+                  name="brand-mono"
+                  label={t('panel.graphic.mono')}
+                  value={icon.mono ? 'mono' : 'color'}
+                  options={monoOptions}
+                  onChange={(next) => setLayout({ icon: { mono: next === 'mono' } })}
+                />
+              </div>
             ) : null}
           </div>
         </div>
