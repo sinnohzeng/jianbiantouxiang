@@ -29,3 +29,6 @@ specs
 
 # 本机 harness 配置，不是项目源码
 .claude
+
+# 指向 AGENTS.md 的软链，格式化真身即可
+CLAUDE.md

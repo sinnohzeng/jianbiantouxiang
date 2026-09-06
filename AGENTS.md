@@ -2,6 +2,8 @@
 
 本仓库是纯前端的渐变头像生成器，线上地址 <https://jianbian.zixuan.net>。约定的唯一真源是 `docs/contributing.md`，这份文件只列智能体动手前必须知道的边界，不复制那里的正文。
 
+根目录的 `CLAUDE.md` 是指向本文件的软链。Claude Code 只认 `CLAUDE.md` 这个名字，其余工具认 `AGENTS.md`，两边指同一份内容，要改就改这一份。
+
 ## 动手前
 
 - 先读 `docs/contributing.md`（约定）与 `docs/architecture.md`（模块与数据流）。多文件改动先看 `specs/` 里有没有对应规约，有就照规约做。
