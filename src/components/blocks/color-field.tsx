@@ -67,6 +67,7 @@ export function ColorField({
                   // 色块按行等分而不是钉死 44 见方：预设有七个，44 的方块在挑选栏那一列
                   // 放不下第七个，末尾会孤零零折下去一个。高度仍是 44，触控热区够
                   'border-border h-11 min-w-9 flex-1 basis-9 cursor-pointer rounded-lg border transition-colors',
+                  'lg:h-8',
                   active && 'border-primary ring-ring/50 ring-3',
                 )}
                 style={{ backgroundColor: preset.hex }}
@@ -82,11 +83,11 @@ export function ColorField({
           aria-label={label}
           value={value}
           onChange={(event) => onChange(normalizeHex(event.target.value, value))}
-          className="border-border size-11 shrink-0 cursor-pointer rounded-lg border bg-transparent p-1"
+          className="border-border size-11 shrink-0 cursor-pointer rounded-lg border bg-transparent p-1 lg:size-9"
         />
         {showHex ? (
           <Input
-            className="h-11 font-mono uppercase"
+            className="h-11 font-mono uppercase lg:h-9"
             aria-label={hexLabel ?? label}
             spellCheck={false}
             autoComplete="off"

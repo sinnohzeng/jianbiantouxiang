@@ -59,12 +59,14 @@ export function TextSection() {
 
   return (
     <SectionCard title={t('panel.text.title')}>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="avatar-text-first">{t('panel.text.line1')}</Label>
+      <div className="flex flex-col gap-1">
+        <Label htmlFor="avatar-text-first" className="text-muted-foreground text-[11px]">
+          {t('panel.text.line1')}
+        </Label>
         <Input
           id="avatar-text-first"
           data-slot="text-line1"
-          className="h-11"
+          className="h-11 lg:h-9"
           value={first}
           placeholder={t('panel.text.line1.placeholder')}
           onChange={(event) =>
@@ -73,12 +75,14 @@ export function TextSection() {
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="avatar-text-second">{t('panel.text.line2')}</Label>
+      <div className="flex flex-col gap-1">
+        <Label htmlFor="avatar-text-second" className="text-muted-foreground text-[11px]">
+          {t('panel.text.line2')}
+        </Label>
         <Input
           id="avatar-text-second"
           data-slot="text-line2"
-          className="h-11"
+          className="h-11 lg:h-9"
           value={second}
           placeholder={t('panel.text.line2.placeholder')}
           onChange={(event) =>
@@ -87,12 +91,12 @@ export function TextSection() {
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label>{t('panel.text.font')}</Label>
+      <div className="flex flex-col gap-1">
+        <Label className="text-muted-foreground text-[11px]">{t('panel.text.font')}</Label>
         <Button
           type="button"
           variant="outline"
-          className="h-11 w-full justify-between px-3"
+          className="h-11 w-full justify-between px-3 lg:h-9"
           onClick={() => {
             setFontMounted(true)
             setFontOpen(true)
@@ -109,8 +113,8 @@ export function TextSection() {
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label>{t('panel.text.fontWeight')}</Label>
+      <div className="flex flex-col gap-1">
+        <Label className="text-muted-foreground text-[11px]">{t('panel.text.fontWeight')}</Label>
         <div
           role="radiogroup"
           aria-label={t('panel.text.fontWeight')}
@@ -129,7 +133,7 @@ export function TextSection() {
                   if (event.target.checked) setTypography({ fontWeight: weight })
                 }}
               />
-              <span className="border-border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-ring/50 flex h-11 min-w-11 items-center justify-center rounded-lg border px-3 text-sm tabular-nums transition-colors peer-focus-visible:ring-3 motion-reduce:transition-none">
+              <span className="border-border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-ring/50 flex h-11 min-w-11 items-center justify-center rounded-lg border px-3 text-sm tabular-nums transition-colors peer-focus-visible:ring-3 motion-reduce:transition-none lg:h-7 lg:min-w-7 lg:px-2 lg:text-xs">
                 {weight}
               </span>
             </label>
@@ -137,8 +141,8 @@ export function TextSection() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label>{t('panel.text.effect')}</Label>
+      <div className="flex flex-col gap-1">
+        <Label className="text-muted-foreground text-[11px]">{t('panel.text.effect')}</Label>
         <SegmentedControl<TextEffect>
           name="text-effect"
           label={t('panel.text.effect')}
@@ -148,8 +152,8 @@ export function TextSection() {
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label>{t('panel.text.color')}</Label>
+      <div className="flex flex-col gap-1">
+        <Label className="text-muted-foreground text-[11px]">{t('panel.text.color')}</Label>
         {/* v5 起没有「自动」：文字色就是这里挑的那一个，预览与导出读同一个字段。
             自动取色要另起一次离屏渲染去采样，结果还会随高光与种子飘，
             用户看到的是「我没动它，颜色自己变了」 */}

@@ -48,7 +48,7 @@ export function SegmentedControl<T extends string>({
       role="radiogroup"
       aria-label={label}
       aria-disabled={disabled || undefined}
-      className={cn('bg-muted flex w-full gap-1 rounded-lg p-1', className)}
+      className={cn('bg-muted flex w-full gap-1 rounded-lg p-1 lg:gap-0.5 lg:p-0.5', className)}
     >
       {options.map((option) => (
         <label
@@ -56,7 +56,7 @@ export function SegmentedControl<T extends string>({
           // flex-1 的项默认 min-width:auto，缩不到内容的最小宽度以下，
           // 长单词（en 下的 Monochromatic）会把整组撑出容器，body 又是 overflow-x:hidden，
           // 撑出去的部分既滚不到也看不见。min-w-0 加内层 truncate 一起兜住
-          className="relative flex min-h-11 min-w-0 flex-1 cursor-pointer items-center justify-center has-disabled:cursor-not-allowed has-disabled:opacity-50"
+          className="relative flex min-h-11 min-w-0 flex-1 cursor-pointer items-center justify-center has-disabled:cursor-not-allowed has-disabled:opacity-50 lg:min-h-7"
         >
           <input
             type="radio"
@@ -84,6 +84,7 @@ export function SegmentedControl<T extends string>({
               // 深色的观感几乎不变（明度 0.715 到 0.740），只把浅色那一档补上来。
               // 选中态是实心主色：白底板压在浅灰槽上只差一点点亮度，一眼看不出选的是哪一格
               'text-foreground/65 relative flex h-full w-full min-w-0 items-center justify-center gap-1.5 rounded-md px-1.5 text-sm font-medium transition-colors',
+              'lg:px-1 lg:text-[11px]',
               // 悬停提亮只给未选中的那几格。写成 peer-hover 的话 Tailwind 会把它排在 peer-checked 之后，
               // 悬停选中格时文字被改回 foreground，压在实心主色底板上就是一片看不清的深色，
               // 深浅两套主题都中招。所以选择器里自己带上 :not(:checked)

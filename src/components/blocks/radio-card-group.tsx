@@ -37,9 +37,9 @@ export function RadioCardGroup<T extends string>({
   const uid = useId()
   const showcase = useShowcase()
   return (
-    <div role="radiogroup" aria-label={label} className={cn('grid grid-cols-2 gap-2', className)}>
+    <div role="radiogroup" aria-label={label} className={cn('grid grid-cols-4 gap-1.5', className)}>
       {options.map((option) => (
-        <label key={option.value} className="relative cursor-pointer">
+        <label key={option.value} className="relative cursor-pointer" title={option.description}>
           <input
             type="radio"
             className="peer sr-only"
@@ -54,12 +54,12 @@ export function RadioCardGroup<T extends string>({
           {value === option.value ? (
             <SelectionIndicator
               id={`radio-card-${name}-${uid}`}
-              className="border-primary ring-primary/30 z-10 rounded-xl border ring-2"
+              className="border-primary ring-primary/30 z-10 rounded-lg border ring-2"
             />
           ) : null}
           <span
             className={cn(
-              'border-border bg-card flex min-h-11 flex-col gap-2 rounded-xl border p-2 transition-colors',
+              'border-border bg-card flex min-h-11 flex-col gap-1 rounded-lg border p-1 transition-colors',
               'hover:border-foreground/30',
               !showcase &&
                 'peer-checked:border-primary peer-checked:ring-primary/30 peer-checked:ring-2',
@@ -68,13 +68,10 @@ export function RadioCardGroup<T extends string>({
             )}
           >
             {option.preview}
-            <span className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium">{option.title}</span>
-              {option.description ? (
-                <span className="text-muted-foreground text-xs leading-snug">
-                  {option.description}
-                </span>
-              ) : null}
+            {/* 描述在触屏上没有 hover，卡内只留名字；选中项的描述由调用方常显一行 */}
+            <span className="truncate text-center text-[11px] font-medium">
+              {option.title}
+              {option.description ? <span className="sr-only">：{option.description}</span> : null}
             </span>
           </span>
         </label>

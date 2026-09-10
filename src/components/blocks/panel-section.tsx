@@ -32,6 +32,7 @@ export function PanelSection({
       <CollapsibleTrigger
         className={cn(
           'hover:text-foreground text-muted-foreground focus-visible:ring-ring/50 flex min-h-11 w-full items-center justify-between gap-2 px-1 text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none',
+          'lg:min-h-9 lg:text-xs',
           'motion-reduce:transition-none',
         )}
       >
@@ -44,7 +45,7 @@ export function PanelSection({
           )}
         />
       </CollapsibleTrigger>
-      <CollapsibleContent className="flex flex-col gap-3 px-1 pt-1 pb-4">
+      <CollapsibleContent className="flex flex-col gap-2 px-1 pt-1 pb-3">
         {children}
       </CollapsibleContent>
     </Collapsible>

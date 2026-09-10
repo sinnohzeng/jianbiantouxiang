@@ -11,7 +11,6 @@ import { copyText } from '@/app/clipboard'
 import { RadioCardGroup, type RadioCardOption } from '@/components/blocks/radio-card-group'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { cssFallbackBackground } from '@/engine/css-fallback'
 import { resolveSeed } from '@/engine/seed'
 import { STYLE_LIST } from '@/engine/styles'
@@ -44,6 +43,7 @@ export function StyleSection() {
   )
 
   const seed = resolveSeed(config)
+  const selectedDescription = t(`style.${config.style}.desc`)
 
   const options: RadioCardOption<StyleId>[] = useMemo(
     () =>
@@ -54,7 +54,7 @@ export function StyleSection() {
         preview: (
           <span
             aria-hidden="true"
-            className="block h-14 w-full rounded-lg"
+            className="block h-10 w-full rounded-md"
             style={{ background: thumbBackground(config, style.id) }}
           />
         ),
@@ -88,44 +88,50 @@ export function StyleSection() {
         onChange={(style) => setConfig({ style })}
       />
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="style-seed">{t('panel.style.seed')}</Label>
-        <div className="flex items-center gap-1.5">
-          <Input
-            id="style-seed"
-            className="h-11 flex-1 font-mono"
-            title={t('panel.style.seed.hint')}
-            spellCheck={false}
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            value={config.seed}
-            onChange={(event) => setConfig({ seed: event.target.value })}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-lg"
-            className="tap-target"
-            aria-label={t('panel.style.seed.copy')}
-            title={t('panel.style.seed.copy')}
-            onClick={copySeed}
-          >
-            {copied ? <CheckIcon aria-hidden="true" /> : <CopyIcon aria-hidden="true" />}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-lg"
-            data-slot="seed-shuffle"
-            className="tap-target"
-            aria-label={t('panel.style.seed.new')}
-            title={t('panel.style.seed.new')}
-            onClick={randomize}
-          >
-            <ShuffleIcon aria-hidden="true" />
-          </Button>
-        </div>
+      {/* 卡内只留名字之后，描述在这里常显一行：触屏没有 hover，不能只活在 title 里 */}
+      <p className="text-muted-foreground truncate text-[11px]" title={selectedDescription}>
+        {selectedDescription}
+      </p>
+
+      <div className="flex items-center gap-1.5">
+        <label
+          htmlFor="style-seed"
+          className="text-muted-foreground shrink-0 text-[11px] font-medium"
+        >
+          {t('panel.style.seed')}
+        </label>
+        <Input
+          id="style-seed"
+          className="h-11 min-w-0 flex-1 font-mono lg:h-8"
+          title={t('panel.style.seed.hint')}
+          spellCheck={false}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          value={config.seed}
+          onChange={(event) => setConfig({ seed: event.target.value })}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          className="size-11 shrink-0 lg:size-8"
+          aria-label={t('panel.style.seed.copy')}
+          title={t('panel.style.seed.copy')}
+          onClick={copySeed}
+        >
+          {copied ? <CheckIcon aria-hidden="true" /> : <CopyIcon aria-hidden="true" />}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          data-slot="seed-shuffle"
+          className="size-11 shrink-0 lg:size-8"
+          aria-label={t('panel.style.seed.new')}
+          title={t('panel.style.seed.new')}
+          onClick={randomize}
+        >
+          <ShuffleIcon aria-hidden="true" />
+        </Button>
       </div>
     </SectionCard>
   )

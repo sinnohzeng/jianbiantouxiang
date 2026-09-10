@@ -53,6 +53,11 @@ export function PaletteSection() {
     [tone],
   )
 
+  const selectedName =
+    config.palette === 'custom'
+      ? t('panel.palette.custom')
+      : (PALETTES.find((palette) => palette.id === config.palette)?.name[locale] ?? '')
+
   /** 自定义区没存过色时，先拿当前配色当草稿，用户一改就落到 custom。 */
   const customColors =
     config.customColors.length >= CUSTOM_MIN
@@ -77,7 +82,17 @@ export function PaletteSection() {
   }
 
   return (
-    <SectionCard title={t('panel.palette.title')}>
+    <SectionCard
+      title={t('panel.palette.title')}
+      action={
+        <span
+          title={selectedName}
+          className="text-muted-foreground max-w-[45%] min-w-0 truncate text-[11px]"
+        >
+          {selectedName}
+        </span>
+      }
+    >
       <div className="flex flex-col gap-2">
         <SegmentedControl<ToneFilter>
           name="palette-tone"
@@ -98,13 +113,14 @@ export function PaletteSection() {
         <div
           role="radiogroup"
           aria-label={t('panel.palette.builtin')}
-          className="grid grid-cols-4 gap-2"
+          className="grid grid-cols-6 gap-1.5"
         >
           {visible.map((palette) => {
             const active = config.palette === palette.id
             const thumb = paletteThumbCss(palette.colors)
+            const name = palette.name[locale]
             return (
-              <label key={palette.id} className="relative cursor-pointer">
+              <label key={palette.id} className="relative cursor-pointer" title={name}>
                 <input
                   type="radio"
                   className="peer sr-only"
@@ -120,22 +136,20 @@ export function PaletteSection() {
                 {active ? (
                   <SelectionIndicator
                     id={`palette-tile-${uid}`}
-                    className="ring-foreground rounded-xl ring-[3px]"
+                    className="ring-foreground rounded-lg ring-2"
                   />
                 ) : null}
-                {/* 关掉炫技层时退回原来的做法：外层垫一圈本配色的渐变，内层缩进 3 px 露出来 */}
+                {/* 关掉炫技层时退回原来的做法：外层垫一圈本配色的渐变，内层缩进 2 px 露出来 */}
                 <span
-                  className="peer-focus-visible:ring-ring/50 flex flex-col gap-1 rounded-xl p-[3px] peer-focus-visible:ring-3"
+                  className="peer-focus-visible:ring-ring/50 flex flex-col rounded-lg p-[2px] peer-focus-visible:ring-3"
                   style={active && !showcase ? { backgroundImage: thumb } : undefined}
                 >
                   <span
                     aria-hidden="true"
-                    className="border-border/60 block h-14 w-full rounded-lg border"
+                    className="border-border/60 block h-9 w-full rounded-md border"
                     style={{ backgroundImage: thumb }}
                   />
-                  <span className="truncate text-center text-[11px] leading-tight">
-                    {palette.name[locale]}
-                  </span>
+                  <span className="sr-only">{name}</span>
                 </span>
               </label>
             )
@@ -146,8 +160,10 @@ export function PaletteSection() {
       <PanelSection title={t('panel.palette.custom')} defaultOpen={false}>
         <p className="text-muted-foreground text-xs">{t('panel.palette.custom.hint')}</p>
 
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`${uid}-paste`}>{t('panel.palette.custom.paste')}</Label>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor={`${uid}-paste`} className="text-muted-foreground text-[11px]">
+            {t('panel.palette.custom.paste')}
+          </Label>
           {/* 凑够两个有效色就直接应用，不再多一颗“应用”按钮；不够两个就当用户还在打字 */}
           <Textarea
             id={`${uid}-paste`}
@@ -170,7 +186,7 @@ export function PaletteSection() {
 
         <span
           aria-hidden="true"
-          className="border-border block h-11 w-full rounded-lg border"
+          className="border-border block h-11 w-full rounded-lg border lg:h-9"
           style={{ backgroundImage: paletteThumbCss(customColors) }}
         />
         <div className="flex flex-col gap-2">
@@ -190,7 +206,7 @@ export function PaletteSection() {
               <Button
                 type="button"
                 variant="ghost"
-                className="size-11"
+                className="size-11 lg:size-9"
                 aria-label={t('panel.palette.custom.removeAt', { index: index + 1 })}
                 disabled={customColors.length <= CUSTOM_MIN}
                 onClick={() => writeCustom(customColors.filter((_, i) => i !== index))}
@@ -203,7 +219,7 @@ export function PaletteSection() {
         <Button
           type="button"
           variant="outline"
-          className="h-11"
+          className="h-11 lg:h-9"
           disabled={customColors.length >= CUSTOM_MAX}
           onClick={() => writeCustom([...customColors, customColors.at(-1) ?? '#ffffff'])}
         >
@@ -213,10 +229,12 @@ export function PaletteSection() {
       </PanelSection>
 
       <PanelSection title={t('panel.palette.seed')} defaultOpen={false}>
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1">
           {/* ColorField 内部那个 input[type=color] 的 id 是 useId 生成的，外面拿不到，
               所以这里不写 htmlFor：可访问名由 ColorField 自己的 aria-label 给 */}
-          <Label>{t('panel.palette.seed.base')}</Label>
+          <Label className="text-muted-foreground text-[11px]">
+            {t('panel.palette.seed.base')}
+          </Label>
           <ColorField
             label={t('panel.palette.seed.base')}
             hexLabel={t('panel.common.hex')}
@@ -224,11 +242,13 @@ export function PaletteSection() {
             onChange={setSeed1}
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="palette-seed-2">{t('panel.palette.seed.second')}</Label>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="palette-seed-2" className="text-muted-foreground text-[11px]">
+            {t('panel.palette.seed.second')}
+          </Label>
           <Input
             id="palette-seed-2"
-            className="h-11 font-mono uppercase"
+            className="h-11 font-mono uppercase lg:h-9"
             spellCheck={false}
             autoComplete="off"
             placeholder="#f5a15f"
@@ -236,8 +256,10 @@ export function PaletteSection() {
             onChange={(event) => setSeed2(event.target.value)}
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <Label>{t('panel.palette.seed.tone')}</Label>
+        <div className="flex flex-col gap-1">
+          <Label className="text-muted-foreground text-[11px]">
+            {t('panel.palette.seed.tone')}
+          </Label>
           <SegmentedControl<PaletteTone>
             name="palette-seed-tone"
             label={t('panel.palette.seed.tone')}
@@ -249,8 +271,10 @@ export function PaletteSection() {
             onChange={setSeedTone}
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <Label>{t('panel.palette.seed.scheme')}</Label>
+        <div className="flex flex-col gap-1">
+          <Label className="text-muted-foreground text-[11px]">
+            {t('panel.palette.seed.scheme')}
+          </Label>
           <SegmentedControl<HarmonyScheme>
             name="palette-seed-scheme"
             label={t('panel.palette.seed.scheme')}
@@ -263,7 +287,7 @@ export function PaletteSection() {
             onChange={setScheme}
           />
         </div>
-        <Button type="button" className="h-11" onClick={generate}>
+        <Button type="button" className="h-11 lg:h-9" onClick={generate}>
           {t('panel.palette.seed.apply')}
         </Button>
         {plateHint ? (
