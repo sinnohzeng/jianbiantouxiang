@@ -229,7 +229,7 @@ test('图标徽章能选内置棕榈图标并导出', async ({ page }) => {
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('[data-slot="text-icon-switch"]').click()
+  await page.locator('[data-slot="graphic-pick"]').click()
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
   await page.locator('#avatar-text-first').fill('产品设计部')
@@ -248,7 +248,7 @@ test('图标徽章能用中文搜到棕榈 emoji 并导出', async ({ page }) =>
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('[data-slot="text-icon-switch"]').click()
+  await page.locator('[data-slot="graphic-pick"]').click()
   await page.locator('label:has(input[data-group="icon-source"][value="emoji"])').click()
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
@@ -283,7 +283,7 @@ test('图标徽章能在品牌页搜到 GitHub 并导出', async ({ page }) => {
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('[data-slot="text-icon-switch"]').click()
+  await page.locator('[data-slot="graphic-pick"]').click()
   await page.locator('label:has(input[data-group="icon-source"][value="brand"])').click()
   await page.locator('[data-slot="command-input"]').fill('GitHub')
   // 名字精确匹配，免得选中同样命中的 GitHub Copilot
@@ -311,7 +311,7 @@ test('挑选栏能把没有官方单色稿的品牌切成单色并导出', async
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('[data-slot="text-icon-switch"]').click()
+  await page.locator('[data-slot="graphic-pick"]').click()
   await page.locator('label:has(input[data-group="icon-source"][value="brand"])').click()
   await page.locator('[data-slot="command-input"]').fill('飞书')
   await page.getByRole('option', { name: /飞书|Lark/ }).click()
@@ -345,7 +345,7 @@ test('单色那一档只跟着品牌来源出现', async ({ page }) => {
   await expect(monoControl).toHaveCount(0)
 
   // 内置图标没有单色一说，挑完这一档仍不该冒出来
-  await page.locator('[data-slot="text-icon-switch"]').click()
+  await page.locator('[data-slot="graphic-pick"]').click()
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
   await expect(page.locator('[data-slot="graphic-picker"]')).toContainText('palm')
@@ -356,13 +356,22 @@ test('单色那一档只跟着品牌来源出现', async ({ page }) => {
   await page.locator('[data-slot="command-input"]').fill('飞书')
   await page.getByRole('option', { name: /飞书|Lark/ }).click()
   await expect(monoControl).toBeVisible()
+
+  // 移除钮是填充态唯一的清空入口
+  await page.locator('[data-slot="icon-clear"]').click()
+  await expect(page.locator('[data-slot="graphic-picker"]')).toHaveCount(0)
+  await expect(monoControl).toHaveCount(0)
+  await expect(page.locator('[data-slot="graphic-pick"]')).toBeVisible()
+  await expect
+    .poll(async () => (await readIcon(page))?.source, { timeout: POLL_TIMEOUT_MS })
+    .toBe('none')
 })
 
 test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('[data-slot="text-icon-switch"]').click()
+  await page.locator('[data-slot="graphic-pick"]').click()
   await page.locator('input[type="file"]').setInputFiles({
     name: 'team.svg',
     mimeType: 'image/svg+xml',

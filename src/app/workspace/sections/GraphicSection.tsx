@@ -1,25 +1,24 @@
 /**
- * 图标节：开关、当前图标磁贴、更换与清除。
+ * 图标节：一个控件两种状态。
  *
- * 标题叫「图标」不叫「图形」：第一次进来的人不知道「图形」指什么，
- * 所以标题下常驻一句话，把内置图标、emoji、品牌标志、上传图片四条来路直接摊开说。
- * 开关的语义沿用 v4：开就是拉起选择器去挑一个，关就把这一位清空回纯文字。
- * 图标大小在微调面板里，这里只管挑。
+ * 空态是一颗整宽虚线按钮；填充态是缩略图磁贴（点它换）、图形名与移除钮。
+ * 早先这里同时有标题开关、磁贴、「挑一个」按钮与清除钮四个入口做同一件事：
+ * 开关打开时拉起选择器是个 call to action，而 Switch 的语义是持续开关一个功能，
+ * 两者不是一回事。现在选与换都走磁贴，去掉直接叉掉。
  *
- * 品牌标志多一档原色 / 单色，就摆在「换一个」旁边：切单色是挑完之后最常做的一步，
- * 不该逼人再把选择器打开一次。它与选择器里那个分段控件读写同一位配置。
+ * 磁贴内保留 sr-only 的 id：端到端与单测按磁贴文本断言当前图形，可见名字另在一格。
+ * 品牌标志多一档原色 / 单色，那是选中之后的属性而不是入口，留在填充态里。
  */
 
 import { Suspense, useState } from 'react'
 import { ImagePlusIcon, XIcon } from 'lucide-react'
 import { SegmentedControl } from '@/components/blocks/segmented-control'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
 import { useT } from '@/i18n'
-import { useAvatarStore } from '@/state/store'
+import { useGraphicLabel } from '@/graphics/label'
 import { GraphicThumb } from '@/app/panels/GraphicThumb'
 import { IconPickerLazy } from '@/app/panels/lazy'
-import { cn } from '@/lib/utils'
+import { useAvatarStore } from '@/state/store'
 import { SectionCard } from './card'
 
 export function GraphicSection() {
@@ -35,6 +34,7 @@ export function GraphicSection() {
   const type = config.typography
   // 单色只对品牌标志有意义：emoji 与上传的图压成剪影只会糊成一块
   const isBrand = icon.source === 'brand'
+  const label = useGraphicLabel(icon.source, icon.id)
 
   const monoOptions = [
     { value: 'color' as const, label: t('icon.brand.variant.color') },
@@ -46,89 +46,78 @@ export function GraphicSection() {
     setIconOpen(true)
   }
 
+  const clear = (): void => {
+    setLayout({ icon: { source: 'none', id: '' } })
+  }
+
   return (
-    <SectionCard
-      title={t('panel.graphic.title')}
-      action={
-        <Switch
-          id="text-icon"
-          data-slot="text-icon-switch"
-          aria-label={t('panel.text.icon')}
-          className="after:-inset-y-[13px]"
-          checked={enabled}
-          onCheckedChange={(on) => {
-            // 开关打开即拉起图形选择器：选完图形开关才算真正点亮，
-            // 关掉则清空图标，栈回到纯文字
-            if (on) openPicker()
-            else setLayout({ icon: { source: 'none', id: '' } })
-          }}
-        />
-      }
-    >
-      <p className="text-muted-foreground text-xs">{t('panel.graphic.intro')}</p>
-
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          data-slot="graphic-picker"
-          aria-label={t('icon.title')}
-          onClick={openPicker}
-          className={cn(
-            'hover:border-foreground/40 focus-visible:ring-ring/50 flex size-18 shrink-0 items-center justify-center rounded-xl border transition-colors focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none',
-            enabled ? 'border-border' : 'border-border/70 text-muted-foreground border-dashed',
-          )}
-        >
-          {enabled ? (
-            <GraphicThumb icon={icon} config={config} color={type.color} />
-          ) : (
-            <ImagePlusIcon className="size-6" aria-hidden />
-          )}
-          {/* 磁贴上不写字，当前图形标识仍留在无障碍名与端到端断言里 */}
-          <span className="sr-only">{enabled ? icon.id : t('panel.graphic.empty')}</span>
-        </button>
-
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <p className="text-muted-foreground truncate text-xs">
-            {enabled ? icon.id || t('panel.graphic.current') : t('panel.graphic.empty')}
-          </p>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Button type="button" variant="outline" className="h-11 px-3" onClick={openPicker}>
-              {enabled ? t('panel.graphic.change') : t('panel.graphic.pick')}
-            </Button>
-            {enabled ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-lg"
-                data-slot="icon-clear"
-                aria-label={t('panel.text.icon.clear')}
-                title={t('panel.text.icon.clear')}
-                className="tap-target"
-                onClick={() => setLayout({ icon: { source: 'none', id: '' } })}
-              >
-                <XIcon aria-hidden />
-              </Button>
-            ) : null}
-            {isBrand ? (
-              <div data-slot="brand-mono" className="min-w-40 flex-1">
-                <SegmentedControl
-                  name="brand-mono"
-                  label={t('panel.graphic.mono')}
-                  value={icon.mono ? 'mono' : 'color'}
-                  options={monoOptions}
-                  onChange={(next) => setLayout({ icon: { mono: next === 'mono' } })}
-                />
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
+    <SectionCard title={t('panel.graphic.title')}>
       {enabled ? (
-        <p className="text-muted-foreground text-xs">{t('panel.text.icon.hint')}</p>
-      ) : null}
+        <>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              data-slot="graphic-picker"
+              aria-label={t('icon.title')}
+              title={t('icon.title')}
+              onClick={openPicker}
+              className="hover:border-foreground/40 focus-visible:ring-ring/50 border-border flex size-12 shrink-0 items-center justify-center rounded-lg border transition-colors focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none lg:size-11"
+            >
+              <GraphicThumb icon={icon} config={config} color={type.color} />
+              <span className="sr-only">{icon.id}</span>
+            </button>
 
-      {/* 选择器挂载与 enabled 无关：第一次选图形时开关还没点亮 */}
+            <div className="min-w-0 flex-1">
+              <p
+                data-slot="graphic-name"
+                title={label}
+                className="truncate text-[11px] font-medium"
+              >
+                {label}
+              </p>
+              <p className="text-muted-foreground truncate text-[11px]">
+                {t('panel.text.icon.hint')}
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              variant="ghost"
+              data-slot="icon-clear"
+              aria-label={t('panel.text.icon.clear')}
+              title={t('panel.text.icon.clear')}
+              className="text-muted-foreground hover:text-foreground size-11 shrink-0 lg:size-8"
+              onClick={clear}
+            >
+              <XIcon aria-hidden className="size-4" />
+            </Button>
+          </div>
+
+          {isBrand ? (
+            <div data-slot="brand-mono" className="min-w-0">
+              <SegmentedControl
+                name="brand-mono"
+                label={t('panel.graphic.mono')}
+                value={icon.mono ? 'mono' : 'color'}
+                options={monoOptions}
+                onChange={(next) => setLayout({ icon: { mono: next === 'mono' } })}
+              />
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          data-slot="graphic-pick"
+          className="h-11 w-full border-dashed"
+          onClick={openPicker}
+        >
+          <ImagePlusIcon aria-hidden />
+          {t('icon.title')}
+        </Button>
+      )}
+
       {iconMounted ? (
         <Suspense fallback={null}>
           <IconPickerLazy open={iconOpen} onOpenChange={setIconOpen} />

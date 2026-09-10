@@ -254,6 +254,7 @@ function randomId(): string {
 }
 
 const registry = new Map<string, Graphic>()
+const names = new Map<string, string>()
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -288,6 +289,7 @@ export async function registerUploadedGraphic(file: File): Promise<{ id: string;
       const graphic = await graphicOfUrl(url)
       const id = randomId()
       registry.set(id, graphic)
+      names.set(id, file.name)
       return { id, name: file.name }
     } finally {
       URL.revokeObjectURL(url)
@@ -299,6 +301,7 @@ export async function registerUploadedGraphic(file: File): Promise<{ id: string;
       const graphic = await graphicOfUrl(url)
       const id = randomId()
       registry.set(id, graphic)
+      names.set(id, file.name)
       return { id, name: file.name }
     } finally {
       URL.revokeObjectURL(url)
@@ -311,6 +314,12 @@ export function getUploadedGraphic(id: string): Graphic | null {
   return registry.get(id) ?? null
 }
 
+/** 上传图形的原文件名，供界面显示；刷新后注册表已空，返回 null。 */
+export function getUploadedGraphicName(id: string): string | null {
+  return names.get(id) ?? null
+}
+
 export function clearUploadedGraphics(): void {
   registry.clear()
+  names.clear()
 }

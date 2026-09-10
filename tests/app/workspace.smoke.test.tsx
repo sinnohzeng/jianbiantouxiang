@@ -144,8 +144,7 @@ describe('挑选栏 · 图形节', () => {
     })
     const { container } = mount(<PickColumn />)
 
-    const toggle = container.querySelector<HTMLInputElement>('#text-icon')
-    expect(toggle?.checked).toBe(true)
+    expect(container.querySelector('[data-slot="graphic-pick"]')).toBeNull()
     expect(container.querySelector('[data-slot="graphic-picker"]')?.textContent).toContain('1f334')
 
     const clear = container.querySelector<HTMLButtonElement>('button[data-slot="icon-clear"]')
@@ -154,9 +153,10 @@ describe('挑选栏 · 图形节', () => {
     expect(config().layout.icon).toEqual({ source: 'none', id: '', mono: false })
   })
 
-  it('没有图形时磁贴是空位，也没有清除按钮', () => {
+  it('没有图形时是空态按钮，没有磁贴也没有清除按钮', () => {
     const { container } = mount(<PickColumn />)
-    expect(container.querySelector('[data-slot="graphic-picker"]')).not.toBeNull()
+    expect(container.querySelector('[data-slot="graphic-pick"]')).not.toBeNull()
+    expect(container.querySelector('[data-slot="graphic-picker"]')).toBeNull()
     expect(container.querySelector('button[data-slot="icon-clear"]')).toBeNull()
   })
 })

@@ -83,9 +83,9 @@ test('切换语言后 html[lang] 与标题都跟着变', async ({ page }) => {
 
 test('手机上图形选择器走底部抽屉且无横向滚动', async ({ page }) => {
   await openApp(page)
-  const iconSwitch = page.locator('[data-slot="text-icon-switch"]')
-  await centreBetweenBars(page, iconSwitch)
-  await iconSwitch.click()
+  const iconPick = page.locator('[data-slot="graphic-pick"]')
+  await centreBetweenBars(page, iconPick)
+  await iconPick.click()
 
   const dialog = page.locator('[data-slot="drawer-popup"]')
   await expect(dialog).toBeVisible()
