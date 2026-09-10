@@ -5,8 +5,9 @@
 
 import type { ShaderMount } from '@paper-design/shaders'
 import type { AvatarConfig } from '@/state/config'
+import { createCanvas, get2d } from '@/lib/canvas'
 import { getRenderCaps, revalidateWebGL2 } from './caps'
-import { resolveColors } from './colors'
+import { FALLBACK_COLOR, resolveColors } from './colors'
 import { fallbackLayers, rgba } from './css-fallback'
 import type { FallbackOptions } from './fallback'
 import { notifyFallback } from './fallback'
@@ -80,7 +81,7 @@ function paintFallback(
   width: number,
   height: number,
 ): void {
-  ctx.fillStyle = rgba(colors[0] ?? '#c7d2fe', 1)
+  ctx.fillStyle = rgba(colors[0] ?? FALLBACK_COLOR, 1)
   ctx.fillRect(0, 0, width, height)
 
   for (const layer of fallbackLayers(config, colors)) {
@@ -114,11 +115,8 @@ export async function renderGradient(
   const outWidth = Math.max(1, Math.round(width))
   const outHeight = Math.max(1, Math.round(height))
 
-  const canvas = document.createElement('canvas')
-  canvas.width = outWidth
-  canvas.height = outHeight
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('renderGradient: 拿不到 2D 上下文')
+  const canvas = createCanvas(outWidth, outHeight)
+  const ctx = get2d(canvas)
 
   const colors = resolveColors(config)
   const caps = getRenderCaps()

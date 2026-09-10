@@ -4,7 +4,9 @@ import { paletteColors } from '@/palettes/palettes'
 import type { AvatarConfig } from '@/state/config'
 
 /** 配色表给不出可用颜色时的兜底，中性冷色，任何 shader 下都不会翻车。 */
-const NEUTRAL_RAMP = ['#dbeafe', '#c7d2fe', '#e9d5ff'] as const
+export const FALLBACK_COLOR = '#c7d2fe'
+
+const NEUTRAL_RAMP = ['#dbeafe', FALLBACK_COLOR, '#e9d5ff'] as const
 
 const HEX_RE = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i
 

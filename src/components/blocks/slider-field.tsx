@@ -11,6 +11,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import { RotateCcwIcon } from 'lucide-react'
+import { clamp } from '@/engine/math'
 import { useAnimatedNumber } from '@/app/showcase/use-animated-number'
 import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
@@ -47,10 +48,6 @@ export interface SliderFieldProps {
    * 手动态点这个按钮回到自动。
    */
   auto?: { active: boolean; label: string; hint?: string; onReset: () => void }
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return value < min ? min : value > max ? max : value
 }
 
 /** 步进的小数位，用来把对齐结果的浮点尾巴切掉。 */

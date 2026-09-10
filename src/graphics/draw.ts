@@ -1,4 +1,4 @@
-import { createCanvas, releaseCanvas } from '@/export/canvas'
+import { createCanvas, releaseCanvas } from '@/lib/canvas'
 import { INK_DARK, INK_LIGHT, isLightColor } from '@/text/ink'
 import type { AvatarConfig } from '@/state/config'
 import type { Rect } from '@/text/layout'

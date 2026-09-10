@@ -4,7 +4,7 @@
  */
 
 import type { AvatarConfig } from '@/state/config'
-import { resolveColors } from './colors'
+import { FALLBACK_COLOR, resolveColors } from './colors'
 import { clamp, lerp, round } from './math'
 import { rangeFrom, seededRng } from './seed'
 
@@ -60,7 +60,7 @@ export function fallbackLayers(config: AvatarConfig, colors: readonly string[]):
 
   const layers: FallbackLayer[] = []
   for (let i = 0; i < count; i += 1) {
-    const color = source[i % source.length] ?? source[0] ?? '#c7d2fe'
+    const color = source[i % source.length] ?? source[0] ?? FALLBACK_COLOR
     layers.push({
       x: round(rangeFrom(rng, 5, 95), 2),
       y: round(rangeFrom(rng, 5, 95), 2),
@@ -82,7 +82,7 @@ export function cssFallbackBackground(
   colors: readonly string[] = resolveColors(config),
 ): string {
   const layers = fallbackLayers(config, colors)
-  const base = colors[0] ?? '#c7d2fe'
+  const base = colors[0] ?? FALLBACK_COLOR
   const parts = layers.map(
     (layer) =>
       `radial-gradient(ellipse ${layer.radiusX}% ${layer.radiusY}% at ${layer.x}% ${layer.y}%, ` +

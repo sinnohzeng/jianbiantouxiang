@@ -3,12 +3,13 @@
  *
  * v4.0 把 v3 的三个用途（纯文字 / 状态徽章 / 图标徽章）收敛为一个两行徽章模型，
  * 见 specs/v4.0-two-line-badge/spec.md：
- * - `text` 最多两行，第三行起并入第二行，旧存档在 `normalizeConfig` 里迁移；
- * - `layout.kind` 与自由排版字段（对齐、锚点、全局偏移、竖排、自动换行开关）退役，
- *   旧载荷里带着它们不报错，读进来即忽略；
+ * - `text` 最多两行，第三行起并入第二行，`normalizeConfig` 按同一条解释规则收敛；
+ * - `layout.kind` 与自由排版字段（对齐、锚点、全局偏移、竖排、自动换行开关）不在契约里，
+ *   载荷里带着它们不报错，读进来即忽略；
  * - 版式只剩一个纵向栈：图标（可选）→ 第一行 → 第二行，水平居中、自动适配。
  */
 
+import { clamp } from '@/engine/math'
 import { twoLinesOf } from '@/text/wrap'
 import type { Locale } from '@/i18n'
 
@@ -192,10 +193,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function clamp(value: number, min: number, max: number): number {
-  return value < min ? min : value > max ? max : value
-}
-
 /** 取数值：非有限数回落到 fallback，再按区间夹值。 */
 function num(value: unknown, fallback: number, min: number, max: number): number {
   const n = typeof value === 'number' ? value : Number(value)
@@ -260,9 +257,9 @@ function normalizeNumberArray(
  * 把任意局部输入补成完整配置：缺字段补默认，数值按注释里的区间夹值，
  * 枚举与数组做合法性校验。任何输入都不会抛错。
  *
- * 同时承担 v3 → v4 的迁移：三行以上的文字第三行起并入第二行；
- * `layout.kind`、对齐、锚点、全局偏移、竖排、自动换行开关这些退役字段读进来即忽略；
- * 旧状态徽章的 `layout.scale` 迁移到次行字号档。
+ * 换行解释收敛到两行：三行以上的文字第三行起并入第二行，
+ * 载荷里被塞进多余换行也走同一条规则，渲染层不会见到第三行。
+ * 不在契约里的字段读进来即忽略。
  */
 export function normalizeConfig(partial: unknown): AvatarConfig {
   const d = DEFAULT_CONFIG
@@ -288,11 +285,6 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
     0.2,
     2,
   )
-  // v3.1 的状态徽章只有 layout.scale 一个自由度。v3.2 已把契约字段移除，
-  // 旧存档缺行级数组时在这里迁移，不能把用户调好的比例打回默认。
-  if (!Array.isArray(tp.lineSizeScales) && lay.kind === 'status') {
-    lineSizeScales[1] = num(lay.scale, STATUS_SECOND_LINE_SCALE, 0.2, 0.8)
-  }
 
   return {
     v: 4,

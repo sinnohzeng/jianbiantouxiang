@@ -1,3 +1,5 @@
+import { clamp } from '@/engine/math'
+import { WCAG_AA } from '@/text/ink'
 import { clampChroma, fixupHueShorter, formatHex, oklab, oklch, wcagContrast } from './culori'
 import { TEXT_DARK, TEXT_LIGHT } from './color'
 import type { PaletteTone } from './palettes'
@@ -31,11 +33,6 @@ const SPLIT = [0, 20, 150, 180, 210]
 const STEPS = [0, 0.25, 0.5, 0.75, 1]
 /** chroma 低于此值的种子按中性方案处理，五档同色相。 */
 const NEUTRAL_CHROMA = 0.03
-const WCAG_MIN = 4.5
-
-function clamp(value: number, min: number, max: number): number {
-  return value < min ? min : value > max ? max : value
-}
 
 function stop(l: number, c: number, h: number): string {
   return formatHex(clampChroma({ mode: 'oklch', l, c, h: ((h % 360) + 360) % 360 }, 'oklch'))
@@ -103,5 +100,5 @@ export function harmonize(seed: string, opts: HarmonyOptions = {}): HarmonyResul
     Math.min(...surfaces.map((surface) => wcagContrast(candidate, surface)))
   const text = worst(TEXT_LIGHT) >= worst(TEXT_DARK) ? TEXT_LIGHT : TEXT_DARK
 
-  return { colors, bg, text, plate: wcagContrast(text, meanColor(colors)) < WCAG_MIN }
+  return { colors, bg, text, plate: wcagContrast(text, meanColor(colors)) < WCAG_AA }
 }

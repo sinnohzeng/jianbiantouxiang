@@ -1,5 +1,5 @@
 import type { AvatarConfig } from '@/state/config'
-import { releaseCanvas } from './canvas'
+import { releaseCanvas } from '@/lib/canvas'
 import { composeAvatar } from './compose'
 import { encodeCanvas, type EncodeResult } from './encode'
 import { buildFilename } from './filename'

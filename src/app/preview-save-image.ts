@@ -10,7 +10,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createExportArtifact } from '@/export/action'
-import { releaseCanvas } from '@/export/canvas'
+import { releaseCanvas } from '@/lib/canvas'
 import { blobToDataUrl } from '@/export/share'
 import type { AvatarConfig } from '@/state/config'
 

@@ -5,7 +5,7 @@
  * 按配置哈希定位条目，不按数组下标：渲染期间用户再推一条新历史也不会贴错。
  */
 
-import { releaseCanvas } from '@/export/canvas'
+import { releaseCanvas } from '@/lib/canvas'
 import { composeAvatar } from '@/export/compose'
 import { configHash } from '@/state/config'
 import { useAvatarStore } from '@/state/store'

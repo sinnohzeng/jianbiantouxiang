@@ -1,3 +1,4 @@
+import { clamp } from '@/engine/math'
 import { STATUS_GAP_RATIO, STATUS_SECOND_LINE_SCALE, type AvatarConfig } from '@/state/config'
 import { fontString, letterSpacingPxOf, type MeasureFn } from './measure'
 import { twoLinesOf, wrapLineParts } from './wrap'
@@ -75,11 +76,6 @@ export interface StackFit {
 }
 
 const EMPTY_BLOCK: TextBlock = { broke: false, lines: [], baselines: [], width: 0, height: 0 }
-
-function clamp(value: number, min: number, max: number): number {
-  if (!Number.isFinite(value)) return min
-  return value < min ? min : value > max ? max : value
-}
 
 /**
  * 单段横排：在完整的安全区宽度里换行并度量，补偿不参与，它只在落位时做位移。

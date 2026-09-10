@@ -9,7 +9,7 @@
  * 软件渲染下 Chromium 直接报 “Unable to capture screenshot”。
  */
 
-import { releaseCanvas } from '@/export/canvas'
+import { releaseCanvas } from '@/lib/canvas'
 import { composeAvatar } from '@/export/compose'
 import { PALETTES } from '@/palettes/palettes'
 import { STYLE_LIST } from '@/engine/styles'

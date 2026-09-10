@@ -2,7 +2,7 @@ import { resolveSeed } from '@/engine/seed'
 import type { Graphic } from '@/graphics/types'
 import type { AvatarConfig } from '@/state/config'
 import type { Rect } from '@/text/layout'
-import { createCanvas, get2d, releaseCanvas } from './canvas'
+import { createCanvas, get2d, releaseCanvas } from '@/lib/canvas'
 
 /**
  * 合成用到的外部能力。抽成参数有两个作用：单测不必拉起 WebGL 与字体网络，

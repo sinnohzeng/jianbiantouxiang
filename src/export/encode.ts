@@ -1,5 +1,11 @@
 import type { AvatarConfig } from '@/state/config'
-import { canvasToBlob, createCanvas, get2d, releaseCanvas, type EncodableCanvas } from './canvas'
+import {
+  canvasToBlob,
+  createCanvas,
+  get2d,
+  releaseCanvas,
+  type EncodableCanvas,
+} from '@/lib/canvas'
 
 export type EncodeOptions = AvatarConfig['exportOptions']
 

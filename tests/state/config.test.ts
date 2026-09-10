@@ -265,11 +265,11 @@ describe('normalizeConfig 的 layout 子树', () => {
     expect(huge.typography.lineOffsetsX).toHaveLength(LINE_OVERRIDE_MAX)
   })
 
-  it('旧状态徽章链接的 layout.scale 迁移到第二行字号', () => {
+  it('不在契约里的 kind 与 scale 读进来即忽略', () => {
     const config = normalizeConfig({
       layout: { kind: 'status', scale: 0.3 },
     })
-    expect(config.typography.lineSizeScales[1]).toBe(0.3)
+    expect(config.typography.lineSizeScales[1]).toBe(DEFAULT_CONFIG.typography.lineSizeScales[1])
   })
 })
 

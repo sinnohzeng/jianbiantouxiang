@@ -3,7 +3,7 @@
 import { useCallback, useSyncExternalStore } from 'react'
 
 /** 桌面双栏的起点，与 spec 3.7 的 1024 px 一致。 */
-export const DESKTOP_BREAKPOINT = 1024
+const DESKTOP_BREAKPOINT = 1024
 
 export function useMediaQuery(query: string, serverValue = false): boolean {
   const subscribe = useCallback(

@@ -1,7 +1,10 @@
-/** 引擎内部的数值工具，只服务于参数映射，不做通用数学库。 */
+/**
+ * 引擎内部的数值工具，只服务于参数映射，不做通用数学库。
+ * clamp 是全仓唯一的夹取实现：config、slider-field、text/fit、palettes/harmony 都导入它。
+ */
 
 export function clamp(value: number, min: number, max: number): number {
-  if (!Number.isFinite(value)) return min
+  if (Number.isNaN(value)) return min
   return value < min ? min : value > max ? max : value
 }
 

@@ -13,7 +13,7 @@ import AuroraBlur, { type AuroraLayer, type SkyLayer } from '@/components/showca
 import { suppressBlobColor } from '@/app/ambient'
 import { usePageVisible } from '@/app/showcase/visibility'
 import { useTheme } from '@/app/theme'
-import { resolveColors } from '@/engine/colors'
+import { FALLBACK_COLOR, resolveColors } from '@/engine/colors'
 import { useIsMobile } from '@/hooks/use-media'
 import { formatHex, oklch } from '@/palettes/culori'
 import { DEFAULT_CONFIG } from '@/state/config'
@@ -55,7 +55,8 @@ export default function AuroraBackdrop() {
 
   const { layers, skyLayers } = useMemo(() => {
     const colors = resolveColors({ ...DEFAULT_CONFIG, palette, customColors })
-    const pick = (index: number): string => colors[index % colors.length] ?? colors[0] ?? '#c7d2fe'
+    const pick = (index: number): string =>
+      colors[index % colors.length] ?? colors[0] ?? FALLBACK_COLOR
     const tuned = (index: number): string => {
       const base = suppressBlobColor(pick(index), resolved)
       return resolved === 'dark' ? dim(base, DARK_DIM) : base

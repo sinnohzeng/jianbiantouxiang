@@ -4,7 +4,7 @@
  */
 
 import { useMemo } from 'react'
-import { resolveColors } from '@/engine/colors'
+import { FALLBACK_COLOR, resolveColors } from '@/engine/colors'
 import { suppressBlobColor } from '@/app/ambient'
 import { useTheme } from '@/app/theme'
 import { DEFAULT_CONFIG } from '@/state/config'
@@ -34,7 +34,10 @@ export function AmbientBackground() {
     const colors = resolveColors({ ...DEFAULT_CONFIG, palette, customColors })
     return SLOTS.map((slot, index) => ({
       ...slot,
-      color: suppressBlobColor(colors[index % colors.length] ?? colors[0] ?? '#c7d2fe', resolved),
+      color: suppressBlobColor(
+        colors[index % colors.length] ?? colors[0] ?? FALLBACK_COLOR,
+        resolved,
+      ),
     }))
   }, [palette, customColors, resolved])
 

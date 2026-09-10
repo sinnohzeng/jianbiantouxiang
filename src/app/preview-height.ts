@@ -1,12 +1,13 @@
 /**
  * 手机上预览区占屏幕多高。
  *
- * 与 preview-overlays.ts 同构：模块级状态加 localStorage。它是“怎么看预览”而不是
+ * 与 preview-overlays 同构，落盘读写收在 persisted-atom。它是“怎么看预览”而不是
  * “出什么图”，不属于 AvatarConfig，不进存档与历史。
  * 单位是 svh（小视口高度），拖分隔条时直接改这个数，画布边长跟着 CSS 变量走。
  */
 
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback } from 'react'
+import { createPersistedAtom } from '@/app/persisted-atom'
 
 export const PREVIEW_HEIGHT_STORAGE_KEY = 'gradient-avatar:preview-height'
 
@@ -25,43 +26,28 @@ export function clampPreviewHeight(value: number): number {
   return value
 }
 
-function readStored(): number {
-  try {
-    const raw = globalThis.localStorage?.getItem(PREVIEW_HEIGHT_STORAGE_KEY)
-    if (!raw) return DEFAULT_PREVIEW_HEIGHT
+const atom = createPersistedAtom<number>({
+  key: PREVIEW_HEIGHT_STORAGE_KEY,
+  fallback: DEFAULT_PREVIEW_HEIGHT,
+  parse: (raw) => {
     const parsed = Number.parseFloat(raw)
-    if (!Number.isFinite(parsed)) return DEFAULT_PREVIEW_HEIGHT
-    return clampPreviewHeight(parsed)
-  } catch {
-    return DEFAULT_PREVIEW_HEIGHT
-  }
-}
-
-let height = readStored()
-const listeners = new Set<() => void>()
+    return Number.isFinite(parsed) ? clampPreviewHeight(parsed) : null
+  },
+  serialize: (height) => String(height),
+  equals: (a, b) => a === b,
+})
 
 export function getPreviewHeight(): number {
-  return height
+  return atom.get()
 }
 
 /** 写入新高度，自动夹到区间；无变化时不落盘也不通知。 */
 export function setPreviewHeight(next: number): void {
-  const value = clampPreviewHeight(next)
-  if (value === height) return
-  height = value
-  try {
-    globalThis.localStorage?.setItem(PREVIEW_HEIGHT_STORAGE_KEY, String(value))
-  } catch {
-    // 存不下就只在本次会话生效
-  }
-  for (const listener of listeners) listener()
+  atom.set(clampPreviewHeight(next))
 }
 
 export function subscribePreviewHeight(listener: () => void): () => void {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
+  return atom.subscribe(listener)
 }
 
 export interface PreviewHeightState {
@@ -72,12 +58,8 @@ export interface PreviewHeightState {
 }
 
 export function usePreviewHeight(): PreviewHeightState {
-  const current = useSyncExternalStore(
-    subscribePreviewHeight,
-    getPreviewHeight,
-    () => DEFAULT_PREVIEW_HEIGHT,
-  )
+  const height = atom.useValue()
   const setHeight = useCallback((next: number) => setPreviewHeight(next), [])
   const reset = useCallback(() => setPreviewHeight(DEFAULT_PREVIEW_HEIGHT), [])
-  return { height: current, setHeight, reset }
+  return { height, setHeight, reset }
 }

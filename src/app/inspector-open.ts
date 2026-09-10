@@ -1,48 +1,36 @@
 /**
  * 微调面板开着还是收着。
  *
- * 与 preview-height.ts 同构：模块级状态加 localStorage。它是“怎么用界面”而不是
- * “出什么图”，不属于 AvatarConfig，不进存档与历史。
+ * 与 preview-height、preview-overlays 同构，落盘读写收在 persisted-atom。
+ * 它是“怎么用界面”而不是“出什么图”，不属于 AvatarConfig，不进存档与历史。
  *
  * 默认收起：常用的是改文字与换配色，两列挑选栏要把宽度让给它们，
  * 数值微调按需拉出来。手机与桌面共用这一个开关，断点来回穿越时状态不丢。
  */
 
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback } from 'react'
+import { createPersistedAtom } from '@/app/persisted-atom'
 
 export const INSPECTOR_OPEN_STORAGE_KEY = 'gradient-avatar:inspector-open'
 
-function readStored(): boolean {
-  try {
-    return globalThis.localStorage?.getItem(INSPECTOR_OPEN_STORAGE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
-let open = readStored()
-const listeners = new Set<() => void>()
+const atom = createPersistedAtom<boolean>({
+  key: INSPECTOR_OPEN_STORAGE_KEY,
+  fallback: false,
+  parse: (raw) => (raw === '1' ? true : raw === '0' ? false : null),
+  serialize: (open) => (open ? '1' : '0'),
+  equals: (a, b) => a === b,
+})
 
 export function getInspectorOpen(): boolean {
-  return open
+  return atom.get()
 }
 
 export function setInspectorOpen(next: boolean): void {
-  if (next === open) return
-  open = next
-  try {
-    globalThis.localStorage?.setItem(INSPECTOR_OPEN_STORAGE_KEY, next ? '1' : '0')
-  } catch {
-    // 存不下就只在本次会话生效
-  }
-  for (const listener of listeners) listener()
+  atom.set(next)
 }
 
 export function subscribeInspectorOpen(listener: () => void): () => void {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
+  return atom.subscribe(listener)
 }
 
 export interface InspectorOpenState {
@@ -52,8 +40,8 @@ export interface InspectorOpenState {
 }
 
 export function useInspectorOpen(): InspectorOpenState {
-  const current = useSyncExternalStore(subscribeInspectorOpen, getInspectorOpen, () => false)
+  const open = atom.useValue()
   const setOpen = useCallback((next: boolean) => setInspectorOpen(next), [])
   const toggle = useCallback(() => setInspectorOpen(!getInspectorOpen()), [])
-  return { open: current, setOpen, toggle }
+  return { open, setOpen, toggle }
 }

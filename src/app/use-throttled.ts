@@ -3,7 +3,6 @@
  *
  * 预览不能用纯尾沿防抖。滑杆走的是 onValueChange，拖动时每个 pointermove 都会写一次 store，
  * 间隔远小于 80 ms，尾沿防抖于是整个拖动过程一次都不放行，画面要等松手才跳到终值。
- * 取色探针那条仍然该用防抖，它本来就该等用户停手，见 hooks/use-debounced。
  */
 
 import { useEffect, useRef, useState } from 'react'

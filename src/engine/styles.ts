@@ -42,7 +42,7 @@ const GRAIN_SHAPES = {
 
 export type StyleParamKey = 'intensity' | 'softness' | 'grain' | 'scale' | 'rotation'
 
-export interface StyleParamMeta {
+interface StyleParamMeta {
   key: StyleParamKey
   /** i18n key，界面据此取该 style 下的滑杆名，同一参数在不同 style 下叫法不同。 */
   labelKey: string

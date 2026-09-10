@@ -10,7 +10,7 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { SegmentedControl } from '@/components/blocks/segmented-control'
-import { contrastRatio } from '@/palettes'
+import { contrastRatio } from '@/palettes/color'
 import { formatHex, rgb } from '@/palettes/culori'
 
 afterEach(() => {

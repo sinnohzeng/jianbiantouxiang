@@ -52,7 +52,7 @@ npm run dev
 | 单测 | `tests/`，目录与文件名跟 `src/` 对齐 |
 | 端到端 | `e2e/`，文件名决定跑在哪一档 |
 
-七个库目录里，`engine`、`text`、`palettes`、`fonts`、`export`、`state` 各有一个 `index.ts` 作为对外出口，跨目录引用走出口，不深挖到内部文件；`src/graphics/` 没有出口文件，按需直接引用内部模块（如 `@/graphics/draw`、`@/graphics/source`）。
+七个库目录里只有 `src/fonts/` 保留 `index.ts` 出口（`src/App.tsx` 在用），其余六个目录与 `src/graphics/` 一样没有出口文件，跨目录按需直接引用内部模块（如 `@/graphics/draw`、`@/engine/math`、`@/palettes/color`）。桶文件会把整目录的符号拖进引用方的依赖图，懒加载边界因此变糊。
 
 ## 提交
 

@@ -9,7 +9,7 @@
  * 也没有任何产品代码引用 window.__gradientAvatarProbe。
  */
 
-import { releaseCanvas } from '@/export/canvas'
+import { releaseCanvas } from '@/lib/canvas'
 import { composeAvatar } from '@/export/compose'
 import { encodeCanvas } from '@/export/encode'
 import { useAvatarStore } from '@/state/store'
