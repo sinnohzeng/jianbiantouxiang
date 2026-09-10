@@ -35,7 +35,7 @@ function displayOf(key: StyleParamKey): { scale: number; precision: number; unit
   return { scale: 100, precision: 0, unit: '%' }
 }
 
-type RowProps = Omit<SliderFieldProps, 'editLabel' | 'resetLabel' | 'layout'>
+type RowProps = Omit<SliderFieldProps, 'editLabel' | 'resetLabel'>
 
 /** 一行参数。编辑名与重置名都由标签派生，调用处只写标签。 */
 function Row(props: RowProps) {
@@ -43,7 +43,6 @@ function Row(props: RowProps) {
   return (
     <SliderField
       {...props}
-      layout="row"
       editLabel={t('panel.common.edit', { name: props.label })}
       resetLabel={t('panel.common.reset', { name: props.label })}
     />
@@ -53,7 +52,7 @@ function Row(props: RowProps) {
 /** 一组参数一张卡片，与挑选栏的节卡片同一套外观。 */
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <SectionCard title={title} className="p-2.5">
+    <SectionCard title={title}>
       <div className="flex flex-col gap-1">{children}</div>
     </SectionCard>
   )
@@ -94,7 +93,7 @@ export function Inspector() {
         aria-controls={bodyId}
         onClick={toggle}
         title={open ? t('panel.inspector.close') : t('panel.inspector.open')}
-        className="text-foreground hover:text-foreground focus-visible:ring-ring/50 flex min-h-11 items-center justify-between gap-2 px-1 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none"
+        className="text-foreground hover:text-foreground focus-visible:ring-ring/50 flex min-h-11 items-center justify-between gap-2 px-1 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none lg:hidden"
       >
         {t('panel.inspector.title')}
         <ChevronDownIcon
@@ -107,7 +106,7 @@ export function Inspector() {
       </button>
 
       {open ? (
-        <StaggerRoot id={bodyId} className="flex flex-col gap-3 pb-2">
+        <StaggerRoot id={bodyId} className="flex flex-col gap-2 pb-2">
           <Group title={t('panel.text.group.type')}>
             {/* 字号：默认自动。滑杆在自动态显示引擎刚算出的值，一拖就以它为起点切到手动，
                 不会从上一次的手动值跳过去。这一行不给默认值：回默认这件事由“自动”按钮承担，
@@ -164,61 +163,56 @@ export function Inspector() {
               unit="%"
               onChange={(padding) => setTypography({ padding })}
             />
+            {hasFirst && hasSecond ? (
+              <Row
+                label={t('panel.layout.scale')}
+                value={type.lineSizeScales[1] ?? STATUS_SECOND_LINE_SCALE}
+                defaultValue={defaults.lineSizeScales[1] ?? STATUS_SECOND_LINE_SCALE}
+                min={0.2}
+                max={0.8}
+                step={0.01}
+                scale={100}
+                unit="%"
+                onChange={(scale) =>
+                  setTypography({
+                    lineSizeScales: withLineValue(type.lineSizeScales, 1, scale, 1),
+                  })
+                }
+              />
+            ) : null}
+            {hasFirst ? (
+              <Row
+                label={t('panel.text.lineOffset', { index: 1 })}
+                value={type.lineOffsetsX[0] ?? 0}
+                defaultValue={defaults.lineOffsetsX[0] ?? 0}
+                min={-0.25}
+                max={0.25}
+                step={0.0025}
+                scale={100}
+                precision={1}
+                unit="%"
+                onChange={(offset) =>
+                  setTypography({ lineOffsetsX: withLineValue(type.lineOffsetsX, 0, offset, 0) })
+                }
+              />
+            ) : null}
+            {hasSecond ? (
+              <Row
+                label={t('panel.text.lineOffset', { index: 2 })}
+                value={type.lineOffsetsX[1] ?? 0}
+                defaultValue={defaults.lineOffsetsX[1] ?? 0}
+                min={-0.25}
+                max={0.25}
+                step={0.0025}
+                scale={100}
+                precision={1}
+                unit="%"
+                onChange={(offset) =>
+                  setTypography({ lineOffsetsX: withLineValue(type.lineOffsetsX, 1, offset, 0) })
+                }
+              />
+            ) : null}
           </Group>
-
-          {hasFirst || hasSecond ? (
-            <Group title={t('panel.inspector.group.line')}>
-              {hasFirst && hasSecond ? (
-                <Row
-                  label={t('panel.layout.scale')}
-                  value={type.lineSizeScales[1] ?? STATUS_SECOND_LINE_SCALE}
-                  defaultValue={defaults.lineSizeScales[1] ?? STATUS_SECOND_LINE_SCALE}
-                  min={0.2}
-                  max={0.8}
-                  step={0.01}
-                  scale={100}
-                  unit="%"
-                  onChange={(scale) =>
-                    setTypography({
-                      lineSizeScales: withLineValue(type.lineSizeScales, 1, scale, 1),
-                    })
-                  }
-                />
-              ) : null}
-              {hasFirst ? (
-                <Row
-                  label={t('panel.text.lineOffset', { index: 1 })}
-                  value={type.lineOffsetsX[0] ?? 0}
-                  defaultValue={defaults.lineOffsetsX[0] ?? 0}
-                  min={-0.25}
-                  max={0.25}
-                  step={0.0025}
-                  scale={100}
-                  precision={1}
-                  unit="%"
-                  onChange={(offset) =>
-                    setTypography({ lineOffsetsX: withLineValue(type.lineOffsetsX, 0, offset, 0) })
-                  }
-                />
-              ) : null}
-              {hasSecond ? (
-                <Row
-                  label={t('panel.text.lineOffset', { index: 2 })}
-                  value={type.lineOffsetsX[1] ?? 0}
-                  defaultValue={defaults.lineOffsetsX[1] ?? 0}
-                  min={-0.25}
-                  max={0.25}
-                  step={0.0025}
-                  scale={100}
-                  precision={1}
-                  unit="%"
-                  onChange={(offset) =>
-                    setTypography({ lineOffsetsX: withLineValue(type.lineOffsetsX, 1, offset, 0) })
-                  }
-                />
-              ) : null}
-            </Group>
-          ) : null}
 
           {iconEnabled ? (
             <Group title={t('panel.graphic.title')}>

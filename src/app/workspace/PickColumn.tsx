@@ -15,7 +15,7 @@ import { StyleSection } from './sections/StyleSection'
 import { TextSection } from './sections/TextSection'
 
 /** 两列共用的排布。各自滚还是跟着外层壳滚由 index.css 按拆没拆两列切。 */
-const column = 'flex flex-col gap-3'
+const column = 'flex flex-col gap-2'
 
 export function PickColumn() {
   return (

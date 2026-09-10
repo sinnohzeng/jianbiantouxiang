@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 
 export interface SectionCardProps {
   title: string
-  /** 标题右侧的常驻动作，如图形开关。 */
+  /** 标题右侧的常驻弱信息或动作，如当前选中的配色名。 */
   action?: ReactNode
   children: ReactNode
   className?: string
@@ -21,15 +21,15 @@ export function SectionCard({ title, action, children, className }: SectionCardP
     <StaggerItem
       as="section"
       aria-labelledby={titleId}
-      className={cn('bg-card/60 rounded-2xl border p-3 backdrop-blur-sm', className)}
+      className={cn('bg-card/60 rounded-2xl border p-2.5 backdrop-blur-sm', className)}
     >
-      <div className="mb-2 flex min-h-8 items-center justify-between gap-2 px-1">
-        <h2 id={titleId} className="text-sm font-semibold">
+      <div className="mb-1.5 flex min-h-6 items-center justify-between gap-2 px-1">
+        <h2 id={titleId} className="text-xs font-semibold">
           {title}
         </h2>
         {action}
       </div>
-      <div className="flex flex-col gap-3">{children}</div>
+      <div className="flex flex-col gap-2">{children}</div>
     </StaggerItem>
   )
 }

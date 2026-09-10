@@ -110,10 +110,17 @@ describe('重置钮', () => {
   })
 })
 
-describe('行式排布', () => {
-  it('标签、滑杆、数字框在同一行，数字框仍是常驻的', () => {
-    renderField({ layout: 'row', unit: '%' })
-    expect(document.querySelectorAll('input[type="range"]')).toHaveLength(1)
-    expect(screen.getByLabelText('编辑边距')).toHaveProperty('value', '15%')
+describe('对齐', () => {
+  it('数值框与重置占位各占定宽列，自动档住在标签格不挤它们', () => {
+    const { container } = renderField({
+      defaultValue: 0.2,
+      resetLabel: '把边距重置为默认',
+      auto: { active: true, label: '自动', onReset: () => {} },
+    })
+    const row = container.querySelector('.grid')
+    expect(row?.className).toContain('lg:grid-cols-[minmax(0,1fr)_3.5rem_1.25rem]')
+    const labelCell = container.querySelector('[data-slot="slider-auto"]')?.parentElement
+    expect(labelCell?.children).toHaveLength(2)
+    expect(labelCell?.contains(container.querySelector('[data-slot="slider-number"]'))).toBe(false)
   })
 })

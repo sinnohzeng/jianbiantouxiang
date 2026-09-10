@@ -151,7 +151,6 @@
 | `panel.graphic.scale`             | 图标大小                                                                         |
 | `panel.graphic.title`             | 图标                                                                             |
 | `panel.inspector.close`           | 收起微调                                                                         |
-| `panel.inspector.group.line`      | 逐行                                                                             |
 | `panel.inspector.open`            | 打开微调                                                                         |
 | `panel.inspector.title`           | 微调                                                                             |
 | `panel.layout.scale`              | 次行字号                                                                         |

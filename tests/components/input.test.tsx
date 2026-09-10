@@ -47,10 +47,9 @@ describe('Input 字号', () => {
     expect(shrinkOnMobile(screen.getByLabelText('编辑字号').className)).toEqual([])
   })
 
-  it('检查器带那一行的数值框同样不收缩字号', () => {
+  it('滑杆数值框的字号只在 lg 档收缩', () => {
     render(
       <SliderField
-        layout="row"
         label="行高"
         editLabel="编辑行高"
         value={1.03}
@@ -59,6 +58,8 @@ describe('Input 字号', () => {
         onChange={() => {}}
       />,
     )
-    expect(shrinkOnMobile(screen.getByLabelText('编辑行高').className)).toEqual([])
+    const input = screen.getByLabelText('编辑行高')
+    expect(shrinkOnMobile(input.className)).toEqual([])
+    expect(input.className).toContain('lg:text-[11px]')
   })
 })

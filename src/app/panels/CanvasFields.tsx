@@ -159,7 +159,6 @@ export function CanvasFields() {
         />
         {canvas.shape === 'rounded' ? (
           <SliderField
-            layout="row"
             label={t('panel.canvas.radius')}
             editLabel={t('panel.common.edit', { name: t('panel.canvas.radius') })}
             resetLabel={t('panel.common.reset', { name: t('panel.canvas.radius') })}

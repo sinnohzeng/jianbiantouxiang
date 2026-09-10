@@ -1,10 +1,15 @@
 /**
  * 带数值输入的滑杆，范式取自 @shadcnblocks/slider-slider-standard-3：
- * 标签在左、当前值在右。这里数值框常驻，拖不准的值直接敲；给了 `defaultValue`
+ * 标签在左、当前值在右。数值框常驻，拖不准的值直接敲；给了 `defaultValue`
  * 的行在偏离默认值时多出一个重置小钮，桌面悬停或聚焦才显形，触控设备常显。
  *
- * 两种排布：`stack` 是挑选栏里的上下两行；`row` 是检查器带的
- * “标签 | 滑杆 | 数字框”一行，桌面 32 px 高，手机仍撑到 44 px。
+ * 一行两段：第一段是「标签 | 自动档 | 数值框 | 重置占位」的固定列 grid，
+ * 第二段滑杆独占一行。数值框与重置占位各占定宽列，位置与兄弟元素有无无关——
+ * 早先第一行用 justify-between，字号行多一颗自动钮、又没有重置占位，
+ * 它的数值框比其余行右移 28 px，同一组里竖着看是歪的。
+ *
+ * 致密尺寸一律 lg: 前缀：手机渲染同一棵树，基值要保持本仓 44 px 触控
+ * 与 16 px 输入字号的口径，无前缀收小会让 iOS 聚焦缩放与触控热区一起破线。
  *
  * 数值变化时框里的数走一段弹簧过渡，只影响显示，真实值仍然一步到位。
  */
@@ -34,18 +39,15 @@ export interface SliderFieldProps {
   onChange: (value: number) => void
   disabled?: boolean
   className?: string
-  /** 数值框常驻。设成 false 就只剩滑杆。 */
-  showInput?: boolean
-  /** 排布形态：挑选栏用 stack，检查器带用 row。 */
-  layout?: 'stack' | 'row'
   /** 这一项的默认值。给了才有重置钮。 */
   defaultValue?: number
   /** 重置钮的可访问名，形如“把字号重置为默认”。与 defaultValue 一起给。 */
   resetLabel?: string
   /**
-   * “自动”档。给了就在数值前放一个 aria-pressed 按钮：
+   * “自动”档。给了就在标签右侧放一个 aria-pressed 按钮：
    * 自动态点亮，此时 value 是引擎算出来的值；用户拖滑杆或敲数字由调用方切成手动，
-   * 手动态点这个按钮回到自动。
+   * 手动态点这个按钮回到自动。它住在标签那一格里，不另占列，
+   * 数值框的对齐因此与它有无无关。
    */
   auto?: { active: boolean; label: string; hint?: string; onReset: () => void }
 }
@@ -83,8 +85,6 @@ export function SliderField({
   onChange,
   disabled = false,
   className,
-  showInput = true,
-  layout = 'stack',
   defaultValue,
   resetLabel,
   auto,
@@ -94,7 +94,6 @@ export function SliderField({
   const [draft, setDraft] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const editing = draft !== null
-  const row = layout === 'row'
   // display 是真实值，重置钮的判定与提交都读它；shown 是平滑过渡中的显示值
   const display = toDisplay(value, scale, precision)
   const shown = toDisplay(useAnimatedNumber(value, !editing), scale, precision)
@@ -126,10 +125,9 @@ export function SliderField({
       title={auto.hint}
       disabled={disabled}
       onClick={auto.onReset}
-      // 高度与数值框同行等高，热区不压滑杆
       className={cn(
-        'focus-visible:ring-ring/50 shrink-0 rounded-md border text-xs font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none',
-        row ? 'h-11 px-1.5 lg:h-8' : 'h-11 min-w-11 px-2.5',
+        'focus-visible:ring-ring/50 shrink-0 rounded-md border px-2.5 text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none',
+        'lg:h-5 lg:px-1 lg:text-[11px]',
         auto.active
           ? 'border-primary bg-primary text-primary-foreground'
           : 'border-border text-muted-foreground hover:text-foreground',
@@ -139,45 +137,34 @@ export function SliderField({
     </button>
   ) : null
 
-  const valueNode =
-    editing || showInput ? (
-      <Input
-        ref={inputRef}
-        data-slot="slider-number"
-        className={cn(
-          'shrink-0 text-right font-mono tabular-nums',
-          row ? 'h-11 w-20 px-1.5 lg:h-8' : 'h-11 w-24',
-        )}
-        inputMode="decimal"
-        value={draft ?? `${shown}${unit}`}
-        aria-label={editLabel}
-        disabled={disabled}
-        onFocus={() => setDraft(display)}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={commit}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') commit()
-          if (event.key === 'Escape') setDraft(null)
-        }}
-      />
-    ) : (
-      <button
-        type="button"
-        // 数值按钮本身就是触控目标，撑到 44 px；行高跟着一起给到 44，避免热区压到下面的滑杆
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 h-11 min-w-11 rounded-md px-2 font-mono text-sm tabular-nums transition-colors focus-visible:ring-3 focus-visible:outline-none"
-        aria-label={editLabel}
-        disabled={disabled}
-        onClick={() => setDraft(display)}
-      >
-        {shown}
-        {unit}
-      </button>
-    )
+  const valueNode = (
+    <Input
+      ref={inputRef}
+      data-slot="slider-number"
+      className={cn(
+        'h-11 w-full shrink-0 px-2 text-right font-mono tabular-nums',
+        // Input 基类带 lg:text-sm，tailwind-merge 视二者为同组变体，这里才压得住；
+        // 基值留在 16 px 是 iOS 聚焦不缩放的口径
+        'lg:h-5 lg:px-1 lg:text-[11px]',
+      )}
+      inputMode="decimal"
+      value={draft ?? `${shown}${unit}`}
+      aria-label={editLabel}
+      disabled={disabled}
+      onFocus={() => setDraft(display)}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') commit()
+        if (event.key === 'Escape') setDraft(null)
+      }}
+    />
+  )
 
   const resetNode =
     defaultValue === undefined ? null : (
       // 占位宽度常留：重置钮出现与消失时这一行不跳
-      <span className={cn('flex shrink-0 items-center justify-center', row ? 'w-6' : 'w-8')}>
+      <span className="flex w-full items-center justify-center">
         {resettable ? (
           <button
             type="button"
@@ -188,74 +175,55 @@ export function SliderField({
             onClick={() => onChange(defaultValue)}
             className={cn(
               'text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 flex items-center justify-center rounded-md transition-opacity focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none',
-              row ? 'size-6' : 'size-8',
+              // 可见尺寸收小，热区靠 after 撑：基值 32+16=48，桌面 20+16=36 已过 WCAG 2.5.8 的 24
+              'size-8 after:-inset-2 lg:size-5',
               // 桌面上悬停整行或键盘落进这一行才显形；触控设备没有悬停，常显
               'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100',
-              '[@media(hover:none)]:opacity-100',
+              '[@media(hover:none),(pointer:coarse)]:opacity-100',
             )}
           >
-            <RotateCcwIcon className={row ? 'size-3.5' : 'size-4'} aria-hidden />
+            <RotateCcwIcon className="size-4 lg:size-3.5" aria-hidden />
           </button>
         ) : null}
       </span>
     )
 
-  const sliderNode = (
-    <Slider
-      // aria-labelledby 会被 Base UI 传到 thumb 里那个 input[type=range] 上，
-      // 屏幕阅读器读到的就是左边那行标签，不用再造一个隐藏名字
-      aria-labelledby={labelId}
-      className={cn(
-        'min-h-11',
-        row
-          ? 'py-4 lg:min-h-6 lg:py-2.5 [&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:after:-inset-3'
-          : 'py-4 [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:after:-inset-3',
-      )}
-      min={min}
-      max={max}
-      step={step}
-      disabled={disabled}
-      value={[value]}
-      onValueChange={(next) => {
-        const raw = Array.isArray(next) ? next[0] : next
-        if (typeof raw === 'number') onChange(clamp(raw, min, max))
-      }}
-    />
-  )
-
-  if (row) {
-    // 三段挤一行只在很宽的带子里成立：检查器列 360 px 时滑杆会被压到 50 px 上下，
-    // Base UI 量到 0 宽还会直接把滑块藏起来。所以这里是紧凑的两行，滑杆独占一整行
-    return (
-      <div className={cn('group flex flex-col gap-0.5', disabled && 'opacity-60', className)}>
-        <div className="flex min-h-11 items-center justify-between gap-2 lg:min-h-8">
-          <span id={labelId} title={label} className="truncate text-xs font-medium">
+  return (
+    <div className={cn('group flex flex-col gap-0.5', disabled && 'opacity-60', className)}>
+      <div
+        className={cn(
+          'grid min-h-11 grid-cols-[minmax(0,1fr)_6rem_2rem] items-center gap-2',
+          'lg:min-h-5 lg:grid-cols-[minmax(0,1fr)_3.5rem_1.25rem] lg:gap-1.5',
+        )}
+      >
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span id={labelId} title={label} className="truncate text-sm font-medium lg:text-[11px]">
             {label}
           </span>
-          <span className="flex shrink-0 items-center gap-1">
-            {autoNode}
-            {valueNode}
-            {resetNode}
-          </span>
-        </div>
-        {sliderNode}
-      </div>
-    )
-  }
-
-  return (
-    <div className={cn('group flex flex-col gap-1', className)}>
-      <div className="flex min-h-11 items-center justify-between gap-2">
-        <span id={labelId} className="truncate text-sm font-medium">
-          {label}
-        </span>
-        <span className="flex shrink-0 items-center gap-1">
           {autoNode}
-          {valueNode}
-          {resetNode}
         </span>
+        {valueNode}
+        {resetNode}
       </div>
-      {sliderNode}
+      <Slider
+        // aria-labelledby 会被 Base UI 传到 thumb 里那个 input[type=range] 上，
+        // 屏幕阅读器读到的就是左边那行标签，不用再造一个隐藏名字
+        aria-labelledby={labelId}
+        className={cn(
+          'min-h-11 py-4 [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:after:-inset-3',
+          // 桌面整行 16 px：thumb 12 加 after 撑到 28 的命中区，过 WCAG 2.5.8
+          'lg:h-4 lg:min-h-4 lg:py-0 lg:[&_[data-slot=slider-thumb]]:size-3 lg:[&_[data-slot=slider-thumb]]:after:-inset-2',
+        )}
+        min={min}
+        max={max}
+        step={step}
+        disabled={disabled}
+        value={[value]}
+        onValueChange={(next) => {
+          const raw = Array.isArray(next) ? next[0] : next
+          if (typeof raw === 'number') onChange(clamp(raw, min, max))
+        }}
+      />
     </div>
   )
 }
