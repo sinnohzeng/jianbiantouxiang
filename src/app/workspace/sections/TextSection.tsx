@@ -6,12 +6,11 @@
 import { Suspense, useId, useMemo, useState } from 'react'
 import { TypeIcon } from 'lucide-react'
 import { ColorField } from '@/components/blocks/color-field'
-import { SegmentedControl, type SegmentedOption } from '@/components/blocks/segmented-control'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useT } from '@/i18n'
-import { TEXT_EFFECTS, type TextEffect } from '@/state/config'
+import { TEXT_EFFECTS } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { twoLinesOf } from '@/text/wrap'
 import { weightsOf } from '@/app/panels/font-entries'
@@ -38,9 +37,51 @@ const COLOR_PRESETS: readonly {
   { hex: '#000000', key: 'black' },
 ]
 
+/**
+ * 一排可换行的 radio chips，字重与文字样式共用。
+ * 分段控件在 250–300 px 的列里会把选项文案截成「Shad…」：它的选项等分容器宽，
+ * 文案长度不由自己决定。chips 按内容自适应、放不下就换行，永不截断。
+ */
+function ChipGroup<T extends string | number>({
+  name,
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  name: string
+  label: string
+  value: T
+  options: readonly { value: T; label: string }[]
+  onChange: (value: T) => void
+}) {
+  const uid = useId()
+  return (
+    <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-1.5 lg:gap-1">
+      {options.map((option) => (
+        <label key={String(option.value)} className="relative cursor-pointer">
+          <input
+            type="radio"
+            className="peer sr-only"
+            name={`${name}-${uid}`}
+            data-group={name}
+            value={String(option.value)}
+            checked={value === option.value}
+            onChange={(event) => {
+              if (event.target.checked) onChange(option.value)
+            }}
+          />
+          <span className="border-border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-ring/50 flex h-11 min-w-11 items-center justify-center rounded-lg border px-3 text-sm tabular-nums transition-colors peer-focus-visible:ring-3 motion-reduce:transition-none lg:h-7 lg:min-w-7 lg:px-2 lg:text-xs">
+            {option.label}
+          </span>
+        </label>
+      ))}
+    </div>
+  )
+}
+
 export function TextSection() {
   const t = useT()
-  const uid = useId()
   const config = useAvatarStore((state) => state.config)
   const setConfig = useAvatarStore((state) => state.setConfig)
   const setTypography = useAvatarStore((state) => state.setTypography)
@@ -52,7 +93,7 @@ export function TextSection() {
   const [first, second] = useMemo(() => twoLinesOf(config.text), [config.text])
   const weights = useMemo(() => weightsOf(type.fontFamily), [type.fontFamily])
 
-  const effectOptions: SegmentedOption<TextEffect>[] = TEXT_EFFECTS.map((effect) => ({
+  const effectOptions = TEXT_EFFECTS.map((effect) => ({
     value: effect,
     label: t(`panel.text.effect.${effect}`),
   }))
@@ -115,35 +156,18 @@ export function TextSection() {
 
       <div className="flex flex-col gap-1">
         <Label className="text-muted-foreground text-[11px]">{t('panel.text.fontWeight')}</Label>
-        <div
-          role="radiogroup"
-          aria-label={t('panel.text.fontWeight')}
-          className="flex flex-wrap gap-1.5"
-        >
-          {weights.map((weight) => (
-            <label key={weight} className="relative cursor-pointer">
-              <input
-                type="radio"
-                className="peer sr-only"
-                name={`text-weight-${uid}`}
-                data-group="text-weight"
-                value={weight}
-                checked={type.fontWeight === weight}
-                onChange={(event) => {
-                  if (event.target.checked) setTypography({ fontWeight: weight })
-                }}
-              />
-              <span className="border-border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-ring/50 flex h-11 min-w-11 items-center justify-center rounded-lg border px-3 text-sm tabular-nums transition-colors peer-focus-visible:ring-3 motion-reduce:transition-none lg:h-7 lg:min-w-7 lg:px-2 lg:text-xs">
-                {weight}
-              </span>
-            </label>
-          ))}
-        </div>
+        <ChipGroup
+          name="text-weight"
+          label={t('panel.text.fontWeight')}
+          value={type.fontWeight}
+          options={weights.map((weight) => ({ value: weight, label: String(weight) }))}
+          onChange={(fontWeight) => setTypography({ fontWeight })}
+        />
       </div>
 
       <div className="flex flex-col gap-1">
         <Label className="text-muted-foreground text-[11px]">{t('panel.text.effect')}</Label>
-        <SegmentedControl<TextEffect>
+        <ChipGroup
           name="text-effect"
           label={t('panel.text.effect')}
           value={type.effect}

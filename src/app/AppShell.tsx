@@ -73,12 +73,12 @@ function AppShellBody() {
         data-slot="workspace"
         data-inspector={inspectorOpen ? 'open' : 'closed'}
         style={{ '--preview-h': `${height}svh` } as CSSProperties}
-        className="flex flex-1 flex-col lg:grid lg:min-h-0 lg:grid-rows-[minmax(0,1fr)_auto] lg:gap-4 lg:overflow-hidden lg:px-4 lg:py-4"
+        className="flex flex-1 flex-col lg:mx-auto lg:grid lg:min-h-0 lg:w-full lg:max-w-[1520px] lg:grid-rows-[minmax(0,1fr)_auto] lg:gap-4 lg:overflow-hidden lg:px-4 lg:py-4"
       >
         <section
           data-slot="preview-pane"
           aria-label={t('preview.label')}
-          className="bg-background/90 supports-[backdrop-filter]:bg-background/75 sticky top-14 z-20 flex h-[var(--preview-h)] items-center justify-center overflow-hidden px-4 backdrop-blur-md [--preview-max:calc(68svh_-_200px)] lg:static lg:h-auto lg:min-h-0 lg:overflow-hidden lg:bg-transparent lg:px-0 lg:backdrop-blur-none lg:[--preview-max:calc(100svh_-_190px)]"
+          className="bg-background/90 supports-[backdrop-filter]:bg-background/75 sticky top-14 z-20 flex h-[var(--preview-h)] items-center justify-center overflow-hidden px-4 backdrop-blur-md [--preview-max:calc(68svh_-_200px)] lg:static lg:h-auto lg:min-h-0 lg:overflow-hidden lg:bg-transparent lg:px-0 lg:backdrop-blur-none lg:[--preview-max:calc(100svh_-_200px)]"
         >
           <PreviewStage />
         </section>

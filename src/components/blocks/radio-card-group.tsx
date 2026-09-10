@@ -68,8 +68,9 @@ export function RadioCardGroup<T extends string>({
             )}
           >
             {option.preview}
-            {/* 描述在触屏上没有 hover，卡内只留名字；选中项的描述由调用方常显一行 */}
-            <span className="truncate text-center text-[11px] font-medium">
+            {/* 描述在触屏上没有 hover，卡内只留名字；选中项的描述由调用方常显一行。
+                名字最多两行：四格并排时一格只有六十多像素，截断会把 Soft Mesh 切成 Soft M… */}
+            <span className="line-clamp-2 text-center text-[11px] leading-tight font-medium">
               {option.title}
               {option.description ? <span className="sr-only">：{option.description}</span> : null}
             </span>

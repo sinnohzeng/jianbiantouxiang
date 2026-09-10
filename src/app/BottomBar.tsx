@@ -71,9 +71,10 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-/** 一格按钮：手机上图标压文案，桌面上并排。 */
+/** 一格按钮：手机上图标压文案，桌面上并排。桌面是两行三列 grid 的一格，
+ * 预览列只有四百多像素宽，一行五颗带字按钮必然截断，而预览 pane 竖向有富余。 */
 const item =
-  'relative flex min-h-12 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border px-1 text-[11px] leading-none font-medium transition-colors focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none lg:h-10 lg:min-h-0 lg:flex-auto lg:flex-row lg:gap-1.5 lg:px-2.5 lg:text-sm'
+  'relative flex min-h-12 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border px-1 text-[11px] leading-none font-medium transition-colors focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none lg:h-10 lg:min-h-0 lg:flex-row lg:gap-1.5 lg:px-2.5 lg:text-sm'
 /** 次级动作：描边加卡片底，与背景拉开一层。 */
 const quiet =
   'border-border bg-card/80 text-foreground hover:bg-accent hover:text-accent-foreground'
@@ -207,7 +208,7 @@ export function BottomBar() {
         'safe-bottom lg:bg-card/60 lg:static lg:rounded-2xl lg:border lg:pb-0 lg:backdrop-blur-sm',
       )}
     >
-      <div className="flex items-stretch gap-1 px-2 py-1.5 lg:items-center lg:gap-2 lg:px-3 lg:py-2">
+      <div className="flex items-stretch gap-1 px-2 py-1.5 lg:grid lg:grid-cols-3 lg:items-center lg:gap-2 lg:px-3 lg:py-2">
         <button
           type="button"
           data-slot="shuffle-color"
@@ -319,11 +320,9 @@ export function BottomBar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* 桌面上每格都是 flex-auto：这条只有预览那一列宽，固定宽度的按钮排不下会溢出到列外，
-            而等分（flex-1）又会把四字标签挤到截断，哪怕整行还有富余。
-            flex-auto 以内容宽为基准分配富余，宽的时候不截字，窄到极限才按比例收。
-            导出这一格再多给一点权重：它是收文案时最后一个让位的 */}
-        <div className="flex min-w-0 flex-[1.6] lg:flex-auto">
+        {/* 桌面 grid 里跨两列：导出加选项钮占满第二行剩余宽度，
+            手机上仍是通栏五格里权重稍高的一格 */}
+        <div className="flex min-w-0 flex-[1.6] lg:col-span-2 lg:flex-auto">
           <button
             type="button"
             data-slot="export-action"

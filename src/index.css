@@ -185,31 +185,22 @@
 
   /*
    * 桌面工作台的栅格。写在这里而不是堆在 className 上：
-   * 断点 × 微调开合 = 四套列模板加四套落位，用任意变体拼出来是一串三百字符的类名，
+   * 断点 × 微调开合 = 六套列模板加落位，用任意变体拼出来是一串三百字符的类名，
    * 改一个数要在里面数括号。
    *
-   * 列宽随视口线性放宽：1440 笔记本上挑选栏是 340，1920 上放到 400，再宽就封顶，
-   * 富余全部让给画框（画框自己的封顶在 PreviewStage，960）。
-   * 微调打开时三列各让一档，腾出最左边那一列给它。
-   * 微调在左不在右：它是「改得更细」，与左边两列的「挑」是同一件事的深一层，
-   * 而右边那一列是作品本身，不该被参数面板夹在中间。
+   * 预览按视口定宽、挑选栏吃剩余。早先预览列是 1fr 捡漏：1920 上画框吃到 890 px，
+   * 三列控制面板被压到 400，配色与质感整组滚出首屏。现在预览是夹在 400 到 640
+   * 之间的定宽轨道，富余全给挑选栏。
+   *
+   * 96rem 以上把两条 clamp 冻成字面值：vw 永远对真实视口取值，而容器已被外壳的
+   * max-w 钉死在 1520。1647 px 以上若仍用 34vw，预览顶到 640、微调顶到 312，
+   * 两条挑选列会被压出 minmax 下限之外，超出部分被 main 的 overflow-hidden 裁掉。
+   * 522 是 0.34×1536 的取值，272 是微调列的下限。
    */
   [data-slot='workspace'] {
-    --pick-w: clamp(340px, calc(12.5vw + 160px), 400px);
-    --pick-w-open: clamp(300px, calc(12.5vw + 120px), 360px);
-    /* 微调开着、但还没拆成两列那一档：一共才三列，挑选栏不必收到四列时的宽度，
-       跟收起时同宽，开合微调不会让这一列自己缩一圈 */
-    --pick-w-solo: clamp(300px, calc(12.5vw + 160px), 400px);
-    --inspector-w: clamp(300px, calc(8.33vw + 180px), 340px);
+    --inspector-w: clamp(272px, 17vw, 312px);
+    --preview-w: clamp(400px, 34vw, 640px);
   }
-
-  /*
-   * 桌面的列模板。挑选栏拆不拆成两列，看的是还剩多少宽度给画框，不只是视口有多宽：
-   * 微调收起时 1280 就够拆，展开时微调那一列要再吃掉三百像素，1280 上四列并排
-   * 会把画框压到 300，比不拆还糟，所以展开态要 1536 才拆。
-   * 拆开时外层壳 display:contents，两个子列直接成为 grid 项各占一列、各自滚；
-   * 拆不开时壳自己就是一个 grid 项，由它统一滚。
-   */
 
   /* display 归这里管：拆两列时要能换成 contents，工具类里的 flex 排在组件层之后会压掉它 */
   [data-slot='pick-columns'] {
@@ -224,7 +215,7 @@
    */
   @media (min-width: 64rem) {
     [data-slot='workspace'][data-inspector='closed'] {
-      grid-template-columns: minmax(0, var(--pick-w)) minmax(0, 1fr);
+      grid-template-columns: minmax(300px, 1fr) var(--preview-w);
     }
     [data-inspector='closed'] > [data-slot='pick-columns'] {
       grid-column: 1;
@@ -240,10 +231,7 @@
     }
 
     [data-slot='workspace'][data-inspector='open'] {
-      grid-template-columns:
-        minmax(0, var(--inspector-w))
-        minmax(0, var(--pick-w-solo))
-        minmax(0, 1fr);
+      grid-template-columns: var(--inspector-w) minmax(280px, 1fr) var(--preview-w);
     }
     [data-inspector='open'] > [data-slot='inspector-dock'] {
       grid-column: 1;
@@ -263,10 +251,10 @@
     }
   }
 
-  /* 1280 起、微调收起：挑选栏拆成两列 */
-  @media (min-width: 80rem) {
+  /* 70rem 起、微调收起：挑选栏拆成两列 */
+  @media (min-width: 70rem) {
     [data-slot='workspace'][data-inspector='closed'] {
-      grid-template-columns: minmax(0, var(--pick-w)) minmax(0, var(--pick-w)) minmax(0, 1fr);
+      grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr) var(--preview-w);
     }
     [data-inspector='closed'] > [data-slot='pick-columns'] {
       display: contents;
@@ -289,14 +277,12 @@
     }
   }
 
-  /* 1536 起、微调展开：微调、两列挑选栏、画框四列并排 */
-  @media (min-width: 96rem) {
+  /* 91rem 起、微调展开：微调、两列挑选栏、画框四列并排 */
+  @media (min-width: 91rem) {
     [data-slot='workspace'][data-inspector='open'] {
-      grid-template-columns:
-        minmax(0, var(--inspector-w))
-        minmax(0, var(--pick-w-open))
-        minmax(0, var(--pick-w-open))
-        minmax(0, 1fr);
+      grid-template-columns: var(--inspector-w) minmax(300px, 1fr) minmax(300px, 1fr) var(
+          --preview-w
+        );
     }
     [data-inspector='open'] > [data-slot='pick-columns'] {
       display: contents;
@@ -319,8 +305,41 @@
     }
   }
 
-  /* 拆开了才让两个子列各自滚，并回一列时滚的是外层壳，两层都能滚会打架 */
-  @media (min-width: 80rem) {
+  /* 96rem 以上冻住两条 clamp，理由见段头注释 */
+  @media (min-width: 96rem) {
+    [data-slot='workspace'][data-inspector='closed'] {
+      grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr) 522px;
+    }
+    [data-slot='workspace'][data-inspector='open'] {
+      grid-template-columns: 272px minmax(300px, 1fr) minmax(300px, 1fr) 522px;
+    }
+  }
+
+  /*
+   * 并回一列、但壳够宽时内拆两列。用有界 media 而不是容器查询：
+   * pick-columns 在拆列档是 display:contents，不生成盒，而 container-type 的
+   * containment 作用于元素的 principal box，它承担不了；壳宽又完全由视口断点乘
+   * 微调开合决定，容器查询量不到新信息。77.5rem 是打开态壳宽过 480 px 的阈值。
+   */
+  @media (min-width: 64rem) and (max-width: 69.99rem) {
+    [data-inspector='closed'] > [data-slot='pick-columns'] {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      min-height: 0;
+    }
+  }
+  @media (min-width: 77.5rem) and (max-width: 90.99rem) {
+    [data-inspector='open'] > [data-slot='pick-columns'] {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      min-height: 0;
+    }
+  }
+
+  /* 拆开了或内拆了才让两个子列各自滚，并回一列且不内拆时滚的是外层壳，两层都能滚会打架 */
+  @media (min-width: 70rem) {
     [data-inspector='closed'] [data-slot='pick-column'],
     [data-inspector='closed'] [data-slot='pick-column-color'] {
       min-height: 0;
@@ -328,7 +347,23 @@
       padding-inline: 0.125rem;
     }
   }
-  @media (min-width: 96rem) {
+  @media (min-width: 91rem) {
+    [data-inspector='open'] [data-slot='pick-column'],
+    [data-inspector='open'] [data-slot='pick-column-color'] {
+      min-height: 0;
+      overflow-y: auto;
+      padding-inline: 0.125rem;
+    }
+  }
+  @media (min-width: 64rem) and (max-width: 69.99rem) {
+    [data-inspector='closed'] [data-slot='pick-column'],
+    [data-inspector='closed'] [data-slot='pick-column-color'] {
+      min-height: 0;
+      overflow-y: auto;
+      padding-inline: 0.125rem;
+    }
+  }
+  @media (min-width: 77.5rem) and (max-width: 90.99rem) {
     [data-inspector='open'] [data-slot='pick-column'],
     [data-inspector='open'] [data-slot='pick-column-color'] {
       min-height: 0;
@@ -340,9 +375,10 @@
   /*
    * 操作条按自己有多宽决定文案长短，而不是按视口。
    * 它落在画框那一列里，同一个视口宽度下微调一开合就换一个量级，视口断点在这里给不出答案。
+   * 桌面是两行三列 grid，一格约 131 px，全称放得下；30rem 以下（手机通栏五格）换短称。
    *
    * 五个按钮一律带字，不存在只剩图标那一档：图标认不出来的按钮，用户得点一次才知道是干嘛的。
-   * 宽的时候给全称，窄下去换成两三个字的短称。长短两版都写在 DOM 里，由这里挑一版露出来。
+   * 长短两版都写在 DOM 里，由这里挑一版露出来。
    *
    * 露不露只在这里定，span 上不许再挂 hidden 之类的工具类：
    * 工具层整体排在组件层之后，一个 hidden 就会把这里的 display:block 压掉，
@@ -356,31 +392,12 @@
     display: none;
   }
 
-  @container bar (min-width: 36rem) {
+  @container bar (min-width: 30rem) {
     [data-slot='bottom-bar'] [data-label='short'] {
       display: none;
     }
     [data-slot='bottom-bar'] [data-label='full'] {
       display: block;
-    }
-  }
-
-  /*
-   * 兜底两档，正常布局到不了这么窄：真被挤到这儿，先收两个次级动作的文案，再收导出。
-   * 手机那一档是通栏一条、按钮竖排，宽度够，所以只管桌面。
-   */
-  @media (min-width: 64rem) {
-    @container bar (max-width: 26rem) {
-      [data-slot='inspector-toggle'] [data-label],
-      [data-slot='more-menu'] [data-label] {
-        display: none;
-      }
-    }
-
-    @container bar (max-width: 21rem) {
-      [data-slot='export-action'] [data-label] {
-        display: none;
-      }
     }
   }
 

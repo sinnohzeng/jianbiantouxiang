@@ -54,7 +54,7 @@ export function StyleSection() {
         preview: (
           <span
             aria-hidden="true"
-            className="block h-10 w-full rounded-md"
+            className="block h-9 w-full rounded-md"
             style={{ background: thumbBackground(config, style.id) }}
           />
         ),

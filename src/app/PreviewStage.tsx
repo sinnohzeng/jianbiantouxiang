@@ -286,10 +286,11 @@ export function PreviewStage() {
     // 长边贴住上限，短边按比例收窄，正方形与非正方形共用一套算法
     const widthFactor = width >= height ? 1 : width / height
     // 手机上预览区高度由用户拖的 --preview-h 决定；桌面上由外壳按断点给出 --preview-max，
-    // 它是这一列留给预览的净空，两列档要给下面的检查器带让位，三列档几乎占满整列
+    // 它是这一列留给预览的净空。画框另有一个 640 的硬上限：预览不是越大越好，
+    // 640 已足够判断渐变与文字细节，再大只会把左边的控制面板压出首屏
     const edge = isMobile
       ? 'min(calc(100vw - 32px), calc(var(--preview-h) - 40px))'
-      : 'min(var(--preview-max, 70vh), 960px)'
+      : 'min(var(--preview-max, 70vh), 640px)'
     const shortSide = Math.min(box.width, box.height)
     const corner =
       shape === 'circle' ? '50%' : shape === 'rounded' ? `${shortSide * radius}px` : '0px'

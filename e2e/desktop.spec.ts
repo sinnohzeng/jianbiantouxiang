@@ -185,6 +185,45 @@ test('主预览区不出现滚动条', async ({ page }) => {
   expect(pane!.inside).toBe(true)
 })
 
+test('桌面首屏放得下四节内容与默认微调组', async ({ page }) => {
+  await openApp(page)
+  // 进场编排期间卡片还在上浮，boundingBox 会漂，等一拍再量
+  await page.waitForTimeout(SETTLE_TIMEOUT_MS)
+
+  // 判据是底边与溢出量：「顶边在首屏内」对溢出八百像素的旧布局同样成立，抓不到回归
+  const closed = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('[data-slot="pick-columns"] section')]
+    const columns = [
+      ...document.querySelectorAll('[data-slot="pick-column"], [data-slot="pick-column-color"]'),
+    ]
+    const frame = document.querySelector('[data-slot="preview-pane"] [role="img"]')
+    return {
+      cardBottoms: cards.map((node) => Math.round(node.getBoundingClientRect().bottom)),
+      overflows: columns.map((node) => node.scrollHeight - node.clientHeight),
+      frameEdge: frame ? Math.round(frame.getBoundingClientRect().width) : null,
+      viewport: window.innerHeight,
+    }
+  })
+  expect(closed.cardBottoms).toHaveLength(4)
+  for (const bottom of closed.cardBottoms) {
+    expect(bottom).toBeLessThanOrEqual(closed.viewport)
+  }
+  for (const overflow of closed.overflows) {
+    expect(overflow).toBeLessThanOrEqual(0)
+  }
+  expect(closed.frameEdge).not.toBeNull()
+  expect(closed.frameEdge!).toBeLessThanOrEqual(641)
+
+  await openInspector(page)
+  await page.waitForTimeout(SETTLE_TIMEOUT_MS)
+  const dockOverflow = await page.evaluate(() => {
+    const node = document.querySelector('[data-slot="inspector-dock"]')
+    return node ? node.scrollHeight - node.clientHeight : null
+  })
+  expect(dockOverflow).not.toBeNull()
+  expect(dockOverflow!).toBeLessThanOrEqual(0)
+})
+
 test('微调：改过的参数出现重置钮，点一下回默认', async ({ page }) => {
   await openApp(page)
   await openInspector(page)
