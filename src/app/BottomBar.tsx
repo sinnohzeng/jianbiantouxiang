@@ -1,14 +1,16 @@
 /**
- * 主操作条。手机上固定在屏幕底部并让出 safe-area，桌面上就在预览正下方那一列。
+ * 主操作条。手机上固定在屏幕底部并让出 safe-area，桌面上就在预览正下方那一列，
+ * 两行三列：换一版、随机颜色和质感、微调在第一行，更多与导出在第二行。
+ * 预览列只有四百多像素宽，一行五颗带字按钮必然截断，而预览 pane 竖向有富余。
  *
  * 只占预览那一列，不横跨整个工作台：挑选栏底下压一条通栏的操作条，
  * 会让人以为它管的是左边那两列，而它管的其实是画面。
  * 每个按钮都带可见文案：只有图标时没人认得出哪个是哪个，touch target 再大也没用。
- * 手机上是图标在上、11 px 短文案在下；桌面是图标加文案的一行。
- * 五个按钮一律带字，没有只剩图标那一档：图标认不出来的按钮，用户得点一次才知道是干嘛的。
- * 宽的时候给全称，窄下去换成两三个字的短称，长短两版都在 DOM 里，由 index.css 的容器查询挑一版。
- * 那里也说明了为什么 span 上不能挂 hidden 工具类。
- * 分量按频次给：随机颜色与导出是实心，其余是描边的安静态，微调点亮时换主色。
+ * 手机上是图标在上、11 px 短文案在下的五格；桌面是图标加文案的一行。
+ * 全部随机那一颗有长短两版文案，都在 DOM 里，由 index.css 的容器查询挑一版；
+ * 换一版长短同文，单 span 恒显。那里也说明了为什么 span 上不能挂 hidden 工具类。
+ * 分量按频次给：换一版与导出是实心，其余是描边的安静态，微调点亮时换主色。
+ * 两档随机的边界：换一版只换种子（同配色同质感换一版构图），随机颜色和质感连配色质感一起换。
  * v5 起没有「文字」快捷键位：两行输入常驻在挑选栏第一节，一眼就看得见，再给它一个入口是重复。
  * v5 起没有「复制链接」：配置不进 URL，分享靠导出的图。
  * 导出按钮带同步锁与三态（idle / working / done）：working 至少 600 ms 可见，
@@ -213,18 +215,14 @@ export function BottomBar() {
           type="button"
           data-slot="shuffle-color"
           onClick={onShuffle}
-          aria-label={t('bottombar.random')}
-          title={t('bottombar.random.hint')}
+          aria-label={t('bottombar.reroll')}
+          title={t('bottombar.reroll.hint')}
           className={cn(item, accent)}
         >
           <ShuffleIcon className={iconClass} aria-hidden />
-          {/* 长短两版都在 DOM 里，露哪一版由容器宽度定。
-              这两个 span 不能带 hidden：工具层排在组件层之后，会把容器查询的 display 压掉 */}
-          <span data-label="short" className={labelClass}>
-            {t('bottombar.random.short')}
-          </span>
-          <span data-label="full" className={labelClass}>
-            {t('bottombar.random')}
+          {/* 长短同文，单 span 裸 data-label：index.css 的两条长短规则都不命中它，恒显 */}
+          <span data-label className={labelClass}>
+            {t('bottombar.reroll')}
           </span>
           <Ripple token={colorRipple.token} />
         </button>

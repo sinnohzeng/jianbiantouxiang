@@ -20,12 +20,11 @@
 | `bottombar.export`                | 导出                                                                             |
 | `bottombar.exportOptions`         | 导出选项                                                                         |
 | `bottombar.more`                  | 更多                                                                             |
-| `bottombar.random`                | 随机颜色                                                                         |
-| `bottombar.random.hint`           | 只换种子，配色与质感不变                                                         |
-| `bottombar.random.short`          | 随机                                                                             |
-| `bottombar.randomAll`             | 全部随机                                                                         |
-| `bottombar.randomAll.hint`        | 质感、配色与种子一起换                                                           |
+| `bottombar.randomAll`             | 随机颜色和质感                                                                   |
+| `bottombar.randomAll.hint`        | 颜色、质感与种子一起换                                                           |
 | `bottombar.randomAll.short`       | 全随机                                                                           |
+| `bottombar.reroll`                | 换一版                                                                           |
+| `bottombar.reroll.hint`           | 配色与质感不变，换一版构图                                                       |
 | `common.copyFailed`               | 复制失败                                                                         |
 | `export.bg`                       | 底色                                                                             |
 | `export.bg.hint`                  | JPG 与圆角外的区域用这个颜色填充                                                 |

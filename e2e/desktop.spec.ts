@@ -247,11 +247,11 @@ test('常驻操作条：两个随机一级按钮', async ({ page }) => {
 
   // 随机只在这一处，配色节里不再重复摆一遍；每个按钮都带可见文案
   await expect(page.locator('[data-slot="shuffle-color"]')).toBeVisible()
-  await expect(page.locator('[data-slot="shuffle-color"]')).toContainText('随机颜色')
+  await expect(page.locator('[data-slot="shuffle-color"]')).toContainText('换一版')
   await expect(page.locator('[data-slot="shuffle-all"]')).toBeVisible()
   await expect(page.locator('[data-slot="export-action"]')).toContainText('导出')
 
-  // 随机颜色只换种子；比较存档里的 seed 字段，而不是「存档有没有写过」
+  // 换一版只换种子；比较存档里的 seed 字段，而不是「存档有没有写过」
   const readSeed = () =>
     page.evaluate(() => {
       const raw = localStorage.getItem('gradient-avatar:v3')
