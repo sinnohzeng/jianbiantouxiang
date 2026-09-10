@@ -5,6 +5,37 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [6.0.0] - 2026-09-10
+
+工作台致密化与债务清理，规约见 `specs/v6.0-workspace-density/`。
+
+### 变更（破坏性）
+
+- **桌面栅格重平衡**：预览列从 `1fr` 捡漏改成 `clamp(400px, 34vw, 640px)` 的定宽轨道，挑选栏吃剩余；画框硬上限 960 收 640；工作台 `max-w-[1520px]` 居中封顶，96rem 以上把 clamp 冻成字面值（`vw` 对被封顶的容器会说谎）。改前 1440×900 收起态配色加质感列内容 1615 px、可视 812 px，溢出 803 px，1440 打开态挑选栏并回一列溢出 1629 px；改后八种视口乘开合的组合溢出全部归零。拆列断点从 1280/1536 移到 1120/1456；中间档挑选栏壳宽过 480 px 时壳内自拆两列
+- **微调面板**：行高 70 收 38 px，第一行改固定列 grid，数值框与重置占位各占定宽列——旧实现用 justify-between，字号行多一颗自动钮又没有重置占位，数值框比其余行右移 28 px；标签与数值收 11 px；逐行组并入排版组；桌面不再渲染折叠头，它与操作条的微调钮是同一个开关的两个入口
+- **图标节**：删除标题右侧开关与「挑一个/换一个」按钮，收成单控件两态——空态一颗整宽虚线按钮，填充态是缩略图磁贴（点它换）加名字加移除钮；名字取内置中英文名、emoji 当语标签、品牌中英文名与上传原文件名，不再摆 `1f334` 这种机器标识
+- **挑选栏致密化**：配色改六列无名磁贴（渐变本身就是名字，选中配色的五语名进节头，全名挂 title 与 sr-only）、质感改单行四格加一行常显的选中描述、文字样式与字重改可换行 chips（分段控件在 250–300 px 的列里会把选项截成「Shad…」）、控件桌面档收一档而基值保持 44 px 触控与 16 px 输入字号
+- **操作条**：桌面改两行三列 grid，五颗按钮全部带字且不截断；「随机颜色」改名「换一版」（它只换种子，旧名字与它自己的 hint 互相矛盾）、「全部随机」改名「随机颜色和质感」，五语字典与 keys.md 同步
+- **存档**：`normalizeConfig` 删除 v3.1 状态徽章的 `layout.scale` 迁移分支，该类旧存档的次行字号回默认值；v4 及以后的存档不受影响
+
+### 新增
+
+- e2e 布局验收：1440×900 收起态四张节卡片底边都在首屏内、两个挑选子列不溢出、画框不超 640；打开态微调列不溢出。判据是底边与溢出量——「顶边在首屏内」对改前的 803 px 溢出同样成立，抓不到回归
+- e2e 图标移除钮用例：清空后磁贴与单色控件归零、回空态、存档里 `icon.source` 回 `none`
+
+### 修复
+
+- 截图脚本固定睡 600 ms 会撞进场编排，目检看到卡片在半路平移、误判成布局坏了；改等幕布脱离 DOM 再等一拍，与 e2e 的 waitReady 同一口径
+- `engine/math` 的 clamp 把 +∞ 打到区间下端，收敛时顺带修成只挡 NaN
+
+### 移除
+
+- 零引用 shadcn 原语九件（badge、scroll-area、select、separator、sheet、tabs、toggle、toggle-group、tooltip）、engine/text/export/state 四个零 importer 桶与 `app/panels`、`palettes` 两个测试专用桶、`use-debounced` 钩子、三处死导出、`tsconfig.json` 里不生效的 paths、i18n 孤儿键十条
+
+### 重构
+
+- `clamp` 收敛到 `engine/math` 唯一实现；画布工具下移 `src/lib/canvas.ts`，engine 不再反向依赖装配层；inspector-open、preview-height、preview-overlays 三个同构件收进 `createPersistedAtom` 工厂（theme 因独有副作用排除）；`harmony` 的 `WCAG_MIN` 并入 `text/ink` 的 `WCAG_AA`
+
 ## [5.3.0] - 2026-09-05
 
 文档治理、CI 修复与品牌单色，规约见 `specs/v5.3-doc-governance-and-brand-mono/`。
