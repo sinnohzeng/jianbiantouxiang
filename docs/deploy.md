@@ -1,6 +1,6 @@
 # 部署
 
-站点是纯静态产物，`npm run build` 出 `dist/`，里面是两个真实页面 `/` 与 `/about`，构建不需要任何密钥，也不在构建期拉外网。主站域名 `jianbiantouxiang.com`，托管在阿里云边缘安全加速 ESA 的 Pages；旧域名 `jianbian.zixuan.net` 留在 Cloudflare Pages 上，切换完成后只做 301 跳转。两边都接 GitHub 仓库，main 分支 push 即构建、构建完即上线。切换按下文的顺序做：站点接入、新建 Pages 项目、HTTPS、绑定域名、缓存与响应头、上线核对；切完之前旧域名仍是线上入口。
+站点是纯静态产物，`npm run build` 出 `dist/`，里面是两个真实页面 `/` 与 `/about`，构建不需要任何密钥，也不在构建期拉外网。主站域名 `jianbiantouxiang.com`，托管在阿里云边缘安全加速 ESA 的 Pages；旧域名 `jianbian.zixuan.net` 留在 Cloudflare Pages 上，切换完成后只做 301 跳转。两边都接 GitHub 仓库，main 分支 push 即构建、构建完即上线。切换按下文的顺序做：站点接入、新建 Pages 项目、绑定域名、HTTPS、缓存与响应头、上线核对；切完之前旧域名仍是线上入口。
 
 ## 阿里云 ESA Pages
 
@@ -31,17 +31,20 @@
 
 “边缘计算和 AI › 函数和 Pages”里新建 Pages 项目，选“导入 Git 仓库”接本仓库。构建那一步的对照：项目名称 `jianbiantouxiang`，生产分支 `main`，非生产分支构建关，安装命令与构建命令随便填（`esa.jsonc` 存在时以文件为准），根目录 `/`，静态资源目录留空，函数文件路径留空，Node.js 版本 `24.x`，不加函数变量。创建后第一次构建自动触发，构建日志里应看到 `npm ci` 与 `vite build`。
 
-### HTTPS
-
-进站点的“边缘证书”页，申请免费边缘证书，覆盖 `jianbiantouxiang.com` 与 `www.jianbiantouxiang.com`；打开[强制 HTTPS](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/force-https)开关，最低 TLS 1.2。[请求重定向](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/request-redirects)一页的常见问题写明 HTTP 跳 HTTPS 优先用这个开关，不要自己写重定向规则，容易和别的规则撞出循环。Pages 绑定的域名继承站点的证书配置，站点不开证书，绑定的域名就没有 HTTPS。
-
 ### 绑定域名
 
-1. 进 Pages 项目的“域名”页签点“添加域名”，填 `jianbiantouxiang.com`。前置条件是账号下已有一个买了套餐且完成 NS 接入的可用站点，也就是“站点接入”一节。
-2. 再添加一条 `www.jianbiantouxiang.com`。
-3. 站点“规则 › 重定向规则”新增一条：传入请求“主机名 等于 `www.jianbiantouxiang.com`”，重定向类型选“动态”，表达式 `concat("https://jianbiantouxiang.com", http.request.uri.path)`，状态码 301，打开“保留查询字符串”。[请求重定向](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/request-redirects)的常见问题写明两个域名都接入 ESA 时裸域与 www 互跳走这条规则，不要用 DNS 服务商的 URL 转发；免费版规则条数上限 5 条。
+Pages 的“域名绑定”只收带前缀的主机名，根域名走“路由”。两条都做完，`www` 再 301 到根域名，线上只留 `jianbiantouxiang.com` 一个入口。
 
-NS 接入下绑定约一分钟生效，浏览器直接打开域名核对。
+1. 进 Pages 项目的“域名”页签，“域名绑定”栏点“添加域名”，填 `www.jianbiantouxiang.com`。前置条件是账号下已有一个买了套餐且完成 NS 接入的可用站点，也就是“站点接入”一节。ESA 会在站点下自动写一条 `www` 的 DNS 记录。
+2. 站点“DNS › 记录”添加一条根记录：记录类型 A，主机记录 `@`，代理状态开，记录值 `192.0.2.1`，业务场景“网站页面”。这个地址是 RFC 5737 留给文档用的，永远不会被访问到：根域名的请求在边缘就交给下一步的路由，不回源。Pages 的默认域名带 60 分钟的 token 鉴权，不能当 CNAME 源站；`www` 已经是一条记录的主机名，按 ESA 的规则也不能再作为别的记录的记录值。
+3. 回到 Pages 项目的“域名”页签，“路由”栏点“添加路由”：路由名称随意，选择站点 `jianbiantouxiang.com`，路由模式“简单模式”，URL 填 `jianbiantouxiang.com/*`。命中的请求全部由这个 Pages 项目处理，[域名配置](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/trigger)一页写明 `example.com/*` 匹配该域名的所有请求。
+4. 站点“规则 › 重定向规则”新增一条：传入请求“主机名 等于 `www.jianbiantouxiang.com`”，重定向类型选“动态”，表达式 `concat("https://jianbiantouxiang.com", http.request.uri.path)`，状态码 301，打开“保留查询字符串”。[请求重定向](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/request-redirects)的常见问题写明两个域名都接入 ESA 时裸域与 www 互跳走这条规则，不要用 DNS 服务商的 URL 转发；免费版规则条数上限 5 条。
+
+NS 接入下记录与路由约一分钟生效，浏览器直接打开根域名核对。
+
+### HTTPS
+
+进站点的“边缘证书”页，申请免费边缘证书，把 `jianbiantouxiang.com` 与 `www.jianbiantouxiang.com` 都勾上，两条主机名的 DNS 记录得先存在才选得到；打开[强制 HTTPS](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/force-https)开关，最低 TLS 1.2。[请求重定向](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/request-redirects)一页的常见问题写明 HTTP 跳 HTTPS 优先用这个开关，不要自己写重定向规则，容易和别的规则撞出循环。Pages 绑定的域名与路由都继承站点的证书配置，站点不开证书就没有 HTTPS。
 
 ### 缓存与响应头
 
