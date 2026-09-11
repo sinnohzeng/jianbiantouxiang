@@ -19,12 +19,18 @@ import { formatHex, oklch } from '@/palettes/culori'
 import { DEFAULT_CONFIG } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 
-/** 四层极光的漂移速度与强度。前三层跟着配色走，第四层是收口的暗层。 */
+/**
+ * 四层极光的漂移速度与强度。前三层跟着配色走，第四层是收口的暗层。
+ *
+ * 速度取负是合法的：shader 里 `t = u_time * u_speed * spd`，负号就是整层反向漂移。
+ * 四层同向只是一块整体在平移，看着像静态图；二、四层反向才有视差，画面才动得出来。
+ * 一、三层强度各降一档，补偿速度提上来之后多出的时域对比度。
+ */
 const LAYER_SHAPE: readonly { speed: number; intensity: number }[] = [
-  { speed: 0.3, intensity: 0.55 },
-  { speed: 0.13, intensity: 0.42 },
-  { speed: 0.19, intensity: 0.3 },
-  { speed: 0.07, intensity: 0.18 },
+  { speed: 0.36, intensity: 0.5 },
+  { speed: -0.17, intensity: 0.42 },
+  { speed: 0.24, intensity: 0.28 },
+  { speed: -0.09, intensity: 0.18 },
 ]
 
 /** 天光两层压得很暗，只负责上下两端的一点底噪，不跟极光抢亮度。 */
@@ -93,10 +99,10 @@ export default function AuroraBackdrop() {
         layers={layers}
         skyLayers={skyLayers}
         opacity={opacity}
-        speed={0.42}
-        noiseScale={2.6}
-        movementX={-1.1}
-        movementY={-1.3}
+        speed={1.0}
+        noiseScale={2.9}
+        movementX={-1.15}
+        movementY={-0.7}
         verticalFade={0.3}
         bloomIntensity={dark ? 1.5 : 1.35}
         brightness={dark ? 0.85 : 0.85}

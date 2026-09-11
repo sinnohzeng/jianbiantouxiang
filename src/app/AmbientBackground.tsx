@@ -19,10 +19,11 @@ interface Blob {
   delay: string
 }
 
+/** 三团光晕的位置与相位。延迟按 ambient-drift 的 16 s 周期大致三等分错开，同相位就看不出漂移。 */
 const SLOTS: readonly Omit<Blob, 'color'>[] = [
   { top: '-18%', left: '-12%', size: '68vmax', delay: '0s' },
-  { top: '32%', left: '58%', size: '60vmax', delay: '-9s' },
-  { top: '68%', left: '8%', size: '52vmax', delay: '-17s' },
+  { top: '32%', left: '58%', size: '60vmax', delay: '-5.5s' },
+  { top: '68%', left: '8%', size: '52vmax', delay: '-11s' },
 ]
 
 export function AmbientBackground() {
