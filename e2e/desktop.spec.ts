@@ -272,13 +272,20 @@ test('常驻操作条：换一版、随机配色、导出三格', async ({ page 
   await expect(page.locator('[data-slot="more-menu"]')).toHaveCount(0)
   await expect(page.locator('[data-slot="inspector-toggle"]')).toHaveCount(0)
 
-  // 换一版只换种子；比较存档里的 seed 字段，而不是「存档有没有写过」
+  // 换一版只换种子；比较存档里的 seed 字段，而不是「存档有没有写过」。
+  // 存档是延后写的，点完那一刻可能还没有：轮询到「有非空 seed 且不同于点前」为止，
+  // 不能拿 undefined 不等于 null 蒙混过关
   const seedBefore = await readStoredConfig(page).then((config) => config?.seed ?? null)
   await page.locator('[data-slot="shuffle-color"]').click()
   await expect
-    .poll(async () => (await readStoredConfig(page))?.seed, { timeout: POLL_TIMEOUT_MS })
-    .not.toBe(seedBefore)
-  expect((await readStoredConfig(page))?.seed).toBeTruthy()
+    .poll(
+      async () => {
+        const seed = (await readStoredConfig(page))?.seed
+        return seed && seed !== seedBefore ? seed : null
+      },
+      { timeout: POLL_TIMEOUT_MS },
+    )
+    .toBeTruthy()
 })
 
 test('随机配色只换配色，种子与质感不动', async ({ page }) => {

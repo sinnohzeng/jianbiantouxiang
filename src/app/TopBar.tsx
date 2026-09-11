@@ -39,6 +39,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -232,24 +233,30 @@ export function TopBar() {
             <SettingsIcon className="size-5" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-auto min-w-44">
-            <DropdownMenuLabel>{t('topbar.theme')}</DropdownMenuLabel>
-            <DropdownMenuRadioGroup value={mode} onValueChange={(next: ThemeMode) => setMode(next)}>
-              {THEME_MODES.map((item) => {
-                const Icon = THEME_ICON[item]
-                return (
-                  <DropdownMenuRadioItem
-                    key={item}
-                    value={item}
-                    data-slot="theme-option"
-                    data-value={item}
-                    className="min-h-11 pl-2"
-                  >
-                    <Icon className="size-4" aria-hidden />
-                    {t(THEME_LABEL_KEY[item])}
-                  </DropdownMenuRadioItem>
-                )
-              })}
-            </DropdownMenuRadioGroup>
+            {/* Base UI 的 GroupLabel 只能住在 Group 里，裸放会在打开菜单那一刻抛错、整棵树被错误边界卸掉 */}
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>{t('topbar.theme')}</DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={mode}
+                onValueChange={(next: ThemeMode) => setMode(next)}
+              >
+                {THEME_MODES.map((item) => {
+                  const Icon = THEME_ICON[item]
+                  return (
+                    <DropdownMenuRadioItem
+                      key={item}
+                      value={item}
+                      data-slot="theme-option"
+                      data-value={item}
+                      className="min-h-11 pl-2"
+                    >
+                      <Icon className="size-4" aria-hidden />
+                      {t(THEME_LABEL_KEY[item])}
+                    </DropdownMenuRadioItem>
+                  )
+                })}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
 
