@@ -78,7 +78,9 @@ function AppShellBody() {
         <section
           data-slot="preview-pane"
           aria-label={t('preview.label')}
-          className="bg-background/90 supports-[backdrop-filter]:bg-background/75 sticky top-14 z-20 flex h-[var(--preview-h)] items-center justify-center overflow-hidden px-4 backdrop-blur-md [--preview-max:calc(68svh_-_200px)] lg:static lg:h-auto lg:min-h-0 lg:overflow-hidden lg:bg-transparent lg:px-0 lg:backdrop-blur-none lg:[--preview-max:calc(100svh_-_200px)]"
+          // 桌面不裁：画框已按 --preview-max 夹过，不会长出滚动条，而投影与光晕要越出这一格才不会被切成硬边。
+          // 手机仍裁：它是 sticky 的顶部块，底边之下是滚动内容
+          className="bg-background/90 supports-[backdrop-filter]:bg-background/75 sticky top-14 z-20 flex h-[var(--preview-h)] items-center justify-center overflow-hidden px-4 backdrop-blur-md [--preview-max:calc(68svh_-_200px)] lg:static lg:h-auto lg:min-h-0 lg:overflow-visible lg:bg-transparent lg:px-0 lg:backdrop-blur-none lg:[--preview-max:calc(100svh_-_200px)]"
         >
           <PreviewStage />
         </section>

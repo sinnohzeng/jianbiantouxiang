@@ -3,10 +3,12 @@
  * 标签在左、当前值在右。数值框常驻，拖不准的值直接敲；给了 `defaultValue`
  * 的行在偏离默认值时多出一个重置小钮，桌面悬停或聚焦才显形，触控设备常显。
  *
- * 一行两段：第一段是「标签 | 自动档 | 数值框 | 重置占位」的固定列 grid，
- * 第二段滑杆独占一行。数值框与重置占位各占定宽列，位置与兄弟元素有无无关——
+ * 一行两段：第一段是「标签 | 自动档 | 重置占位 | 数值框」的固定列 grid，
+ * 第二段滑杆独占一行。重置占位与数值框各占定宽列，位置与兄弟元素有无无关：
  * 早先第一行用 justify-between，字号行多一颗自动钮、又没有重置占位，
  * 它的数值框比其余行右移 28 px，同一组里竖着看是歪的。
+ * 数值框放最右一列，右缘与滑杆右端齐平：重置占位排在它右边时，
+ * 每一行的数字都比滑杆末端缩进 26 px，整列看起来像没有右对齐。
  *
  * 致密尺寸一律 lg: 前缀：手机渲染同一棵树，基值要保持本仓 44 px 触控
  * 与 16 px 输入字号的口径，无前缀收小会让 iOS 聚焦缩放与触控热区一起破线。
@@ -161,39 +163,38 @@ export function SliderField({
     />
   )
 
-  const resetNode =
-    defaultValue === undefined ? null : (
-      // 占位宽度常留：重置钮出现与消失时这一行不跳
-      <span className="flex w-full items-center justify-center">
-        {resettable ? (
-          <button
-            type="button"
-            data-slot="slider-reset"
-            aria-label={resetLabel}
-            title={resetLabel}
-            disabled={disabled}
-            onClick={() => onChange(defaultValue)}
-            className={cn(
-              'text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 flex items-center justify-center rounded-md transition-opacity focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none',
-              // 可见尺寸收小，热区靠 after 撑：基值 32+16=48，桌面 20+16=36 已过 WCAG 2.5.8 的 24
-              'size-8 after:-inset-2 lg:size-5',
-              // 桌面上悬停整行或键盘落进这一行才显形；触控设备没有悬停，常显
-              'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100',
-              '[@media(hover:none),(pointer:coarse)]:opacity-100',
-            )}
-          >
-            <RotateCcwIcon className="size-4 lg:size-3.5" aria-hidden />
-          </button>
-        ) : null}
-      </span>
-    )
+  // 占位列常留，没给默认值的行也留：它排在数值框左边，缺了这一格数值框会滑进窄列
+  const resetNode = (
+    <span data-slot="slider-reset-slot" className="flex w-full items-center justify-center">
+      {defaultValue !== undefined && resettable ? (
+        <button
+          type="button"
+          data-slot="slider-reset"
+          aria-label={resetLabel}
+          title={resetLabel}
+          disabled={disabled}
+          onClick={() => onChange(defaultValue)}
+          className={cn(
+            'text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 flex items-center justify-center rounded-md transition-opacity focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none',
+            // 可见尺寸收小，热区靠 after 撑：基值 32+16=48，桌面 20+16=36 已过 WCAG 2.5.8 的 24
+            'size-8 after:-inset-2 lg:size-5',
+            // 桌面上悬停整行或键盘落进这一行才显形；触控设备没有悬停，常显
+            'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100',
+            '[@media(hover:none),(pointer:coarse)]:opacity-100',
+          )}
+        >
+          <RotateCcwIcon className="size-4 lg:size-3.5" aria-hidden />
+        </button>
+      ) : null}
+    </span>
+  )
 
   return (
     <div className={cn('group flex flex-col gap-0.5', disabled && 'opacity-60', className)}>
       <div
         className={cn(
-          'grid min-h-11 grid-cols-[minmax(0,1fr)_6rem_2rem] items-center gap-2',
-          'lg:min-h-5 lg:grid-cols-[minmax(0,1fr)_3.5rem_1.25rem] lg:gap-1.5',
+          'grid min-h-11 grid-cols-[minmax(0,1fr)_2rem_6rem] items-center gap-2',
+          'lg:min-h-5 lg:grid-cols-[minmax(0,1fr)_1.25rem_3.5rem] lg:gap-1.5',
         )}
       >
         <span className="flex min-w-0 items-center gap-1.5">
@@ -202,8 +203,8 @@ export function SliderField({
           </span>
           {autoNode}
         </span>
-        {valueNode}
         {resetNode}
+        {valueNode}
       </div>
       <Slider
         // aria-labelledby 会被 Base UI 传到 thumb 里那个 input[type=range] 上，

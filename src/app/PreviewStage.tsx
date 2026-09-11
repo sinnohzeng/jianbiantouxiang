@@ -356,7 +356,9 @@ export function PreviewStage() {
         <div
           aria-hidden
           data-slot="preview-bloom"
-          className="pointer-events-none absolute inset-x-5 top-1/3 -bottom-9 opacity-55 blur-[64px] dark:opacity-40"
+          // 手机上预览区仍然裁切，画框到区底只有三十来像素，光晕外扩收在这个数以内，
+          // 不然会在区底裁出一条横线；桌面不裁，给足外扩
+          className="pointer-events-none absolute inset-x-8 top-1/2 bottom-3 opacity-55 blur-[32px] lg:inset-x-5 lg:top-1/3 lg:-bottom-9 lg:blur-[64px] dark:opacity-40"
           style={{
             background: frameStyle.background,
             borderRadius: frameStyle.borderRadius,
@@ -367,9 +369,10 @@ export function PreviewStage() {
           ref={frameRef}
           role="img"
           aria-label={label}
-          // 三层投影：贴边一层压住边缘，中层给厚度，最外一层拖得很长很淡。
-          // 单层短投影会在画框底下收出一条看得见的边，那正是「分界线」的来源
-          className="relative isolate w-full overflow-hidden shadow-[0_2px_10px_-6px_rgba(0,0,0,0.22),0_26px_70px_-34px_rgba(0,0,0,0.30),0_64px_150px_-70px_rgba(0,0,0,0.28)] ring-1 ring-black/5 dark:ring-white/10"
+          // 桌面三层投影：贴边一层压住边缘，中层给厚度，最外一层拖得很长很淡。
+          // 单层短投影会在画框底下收出一条看得见的边，那正是「分界线」的来源。
+          // 手机只留两层短投影：预览区在那里是裁切的，长投影会被区底切成一条硬边
+          className="relative isolate w-full overflow-hidden shadow-[0_2px_8px_-4px_rgba(0,0,0,0.2),0_12px_28px_-16px_rgba(0,0,0,0.3)] ring-1 ring-black/5 lg:shadow-[0_2px_10px_-6px_rgba(0,0,0,0.22),0_26px_70px_-34px_rgba(0,0,0,0.30),0_64px_150px_-70px_rgba(0,0,0,0.28)] dark:ring-white/10"
           style={{
             aspectRatio: frameStyle.aspectRatio,
             borderRadius: frameStyle.borderRadius,

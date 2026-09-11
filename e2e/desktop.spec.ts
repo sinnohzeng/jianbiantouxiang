@@ -165,9 +165,9 @@ test('双列工作台：文字图形一列、配色质感一列，微调默认�
 test('主预览区不出现滚动条', async ({ page }) => {
   await openApp(page)
 
-  // 画框连同上下留白必须落在预览区之内；画框底下那团光晕是装饰层，
-  // 故意探出画框再由预览区裁掉，所以断言看的是画框的位置与滚不滚，
-  // 不是 scrollHeight——那一项会把光晕算进去
+  // 画框连同上下留白必须落在预览区之内；画框底下那团光晕与投影是装饰层，
+  // 故意探出画框，所以断言看的是画框的位置与滚不滚，
+  // 不是 scrollHeight，那一项会把光晕算进去
   const pane = await page.evaluate(() => {
     const node = document.querySelector('[data-slot="preview-pane"]')
     const frame = node?.querySelector('[role="img"]')
@@ -180,8 +180,8 @@ test('主预览区不出现滚动条', async ({ page }) => {
     }
   })
   expect(pane).not.toBeNull()
-  // 裁掉而不是滚：overflow 是 hidden，再宽再高的装饰层也长不出滚动条
-  expect(pane!.overflowY).toBe('hidden')
+  // 不是滚动容器：桌面这一格不裁（投影要越出去才不会被切成硬边），也绝不能是 auto 或 scroll
+  expect(['visible', 'hidden', 'clip']).toContain(pane!.overflowY)
   expect(pane!.inside).toBe(true)
 })
 
