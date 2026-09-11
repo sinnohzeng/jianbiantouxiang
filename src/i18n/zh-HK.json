@@ -195,6 +195,7 @@
   "panel.text.line2": "第二行",
   "panel.text.line2.placeholder": "09-01 至 09-07",
   "panel.text.line2Size": "第二行字級",
+  "panel.text.line2Size.autoHint": "跟隨第一行，取其 62%；拖這一行或第一行的滑桿都改為手動",
   "panel.text.lineHeight": "行高",
   "panel.text.lineOffsetX": "第 {index} 行水平",
   "panel.text.lineOffsetY": "第 {index} 行垂直",

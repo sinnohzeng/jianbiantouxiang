@@ -195,6 +195,7 @@
   "panel.text.line2": "둘째 줄",
   "panel.text.line2.placeholder": "09-01 ~ 09-07",
   "panel.text.line2Size": "2행 글자 크기",
+  "panel.text.line2Size.autoHint": "1행의 62%를 따릅니다. 이 행이나 1행의 슬라이더를 움직이면 수동으로 바뀝니다",
   "panel.text.lineHeight": "행간",
   "panel.text.lineOffsetX": "{index}행 가로",
   "panel.text.lineOffsetY": "{index}행 세로",

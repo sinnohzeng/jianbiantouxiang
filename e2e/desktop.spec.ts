@@ -571,8 +571,10 @@ test('网格参考线打开后刷新仍开，且不进导出画布', async ({ pa
 test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ page }) => {
   await openApp(page)
 
-  const auto = page.locator('[data-slot="slider-auto"]')
+  const auto = page.locator('[data-slot="text-font-size"] [data-slot="slider-auto"]')
+  const auto2 = page.locator('[data-slot="text-line2-size"] [data-slot="slider-auto"]')
   await expect(auto).toHaveAttribute('aria-pressed', 'true')
+  await expect(auto2).toHaveAttribute('aria-pressed', 'true')
 
   // 自动态滑杆显示预览回写的求解值，得等首帧排版完成；
   // 网络字体到货会再排一次，值可能再变一档，所以等它连续两次读数相同再取基线
@@ -597,8 +599,15 @@ test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ pa
   const after = Number(await slider.inputValue())
   expect(after).toBeCloseTo(before + 0.005, 3)
 
+  // 拖第一行时第二行钉在此刻的大小：它的“自动”钮熄灭，值仍是拖之前基准的 62%
+  await expect(auto2).toHaveAttribute('aria-pressed', 'false')
+  const line2 = page.getByRole('slider', { name: '第二行字号' })
+  expect(Number(await line2.inputValue())).toBeCloseTo(before * 0.62, 2)
+
   await auto.click()
   await expect(auto).toHaveAttribute('aria-pressed', 'true')
+  await auto2.click()
+  await expect(auto2).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('炫技层背景挂着自己的 WebGL 画布，预览与导出都不受影响', async ({ page }) => {

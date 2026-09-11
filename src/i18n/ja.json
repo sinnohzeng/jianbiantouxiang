@@ -195,6 +195,7 @@
   "panel.text.line2": "2 行目",
   "panel.text.line2.placeholder": "09/01 〜 09/07",
   "panel.text.line2Size": "2 行目サイズ",
+  "panel.text.line2Size.autoHint": "1 行目の 62% に追従。この行か 1 行目のスライダーを動かすと手動になります",
   "panel.text.lineHeight": "行間",
   "panel.text.lineOffsetX": "{index} 行目の水平",
   "panel.text.lineOffsetY": "{index} 行目の垂直",

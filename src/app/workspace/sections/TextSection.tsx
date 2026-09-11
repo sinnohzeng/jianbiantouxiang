@@ -17,14 +17,17 @@ import { useT } from '@/i18n'
 import {
   DEFAULT_CONFIG,
   FONT_SIZE_STEP,
+  LINE2_MIN_RATIO,
   STATUS_SECOND_LINE_SCALE,
   TEXT_EFFECTS,
+  snapFontRatio,
 } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { twoLinesOf } from '@/text/wrap'
 import { weightsOf } from '@/app/panels/font-entries'
 import { FontPickerLazy } from '@/app/panels/lazy'
 import { joinLines, stripBreaks, withLineValue } from '@/app/workspace/shared'
+import { clamp } from '@/engine/math'
 import { SectionCard } from './card'
 import { Row } from './row'
 
@@ -116,6 +119,12 @@ export function TextSection() {
   const hasFirst = first.trim() !== ''
   const hasSecond = second.trim() !== ''
   const weights = useMemo(() => weightsOf(type.fontFamily), [type.fontFamily])
+  // 第一行的当前基准：自动态是预览回写的解，手动态是配置值；第二行跟随时取它的 62%。
+  // 滑杆显示的自动值向下对齐到步进：值在网格上，轻触滑杆不会被取整到比求解上限更大的一档；
+  // 钉住第二行时用未取整的基准，钉完的那一帧一个像素都不动
+  const baseFontSize = type.sizeMode === 'auto' ? (autoFontSize ?? type.fontSize) : type.fontSize
+  const shownFontSize = type.sizeMode === 'auto' ? snapFontRatio(baseFontSize) : baseFontSize
+  const followSize = clamp(baseFontSize * STATUS_SECOND_LINE_SCALE, LINE2_MIN_RATIO, 0.92)
 
   const effectOptions = TEXT_EFFECTS.map((effect) => ({
     value: effect,
@@ -146,7 +155,7 @@ export function TextSection() {
       <div data-slot="text-font-size">
         <Row
           label={t('panel.text.fontSize')}
-          value={type.sizeMode === 'auto' ? (autoFontSize ?? type.fontSize) : type.fontSize}
+          value={shownFontSize}
           min={0.04}
           max={0.92}
           step={FONT_SIZE_STEP}
@@ -162,7 +171,16 @@ export function TextSection() {
               setTypography({ sizeMode: 'auto' })
             },
           }}
-          onChange={(fontSize) => setTypography({ sizeMode: 'manual', fontSize })}
+          onChange={(fontSize) =>
+            setTypography({
+              sizeMode: 'manual',
+              fontSize,
+              // 第二行还在跟随时先把它钉在此刻的大小：拖第一行只动第一行
+              ...(hasFirst && hasSecond && type.line2Size === null
+                ? { line2Size: followSize }
+                : {}),
+            })
+          }
         />
       </div>
 
@@ -182,21 +200,25 @@ export function TextSection() {
         />
       </div>
 
-      {/* 第二行字号是相对第一行的百分比，两行都有内容才谈得上比例 */}
+      {/* 第二行字号与第一行同一单位。默认跟随第一行取 62%，一拖就钉成自己的值，
+          点“自动”回到跟随。两行都有内容才有这一行 */}
       {hasFirst && hasSecond ? (
         <div data-slot="text-line2-size">
           <Row
             label={t('panel.text.line2Size')}
-            value={type.lineSizeScales[1] ?? STATUS_SECOND_LINE_SCALE}
-            defaultValue={defaults.lineSizeScales[1] ?? STATUS_SECOND_LINE_SCALE}
-            min={0.2}
-            max={0.8}
-            step={0.01}
+            value={type.line2Size ?? followSize}
+            min={LINE2_MIN_RATIO}
+            max={0.92}
+            step={FONT_SIZE_STEP}
             scale={100}
             unit="%"
-            onChange={(scale) =>
-              setTypography({ lineSizeScales: withLineValue(type.lineSizeScales, 1, scale, 1) })
-            }
+            auto={{
+              active: type.line2Size === null,
+              label: t('panel.text.fontSize.auto'),
+              hint: t('panel.text.line2Size.autoHint'),
+              onReset: () => setTypography({ line2Size: null }),
+            }}
+            onChange={(line2Size) => setTypography({ line2Size })}
           />
         </div>
       ) : null}

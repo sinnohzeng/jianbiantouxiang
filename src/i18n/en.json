@@ -195,6 +195,7 @@
   "panel.text.line2": "Second line",
   "panel.text.line2.placeholder": "Sep 1 to Sep 7",
   "panel.text.line2Size": "Line 2 size",
+  "panel.text.line2Size.autoHint": "Follows line 1 at 62%; dragging this slider or the line 1 slider sets it by hand",
   "panel.text.lineHeight": "Line height",
   "panel.text.lineOffsetX": "Line {index} horizontal",
   "panel.text.lineOffsetY": "Line {index} vertical",

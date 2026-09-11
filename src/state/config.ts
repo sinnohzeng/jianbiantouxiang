@@ -50,8 +50,11 @@ export interface AvatarConfig {
     effect: TextEffect
     effectStrength: number // 0..1
     color: string
-    /** 两档：次行相对基准字号的乘数。 */
-    lineSizeScales: number[]
+    /**
+     * 第二行字号，画布短边比例，与 fontSize 同一单位；null 表示跟随第一行，
+     * 取基准字号的 STATUS_SECOND_LINE_SCALE。手动值不随第一行变。
+     */
+    line2Size: number | null
     /** 两档：逐行水平视觉补偿，按画布宽度比例，落位时只动自己那行。 */
     lineOffsetsX: number[]
     /** 两档：逐行垂直视觉补偿，按画布高度比例，落位时只动自己那行。 */
@@ -111,10 +114,16 @@ export function snapFontRatio(ratio: number): number {
   return Math.round(Math.floor(ratio / FONT_SIZE_STEP + 1e-9) * FONT_SIZE_STEP * 1000) / 1000
 }
 
-/** 次行相对首行的默认字号比例。 */
+/** 第二行跟随第一行时的字号比例。 */
 export const STATUS_SECOND_LINE_SCALE = 0.62
 
-/** 徽章两块之间的留白，按首行字号算。 */
+/**
+ * 第二行手动字号的下限。低于第一行下限乘跟随比例（0.04 × 0.62），
+ * 把跟随值钉成手动值时不会被下限抬高。
+ */
+export const LINE2_MIN_RATIO = 0.02
+
+/** 徽章两块之间的留白，按两段里较大的字号算。 */
 export const STATUS_GAP_RATIO = 0.18
 
 /** 画布边长的合法区间，上限对应桌面导出的 4096。 */
@@ -151,7 +160,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     effect: 'shadow',
     effectStrength: 0.4,
     color: '#ffffff',
-    lineSizeScales: [1, STATUS_SECOND_LINE_SCALE],
+    line2Size: null,
     lineOffsetsX: [0, 0],
     lineOffsetsY: [0, 0],
     pill: { radius: 0.5, padding: 0.3, opacity: 0.55 },
@@ -263,6 +272,31 @@ function normalizeNumberArray(
 }
 
 /**
+ * 第二行字号：数值夹到与 fontSize 同一区间，null 与缺省都是跟随。
+ * 旧存档里的 lineSizeScales[1] 是相对第一行的乘数：手动档按当时的 fontSize 折成短边比例，
+ * 乘数就是跟随比例的仍算跟随；自动档没有已求解的基准可乘，回到跟随。
+ */
+function normalizeLine2Size(
+  tp: Record<string, unknown>,
+  sizeMode: AvatarConfig['typography']['sizeMode'],
+  fontSize: number,
+): number | null {
+  if (typeof tp.line2Size === 'number' && Number.isFinite(tp.line2Size)) {
+    return clamp(tp.line2Size, LINE2_MIN_RATIO, 0.92)
+  }
+  const legacy = Array.isArray(tp.lineSizeScales) ? tp.lineSizeScales[1] : undefined
+  if (
+    sizeMode === 'manual' &&
+    typeof legacy === 'number' &&
+    Number.isFinite(legacy) &&
+    Math.abs(legacy - STATUS_SECOND_LINE_SCALE) > 1e-6
+  ) {
+    return clamp(fontSize * clamp(legacy, 0.2, 2), LINE2_MIN_RATIO, 0.92)
+  }
+  return null
+}
+
+/**
  * 把任意局部输入补成完整配置：缺字段补默认，数值按注释里的区间夹值，
  * 枚举与数组做合法性校验。任何输入都不会抛错。
  *
@@ -287,13 +321,9 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
   const [firstLine, secondLine] = twoLinesOf(str(src.text, d.text))
   const text = secondLine === '' ? firstLine : `${firstLine}\n${secondLine}`
 
-  const lineSizeScales = normalizeNumberArray(
-    tp.lineSizeScales,
-    d.typography.lineSizeScales,
-    1,
-    0.2,
-    2,
-  )
+  const sizeMode = pick(tp.sizeMode, SIZE_MODES, d.typography.sizeMode)
+  const fontSize = num(tp.fontSize, d.typography.fontSize, 0.04, 0.92)
+  const line2Size = normalizeLine2Size(tp, sizeMode, fontSize)
 
   return {
     v: 4,
@@ -320,15 +350,15 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
       fontFamily: str(tp.fontFamily, d.typography.fontFamily),
       fontSource: pick(tp.fontSource, FONT_SOURCES, d.typography.fontSource),
       fontWeight: int(tp.fontWeight, d.typography.fontWeight, 100, 900),
-      sizeMode: pick(tp.sizeMode, SIZE_MODES, d.typography.sizeMode),
-      fontSize: num(tp.fontSize, d.typography.fontSize, 0.04, 0.92),
+      sizeMode,
+      fontSize,
       padding: num(tp.padding, d.typography.padding, 0, 0.3),
       lineHeight: num(tp.lineHeight, d.typography.lineHeight, 0.85, 2),
       letterSpacing: num(tp.letterSpacing, d.typography.letterSpacing, -0.1, 0.5),
       effect: pick(tp.effect, TEXT_EFFECTS, d.typography.effect),
       effectStrength: num(tp.effectStrength, d.typography.effectStrength, 0, 1),
       color: normalizeHex(tp.color, d.typography.color),
-      lineSizeScales,
+      line2Size,
       lineOffsetsX: normalizeNumberArray(
         tp.lineOffsetsX,
         d.typography.lineOffsetsX,

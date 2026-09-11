@@ -39,7 +39,6 @@ import { useThrottled } from '@/app/use-throttled'
 import { useIsMobile, useMediaQuery } from '@/hooks/use-media'
 import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
-import { snapFontRatio } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 
 /**
@@ -269,11 +268,11 @@ export function PreviewStage() {
 
       // 把自动求得的基准字号比例回写给面板：字号滑杆在自动态显示它，
       // 用户一拖就从这个值切到手动。只在 auto 档写，手动档的 fontSizePx 就是用户自己的值。
-      // 向下对齐到滑杆步进：值在网格上，轻触滑杆不会被取整到比求解上限更大的一档
+      // 写的是求解器的原值，对齐到滑杆步进由面板在显示时做；变化不到万分之一不写，免得每帧都动 store
       if (drawConfig.typography.sizeMode === 'auto') {
-        const snapped = snapFontRatio(layout.fontRatio)
-        if (useAvatarStore.getState().ui.autoFontSize !== snapped) {
-          setUi({ autoFontSize: snapped })
+        const current = useAvatarStore.getState().ui.autoFontSize
+        if (current === null || Math.abs(current - layout.fontRatio) > 1e-4) {
+          setUi({ autoFontSize: layout.fontRatio })
         }
       }
     })

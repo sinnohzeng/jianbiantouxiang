@@ -165,7 +165,7 @@ describe('逐行字号', () => {
     expect(fontSizeOf(paints.at(-1)?.font ?? '')).toBeCloseTo(124)
   })
 
-  it('两行同比例时全篇一个字号', () => {
+  it('第二行字号定成与第一行相同时全篇一个字号', () => {
     const { paints } = render({
       text: '飞书\n效率',
       typography: {
@@ -173,7 +173,7 @@ describe('逐行字号', () => {
         fontSize: 0.2,
         padding: 0.1,
         effect: 'plain',
-        lineSizeScales: [1, 1],
+        line2Size: 0.2,
       },
     })
     expect([...new Set(paints.map((paint) => fontSizeOf(paint.font)))]).toEqual([200])

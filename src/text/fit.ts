@@ -40,7 +40,7 @@ export interface TextBlock {
 /** 单段（第一行或第二行）的排版结果。 */
 export interface ParagraphFit {
   block: TextBlock
-  /** 实际字号：基准字号 × 行级比例。 */
+  /** 实际字号：第一行是基准字号，第二行跟随时是基准乘行级比例，手动时是自己的短边比例。 */
   fontSizePx: number
   lineHeightPx: number
   letterSpacingPx: number
@@ -62,8 +62,7 @@ export interface StackFit {
   width: number
   height: number
   /**
-   * 基准字号按画布短边的比例，与 `typography.fontSize` 同一单位。
-   * 自动档的求解结果从这里读，不要拿 `primary.fontSizePx / 短边` 反推：主行的行级比例可能不是 1。
+   * 基准字号按画布短边的比例，与 `typography.fontSize` 同一单位，自动档的求解结果从这里读。
    */
   ratio: number
   /** 位移之后整栈是否仍在安全区内，界面据此提示。 */
@@ -205,7 +204,10 @@ export function safeArea(
 
 interface Slot {
   text: string
+  /** 相对基准字号的乘数。 */
   scale: number
+  /** 给了就按这个短边比例定死，不随基准字号变；第二行手动字号走这里。 */
+  ratio?: number
   offset: number
   offsetY: number
 }
@@ -213,8 +215,8 @@ interface Slot {
 /**
  * 栈模型的排版求解。
  *
- * 第一行是基准字号，第二行恒等于基准乘第二行的行级比例，二分只搜基准。
- * 两个都放开会有无穷多组解落在安全框里，出图就不稳定了。
+ * 第一行是基准字号，二分只搜基准。第二行跟随时等于基准乘 STATUS_SECOND_LINE_SCALE，
+ * 手动定了短边比例就按定值排，两种情况都只有基准一个自由度：两个都放开会有无穷多组解落在安全框里。
  * 第一行为空、第二行有内容时晋升主行按满比例渲染，参数不跟槽位走。
  *
  * 水平与垂直补偿都完全不参与求解：换行与二分按完整的安全区算，落位时再纯位移（见 layout 层）。
@@ -246,14 +248,16 @@ export function fitStack(
   } else if (line1 !== '') {
     slots.push({
       text: line1,
-      scale: typography.lineSizeScales[0] ?? 1,
+      scale: 1,
       offset: typography.lineOffsetsX[0] ?? 0,
       offsetY: typography.lineOffsetsY[0] ?? 0,
     })
     if (line2 !== '') {
       slots.push({
         text: line2,
-        scale: typography.lineSizeScales[1] ?? STATUS_SECOND_LINE_SCALE,
+        ...(typography.line2Size === null
+          ? { scale: STATUS_SECOND_LINE_SCALE }
+          : { scale: 1, ratio: typography.line2Size }),
         offset: typography.lineOffsetsX[1] ?? 0,
         offsetY: typography.lineOffsetsY[1] ?? 0,
       })
@@ -280,7 +284,7 @@ export function fitStack(
     const ratio = clamp(rawRatio, MIN_FONT_RATIO, MAX_FONT_RATIO)
     const baseSize = ratio * shortSide
     const parts = slots.map((slot): ParagraphFit => {
-      const fontSizePx = baseSize * slot.scale
+      const fontSizePx = slot.ratio === undefined ? baseSize * slot.scale : slot.ratio * shortSide
       const block = composeParagraph(config, slot.text, fontSizePx, maxWidth, measure)
       // 居中落位再位移 offset × 画布宽，左右两侧各要多出这么多才不越界
       const shiftedWidth = block.width + 2 * Math.abs(slot.offset) * width
@@ -297,7 +301,11 @@ export function fitStack(
     })
     const primary = parts[0] ?? null
     const secondary = parts[1] ?? null
-    const gapPx = primary && secondary ? primary.fontSizePx * STATUS_GAP_RATIO : 0
+    // 两段之间的留白按较大的那个字号算：第二行手动放大过第一行时，留白跟着大的走
+    const gapPx =
+      primary && secondary
+        ? Math.max(primary.fontSizePx, secondary.fontSizePx) * STATUS_GAP_RATIO
+        : 0
     const blockWidth = Math.max(primary?.block.width ?? 0, secondary?.block.width ?? 0)
     const blockHeight = (primary?.block.height ?? 0) + gapPx + (secondary?.block.height ?? 0)
     /*

@@ -39,7 +39,7 @@ describe('normalizeConfig 补默认', () => {
     expect(DEFAULT_CONFIG.typography.color).toBe('#ffffff')
     expect(DEFAULT_CONFIG.typography.padding).toBe(0.15)
     expect(DEFAULT_CONFIG.typography.lineHeight).toBe(1.03)
-    expect(DEFAULT_CONFIG.typography.lineSizeScales).toEqual([1, 0.62])
+    expect(DEFAULT_CONFIG.typography.line2Size).toBeNull()
     expect(DEFAULT_CONFIG.typography.lineOffsetsX).toEqual([0, 0])
     expect(DEFAULT_CONFIG.typography.lineOffsetsY).toEqual([0, 0])
     expect(DEFAULT_CONFIG.layout.graphicOffsetY).toBe(0)
@@ -251,27 +251,23 @@ describe('normalizeConfig 的 layout 子树', () => {
     }
   })
 
-  it('行级字号与两向补偿夹值、补默认并限制长度', () => {
+  it('两向补偿夹值、补默认并限制长度', () => {
     const config = normalizeConfig({
       typography: {
-        lineSizeScales: [0.1, 2.5, 'bad'],
         lineOffsetsX: [-0.4, 0.3, 1],
         lineOffsetsY: [0.9, -0.9, 1],
       },
     })
     // 两行模型只留两档，第三档直接丢弃
-    expect(config.typography.lineSizeScales).toEqual([0.2, 2])
     expect(config.typography.lineOffsetsX).toEqual([-0.25, 0.25])
     expect(config.typography.lineOffsetsY).toEqual([0.25, -0.25])
 
     const huge = normalizeConfig({
       typography: {
-        lineSizeScales: Array.from({ length: 30 }, () => 1),
         lineOffsetsX: Array.from({ length: 30 }, () => 0),
         lineOffsetsY: Array.from({ length: 30 }, () => 0),
       },
     })
-    expect(huge.typography.lineSizeScales).toHaveLength(LINE_OVERRIDE_MAX)
     expect(huge.typography.lineOffsetsX).toHaveLength(LINE_OVERRIDE_MAX)
     expect(huge.typography.lineOffsetsY).toHaveLength(LINE_OVERRIDE_MAX)
   })
@@ -293,7 +289,39 @@ describe('normalizeConfig 的 layout 子树', () => {
     const config = normalizeConfig({
       layout: { kind: 'status', scale: 0.3 },
     })
-    expect(config.typography.lineSizeScales[1]).toBe(DEFAULT_CONFIG.typography.lineSizeScales[1])
+    expect(config.typography.line2Size).toBeNull()
+  })
+
+  it('第二行字号夹到与第一行同一区间，null 与缺省都是跟随', () => {
+    expect(normalizeConfig({ typography: { line2Size: 0.3 } }).typography.line2Size).toBe(0.3)
+    expect(normalizeConfig({ typography: { line2Size: 1.5 } }).typography.line2Size).toBe(0.92)
+    expect(normalizeConfig({ typography: { line2Size: 0 } }).typography.line2Size).toBe(0.02)
+    expect(normalizeConfig({ typography: { line2Size: null } }).typography.line2Size).toBeNull()
+    expect(normalizeConfig({ typography: {} }).typography.line2Size).toBeNull()
+    expect(
+      normalizeConfig({ typography: { line2Size: Number.NaN } }).typography.line2Size,
+    ).toBeNull()
+  })
+
+  it('旧存档的次行乘数：手动档折成短边比例，自动档回到跟随', () => {
+    const manual = normalizeConfig({
+      typography: { sizeMode: 'manual', fontSize: 0.5, lineSizeScales: [1, 0.5] },
+    })
+    expect(manual.typography.line2Size).toBeCloseTo(0.25)
+
+    const auto = normalizeConfig({ typography: { lineSizeScales: [1, 0.5] } })
+    expect(auto.typography.line2Size).toBeNull()
+
+    // 乘数就是跟随比例，等于没改过，升上来仍是跟随
+    const untouched = normalizeConfig({
+      typography: { sizeMode: 'manual', fontSize: 0.5, lineSizeScales: [1, 0.62] },
+    })
+    expect(untouched.typography.line2Size).toBeNull()
+
+    const clamped = normalizeConfig({
+      typography: { sizeMode: 'manual', fontSize: 0.9, lineSizeScales: [1, 5] },
+    })
+    expect(clamped.typography.line2Size).toBe(0.92)
   })
 })
 

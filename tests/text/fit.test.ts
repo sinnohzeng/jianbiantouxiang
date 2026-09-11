@@ -76,6 +76,36 @@ describe('auto 模式', () => {
     expect(result.fits).toBe(true)
   })
 
+  it('第二行定了短边比例就按定值排，与基准无关', () => {
+    const fixed = { text: '飞书\n先锋', typography: { padding: 0.1, line2Size: 0.3 } }
+    const auto = fit(fixed)
+    expect(auto.secondary?.fontSizePx).toBeCloseTo(300, 0)
+    // 基准仍由第一行的宽约束定，第二行不牵连它
+    expect(auto.primary?.fontSizePx).toBeCloseTo(400, 0)
+
+    const small = fit({
+      ...fixed,
+      typography: { ...fixed.typography, sizeMode: 'manual', fontSize: 0.1 },
+    })
+    const large = fit({
+      ...fixed,
+      typography: { ...fixed.typography, sizeMode: 'manual', fontSize: 0.5 },
+    })
+    expect(small.secondary?.fontSizePx).toBeCloseTo(300)
+    expect(large.secondary?.fontSizePx).toBeCloseTo(300)
+    expect(small.primary?.fontSizePx).toBeCloseTo(100)
+    expect(large.primary?.fontSizePx).toBeCloseTo(500)
+  })
+
+  it('第二行定得太大时自动档只缩第一行，超框如实标记', () => {
+    const result = fit({ text: '飞书\n先锋', typography: { padding: 0.1, line2Size: 0.9 } })
+    expect(result.secondary?.fontSizePx).toBeCloseTo(900)
+    expect(result.primary?.fontSizePx).toBeCloseTo(40)
+    // 留白跟着较大的那段走
+    expect(result.gapPx).toBeCloseTo(900 * 0.18)
+    expect(result.fits).toBe(false)
+  })
+
   it('两行都不折：字号退到各自单行都放得下的那一档', () => {
     const result = fit({ text: '飞书\n效率先锋', typography: { padding: 0.1 } })
     expect(result.primary?.block.lines).toHaveLength(1)

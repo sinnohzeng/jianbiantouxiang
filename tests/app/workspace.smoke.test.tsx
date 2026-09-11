@@ -310,14 +310,39 @@ describe('挑选栏 · 数值行', () => {
     expect(config().typography.sizeMode).toBe('auto')
   })
 
-  it('第二行字号紧跟在第二行输入之后', () => {
+  it('第二行字号紧跟在第二行输入之后：默认跟随第一行的 62%，一拖就是自己的短边比例', () => {
+    useAvatarStore.setState({ ui: { ...useAvatarStore.getState().ui, autoFontSize: 0.5 } })
     const { container } = mount(<PickColumn />)
     const row = group(container, 'text-line2-size')
     const input = secondLine(container)
     expect(input.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
 
-    fireEvent.change(ranges(row)[0]!, { target: { value: '0.7' } })
-    expect(config().typography.lineSizeScales[1]).toBeCloseTo(0.7)
+    const autoButton = row.querySelector<HTMLButtonElement>('[data-slot="slider-auto"]')
+    expect(autoButton?.getAttribute('aria-pressed')).toBe('true')
+    expect(Number(ranges(row)[0]!.value)).toBeCloseTo(0.31)
+
+    fireEvent.change(ranges(row)[0]!, { target: { value: '0.3' } })
+    expect(config().typography.line2Size).toBeCloseTo(0.3)
+    // 第一行仍是自动，第二行的手动值不牵连它
+    expect(config().typography.sizeMode).toBe('auto')
+    expect(autoButton?.getAttribute('aria-pressed')).toBe('false')
+
+    fireEvent.click(autoButton!)
+    expect(config().typography.line2Size).toBeNull()
+  })
+
+  it('拖第一行字号时第二行钉在此刻的大小', () => {
+    useAvatarStore.setState({ ui: { ...useAvatarStore.getState().ui, autoFontSize: 0.5 } })
+    const { container } = mount(<PickColumn />)
+    expect(config().typography.line2Size).toBeNull()
+
+    fireEvent.change(ranges(group(container, 'text-font-size'))[0]!, { target: { value: '0.7' } })
+    expect(config().typography.fontSize).toBeCloseTo(0.7)
+    // 拖之前第二行跟随 0.5 × 0.62，拖完仍是这个数
+    expect(config().typography.line2Size).toBeCloseTo(0.31)
+
+    fireEvent.change(ranges(group(container, 'text-font-size'))[0]!, { target: { value: '0.2' } })
+    expect(config().typography.line2Size).toBeCloseTo(0.31)
   })
 
   it('位置微调组展开后是四行：两行各自的水平与垂直', () => {
