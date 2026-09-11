@@ -99,7 +99,7 @@ export default function AuroraBackdrop() {
         layers={layers}
         skyLayers={skyLayers}
         opacity={opacity}
-        speed={1.0}
+        speed={1.3}
         noiseScale={2.9}
         movementX={-1.15}
         movementY={-0.7}
