@@ -47,6 +47,8 @@ export interface ParagraphFit {
   font: string
   /** 水平补偿，画布宽比例。落位时纯位移，只动自己这一段。 */
   offset: number
+  /** 垂直补偿，画布高比例。同样是落位时纯位移，只动自己这一段。 */
+  offsetY: number
   /** 这一段按补偿位移之后是否仍留在安全区内。求解不看它，只用来报「超出安全区」。 */
   fits: boolean
 }
@@ -205,6 +207,7 @@ interface Slot {
   text: string
   scale: number
   offset: number
+  offsetY: number
 }
 
 /**
@@ -214,10 +217,11 @@ interface Slot {
  * 两个都放开会有无穷多组解落在安全框里，出图就不稳定了。
  * 第一行为空、第二行有内容时晋升主行按满比例渲染，参数不跟槽位走。
  *
- * 水平补偿完全不参与求解：换行与二分都按完整的安全区宽度算，落位时再纯位移（见 layout 层）。
+ * 水平与垂直补偿都完全不参与求解：换行与二分按完整的安全区算，落位时再纯位移（见 layout 层）。
  * 位移后越出安全区只反映在 `fits` 上，交给界面提示，不回头缩字号。
  * v4.0 曾在求解阶段按「安全区宽 − 2 × |补偿| × 画布宽」预留余量，结果是 auto 档里
  * 拖第一行的补偿会压小基准字号，第二行跟着缩、跟着动，正是用户看到的「第一行影响第二行」。
+ * v7.0 加垂直补偿时同一个坑要绕开：垂直余量只进 `fits`，二分与 `tidy` 一个字不看它。
  */
 export function fitStack(
   config: AvatarConfig,
@@ -233,18 +237,25 @@ export function fitStack(
 
   const slots: Slot[] = []
   if (line1 === '' && line2 !== '') {
-    slots.push({ text: line2, scale: 1, offset: typography.lineOffsetsX[1] ?? 0 })
+    slots.push({
+      text: line2,
+      scale: 1,
+      offset: typography.lineOffsetsX[1] ?? 0,
+      offsetY: typography.lineOffsetsY[1] ?? 0,
+    })
   } else if (line1 !== '') {
     slots.push({
       text: line1,
       scale: typography.lineSizeScales[0] ?? 1,
       offset: typography.lineOffsetsX[0] ?? 0,
+      offsetY: typography.lineOffsetsY[0] ?? 0,
     })
     if (line2 !== '') {
       slots.push({
         text: line2,
         scale: typography.lineSizeScales[1] ?? STATUS_SECOND_LINE_SCALE,
         offset: typography.lineOffsetsX[1] ?? 0,
+        offsetY: typography.lineOffsetsY[1] ?? 0,
       })
     }
   }
@@ -280,6 +291,7 @@ export function fitStack(
         letterSpacingPx: letterSpacingPxOf(config, fontSizePx),
         font: fontString(config, fontSizePx),
         offset: slot.offset,
+        offsetY: slot.offsetY,
         fits: shiftedWidth <= box.width + EPS,
       }
     })
@@ -288,15 +300,26 @@ export function fitStack(
     const gapPx = primary && secondary ? primary.fontSizePx * STATUS_GAP_RATIO : 0
     const blockWidth = Math.max(primary?.block.width ?? 0, secondary?.block.width ?? 0)
     const blockHeight = (primary?.block.height ?? 0) + gapPx + (secondary?.block.height ?? 0)
+    /*
+     * 整栈在安全框里垂直居中，上下各留 verticalRoom 的一半，
+     * 一段往上或往下挪超过这一半就越界。垂直补偿只落到 fits 上，求解一步都不看它。
+     */
+    const verticalRoom = box.height - blockHeight
+    const settle = (part: ParagraphFit | null): ParagraphFit | null =>
+      part === null
+        ? null
+        : { ...part, fits: part.fits && 2 * Math.abs(part.offsetY) * height <= verticalRoom + EPS }
+    const primaryFit = settle(primary)
+    const secondaryFit = settle(secondary)
     const contained = blockWidth <= box.width + EPS && blockHeight <= box.height + EPS
     return {
-      primary,
-      secondary,
+      primary: primaryFit,
+      secondary: secondaryFit,
       gapPx,
       width: blockWidth,
       height: blockHeight,
       ratio,
-      fits: contained && (primary?.fits ?? true) && (secondary?.fits ?? true),
+      fits: contained && (primaryFit?.fits ?? true) && (secondaryFit?.fits ?? true),
       contained,
       safeWidth: box.width,
       safeHeight: box.height,

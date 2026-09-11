@@ -41,6 +41,8 @@ describe('normalizeConfig 补默认', () => {
     expect(DEFAULT_CONFIG.typography.lineHeight).toBe(1.03)
     expect(DEFAULT_CONFIG.typography.lineSizeScales).toEqual([1, 0.62])
     expect(DEFAULT_CONFIG.typography.lineOffsetsX).toEqual([0, 0])
+    expect(DEFAULT_CONFIG.typography.lineOffsetsY).toEqual([0, 0])
+    expect(DEFAULT_CONFIG.layout.graphicOffsetY).toBe(0)
   })
 
   it('显式给出的旧默认值不会被新默认值覆盖', () => {
@@ -62,6 +64,7 @@ describe('normalizeConfig 夹值与校验', () => {
         lineHeight: 0.1,
         letterSpacing: 3,
         lineOffsetsX: [-9, 9],
+        lineOffsetsY: [9, -9],
       },
     })
     expect(config.highlight).toBe(1)
@@ -76,6 +79,7 @@ describe('normalizeConfig 夹值与校验', () => {
     expect(config.typography.lineHeight).toBe(0.85)
     expect(config.typography.letterSpacing).toBe(0.5)
     expect(config.typography.lineOffsetsX).toEqual([-0.25, 0.25])
+    expect(config.typography.lineOffsetsY).toEqual([0.25, -0.25])
   })
 
   it('NaN 与非数值回落到默认', () => {
@@ -182,12 +186,15 @@ describe('normalizeConfig 的 layout 子树', () => {
     expect(normalizeConfig({ layout: {} }).layout).toEqual({
       graphic: DEFAULT_CONFIG.layout.graphic,
       graphicOffsetX: DEFAULT_CONFIG.layout.graphicOffsetX,
+      graphicOffsetY: DEFAULT_CONFIG.layout.graphicOffsetY,
       icon: { source: 'none', id: '', mono: false },
     })
 
-    // 水平补偿超界要夹回来，老存档没有这个字段就落到 0
+    // 两向补偿超界都要夹回来，老存档没有这两个字段就落到 0
     expect(normalizeConfig({ layout: { graphicOffsetX: 9 } }).layout.graphicOffsetX).toBe(0.25)
     expect(normalizeConfig({ layout: { graphicOffsetX: -9 } }).layout.graphicOffsetX).toBe(-0.25)
+    expect(normalizeConfig({ layout: { graphicOffsetY: 9 } }).layout.graphicOffsetY).toBe(0.25)
+    expect(normalizeConfig({ layout: { graphicOffsetY: -9 } }).layout.graphicOffsetY).toBe(-0.25)
 
     const config = normalizeConfig({
       layout: {
@@ -244,25 +251,42 @@ describe('normalizeConfig 的 layout 子树', () => {
     }
   })
 
-  it('行级字号与水平补偿夹值、补默认并限制长度', () => {
+  it('行级字号与两向补偿夹值、补默认并限制长度', () => {
     const config = normalizeConfig({
       typography: {
         lineSizeScales: [0.1, 2.5, 'bad'],
         lineOffsetsX: [-0.4, 0.3, 1],
+        lineOffsetsY: [0.9, -0.9, 1],
       },
     })
     // 两行模型只留两档，第三档直接丢弃
     expect(config.typography.lineSizeScales).toEqual([0.2, 2])
     expect(config.typography.lineOffsetsX).toEqual([-0.25, 0.25])
+    expect(config.typography.lineOffsetsY).toEqual([0.25, -0.25])
 
     const huge = normalizeConfig({
       typography: {
         lineSizeScales: Array.from({ length: 30 }, () => 1),
         lineOffsetsX: Array.from({ length: 30 }, () => 0),
+        lineOffsetsY: Array.from({ length: 30 }, () => 0),
       },
     })
     expect(huge.typography.lineSizeScales).toHaveLength(LINE_OVERRIDE_MAX)
     expect(huge.typography.lineOffsetsX).toHaveLength(LINE_OVERRIDE_MAX)
+    expect(huge.typography.lineOffsetsY).toHaveLength(LINE_OVERRIDE_MAX)
+  })
+
+  it('旧存档没有垂直补偿时补 0，水平值原样保留', () => {
+    // 契约版本没升，v7.0 之前的存档里根本没有这两位
+    const legacy = normalizeConfig({
+      v: 4,
+      typography: { lineOffsetsX: [0.1, -0.05] },
+      layout: { graphicOffsetX: 0.08, icon: { source: 'builtin', id: 'tree-palm' } },
+    })
+    expect(legacy.typography.lineOffsetsX).toEqual([0.1, -0.05])
+    expect(legacy.typography.lineOffsetsY).toEqual([0, 0])
+    expect(legacy.layout.graphicOffsetX).toBe(0.08)
+    expect(legacy.layout.graphicOffsetY).toBe(0)
   })
 
   it('不在契约里的 kind 与 scale 读进来即忽略', () => {

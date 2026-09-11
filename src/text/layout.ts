@@ -86,8 +86,9 @@ function placeGraphic(
   hasText: boolean,
 ): { graphicRect: Rect; textArea: Rect } {
   const aspect = graphic.width / Math.max(1, graphic.height)
-  // 水平补偿按安全框宽度算，与逐行文字补偿同一口径
+  // 两向补偿都按安全框算，与逐行文字补偿同一口径：水平看宽，垂直看高
   const shift = safeBox.width * config.layout.graphicOffsetX
+  const shiftY = safeBox.height * config.layout.graphicOffsetY
 
   if (!hasText) {
     let side = Math.min(safeBox.width, safeBox.height) * config.layout.graphic
@@ -103,7 +104,7 @@ function placeGraphic(
     return {
       graphicRect: {
         x: safeBox.x + (safeBox.width - gw) / 2 + shift,
-        y: safeBox.y + (safeBox.height - side) / 2,
+        y: safeBox.y + (safeBox.height - side) / 2 + shiftY,
         width: gw,
         height: side,
       },
@@ -121,7 +122,7 @@ function placeGraphic(
   return {
     graphicRect: {
       x: safeBox.x + (safeBox.width - gw) / 2 + shift,
-      y: safeBox.y,
+      y: safeBox.y + shiftY,
       width: gw,
       height: gh,
     },
@@ -139,7 +140,8 @@ function placeGraphic(
  * 水平居中，整体在可用区域里垂直居中。图标在时文字用掉图标与留白剩下的高度，
  * 求解器把两行一起缩到放得下为止，即「合理地缩小之后整体展示出来」。
  *
- * 行级水平补偿是纯位移：第 i 行只动第 i 行，其余行的像素位置不受影响。
+ * 行级补偿是纯位移：第 i 行只动第 i 行，其余行的像素位置不受影响，水平垂直两向都是这条。
+ * 图形补偿同理，挪图形不挤压文字可用区，`textArea` 一律按无补偿算。
  */
 export function layoutText(
   config: AvatarConfig,
@@ -177,11 +179,12 @@ export function layoutText(
   const lines: LayoutLine[] = []
   for (const { paragraph, top } of paragraphs) {
     const offsetPx = paragraph.offset * width
+    const offsetYPx = paragraph.offsetY * height
     paragraph.block.lines.forEach((line, index) => {
       lines.push({
         text: line.text,
         x: centerX - line.width / 2 + offsetPx,
-        y: top + (paragraph.block.baselines[index] ?? 0),
+        y: top + (paragraph.block.baselines[index] ?? 0) + offsetYPx,
         width: line.width,
         ascent: line.ascent,
         descent: line.descent,

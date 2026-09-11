@@ -109,6 +109,7 @@ describe('auto 模式', () => {
     })
     expect(result.primary?.block.lines[0]?.text).toBe('说明')
     expect(result.primary?.offset).toBeCloseTo(0.2)
+    expect(result.primary?.offsetY).toBe(0)
     expect(result.secondary).toBeNull()
   })
 
@@ -133,6 +134,39 @@ describe('auto 模式', () => {
     })
     expect(result.primary?.block.width).toBeCloseTo(400)
     expect(result.fits).toBe(true)
+  })
+
+  it('垂直补偿不参与求解：ratio 与不加补偿时相同、contained 为真、fits 为假', () => {
+    // 单个 CJK 撑满 800 的安全区，块高与安全框齐平，上下没有余量；
+    // 垂直偏移 0.2 × 画布高 1000 = 200 px 必然越界，字号一个像素都不让
+    const plain = fit({ text: '中', typography: { padding: 0.1 } })
+    const shifted = fit({
+      text: '中',
+      typography: { padding: 0.1, lineOffsetsY: [0.2, 0] },
+    })
+    expect(shifted.ratio).toBeCloseTo(plain.ratio, 5)
+    expect(shifted.primary?.fontSizePx).toBeCloseTo(plain.primary?.fontSizePx ?? 0, 0)
+    expect(shifted.contained).toBe(true)
+    expect(shifted.fits).toBe(false)
+  })
+
+  it('垂直位移小到仍在安全区内时 fits 为真', () => {
+    // 手动 0.2：块高 200，安全区高 800 上下各余 300，往下挪 20 px 放得下
+    const result = fit({
+      text: '中中',
+      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, lineOffsetsY: [0.02, 0] },
+    })
+    expect(result.primary?.block.height).toBeCloseTo(200)
+    expect(result.fits).toBe(true)
+  })
+
+  it('水平与垂直同时越界 fits 仍为假', () => {
+    const result = fit({
+      text: '中',
+      typography: { padding: 0.1, lineOffsetsX: [0.1, 0], lineOffsetsY: [0.2, 0] },
+    })
+    expect(result.contained).toBe(true)
+    expect(result.fits).toBe(false)
   })
 
   it('严格档宁可不折主行：长主行留在单行小字号', () => {

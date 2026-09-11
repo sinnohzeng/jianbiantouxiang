@@ -7,6 +7,9 @@
  * - `layout.kind` 与自由排版字段（对齐、锚点、全局偏移、竖排、自动换行开关）不在契约里，
  *   载荷里带着它们不报错，读进来即忽略；
  * - 版式只剩一个纵向栈：图标（可选）→ 第一行 → 第二行，水平居中、自动适配。
+ *
+ * v7.0 增两位垂直视觉补偿（`typography.lineOffsetsY` 与 `layout.graphicOffsetY`），契约版本不升：
+ * 旧存档没有这两位一律补 0，画面与升级前完全一致。
  */
 
 import { clamp } from '@/engine/math'
@@ -51,6 +54,8 @@ export interface AvatarConfig {
     lineSizeScales: number[]
     /** 两档：逐行水平视觉补偿，按画布宽度比例，落位时只动自己那行。 */
     lineOffsetsX: number[]
+    /** 两档：逐行垂直视觉补偿，按画布高度比例，落位时只动自己那行。 */
+    lineOffsetsY: number[]
     pill: { radius: number; padding: number; opacity: number }
   }
   layout: {
@@ -58,6 +63,8 @@ export interface AvatarConfig {
     graphic: number // 0.3..0.8
     /** 图形的水平视觉补偿，按安全框宽度比例，正数往右。 */
     graphicOffsetX: number // -0.25..0.25
+    /** 图形的垂直视觉补偿，按安全框高度比例，正数往下。 */
+    graphicOffsetY: number // -0.25..0.25
     icon: {
       source: IconSource
       /** builtin 是 lucide 名，emoji 是去 FE0F 的码点串，brand 是品牌文件名，upload 是本次会话 id。 */
@@ -146,11 +153,13 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     color: '#ffffff',
     lineSizeScales: [1, STATUS_SECOND_LINE_SCALE],
     lineOffsetsX: [0, 0],
+    lineOffsetsY: [0, 0],
     pill: { radius: 0.5, padding: 0.3, opacity: 0.55 },
   },
   layout: {
     graphic: 0.52,
     graphicOffsetX: 0,
+    graphicOffsetY: 0,
     icon: { source: 'none', id: '', mono: false },
   },
   exportOptions: {
@@ -327,6 +336,13 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
         -0.25,
         0.25,
       ),
+      lineOffsetsY: normalizeNumberArray(
+        tp.lineOffsetsY,
+        d.typography.lineOffsetsY,
+        0,
+        -0.25,
+        0.25,
+      ),
       pill: {
         radius: num(pill.radius, d.typography.pill.radius, 0, 0.5),
         padding: num(pill.padding, d.typography.pill.padding, 0, 1),
@@ -340,6 +356,7 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
       return {
         graphic: num(lay.graphic, d.layout.graphic, 0.3, 0.8),
         graphicOffsetX: num(lay.graphicOffsetX, d.layout.graphicOffsetX, -0.25, 0.25),
+        graphicOffsetY: num(lay.graphicOffsetY, d.layout.graphicOffsetY, -0.25, 0.25),
         // 契约版本不升：旧存档没有这一位，一律补 false，画面与升级前一致
         icon: { source, id, mono: icon.mono === true },
       }

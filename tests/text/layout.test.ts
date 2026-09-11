@@ -202,6 +202,89 @@ describe('行级水平补偿互相独立', () => {
   })
 })
 
+describe('行级垂直补偿互相独立', () => {
+  const TWO: PartialConfig = {
+    text: '甲甲\n乙乙乙',
+    typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+  }
+
+  it('往上移第一行：第一行位移，第二行像素位置不变', () => {
+    const before = layout(TWO)
+    const after = layout({
+      ...TWO,
+      typography: { ...TWO.typography, lineOffsetsY: [-0.1, 0] },
+    })
+    expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y - 100)
+    expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x)
+    expect(after.lines[1]!.y).toBeCloseTo(before.lines[1]!.y)
+    expect(after.lines[1]!.x).toBeCloseTo(before.lines[1]!.x)
+  })
+
+  it('往下移第一行：第二行同样不动', () => {
+    const before = layout(TWO)
+    const after = layout({
+      ...TWO,
+      typography: { ...TWO.typography, lineOffsetsY: [0.1, 0] },
+    })
+    expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y + 100)
+    expect(after.lines[1]!.y).toBeCloseTo(before.lines[1]!.y)
+  })
+
+  it('移第二行不影响第一行，参数跟槽位走', () => {
+    const before = layout(TWO)
+    const after = layout({
+      ...TWO,
+      typography: { ...TWO.typography, lineOffsetsY: [0, 0.05] },
+    })
+    expect(after.lines[1]!.y).toBeCloseTo(before.lines[1]!.y + 50)
+    expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y)
+  })
+
+  it('晋升场景：垂直补偿仍只动自己那行', () => {
+    const before = layout({ ...TWO, text: '\n乙乙乙' })
+    const after = layout({
+      ...TWO,
+      text: '\n乙乙乙',
+      typography: { ...TWO.typography, lineOffsetsY: [0, 0.1] },
+    })
+    expect(after.lines).toHaveLength(1)
+    expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y + 100)
+  })
+
+  describe('自动字号下同样独立', () => {
+    const AUTO: PartialConfig = {
+      text: '甲甲甲甲\n乙乙',
+      typography: { sizeMode: 'auto', padding: 0.1, effect: 'plain' },
+    }
+
+    it('下移第一行垂直，两行字号都不变', () => {
+      const before = layout(AUTO)
+      const after = layout({
+        ...AUTO,
+        typography: { ...AUTO.typography, lineOffsetsY: [0.1, 0] },
+      })
+      expect(after.lines[0]!.fontSizePx).toBeCloseTo(before.lines[0]!.fontSizePx)
+      expect(after.lines[1]!.fontSizePx).toBeCloseTo(before.lines[1]!.fontSizePx)
+      expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y + 100)
+      expect(after.lines[1]!.y).toBeCloseTo(before.lines[1]!.y)
+      expect(after.overflow).toBe(false)
+    })
+
+    it('垂直位移越出安全区要报 overflow 但不缩字号', () => {
+      // 整栈高 360，安全区高 800 上下各余 220，往下拉 250 px 就出界
+      const before = layout(AUTO)
+      const after = layout({
+        ...AUTO,
+        typography: { ...AUTO.typography, lineOffsetsY: [0.25, 0] },
+      })
+      expect(before.overflow).toBe(false)
+      expect(after.overflow).toBe(true)
+      expect(after.fontSizePx).toBeCloseTo(before.fontSizePx)
+      expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y + 250)
+    })
+  })
+})
+
 describe('图标进栈', () => {
   const GRAPHIC = { width: 100, height: 100 }
 
@@ -269,6 +352,36 @@ describe('图标进栈', () => {
     )
     const centred = 100 + (800 - 800 * 0.52) / 2
     expect(iconOnly.graphic!.x).toBeCloseTo(centred - 40)
+  })
+
+  it('垂直补偿按安全框高度挪图形，纯图形时同样生效，文字基线一个像素不变', () => {
+    const TEXT: PartialConfig = {
+      text: '产品设计部',
+      typography: { sizeMode: 'manual', fontSize: 0.1, padding: 0.1, effect: 'plain' },
+      layout: { graphic: 0.5, icon: { source: 'builtin', id: 'tree-palm' } },
+    }
+    const before = layout(TEXT, GRAPHIC)
+    const after = layout({ ...TEXT, layout: { ...TEXT.layout, graphicOffsetY: 0.05 } }, GRAPHIC)
+    // 安全框高 800，补偿 5% 就是往下 40
+    expect(after.graphic!.y).toBeCloseTo(before.graphic!.y + 40)
+    expect(after.graphic!.x).toBeCloseTo(before.graphic!.x)
+    // 补偿是纯位移，不挤压文字可用区
+    expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y)
+
+    const iconOnly = layout(
+      {
+        text: '',
+        typography: { padding: 0.1 },
+        layout: {
+          graphic: 0.52,
+          graphicOffsetY: -0.05,
+          icon: { source: 'builtin', id: 'tree-palm' },
+        },
+      },
+      GRAPHIC,
+    )
+    const centred = 100 + (800 - 800 * 0.52) / 2
+    expect(iconOnly.graphic!.y).toBeCloseTo(centred - 40)
   })
 
   it('图标来源是 none 时，传了图形尺寸也不进栈', () => {
