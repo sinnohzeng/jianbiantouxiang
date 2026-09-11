@@ -11,7 +11,7 @@ import {
   PROBE_TIMEOUT_MS,
   SETTLE_TIMEOUT_MS,
   openApp,
-  openInspector,
+  openGroup,
   probeEncode,
   probeStats,
   waitReady,
@@ -29,6 +29,16 @@ function readStoredConfig(page: Page): Promise<StoredConfig | null> {
     const raw = localStorage.getItem('gradient-avatar:v3')
     if (!raw) return null
     return (JSON.parse(raw) as { config: StoredConfig }).config
+  })
+}
+
+/** 存档里的排版段，用来验逐行补偿真的落了盘。 */
+function readStoredTypography(page: Page): Promise<{ lineOffsetsY?: number[] } | null> {
+  return page.evaluate(() => {
+    const raw = localStorage.getItem('gradient-avatar:v3')
+    if (!raw) return null
+    return (JSON.parse(raw) as { config: { typography?: { lineOffsetsY?: number[] } } }).config
+      .typography as { lineOffsetsY?: number[] }
   })
 }
 
@@ -147,7 +157,7 @@ test('不带 probe 参数时不挂探针', async ({ page }) => {
   expect(installed).toBe(false)
 })
 
-test('双列工作台：文字图形一列、配色质感一列，微调默认收起', async ({ page }) => {
+test('双列工作台：文字图标一列、配色质感一列', async ({ page }) => {
   await openApp(page)
 
   // v5 起页签与手风琴全部取消，两列挑选栏与操作条一屏之内都在
@@ -156,51 +166,38 @@ test('双列工作台：文字图形一列、配色质感一列，微调默认�
   await expect(page.locator('[data-slot="pick-column-color"]')).toBeVisible()
   await expect(page.locator('[data-slot="bottom-bar"]')).toBeVisible()
 
-  // 微调默认收起，宽度让给改文字与换配色
-  await expect(page.locator('[data-slot="inspector"]')).toBeHidden()
-  await expect(page.locator('[data-slot="inspector-toggle"]')).toHaveAttribute(
-    'aria-pressed',
-    'false',
-  )
-
-  await openInspector(page)
-
-  // 微调每一行都有常驻数字框，数量与滑杆一致
-  const sliders = await page.locator('[data-slot="inspector"] input[type="range"]').count()
-  expect(sliders).toBeGreaterThan(6)
-  await expect(page.locator('[data-slot="inspector"] [data-slot="slider-number"]')).toHaveCount(
+  // 挑选栏里每一行滑杆都有常驻数字框，数量一致。折叠组默认收起，这里数的是常显那几条
+  const sliders = await page.locator('[data-slot="pick-columns"] input[type="range"]').count()
+  expect(sliders).toBeGreaterThan(1)
+  await expect(page.locator('[data-slot="pick-columns"] [data-slot="slider-number"]')).toHaveCount(
     sliders,
   )
-
-  // 开合状态落盘，刷新之后还开着
-  await page.reload()
-  await expect(page.locator('[data-slot="inspector"]')).toBeVisible()
 })
 
 test('主预览区不出现滚动条', async ({ page }) => {
   await openApp(page)
 
   // 画框连同上下留白必须落在预览区之内；画框底下那团光晕与投影是装饰层，
-  // 故意探出画框，所以断言看的是画框的位置与滚不滚，
-  // 不是 scrollHeight，那一项会把光晕算进去
-  const pane = await page.evaluate(() => {
+  // 探出的部分由工作台外壳兜住，画框自身仍在预览区内，
+  // 所以断言看的是画框的位置与外壳滚不滚，不是 scrollHeight，那一项会把光晕算进去
+  const view = await page.evaluate(() => {
+    const shell = document.querySelector('[data-slot="workspace"]')
     const node = document.querySelector('[data-slot="preview-pane"]')
     const frame = node?.querySelector('[role="img"]')
-    if (!node || !frame) return null
+    if (!shell || !node || !frame) return null
     const box = node.getBoundingClientRect()
     const art = frame.getBoundingClientRect()
     return {
-      overflowY: getComputedStyle(node).overflowY,
+      shellOverflowY: getComputedStyle(shell).overflowY,
       inside: art.top >= box.top - 1 && art.bottom <= box.bottom + 1,
     }
   })
-  expect(pane).not.toBeNull()
-  // 不是滚动容器：桌面这一格不裁（投影要越出去才不会被切成硬边），也绝不能是 auto 或 scroll
-  expect(['visible', 'hidden', 'clip']).toContain(pane!.overflowY)
-  expect(pane!.inside).toBe(true)
+  expect(view).not.toBeNull()
+  expect(view!.shellOverflowY).toBe('hidden')
+  expect(view!.inside).toBe(true)
 })
 
-test('桌面首屏放得下四节内容与默认微调组', async ({ page }) => {
+test('桌面首屏放得下四节内容', async ({ page }) => {
   await openApp(page)
   // 进场编排期间卡片还在上浮，boundingBox 会漂，等一拍再量
   await page.waitForTimeout(SETTLE_TIMEOUT_MS)
@@ -228,33 +225,42 @@ test('桌面首屏放得下四节内容与默认微调组', async ({ page }) => 
   }
   expect(closed.frameEdge).not.toBeNull()
   expect(closed.frameEdge!).toBeLessThanOrEqual(641)
-
-  await openInspector(page)
-  await page.waitForTimeout(SETTLE_TIMEOUT_MS)
-  const dockOverflow = await page.evaluate(() => {
-    const node = document.querySelector('[data-slot="inspector-dock"]')
-    return node ? node.scrollHeight - node.clientHeight : null
-  })
-  expect(dockOverflow).not.toBeNull()
-  expect(dockOverflow!).toBeLessThanOrEqual(0)
 })
 
-test('微调：改过的参数出现重置钮，点一下回默认', async ({ page }) => {
+test('版面组：改过的边距出现重置钮，点一下回默认', async ({ page }) => {
   await openApp(page)
-  await openInspector(page)
+  await openGroup(page, 'text-group-layout')
 
-  // 边距是排版组第四行，默认 15%
-  const padding = page.locator('[data-slot="inspector"] input[type="range"]').nth(3)
+  const padding = page.getByRole('slider', { name: '边距' })
   await expect(padding).toHaveValue('0.15')
   await padding.focus()
   await page.keyboard.press('ArrowRight')
   await expect(padding).toHaveValue('0.155')
 
-  const reset = page.locator('[data-slot="inspector"] [data-slot="slider-reset"]')
+  const reset = page.locator('[data-slot="text-group-layout"] [data-slot="slider-reset"]')
   await expect(reset).toHaveCount(1)
   await reset.click()
   await expect(padding).toHaveValue('0.15')
-  await expect(page.locator('[data-slot="inspector"] [data-slot="slider-reset"]')).toHaveCount(0)
+  await expect(
+    page.locator('[data-slot="text-group-layout"] [data-slot="slider-reset"]'),
+  ).toHaveCount(0)
+})
+
+test('位置微调组能拖垂直补偿，存档里落 lineOffsetsY', async ({ page }) => {
+  await openApp(page)
+  await openGroup(page, 'text-group-offset')
+
+  const vertical = page.getByRole('slider', { name: '第 1 行垂直' })
+  await expect(vertical).toHaveValue('0')
+  await vertical.focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(vertical).toHaveValue('0.0025')
+
+  await expect
+    .poll(async () => (await readStoredTypography(page))?.lineOffsetsY?.[0] ?? 0, {
+      timeout: POLL_TIMEOUT_MS,
+    })
+    .not.toBe(0)
 })
 
 test('常驻操作条：换一版、随机配色、导出三格', async ({ page }) => {
@@ -267,10 +273,6 @@ test('常驻操作条：换一版、随机配色、导出三格', async ({ page 
   await expect(page.locator('[data-slot="shuffle-palette"]')).toContainText('随机配色')
   await expect(page.locator('[data-slot="export-action"]')).toContainText('导出')
   await expect(page.locator('[data-slot="export-options"]')).toHaveCount(1)
-
-  // 更多与微调两颗已经收走：参考层与恢复默认进了顶栏齿轮，数值滑杆回到各自卡片
-  await expect(page.locator('[data-slot="more-menu"]')).toHaveCount(0)
-  await expect(page.locator('[data-slot="inspector-toggle"]')).toHaveCount(0)
 
   // 换一版只换种子；比较存档里的 seed 字段，而不是「存档有没有写过」。
   // 存档是延后写的，点完那一刻可能还没有：轮询到「有非空 seed 且不同于点前」为止，
@@ -549,7 +551,7 @@ test('网格参考线打开后刷新仍开，且不进导出画布', async ({ pa
 
   await expect(page.locator('[data-slot="preview-grid"]')).toHaveCount(0)
 
-  // v7 起两个参考层收在顶栏的设置菜单里，带文案与勾选态
+  // 两个参考层在顶栏的设置菜单里，带文案与勾选态
   await page.locator('[data-slot="settings-menu"]').click()
   const toggle = page.locator('[data-slot="grid-toggle"]')
   await expect(toggle).toHaveAttribute('aria-checked', 'false')
@@ -568,14 +570,13 @@ test('网格参考线打开后刷新仍开，且不进导出画布', async ({ pa
 
 test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ page }) => {
   await openApp(page)
-  await openInspector(page)
 
   const auto = page.locator('[data-slot="slider-auto"]')
   await expect(auto).toHaveAttribute('aria-pressed', 'true')
 
   // 自动态滑杆显示预览回写的求解值，得等首帧排版完成；
   // 网络字体到货会再排一次，值可能再变一档，所以等它连续两次读数相同再取基线
-  const slider = page.locator('input[type="range"]').first()
+  const slider = page.getByRole('slider', { name: '第一行字号' })
   await expect.poll(() => slider.inputValue(), { timeout: POLL_TIMEOUT_MS }).not.toBe('0.42')
   await expect
     .poll(

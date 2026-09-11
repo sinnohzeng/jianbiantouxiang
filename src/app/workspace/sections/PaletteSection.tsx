@@ -157,7 +157,11 @@ export function PaletteSection() {
         </div>
       )}
 
-      <PanelSection title={t('panel.palette.custom')} defaultOpen={false}>
+      <PanelSection
+        data-slot="palette-custom"
+        title={t('panel.palette.custom')}
+        defaultOpen={false}
+      >
         <p className="text-muted-foreground text-xs">{t('panel.palette.custom.hint')}</p>
 
         <div className="flex flex-col gap-1">
@@ -228,7 +232,7 @@ export function PaletteSection() {
         </Button>
       </PanelSection>
 
-      <PanelSection title={t('panel.palette.seed')} defaultOpen={false}>
+      <PanelSection data-slot="palette-seed" title={t('panel.palette.seed')} defaultOpen={false}>
         <div className="flex flex-col gap-1">
           {/* ColorField 内部那个 input[type=color] 的 id 是 useId 生成的，外面拿不到，
               所以这里不写 htmlFor：可访问名由 ColorField 自己的 aria-label 给 */}

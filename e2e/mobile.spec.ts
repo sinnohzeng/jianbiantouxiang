@@ -159,6 +159,29 @@ test('备案号在手机上不进顶栏', async ({ page }) => {
   await expect(page.locator('[data-slot="icp-beian"]')).toBeHidden()
 })
 
+test('备案号在手机上在页面末尾', async ({ page }) => {
+  await openApp(page)
+
+  const beian = page.locator('[data-slot="icp-beian-mobile"]')
+  await beian.scrollIntoViewIfNeeded()
+  await expect(beian).toBeVisible()
+  await expect(beian).toHaveAttribute('href', /beian\.miit\.gov\.cn/)
+
+  // 它兼着给固定操作条让位：那段底部内距在自己身上，所以文字这一行落在操作条上沿之上，
+  // 挑选栏最后一张卡片也不会被压住
+  const cards = page.locator('[data-slot="pick-columns"] section')
+  const [box, lastCard, barBox] = await Promise.all([
+    beian.boundingBox(),
+    cards.last().boundingBox(),
+    page.locator('[data-slot="bottom-bar"]').boundingBox(),
+  ])
+  expect(box).not.toBeNull()
+  expect(lastCard).not.toBeNull()
+  expect(barBox).not.toBeNull()
+  expect(box!.y).toBeLessThan(barBox!.y)
+  expect(lastCard!.y + lastCard!.height).toBeLessThanOrEqual(barBox!.y + 1)
+})
+
 test('操作条三格加齿轮，没有更多钮与微调钮', async ({ page }) => {
   await openApp(page)
 
@@ -166,8 +189,4 @@ test('操作条三格加齿轮，没有更多钮与微调钮', async ({ page }) 
   await expect(page.locator('[data-slot="shuffle-palette"]')).toHaveCount(1)
   await expect(page.locator('[data-slot="export-action"]')).toHaveCount(1)
   await expect(page.locator('[data-slot="export-options"]')).toHaveCount(1)
-
-  // 参考层与恢复默认进了顶栏齿轮，数值滑杆回到各自卡片，这两颗不再有
-  await expect(page.locator('[data-slot="more-menu"]')).toHaveCount(0)
-  await expect(page.locator('[data-slot="inspector-toggle"]')).toHaveCount(0)
 })

@@ -1,6 +1,7 @@
 /**
- * 工作台冒烟：挑选栏两列与微调面板都能渲染出关键控件，动一下就写回 store。
- * 断言走 role、data-slot 与 value 选择器，不依赖具体文案，换语言或改措辞都不会红。
+ * 工作台冒烟：挑选栏两列能渲染出关键控件，动一下就写回 store。
+ * 断言走 role、data-slot 与可访问名，不按下标数滑杆：
+ * 滑杆散在四张卡片里，条数随图标有无、文字行数、当前质感与折叠组开合四个维度变。
  */
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
@@ -11,11 +12,9 @@ import { ExportDrawer } from '@/app/panels/ExportDrawer'
 import { FontPicker } from '@/app/panels/FontPicker'
 import { HistoryStrip } from '@/app/panels/HistoryStrip'
 import { IconPicker } from '@/app/panels/IconPicker'
-import { Inspector } from '@/app/workspace/Inspector'
 import { PickColumn } from '@/app/workspace/PickColumn'
 import { DEFAULT_CONFIG, type AvatarConfig } from '@/state/config'
 import { DEFAULT_UI, useAvatarStore } from '@/state/store'
-import { setInspectorOpen } from '@/app/inspector-open'
 
 beforeAll(() => {
   // Base UI 的弹层组件要这几个浏览器 API，jsdom 里没有
@@ -57,8 +56,6 @@ function config(): AvatarConfig {
 
 beforeEach(() => {
   useAvatarStore.setState({ config: DEFAULT_CONFIG, history: [], ui: { ...DEFAULT_UI } })
-  // 微调的开合是模块级状态，会在用例之间串台
-  setInspectorOpen(false)
 })
 
 afterEach(() => {
@@ -75,6 +72,21 @@ function secondLine(container: HTMLElement): HTMLInputElement {
 
 function ranges(container: HTMLElement): HTMLInputElement[] {
   return [...container.querySelectorAll<HTMLInputElement>('input[type="range"]')]
+}
+
+/** 按 data-slot 取一个折叠组，取不到直接报错，省得后面对着 null 断言。 */
+function group(container: HTMLElement, slot: string): HTMLElement {
+  const node = container.querySelector<HTMLElement>(`[data-slot="${slot}"]`)
+  expect(node, slot).not.toBeNull()
+  return node!
+}
+
+/** 展开一个折叠组：Collapsible 收起时整块不挂，不点开就一条滑杆都数不到。 */
+function openGroup(container: HTMLElement, slot: string): HTMLElement {
+  const node = group(container, slot)
+  const trigger = node.querySelector<HTMLButtonElement>('[data-slot="collapsible-trigger"]')!
+  if (trigger.getAttribute('aria-expanded') !== 'true') fireEvent.click(trigger)
+  return node
 }
 
 describe('挑选栏 · 文字节', () => {
@@ -109,9 +121,11 @@ describe('挑选栏 · 文字节', () => {
     expect(container.querySelector('input[data-group="text-align"]')).toBeNull()
   })
 
-  it('挑选栏没有滑杆：数值微调全在检查器带里', () => {
+  it('滑杆全在挑选栏里：文字卡片至少有字号与强度两条', () => {
     const { container } = mount(<PickColumn />)
-    expect(ranges(container)).toHaveLength(0)
+    expect(ranges(container).length).toBeGreaterThan(0)
+    expect(ranges(group(container, 'text-font-size'))).toHaveLength(1)
+    expect(ranges(group(container, 'text-effect-strength'))).toHaveLength(1)
   })
 
   it('字重磁贴留在文字节，点一下写回', () => {
@@ -128,8 +142,8 @@ describe('挑选栏 · 文字节', () => {
   it('文字色是一排从白到黑的预设色块，点选即写回', () => {
     const { container } = mount(<PickColumn />)
     const presets = container.querySelectorAll('button[role="radio"]')
-    expect(presets).toHaveLength(7)
-    fireEvent.click(presets[6]!)
+    expect(presets).toHaveLength(5)
+    fireEvent.click(presets[4]!)
     expect(config().typography.color).toBe('#000000')
   })
 })
@@ -186,12 +200,8 @@ describe('挑选栏 · 配色节', () => {
 
   it('粘贴 hex 列表就落到自定义配色', () => {
     const { container } = mount(<PickColumn />)
-    // 自定义与种子生成是全站仅剩的两处折叠，先展开第一处
-    const triggers = container.querySelectorAll<HTMLButtonElement>(
-      '[data-slot="collapsible-trigger"]',
-    )
-    expect(triggers).toHaveLength(2)
-    fireEvent.click(triggers[0]!)
+    // 折叠组现在有六处，按 data-slot 认自定义配色那一处，不按下标数
+    openGroup(container, 'palette-custom')
 
     const paste = container.querySelector('textarea')
     expect(paste).not.toBeNull()
@@ -255,37 +265,40 @@ describe('导出抽屉 · 画布', () => {
     expect(config().canvas.width).toBe(8192)
   })
 
-  it('微调面板里没有画布字段了', () => {
-    setInspectorOpen(true)
-    const { container } = mount(<Inspector />)
+  it('挑选栏里没有画布字段了', () => {
+    const { container } = mount(<PickColumn />)
     expect(container.querySelector('input[data-group="canvas-shape"]')).toBeNull()
   })
 })
 
-describe('微调面板', () => {
-  it('默认收起，收起时整块不挂；点标题才展开', () => {
-    const { container } = mount(<Inspector />)
-    const trigger = container.querySelector<HTMLButtonElement>('button[aria-expanded]')
-    expect(trigger?.getAttribute('aria-expanded')).toBe('false')
-    // Base UI 的滑杆在 display:none 里挂载会量到 0 宽并把滑块藏掉，所以收起时不挂
-    expect(ranges(container)).toHaveLength(0)
+describe('挑选栏 · 数值行', () => {
+  it('版面与位置微调默认收起，展开后才挂滑杆', () => {
+    const { container } = mount(<PickColumn />)
+    const layout = group(container, 'text-group-layout')
+    const trigger = layout.querySelector<HTMLButtonElement>('[data-slot="collapsible-trigger"]')!
+    expect(trigger.getAttribute('aria-expanded')).toBe('false')
+    // Base UI 的 Collapsible 收起时整块从 DOM 卸载，不是藏起来
+    expect(ranges(layout)).toHaveLength(0)
 
-    fireEvent.click(trigger!)
-    expect(trigger?.getAttribute('aria-expanded')).toBe('true')
-    expect(ranges(container).length).toBeGreaterThan(0)
+    fireEvent.click(trigger)
+    expect(trigger.getAttribute('aria-expanded')).toBe('true')
+    expect(ranges(layout).length).toBeGreaterThan(0)
   })
 
-  it('第一条滑杆是字号：自动态显示回写值，拖一下切手动，点“自动”回去', () => {
-    setInspectorOpen(true)
+  it('第一行字号紧跟第一行输入：自动态显示回写值，拖一下切手动，点“自动”回去', () => {
     useAvatarStore.setState({ ui: { ...useAvatarStore.getState().ui, autoFontSize: 0.31 } })
-    const { container } = mount(<Inspector />)
+    const { container } = mount(<PickColumn />)
     expect(config().typography.sizeMode).toBe('auto')
 
-    const autoButton = container.querySelector<HTMLButtonElement>('[data-slot="slider-auto"]')
+    const row = group(container, 'text-font-size')
+    const input = firstLine(container)
+    expect(input.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
+
+    const autoButton = row.querySelector<HTMLButtonElement>('[data-slot="slider-auto"]')
     expect(autoButton?.getAttribute('aria-pressed')).toBe('true')
 
     // 自动态滑杆显示的是预览回写的自动值，不是配置里陈旧的手动值 0.42
-    const slider = ranges(container)[0]!
+    const slider = ranges(row)[0]!
     expect(Number(slider.value)).toBeCloseTo(0.31)
 
     fireEvent.change(slider, { target: { value: '0.33' } })
@@ -297,36 +310,54 @@ describe('微调面板', () => {
     expect(config().typography.sizeMode).toBe('auto')
   })
 
-  it('两行都有内容时，逐行组是次行字号加两条水平补偿', () => {
-    setInspectorOpen(true)
-    const { container } = mount(<Inspector />)
-    // 排版组四条（字号、行高、字间距、边距）之后就是逐行组
-    const list = ranges(container)
-    fireEvent.change(list[4]!, { target: { value: '0.7' } })
-    fireEvent.change(list[5]!, { target: { value: '0.02' } })
-    fireEvent.change(list[6]!, { target: { value: '-0.03' } })
+  it('第二行字号紧跟在第二行输入之后', () => {
+    const { container } = mount(<PickColumn />)
+    const row = group(container, 'text-line2-size')
+    const input = secondLine(container)
+    expect(input.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
+
+    fireEvent.change(ranges(row)[0]!, { target: { value: '0.7' } })
     expect(config().typography.lineSizeScales[1]).toBeCloseTo(0.7)
+  })
+
+  it('位置微调组展开后是四行：两行各自的水平与垂直', () => {
+    const { container } = mount(<PickColumn />)
+    const offset = openGroup(container, 'text-group-offset')
+    const list = ranges(offset)
+    expect(list).toHaveLength(4)
+
+    fireEvent.change(list[0]!, { target: { value: '0.02' } })
+    fireEvent.change(list[1]!, { target: { value: '0.01' } })
+    fireEvent.change(list[2]!, { target: { value: '-0.03' } })
+    fireEvent.change(list[3]!, { target: { value: '-0.02' } })
     expect(config().typography.lineOffsetsX).toEqual([0.02, -0.03])
+    expect(config().typography.lineOffsetsY).toEqual([0.01, -0.02])
   })
 
-  it('只有一行时：没有次行字号，只有一条第一行补偿', () => {
-    setInspectorOpen(true)
+  it('只有一行时：没有第二行字号，位置微调只剩第一行那两条', () => {
     useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, text: '暴富' } })
-    const { container } = mount(<Inspector />)
-    const before = config().typography.lineOffsetsX
-    fireEvent.change(ranges(container)[4]!, { target: { value: '0.05' } })
-    expect(config().typography.lineOffsetsX).toEqual([0.05, before[1] ?? 0])
+    const { container } = mount(<PickColumn />)
+    expect(container.querySelector('[data-slot="text-line2-size"]')).toBeNull()
+
+    const offset = openGroup(container, 'text-group-offset')
+    expect(ranges(offset)).toHaveLength(2)
+    fireEvent.change(ranges(offset)[0]!, { target: { value: '0.05' } })
+    expect(config().typography.lineOffsetsX[0]).toBeCloseTo(0.05)
   })
 
-  it('质感组是当前 style 的五个参数加光感', () => {
-    setInspectorOpen(true)
-    const { container } = mount(<Inspector />)
-    // 排版 4 + 逐行 3 + 效果 1 + 质感 6 = 14，默认没有图形也不是圆角
-    expect(ranges(container)).toHaveLength(14)
+  it('质感的参数组展开后是当前 style 的五个参数加光感', () => {
+    const { container } = mount(<PickColumn />)
+    const params = openGroup(container, 'style-group-params')
+    expect(ranges(params)).toHaveLength(6)
   })
 
-  it('图标的两条滑杆只在有图标时出现', () => {
-    setInspectorOpen(true)
+  it('图标大小常显，位置微调展开后再多两条；没有图标时一条都没有', () => {
+    const { container: empty } = mount(<PickColumn />)
+    const emptyCard = empty.querySelector('[data-slot="graphic-pick"]')!.closest('section')!
+    expect(ranges(emptyCard)).toHaveLength(0)
+    expect(empty.querySelector('[data-slot="graphic-group-offset"]')).toBeNull()
+    cleanup()
+
     useAvatarStore.setState({
       config: {
         ...DEFAULT_CONFIG,
@@ -336,28 +367,30 @@ describe('微调面板', () => {
         },
       },
     })
-    const { container } = mount(<Inspector />)
-    // 14 加图标的大小与水平补偿。圆角比例跟着画布搬进了导出抽屉
-    expect(ranges(container)).toHaveLength(16)
+    const { container } = mount(<PickColumn />)
+    const card = container.querySelector('[data-slot="graphic-picker"]')!.closest('section')!
+    expect(ranges(card)).toHaveLength(1)
+    expect(ranges(openGroup(container, 'graphic-group-offset'))).toHaveLength(2)
+    expect(ranges(card)).toHaveLength(3)
   })
 
   it('偏离默认值的行才有重置钮，点一下回默认', () => {
-    setInspectorOpen(true)
     useAvatarStore.setState({
       config: {
         ...DEFAULT_CONFIG,
         typography: { ...DEFAULT_CONFIG.typography, padding: 0.25 },
       },
     })
-    const { container } = mount(<Inspector />)
-    const resets = container.querySelectorAll<HTMLButtonElement>('[data-slot="slider-reset"]')
+    const { container } = mount(<PickColumn />)
+    const layout = openGroup(container, 'text-group-layout')
+    const resets = layout.querySelectorAll<HTMLButtonElement>('[data-slot="slider-reset"]')
     expect(resets).toHaveLength(1)
     fireEvent.click(resets[0]!)
     expect(config().typography.padding).toBeCloseTo(DEFAULT_CONFIG.typography.padding)
   })
 
   it('每一行都有常驻数字框', () => {
-    const { container } = mount(<Inspector />)
+    const { container } = mount(<PickColumn />)
     expect(container.querySelectorAll('[data-slot="slider-number"]')).toHaveLength(
       ranges(container).length,
     )

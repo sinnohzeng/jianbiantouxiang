@@ -8,18 +8,32 @@
  *
  * 磁贴内保留 sr-only 的 id：端到端与单测按磁贴文本断言当前图形，可见名字另在一格。
  * 品牌标志多一档原色 / 单色，那是选中之后的属性而不是入口，留在填充态里。
+ * 大小与位置补偿也只在填充态出现：没有图标时它们无处可施，摆出来只是噪音。
  */
 
 import { Suspense, useState } from 'react'
 import { ImagePlusIcon, XIcon } from 'lucide-react'
+import { PanelSection } from '@/components/blocks/panel-section'
 import { SegmentedControl } from '@/components/blocks/segmented-control'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n'
 import { useGraphicLabel } from '@/graphics/label'
 import { GraphicThumb } from '@/app/panels/GraphicThumb'
 import { IconPickerLazy } from '@/app/panels/lazy'
+import { DEFAULT_CONFIG } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { SectionCard } from './card'
+import { Row } from './row'
+
+/** 图标的两条补偿共用：量程 ±25%，步进 0.25%，显示一位小数，基准是安全框。 */
+const OFFSET_RANGE = {
+  min: -0.25,
+  max: 0.25,
+  step: 0.0025,
+  scale: 100,
+  precision: 1,
+  unit: '%',
+} as const
 
 export function GraphicSection() {
   const t = useT()
@@ -104,6 +118,40 @@ export function GraphicSection() {
               />
             </div>
           ) : null}
+
+          {/* 大小常显，挪位置收进折叠组：换过图标的人多半要调大小，挪位置是少数 */}
+          <Row
+            label={t('panel.graphic.scale')}
+            value={config.layout.graphic}
+            defaultValue={DEFAULT_CONFIG.layout.graphic}
+            min={0.3}
+            max={0.8}
+            step={0.01}
+            scale={100}
+            unit="%"
+            onChange={(graphic) => setLayout({ graphic })}
+          />
+
+          <PanelSection
+            data-slot="graphic-group-offset"
+            title={t('panel.common.group.offset')}
+            defaultOpen={false}
+          >
+            <Row
+              label={t('panel.graphic.offsetX')}
+              value={config.layout.graphicOffsetX}
+              defaultValue={DEFAULT_CONFIG.layout.graphicOffsetX}
+              {...OFFSET_RANGE}
+              onChange={(graphicOffsetX) => setLayout({ graphicOffsetX })}
+            />
+            <Row
+              label={t('panel.graphic.offsetY')}
+              value={config.layout.graphicOffsetY}
+              defaultValue={DEFAULT_CONFIG.layout.graphicOffsetY}
+              {...OFFSET_RANGE}
+              onChange={(graphicOffsetY) => setLayout({ graphicOffsetY })}
+            />
+          </PanelSection>
         </>
       ) : (
         <Button

@@ -185,20 +185,18 @@
 
   /*
    * 桌面工作台的栅格。写在这里而不是堆在 className 上：
-   * 断点 × 微调开合 = 六套列模板加落位，用任意变体拼出来是一串三百字符的类名，
-   * 改一个数要在里面数括号。
+   * 三套列模板加落位，用任意变体拼出来是一串三百字符的类名，改一个数要在里面数括号。
    *
    * 预览按视口定宽、挑选栏吃剩余。早先预览列是 1fr 捡漏：1920 上画框吃到 890 px，
-   * 三列控制面板被压到 400，配色与质感整组滚出首屏。现在预览是夹在 400 到 640
+   * 控制面板被压到 400，配色与质感整组滚出首屏。现在预览是夹在 400 到 640
    * 之间的定宽轨道，富余全给挑选栏。
    *
-   * 96rem 以上把两条 clamp 冻成字面值：vw 永远对真实视口取值，而容器已被外壳的
-   * max-w 钉死在 1520。1647 px 以上若仍用 34vw，预览顶到 640、微调顶到 312，
+   * 96rem 以上把 clamp 冻成字面值：vw 永远对真实视口取值，而容器已被外壳的
+   * max-w 钉死在 1520。1647 px 以上若仍用 34vw，预览顶到 640，
    * 两条挑选列会被压出 minmax 下限之外，超出部分被 main 的 overflow-hidden 裁掉。
-   * 522 是 0.34×1536 的取值，272 是微调列的下限。
+   * 522 是 0.34×1536 的取值。
    */
   [data-slot='workspace'] {
-    --inspector-w: clamp(272px, 17vw, 312px);
     --preview-w: clamp(400px, 34vw, 640px);
   }
 
@@ -209,195 +207,83 @@
   }
 
   /*
-   * 只有画框那一列分两行（上面画框、下面操作条），左边几列一律跨满两行。
+   * 只有画框那一列分两行（上面画框、下面操作条），挑选栏一律跨满两行。
    * 操作条只占画框那一列，左边如果也停在第一行末尾，底下就空出一条与操作条等高的带子，
    * 挑选栏白白少掉五六十像素的可视高度，看起来像没到底。
    */
   @media (min-width: 64rem) {
-    [data-slot='workspace'][data-inspector='closed'] {
+    [data-slot='workspace'] {
       grid-template-columns: minmax(300px, 1fr) var(--preview-w);
     }
-    [data-inspector='closed'] > [data-slot='pick-columns'] {
+    [data-slot='workspace'] > [data-slot='pick-columns'] {
       grid-column: 1;
       grid-row: 1 / -1;
     }
-    [data-inspector='closed'] > [data-slot='preview-pane'] {
+    [data-slot='workspace'] > [data-slot='preview-pane'] {
       grid-column: 2;
       grid-row: 1;
     }
-    [data-inspector='closed'] > [data-slot='bottom-bar'] {
+    [data-slot='workspace'] > [data-slot='bottom-bar'] {
       grid-column: 2;
-      grid-row: 2;
-    }
-
-    [data-slot='workspace'][data-inspector='open'] {
-      grid-template-columns: var(--inspector-w) minmax(280px, 1fr) var(--preview-w);
-    }
-    [data-inspector='open'] > [data-slot='inspector-dock'] {
-      grid-column: 1;
-      grid-row: 1 / -1;
-    }
-    [data-inspector='open'] > [data-slot='pick-columns'] {
-      grid-column: 2;
-      grid-row: 1 / -1;
-    }
-    [data-inspector='open'] > [data-slot='preview-pane'] {
-      grid-column: 3;
-      grid-row: 1;
-    }
-    [data-inspector='open'] > [data-slot='bottom-bar'] {
-      grid-column: 3;
       grid-row: 2;
     }
   }
 
-  /* 70rem 起、微调收起：挑选栏拆成两列 */
+  /*
+   * 64 到 70rem：挑选栏并回一列，但壳够宽，壳内自己拆两列。
+   * 用有界 media 而不是容器查询：pick-columns 在拆列档是 display:contents，不生成盒，
+   * 而 container-type 的 containment 作用于元素的 principal box，它承担不了；
+   * 壳宽又完全由视口断点决定，容器查询量不到新信息。
+   */
+  @media (min-width: 64rem) and (max-width: 69.99rem) {
+    [data-slot='workspace'] > [data-slot='pick-columns'] {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      min-height: 0;
+    }
+  }
+
+  /* 70rem 起：两条挑选列越过外壳直接成为工作台的 grid 项 */
   @media (min-width: 70rem) {
-    [data-slot='workspace'][data-inspector='closed'] {
+    [data-slot='workspace'] {
       grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr) var(--preview-w);
     }
-    [data-inspector='closed'] > [data-slot='pick-columns'] {
+    [data-slot='workspace'] > [data-slot='pick-columns'] {
       display: contents;
     }
-    [data-inspector='closed'] [data-slot='pick-column'] {
+    [data-slot='pick-column'] {
       grid-column: 1;
       grid-row: 1 / -1;
     }
-    [data-inspector='closed'] [data-slot='pick-column-color'] {
+    [data-slot='pick-column-color'] {
       grid-column: 2;
       grid-row: 1 / -1;
     }
-    [data-inspector='closed'] > [data-slot='preview-pane'] {
+    [data-slot='workspace'] > [data-slot='preview-pane'] {
       grid-column: 3;
       grid-row: 1;
     }
-    [data-inspector='closed'] > [data-slot='bottom-bar'] {
+    [data-slot='workspace'] > [data-slot='bottom-bar'] {
       grid-column: 3;
       grid-row: 2;
     }
   }
 
-  /* 91rem 起、微调展开：微调、两列挑选栏、画框四列并排 */
-  @media (min-width: 91rem) {
-    [data-slot='workspace'][data-inspector='open'] {
-      grid-template-columns: var(--inspector-w) minmax(300px, 1fr) minmax(300px, 1fr) var(
-          --preview-w
-        );
-    }
-    [data-inspector='open'] > [data-slot='pick-columns'] {
-      display: contents;
-    }
-    [data-inspector='open'] [data-slot='pick-column'] {
-      grid-column: 2;
-      grid-row: 1 / -1;
-    }
-    [data-inspector='open'] [data-slot='pick-column-color'] {
-      grid-column: 3;
-      grid-row: 1 / -1;
-    }
-    [data-inspector='open'] > [data-slot='preview-pane'] {
-      grid-column: 4;
-      grid-row: 1;
-    }
-    [data-inspector='open'] > [data-slot='bottom-bar'] {
-      grid-column: 4;
-      grid-row: 2;
-    }
-  }
-
-  /* 96rem 以上冻住两条 clamp，理由见段头注释 */
+  /* 96rem 以上冻住 clamp，理由见段头注释 */
   @media (min-width: 96rem) {
-    [data-slot='workspace'][data-inspector='closed'] {
+    [data-slot='workspace'] {
       grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr) 522px;
     }
-    [data-slot='workspace'][data-inspector='open'] {
-      grid-template-columns: 272px minmax(300px, 1fr) minmax(300px, 1fr) 522px;
-    }
   }
 
-  /*
-   * 并回一列、但壳够宽时内拆两列。用有界 media 而不是容器查询：
-   * pick-columns 在拆列档是 display:contents，不生成盒，而 container-type 的
-   * containment 作用于元素的 principal box，它承担不了；壳宽又完全由视口断点乘
-   * 微调开合决定，容器查询量不到新信息。77.5rem 是打开态壳宽过 480 px 的阈值。
-   */
-  @media (min-width: 64rem) and (max-width: 69.99rem) {
-    [data-inspector='closed'] > [data-slot='pick-columns'] {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-      min-height: 0;
-    }
-  }
-  @media (min-width: 77.5rem) and (max-width: 90.99rem) {
-    [data-inspector='open'] > [data-slot='pick-columns'] {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-      min-height: 0;
-    }
-  }
-
-  /* 拆开了或内拆了才让两个子列各自滚，并回一列且不内拆时滚的是外层壳，两层都能滚会打架 */
-  @media (min-width: 70rem) {
-    [data-inspector='closed'] [data-slot='pick-column'],
-    [data-inspector='closed'] [data-slot='pick-column-color'] {
+  /* 64rem 起两条挑选列各自滚，拆列与壳内拆列两档同一条规则 */
+  @media (min-width: 64rem) {
+    [data-slot='pick-column'],
+    [data-slot='pick-column-color'] {
       min-height: 0;
       overflow-y: auto;
       padding-inline: 0.125rem;
-    }
-  }
-  @media (min-width: 91rem) {
-    [data-inspector='open'] [data-slot='pick-column'],
-    [data-inspector='open'] [data-slot='pick-column-color'] {
-      min-height: 0;
-      overflow-y: auto;
-      padding-inline: 0.125rem;
-    }
-  }
-  @media (min-width: 64rem) and (max-width: 69.99rem) {
-    [data-inspector='closed'] [data-slot='pick-column'],
-    [data-inspector='closed'] [data-slot='pick-column-color'] {
-      min-height: 0;
-      overflow-y: auto;
-      padding-inline: 0.125rem;
-    }
-  }
-  @media (min-width: 77.5rem) and (max-width: 90.99rem) {
-    [data-inspector='open'] [data-slot='pick-column'],
-    [data-inspector='open'] [data-slot='pick-column-color'] {
-      min-height: 0;
-      overflow-y: auto;
-      padding-inline: 0.125rem;
-    }
-  }
-
-  /*
-   * 操作条按自己有多宽决定文案长短，而不是按视口。
-   * 它落在画框那一列里，同一个视口宽度下微调一开合就换一个量级，视口断点在这里给不出答案。
-   * 桌面是两行三列 grid，一格约 131 px，全称放得下；30rem 以下（手机通栏五格）换短称。
-   *
-   * 五个按钮一律带字，不存在只剩图标那一档：图标认不出来的按钮，用户得点一次才知道是干嘛的。
-   * 长短两版都写在 DOM 里，由这里挑一版露出来。
-   *
-   * 露不露只在这里定，span 上不许再挂 hidden 之类的工具类：
-   * 工具层整体排在组件层之后，一个 hidden 就会把这里的 display:block 压掉，
-   * 结果是两版都不显示，按钮变成光秃秃一个图标。
-   */
-  [data-slot='bottom-bar'] {
-    container: bar / inline-size;
-  }
-
-  [data-slot='bottom-bar'] [data-label='full'] {
-    display: none;
-  }
-
-  @container bar (min-width: 30rem) {
-    [data-slot='bottom-bar'] [data-label='short'] {
-      display: none;
-    }
-    [data-slot='bottom-bar'] [data-label='full'] {
-      display: block;
     }
   }
 
@@ -407,20 +293,18 @@
    */
   [data-slot='pick-columns'],
   [data-slot='pick-column'],
-  [data-slot='pick-column-color'],
-  [data-slot='inspector-dock'] {
+  [data-slot='pick-column-color'] {
     scrollbar-gutter: stable;
   }
 
   /*
    * 指到哪一栏、焦点落在哪一栏，哪一栏的滑块才提上来，旁边那栏保持安静。
    *
-   * 里面这三列得把静息色写回去：:hover 沿祖先链一路成立，外层壳一亮，
+   * 里面这两列得把静息色写回去：:hover 沿祖先链一路成立，外层壳一亮，
    * scrollbar-color 又是继承属性，会一路灌给每个子列，结果是碰一下两条全亮，白分栏了。
    */
   [data-slot='pick-column'],
-  [data-slot='pick-column-color'],
-  [data-slot='inspector-dock'] {
+  [data-slot='pick-column-color'] {
     scrollbar-color: var(--scrollbar-thumb) transparent;
   }
 
@@ -429,9 +313,7 @@
   [data-slot='pick-column']:hover,
   [data-slot='pick-column']:focus-within,
   [data-slot='pick-column-color']:hover,
-  [data-slot='pick-column-color']:focus-within,
-  [data-slot='inspector-dock']:hover,
-  [data-slot='inspector-dock']:focus-within {
+  [data-slot='pick-column-color']:focus-within {
     scrollbar-color: var(--scrollbar-thumb-active) transparent;
   }
 }

@@ -78,11 +78,14 @@ export async function waitReady(page: Page): Promise<void> {
     .waitFor({ state: 'detached', timeout: SETTLE_TIMEOUT_MS })
 }
 
-/** 打开微调面板。v5 起它默认收起，开合状态落在 localStorage。 */
-export async function openInspector(page: Page): Promise<void> {
-  const toggle = page.locator('[data-slot="inspector-toggle"]')
-  if ((await toggle.getAttribute('aria-pressed')) !== 'true') await toggle.click()
-  await expect(page.locator('[data-slot="inspector"]')).toBeVisible()
+/**
+ * 展开挑选栏里某个折叠组。slot 见各 section，如 text-group-layout。
+ * 折叠组收起时整块不挂，不点开就一条滑杆都点不到。
+ */
+export async function openGroup(page: Page, slot: string): Promise<void> {
+  const trigger = page.locator(`[data-slot="${slot}"] [data-slot="collapsible-trigger"]`)
+  if ((await trigger.getAttribute('aria-expanded')) !== 'true') await trigger.click()
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true')
 }
 
 export function probeStats(page: Page, size?: number): Promise<ProbePixelStats> {

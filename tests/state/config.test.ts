@@ -277,7 +277,7 @@ describe('normalizeConfig 的 layout 子树', () => {
   })
 
   it('旧存档没有垂直补偿时补 0，水平值原样保留', () => {
-    // 契约版本没升，v7.0 之前的存档里根本没有这两位
+    // 契约版本没升，旧存档里没有这两位，靠 normalize 补 0
     const legacy = normalizeConfig({
       v: 4,
       typography: { lineOffsetsX: [0.1, -0.05] },

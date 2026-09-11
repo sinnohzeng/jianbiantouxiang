@@ -1,23 +1,25 @@
 /**
  * 质感节：四张 2×2 磁贴，每张用当前配色画一小张 CSS 渐变示意，选之前就看得出差别。
  * 种子在节末尾压成紧凑一行：手动填、复制、换一个，三件都在。
- * 五个参数滑杆与光感在检查器带里。
+ * 五个参数滑杆与光感收在节末的“参数”折叠组里，默认收起。
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CheckIcon, CopyIcon, ShuffleIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { copyText } from '@/app/clipboard'
+import { PanelSection } from '@/components/blocks/panel-section'
 import { RadioCardGroup, type RadioCardOption } from '@/components/blocks/radio-card-group'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cssFallbackBackground } from '@/engine/css-fallback'
 import { resolveSeed } from '@/engine/seed'
-import { STYLE_LIST } from '@/engine/styles'
+import { getStyle, STYLE_LIST } from '@/engine/styles'
 import { useT } from '@/i18n'
-import type { AvatarConfig, StyleId } from '@/state/config'
+import { DEFAULT_CONFIG, type AvatarConfig, type PartialConfig, type StyleId } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { SectionCard } from './card'
+import { displayOf, Row } from './row'
 
 /** 复制成功的对勾停留多久。 */
 const COPIED_RESET_MS = 1600
@@ -31,6 +33,7 @@ export function StyleSection() {
   const t = useT()
   const config = useAvatarStore((state) => state.config)
   const setConfig = useAvatarStore((state) => state.setConfig)
+  const setStyleParams = useAvatarStore((state) => state.setStyleParams)
   const randomize = useAvatarStore((state) => state.randomize)
   const [copied, setCopied] = useState(false)
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -44,6 +47,7 @@ export function StyleSection() {
 
   const seed = resolveSeed(config)
   const selectedDescription = t(`style.${config.style}.desc`)
+  const params = getStyle(config.style).params
 
   const options: RadioCardOption<StyleId>[] = useMemo(
     () =>
@@ -133,6 +137,47 @@ export function StyleSection() {
           <ShuffleIcon aria-hidden="true" />
         </Button>
       </div>
+
+      {/* 参数随质感换一套，光感跟着一起：它们改的是同一张画面的质地 */}
+      <PanelSection
+        data-slot="style-group-params"
+        title={t('panel.style.group.params')}
+        defaultOpen={false}
+      >
+        {params.map((param) => {
+          const view = displayOf(param.key)
+          return (
+            <Row
+              key={param.key}
+              label={t(param.labelKey)}
+              value={config.styleParams[param.key]}
+              defaultValue={DEFAULT_CONFIG.styleParams[param.key]}
+              min={param.min}
+              max={param.max}
+              step={param.step}
+              scale={view.scale}
+              precision={view.precision}
+              unit={view.unit}
+              onChange={(value) => {
+                const patch: NonNullable<PartialConfig['styleParams']> = {}
+                patch[param.key] = value
+                setStyleParams(patch)
+              }}
+            />
+          )
+        })}
+        <Row
+          label={t('panel.style.highlight')}
+          value={config.highlight}
+          defaultValue={DEFAULT_CONFIG.highlight}
+          min={0}
+          max={1}
+          step={0.01}
+          scale={100}
+          unit="%"
+          onChange={(highlight) => setConfig({ highlight })}
+        />
+      </PanelSection>
     </SectionCard>
   )
 }

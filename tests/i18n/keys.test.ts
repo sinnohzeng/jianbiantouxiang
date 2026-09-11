@@ -118,9 +118,7 @@ function dynamicKeys(): string[] {
     ]),
     ...TEXT_EFFECTS.map((effect) => `panel.text.effect.${effect}`),
     // TextPanel 的文字色预设 panel.text.color.preset.<key>
-    ...['white', 'cream', 'silver', 'gray', 'slate', 'ink', 'black'].map(
-      (key) => `panel.text.color.preset.${key}`,
-    ),
+    ...['white', 'silver', 'gray', 'ink', 'black'].map((key) => `panel.text.color.preset.${key}`),
     ...SIZE_TARGETS.map((target) => `export.size.${target}`),
     ...CURATED_ICON_CATEGORIES.map((category) => `icon.category.${category}`),
     ...BRAND_CATEGORIES.map((category) => `icon.brand.category.${category}`),
