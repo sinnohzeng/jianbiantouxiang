@@ -32,3 +32,6 @@ specs
 
 # 指向 AGENTS.md 的软链，格式化真身即可
 CLAUDE.md
+
+# ESA Pages 的构建配置，JSONC 里不留尾逗号，不交给 prettier
+esa.jsonc

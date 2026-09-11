@@ -1,0 +1,15 @@
+{
+  // 阿里云 ESA Pages 的构建配置。这份文件一旦存在，控制台里对应的构建项就不再生效，
+  // 改构建参数只改这里并推到 main。字段说明见
+  // https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/build-pages
+  "name": "jianbiantouxiang",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "assets": {
+    "directory": "./dist",
+    // 与 public/_redirects 在 Cloudflare Pages 上的兜底同一口径：
+    // 没匹配到静态文件的导航请求回 index.html 200。/about 由 Pages 的 clean URL 规则
+    // 直接命中 dist/about.html，不走这条兜底。
+    "notFoundStrategy": "singlePageApplication"
+  }
+}
