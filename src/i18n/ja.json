@@ -9,7 +9,7 @@
   "bottombar.actions": "主な操作",
   "bottombar.export": "書き出し",
   "bottombar.exportOptions": "書き出しオプション",
-  "bottombar.randomPalette": "配色をシャッフル",
+  "bottombar.randomPalette": "別の配色",
   "bottombar.randomPalette.hint": "配色だけ変更、シードと質感はそのまま",
   "bottombar.reroll": "別パターン",
   "bottombar.reroll.hint": "配色と質感はそのままに、構成だけ変えます",

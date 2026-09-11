@@ -4,14 +4,14 @@
  * 的行在偏离默认值时多出一个重置小钮，桌面悬停或聚焦才显形，触控设备常显。
  *
  * 一行两段：第一段是「标签 | 自动档 | 重置占位 | 数值框」的固定列 grid，
- * 第二段滑杆独占一行。重置占位与数值框各占定宽列，位置与兄弟元素有无无关：
- * 早先第一行用 justify-between，字号行多一颗自动钮、又没有重置占位，
- * 它的数值框比其余行右移 28 px，同一组里竖着看是歪的。
- * 数值框放最右一列，右缘与滑杆右端齐平：重置占位排在它右边时，
- * 每一行的数字都比滑杆末端缩进 26 px，整列看起来像没有右对齐。
+ * 第二段滑杆独占一行。重置占位与数值框各占定宽列，占位列无条件渲染，
+ * 所以每一行的数值框都落在最右一列，右缘与滑杆右端齐平，同一组竖着看是一条直线。
  *
  * 致密尺寸一律 lg: 前缀：手机渲染同一棵树，基值要保持本仓 44 px 触控
  * 与 16 px 输入字号的口径，无前缀收小会让 iOS 聚焦缩放与触控热区一起破线。
+ * 手机档的三列按 320 px 宽的 iPhone SE 定：数值列 5rem 装得下最宽的「-0.10em」，
+ * 标签列剩 138 px 要放下五种语言里最长的字号标签加一颗「自动」钮；
+ * 标签只在桌面截断，手机上让它折行，哪种语言的新文案变长都不会先被吃掉。
  *
  * 数值变化时框里的数走一段弹簧过渡，只影响显示，真实值仍然一步到位。
  */
@@ -128,7 +128,7 @@ export function SliderField({
       disabled={disabled}
       onClick={auto.onReset}
       className={cn(
-        'focus-visible:ring-ring/50 shrink-0 rounded-md border px-2.5 text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none',
+        'focus-visible:ring-ring/50 shrink-0 rounded-md border px-2 text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none',
         'lg:h-5 lg:px-1 lg:text-[11px]',
         auto.active
           ? 'border-primary bg-primary text-primary-foreground'
@@ -144,7 +144,7 @@ export function SliderField({
       ref={inputRef}
       data-slot="slider-number"
       className={cn(
-        'h-11 w-full shrink-0 px-2 text-right font-mono tabular-nums',
+        'h-11 w-full shrink-0 px-1.5 text-right font-mono tabular-nums',
         // Input 基类带 lg:text-sm，tailwind-merge 视二者为同组变体，这里才压得住；
         // 基值留在 16 px 是 iOS 聚焦不缩放的口径
         'lg:h-5 lg:px-1 lg:text-[11px]',
@@ -193,12 +193,16 @@ export function SliderField({
     <div className={cn('group flex flex-col gap-0.5', disabled && 'opacity-60', className)}>
       <div
         className={cn(
-          'grid min-h-11 grid-cols-[minmax(0,1fr)_2rem_6rem] items-center gap-2',
+          'grid min-h-11 grid-cols-[minmax(0,1fr)_2rem_5rem] items-center gap-2',
           'lg:min-h-5 lg:grid-cols-[minmax(0,1fr)_1.25rem_3.5rem] lg:gap-1.5',
         )}
       >
         <span className="flex min-w-0 items-center gap-1.5">
-          <span id={labelId} title={label} className="truncate text-sm font-medium lg:text-[11px]">
+          <span
+            id={labelId}
+            title={label}
+            className="text-sm font-medium lg:truncate lg:text-[11px]"
+          >
             {label}
           </span>
           {autoNode}

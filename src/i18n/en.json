@@ -9,7 +9,7 @@
   "bottombar.actions": "Main actions",
   "bottombar.export": "Export",
   "bottombar.exportOptions": "Export options",
-  "bottombar.randomPalette": "Shuffle palette",
+  "bottombar.randomPalette": "New palette",
   "bottombar.randomPalette.hint": "Palette only; seed and texture stay",
   "bottombar.reroll": "Reroll",
   "bottombar.reroll.hint": "Same colors and texture, a new composition",
