@@ -234,7 +234,8 @@
             <h3 class="text-sm font-semibold">界面</h3>
             <p class="text-muted-foreground text-sm leading-6">
               桌面上挑选栏拆不拆两列，判据是还剩多少宽度给画框，不是照着视口宽度写死断点。
-              底部操作条按自己有多宽换长短文案，因为它的宽度随微调面板开合在几百像素之间跳。
+              数值滑杆没有单独的面板，跟着它修饰的东西走；低频的收进折叠组，Base UI
+              的滑杆收起时整块卸载，展开那一帧才量宽度。
             </p>
           </article>
         </div>
@@ -336,7 +337,16 @@
       <div
         class="text-muted-foreground mx-auto flex w-full max-w-3xl flex-col gap-2 px-5 py-8 text-xs sm:flex-row sm:items-center sm:justify-between"
       >
-        <p>渐变头像 · 基于 MIT 许可开源</p>
+        <p class="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span>渐变头像 · 基于 MIT 许可开源</span>
+          <a
+            href="https://beian.miit.gov.cn/"
+            target="_blank"
+            rel="noreferrer noopener"
+            class="text-muted-foreground/80 hover:text-foreground"
+            >京ICP备2026029073号-5</a
+          >
+        </p>
         <p class="flex items-center gap-3">
           <a href="/" class="hover:text-foreground underline-offset-4 hover:underline">开始做图</a>
           <a
