@@ -1,4 +1,3 @@
-import type { StyleId } from './config'
 import { randomSeed } from '@/engine/seed'
 import { create } from 'zustand'
 import { PALETTES } from '@/palettes/palettes'
@@ -70,7 +69,7 @@ export interface AvatarStore {
   setCanvas: (partial: CanvasPatch) => void
   setExportOptions: (partial: ExportPatch) => void
   randomize: () => void
-  randomizeAll: () => void
+  randomizePalette: () => void
   pushHistory: () => void
   attachThumb: (hash: string, thumb: string) => void
   restore: (index: number) => void
@@ -96,7 +95,7 @@ function deepMerge(base: object, patch: object): Record<string, unknown> {
 }
 
 /**
- * 换一套内置配色，只给「随机配色 + 质感」用，必定换掉当前这套。
+ * 换一套内置配色，只给操作条的「随机配色」用，必定换掉当前这套。
  *
  * 深浅是 spec §3.2 里的一等筛选维度，用户挑了浅色系就不该被随机翻成深色，所以优先在同 tone 内换。
  * 当前是自定义配色或未知 id 时没有 tone 可依，改从全部内置配色里挑：菜单写了换配色就得真的换。
@@ -208,18 +207,10 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
     commitConfig(set, get, { ...get().config, seed: randomSeed() })
   },
 
-  randomizeAll: () => {
+  randomizePalette: () => {
     const config = get().config
-    const styles: StyleId[] = ['mesh', 'flow', 'silk', 'grain']
-    // 从当前质感以外的三种里挑，与配色同一口径：点一下必须看得出变化
-    const others = styles.filter((s) => s !== config.style)
-    const style = others[Math.floor(Math.random() * others.length)] ?? config.style
-    commitConfig(set, get, {
-      ...config,
-      seed: randomSeed(),
-      palette: nextPaletteId(config.palette),
-      style,
-    })
+    // 只换配色：种子与质感留在原处，操作条上「换一版」与「随机配色」各管一件事
+    commitConfig(set, get, { ...config, palette: nextPaletteId(config.palette) })
   },
 
   pushHistory: () => {

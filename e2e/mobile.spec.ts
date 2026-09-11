@@ -139,8 +139,8 @@ test('预览上盖着可长按保存的 JPG，改文字会换新图，网格不�
   expect(first?.startsWith('data:image/jpeg;base64,')).toBe(true)
   expect((first ?? '').length).toBeGreaterThan(5000)
 
-  // 网格是预览参考层，长按存下来的图里不该有它。它收在操作条的更多菜单里
-  await page.locator('[data-slot="more-menu"]').click()
+  // 网格是预览参考层，长按存下来的图里不该有它。它收在顶栏的设置菜单里，顶栏 sticky 直接可点
+  await page.locator('[data-slot="settings-menu"]').click()
   await page.locator('[data-slot="grid-toggle"]').click()
   await page.waitForTimeout(1200)
   expect(await image.getAttribute('src')).toBe(first)
@@ -150,4 +150,24 @@ test('预览上盖着可长按保存的 JPG，改文字会换新图，网格不�
   await expect
     .poll(async () => (await image.getAttribute('src')) !== first, { timeout: RENDER_TIMEOUT_MS })
     .toBe(true)
+})
+
+test('备案号在手机上不进顶栏', async ({ page }) => {
+  await openApp(page)
+
+  // 顶栏那点宽度分给六颗按钮就没了；手机上它改在页面末尾单起一行
+  await expect(page.locator('[data-slot="icp-beian"]')).toBeHidden()
+})
+
+test('操作条三格加齿轮，没有更多钮与微调钮', async ({ page }) => {
+  await openApp(page)
+
+  await expect(page.locator('[data-slot="shuffle-color"]')).toHaveCount(1)
+  await expect(page.locator('[data-slot="shuffle-palette"]')).toHaveCount(1)
+  await expect(page.locator('[data-slot="export-action"]')).toHaveCount(1)
+  await expect(page.locator('[data-slot="export-options"]')).toHaveCount(1)
+
+  // 参考层与恢复默认进了顶栏齿轮，数值滑杆回到各自卡片，这两颗不再有
+  await expect(page.locator('[data-slot="more-menu"]')).toHaveCount(0)
+  await expect(page.locator('[data-slot="inspector-toggle"]')).toHaveCount(0)
 })

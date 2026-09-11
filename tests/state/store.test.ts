@@ -130,18 +130,19 @@ describe('randomize', () => {
   })
 })
 
-describe('randomizeAll', () => {
-  it('把内置配色换成同 tone 的另一套并换质感', () => {
-    store().randomizeAll()
+describe('randomizePalette', () => {
+  it('换成同 tone 的另一套配色，种子与质感不动', () => {
+    store().randomizePalette()
     expect(store().config.palette).toBe('frost')
-    expect(store().config.style).not.toBe(DEFAULT_CONFIG.style)
+    expect(store().config.style).toBe(DEFAULT_CONFIG.style)
+    expect(store().config.seed).toBe(DEFAULT_CONFIG.seed)
   })
 
   it('自定义配色下也真的换一套内置配色，自定义色留在配置里', () => {
     useAvatarStore.setState({
       config: { ...DEFAULT_CONFIG, palette: 'custom', customColors: ['#112233', '#445566'] },
     })
-    store().randomizeAll()
+    store().randomizePalette()
     const { config } = store()
     expect(['aurora', 'frost', 'midnight']).toContain(config.palette)
     expect(config.customColors).toEqual(['#112233', '#445566'])
@@ -149,13 +150,13 @@ describe('randomizeAll', () => {
 
   it('配色 id 不认识时换成内置配色', () => {
     useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, palette: '不存在' } })
-    store().randomizeAll()
+    store().randomizePalette()
     expect(['aurora', 'frost', 'midnight']).toContain(store().config.palette)
   })
 
   it('同 tone 只剩当前这一套时跨 tone 换，不会原地不动', () => {
     useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, palette: 'midnight' } })
-    store().randomizeAll()
+    store().randomizePalette()
     expect(['aurora', 'frost']).toContain(store().config.palette)
   })
 
@@ -163,7 +164,7 @@ describe('randomizeAll', () => {
     useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, palette: 'custom' } })
     for (let i = 0; i < 10; i += 1) {
       const before = store().config.palette
-      store().randomizeAll()
+      store().randomizePalette()
       expect(store().config.palette).not.toBe(before)
     }
   })

@@ -1,16 +1,16 @@
 /**
  * 主操作条。手机上固定在屏幕底部并让出 safe-area，桌面上就在预览正下方那一列，
- * 两行三列：换一版、随机颜色和质感、微调在第一行，更多与导出在第二行。
- * 预览列只有四百多像素宽，一行五颗带字按钮必然截断，而预览 pane 竖向有富余。
+ * 一行三格：换一版、随机配色、导出。
  *
  * 只占预览那一列，不横跨整个工作台：挑选栏底下压一条通栏的操作条，
  * 会让人以为它管的是左边那两列，而它管的其实是画面。
  * 每个按钮都带可见文案：只有图标时没人认得出哪个是哪个，touch target 再大也没用。
- * 手机上是图标在上、11 px 短文案在下的五格；桌面是图标加文案的一行。
- * 全部随机那一颗有长短两版文案，都在 DOM 里，由 index.css 的容器查询挑一版；
- * 换一版长短同文，单 span 恒显。那里也说明了为什么 span 上不能挂 hidden 工具类。
- * 分量按频次给：换一版与导出是实心，其余是描边的安静态，微调点亮时换主色。
- * 两档随机的边界：换一版只换种子（同配色同质感换一版构图），随机颜色和质感连配色质感一起换。
+ * 手机上是图标在上、11 px 文案在下的三格加一颗导出选项齿轮；桌面是图标加文案的一行三列。
+ * 三格全是短文案，一格放得下，不再备长短两版由容器查询挑。
+ * 分量按频次给：换一版与导出是实心，随机配色是描边的安静态。
+ * 两档随机的边界：换一版只换种子（同配色同质感换一版构图），随机配色只换配色（种子与质感不动）。
+ * v7 起主题、参考层与恢复默认都在顶栏齿轮里，操作条不再有「更多」与「微调」两颗；
+ * 「复制图片」只在导出抽屉里留一份。
  * v5 起没有「文字」快捷键位：两行输入常驻在挑选栏第一节，一眼就看得见，再给它一个入口是重复。
  * v5 起没有「复制链接」：配置不进 URL，分享靠导出的图。
  * 导出按钮带同步锁与三态（idle / working / done）：working 至少 600 ms 可见，
@@ -21,46 +21,20 @@
 import { useCallback, useRef, useState } from 'react'
 import {
   CheckIcon,
-  ClipboardCopyIcon,
   DownloadIcon,
-  EllipsisIcon,
-  Grid3x3Icon,
   Loader2Icon,
-  RotateCcwIcon,
-  ScanIcon,
   SettingsIcon,
   ShuffleIcon,
-  SlidersHorizontalIcon,
   SparklesIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
-import { createClipboardBlob, createExportArtifact } from '@/export/action'
-import { copyImageToClipboard, supportsClipboardImage } from '@/export/clipboard'
+import { createExportArtifact } from '@/export/action'
 import { downloadBlob } from '@/export/download'
 import { isWeChat } from '@/export/share'
 import { releaseCanvas } from '@/lib/canvas'
 import { queueHistoryThumbnail } from '@/app/history-thumb'
-import { useInspectorOpen } from '@/app/inspector-open'
-import { usePreviewOverlays } from '@/app/preview-overlays'
 import { Ripple, useRipple } from '@/app/showcase/Ripple'
 import { flushConfigSync, useAvatarStore } from '@/state/store'
 
@@ -73,8 +47,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-/** 一格按钮：手机上图标压文案，桌面上并排。桌面是两行三列 grid 的一格，
- * 预览列只有四百多像素宽，一行五颗带字按钮必然截断，而预览 pane 竖向有富余。 */
+/** 一格按钮：手机上图标压文案，桌面上并排。桌面是一行三列 grid 的一格。 */
 const item =
   'relative flex min-h-12 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border px-1 text-[11px] leading-none font-medium transition-colors focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none lg:h-10 lg:min-h-0 lg:flex-row lg:gap-1.5 lg:px-2.5 lg:text-sm'
 /** 次级动作：描边加卡片底，与背景拉开一层。 */
@@ -82,27 +55,21 @@ const quiet =
   'border-border bg-card/80 text-foreground hover:bg-accent hover:text-accent-foreground'
 /** 一级动作：实心。 */
 const accent = 'border-primary bg-primary text-primary-foreground hover:bg-primary/90'
-/** 点亮态：主色描边加淡底再套一圈环，与未点亮一眼分得开，又不跟两个实心按钮抢分量。 */
-const lit = 'border-primary ring-primary/60 bg-primary/12 text-primary ring-1 hover:bg-primary/20'
 const iconClass = 'size-5 shrink-0 lg:size-4'
 const labelClass = 'w-full truncate text-center'
 
 export function BottomBar() {
   const t = useT()
   const randomize = useAvatarStore((state) => state.randomize)
-  const randomizeAll = useAvatarStore((state) => state.randomizeAll)
+  const randomizePalette = useAvatarStore((state) => state.randomizePalette)
   const pushHistory = useAvatarStore((state) => state.pushHistory)
-  const reset = useAvatarStore((state) => state.reset)
   const setUi = useAvatarStore((state) => state.setUi)
-  const { open: inspectorOpen, toggle: toggleInspector } = useInspectorOpen()
-  const { guide, grid, setGuide, setGrid } = usePreviewOverlays()
-  const [resetOpen, setResetOpen] = useState(false)
   // 两个随机各有一次触发；fire 同时让预览框弹一下
   const colorRipple = useRipple()
-  const allRipple = useRipple()
+  const paletteRipple = useRipple()
 
   const fireColor = colorRipple.fire
-  const fireAll = allRipple.fire
+  const firePalette = paletteRipple.fire
 
   const onShuffle = useCallback(() => {
     randomize()
@@ -111,18 +78,12 @@ export function BottomBar() {
     fireColor()
   }, [randomize, pushHistory, fireColor])
 
-  const onShuffleAll = useCallback(() => {
-    randomizeAll()
+  const onShufflePalette = useCallback(() => {
+    randomizePalette()
     pushHistory()
     queueHistoryThumbnail()
-    fireAll()
-  }, [randomizeAll, pushHistory, fireAll])
-
-  const onReset = useCallback(() => {
-    reset()
-    setResetOpen(false)
-    toast.success(t('about.resetDone'))
-  }, [reset, t])
+    firePalette()
+  }, [randomizePalette, pushHistory, firePalette])
 
   // 导出三态：working 期间禁用，done 是成功后的短暂确认态。
   // busyRef 是同步锁：exporting 是渲染闭包，同一帧里的两次点击会都读到 false，
@@ -164,29 +125,6 @@ export function BottomBar() {
     }
   }, [pushHistory, setUi, t])
 
-  const onCopyImage = useCallback(async () => {
-    if (!supportsClipboardImage()) {
-      toast.error(t('export.copyUnsupported'))
-      return
-    }
-    flushConfigSync()
-    try {
-      // Promise 必须在用户手势内交给 ClipboardItem，Safari 才允许稍后完成合成
-      const copied = await copyImageToClipboard(
-        createClipboardBlob(useAvatarStore.getState().config),
-      )
-      if (!copied) {
-        toast.error(t('export.copyFailed'))
-        return
-      }
-      toast.success(t('export.copySuccess'))
-      pushHistory()
-      queueHistoryThumbnail()
-    } catch {
-      toast.error(t('export.copyFailed'))
-    }
-  }, [pushHistory, t])
-
   const onExportOptions = useCallback(() => {
     setUi({ exportOpen: true })
   }, [setUi])
@@ -220,107 +158,26 @@ export function BottomBar() {
           className={cn(item, accent)}
         >
           <ShuffleIcon className={iconClass} aria-hidden />
-          {/* 长短同文，单 span 裸 data-label：index.css 的两条长短规则都不命中它，恒显 */}
-          <span data-label className={labelClass}>
-            {t('bottombar.reroll')}
-          </span>
+          <span className={labelClass}>{t('bottombar.reroll')}</span>
           <Ripple token={colorRipple.token} />
         </button>
 
         <button
           type="button"
-          data-slot="shuffle-all"
-          onClick={onShuffleAll}
-          aria-label={t('bottombar.randomAll')}
-          title={t('bottombar.randomAll.hint')}
+          data-slot="shuffle-palette"
+          onClick={onShufflePalette}
+          aria-label={t('bottombar.randomPalette')}
+          title={t('bottombar.randomPalette.hint')}
           className={cn(item, quiet)}
         >
           <SparklesIcon className={iconClass} aria-hidden />
-          <span data-label="short" className={labelClass}>
-            {t('bottombar.randomAll.short')}
-          </span>
-          <span data-label="full" className={labelClass}>
-            {t('bottombar.randomAll')}
-          </span>
-          <Ripple token={allRipple.token} />
+          <span className={labelClass}>{t('bottombar.randomPalette')}</span>
+          <Ripple token={paletteRipple.token} />
         </button>
 
-        <button
-          type="button"
-          data-slot="inspector-toggle"
-          aria-pressed={inspectorOpen}
-          aria-label={t('panel.inspector.title')}
-          onClick={toggleInspector}
-          title={inspectorOpen ? t('panel.inspector.close') : t('panel.inspector.open')}
-          className={cn(item, inspectorOpen ? lit : quiet)}
-        >
-          <SlidersHorizontalIcon className={iconClass} aria-hidden />
-          <span data-label className={labelClass}>
-            {t('panel.inspector.title')}
-          </span>
-        </button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            data-slot="more-menu"
-            aria-label={t('bottombar.more')}
-            title={t('bottombar.more')}
-            className={cn(item, quiet)}
-          >
-            <EllipsisIcon className={iconClass} aria-hidden />
-            <span data-label className={labelClass}>
-              {t('bottombar.more')}
-            </span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="w-auto min-w-52">
-            <DropdownMenuItem
-              data-slot="copy-image-action"
-              onClick={() => void onCopyImage()}
-              className="min-h-11 px-2"
-            >
-              <ClipboardCopyIcon className="size-4" aria-hidden />
-              {t('export.copyImage')}
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
-            {/* 两个参考层从画框角上挪进来：它们压在作品上，正好挡住要看的那一块，
-                而且只有图标、谁也认不出。在这里它们带着文案与勾选态 */}
-            <DropdownMenuCheckboxItem
-              data-slot="grid-toggle"
-              checked={grid}
-              onCheckedChange={setGrid}
-              className="min-h-11 px-2 pr-8"
-            >
-              <Grid3x3Icon className="size-4" aria-hidden />
-              {t('preview.grid')}
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              data-slot="guide-toggle"
-              checked={guide}
-              onCheckedChange={setGuide}
-              className="min-h-11 px-2 pr-8"
-            >
-              <ScanIcon className="size-4" aria-hidden />
-              {t('preview.safeArea')}
-            </DropdownMenuCheckboxItem>
-
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem
-              data-slot="reset-action"
-              onClick={() => setResetOpen(true)}
-              className="min-h-11 px-2"
-            >
-              <RotateCcwIcon className="size-4" aria-hidden />
-              {t('about.reset')}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* 桌面 grid 里跨两列：导出加选项钮占满第二行剩余宽度，
-            手机上仍是通栏五格里权重稍高的一格 */}
-        <div className="flex min-w-0 flex-[1.6] lg:col-span-2 lg:flex-auto">
+        {/* 导出加选项钮合成一颗分裂按钮，占三格里的最后一格；
+            手机上仍是通栏三格里权重稍高的一格 */}
+        <div className="flex min-w-0 flex-[1.6] lg:flex-auto">
           <button
             type="button"
             data-slot="export-action"
@@ -339,9 +196,7 @@ export function BottomBar() {
             ) : (
               <DownloadIcon className={iconClass} aria-hidden />
             )}
-            <span data-label className={labelClass}>
-              {exportLabel}
-            </span>
+            <span className={labelClass}>{exportLabel}</span>
           </button>
           <button
             type="button"
@@ -359,24 +214,6 @@ export function BottomBar() {
           </button>
         </div>
       </div>
-
-      <Dialog open={resetOpen} onOpenChange={setResetOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{t('about.reset')}</DialogTitle>
-            <DialogDescription>{t('reset.body')}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setResetOpen(false)}>
-              {t('reset.cancel')}
-            </Button>
-            <Button type="button" data-slot="reset-confirm" onClick={onReset}>
-              <RotateCcwIcon aria-hidden />
-              {t('about.reset')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
