@@ -37,14 +37,14 @@ Pages 的“域名绑定”只收带前缀的主机名，根域名走“路由�
 
 1. 进 Pages 项目的“域名”页签，“域名绑定”栏点“添加域名”，填 `www.jianbiantouxiang.com`。前置条件是账号下已有一个买了套餐且完成 NS 接入的可用站点，也就是“站点接入”一节。ESA 会在站点下自动写一条 `www` 的 DNS 记录。
 2. 站点“DNS › 记录”添加一条根记录：记录类型 A，主机记录 `@`，代理状态开，记录值 `192.0.2.1`，业务场景“网站页面”。这个地址是 RFC 5737 留给文档用的，永远不会被访问到：根域名的请求在边缘就交给下一步的路由，不回源。Pages 的默认域名带 60 分钟的 token 鉴权，不能当 CNAME 源站；`www` 已经是一条记录的主机名，按 ESA 的规则也不能再作为别的记录的记录值。
-3. 回到 Pages 项目的“域名”页签，“路由”栏点“添加路由”：路由名称随意，选择站点 `jianbiantouxiang.com`，路由模式“简单模式”，URL 填 `jianbiantouxiang.com/*`。命中的请求全部由这个 Pages 项目处理，[域名配置](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/trigger)一页写明 `example.com/*` 匹配该域名的所有请求。
+3. 回到 Pages 项目的“域名”页签，“路由”栏点“添加路由”：路由名称随意，选择站点 `jianbiantouxiang.com`，路由模式“简单模式”，站点名前面的前缀框留空，后面的路径框填 `*`，拼出来是 `jianbiantouxiang.com/*`。前缀框填 `*` 拼出的 `*.jianbiantouxiang.com/*` 只匹配子域名，根域名的请求会落到上一步的占位地址，返回 522。命中的请求全部由这个 Pages 项目处理，[域名配置](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/trigger)一页写明 `example.com/*` 匹配该域名的所有请求。
 4. 站点“规则 › 重定向规则”新增一条：传入请求“主机名 等于 `www.jianbiantouxiang.com`”，重定向类型选“动态”，表达式 `concat("https://jianbiantouxiang.com", http.request.uri.path)`，状态码 301，打开“保留查询字符串”。[请求重定向](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/request-redirects)的常见问题写明两个域名都接入 ESA 时裸域与 www 互跳走这条规则，不要用 DNS 服务商的 URL 转发；免费版规则条数上限 5 条。
 
 NS 接入下记录与路由约一分钟生效，浏览器直接打开根域名核对。
 
 ### HTTPS
 
-进站点的“边缘证书”页，申请免费边缘证书，把 `jianbiantouxiang.com` 与 `www.jianbiantouxiang.com` 都勾上，两条主机名的 DNS 记录得先存在才选得到；打开[强制 HTTPS](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/force-https)开关，最低 TLS 1.2。[请求重定向](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/request-redirects)一页的常见问题写明 HTTP 跳 HTTPS 优先用这个开关，不要自己写重定向规则，容易和别的规则撞出循环。Pages 绑定的域名与路由都继承站点的证书配置，站点不开证书就没有 HTTPS。
+进站点的“边缘证书”页，点“申请免费证书”，颁发机构选 Let's Encrypt，证书域名填 `jianbiantouxiang.com` 与 `*.jianbiantouxiang.com` 两项，放在同一张证书里。[配置边缘证书](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/configure-edge-certificates/)一页写明泛域名只覆盖子域名，不含根域名，只有泛域名时打开根域名会报 `NET::ERR_CERT_COMMON_NAME_INVALID`。打开[强制 HTTPS](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/force-https)开关，最低 TLS 1.2。[请求重定向](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/request-redirects)一页的常见问题写明 HTTP 跳 HTTPS 优先用这个开关，不要自己写重定向规则，容易和别的规则撞出循环。Pages 绑定的域名与路由都继承站点的证书配置，站点不开证书就没有 HTTPS。
 
 ### 缓存与响应头
 
