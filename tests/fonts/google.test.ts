@@ -2,11 +2,28 @@ import { describe, expect, it } from 'vitest'
 
 import {
   MIRROR_HOSTS,
+  buildCss2TextUrl,
   buildCss2Url,
   buildMirrorCssUrls,
   buildMirrorCssUrlsForHost,
   familyToFontsourceId,
 } from '@/fonts/google'
+
+describe('buildCss2TextUrl', () => {
+  it('字重显式写进链接，text 只带显示名，不带 display', () => {
+    expect(buildCss2TextUrl('Inter', 400, 'Inter')).toBe(
+      'https://fonts.googleapis.com/css2?family=Inter:wght@400&text=Inter',
+    )
+  })
+
+  it('family 空格转 +，中文与空格的显示名按 URL 编码', () => {
+    const url = buildCss2TextUrl('LXGW WenKai TC', 300, '霞鶩文楷 TC')
+    expect(url).toBe(
+      `https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@300&text=${encodeURIComponent('霞鶩文楷 TC')}`,
+    )
+    expect(new URL(url).searchParams.get('text')).toBe('霞鶩文楷 TC')
+  })
+})
 
 describe('buildCss2Url', () => {
   it('空格转 +，字重升序去重', () => {

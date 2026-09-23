@@ -9,7 +9,7 @@
  */
 
 import { FONT_WEIGHTS, type FontSource, type FontWeight } from '@/state/config'
-import { CURATED_FONTS } from './curated'
+import { CURATED_FONTS, NATIVE_NAMES, SYSTEM_FONT_SCRIPTS } from './curated'
 import { UPLOAD_FAMILY_SUFFIX } from './upload'
 
 export type CjkScript = 'sc' | 'tc' | 'hk' | 'jp' | 'kr'
@@ -179,11 +179,41 @@ export function weightsOf(family: string): readonly FontWeight[] {
   return weights.length > 0 ? weights : FALLBACK_WEIGHTS
 }
 
-/** 界面上显示的字体名。上传字体去掉 family 的命名空间后缀，其余原样。 */
+/**
+ * 界面上显示的字体名，选择器的行、卡片按钮、预览子集的 `text=` 与搜索都调它。
+ * 上传字体去掉 family 的命名空间后缀；其余有原生名的显示原生名，没有的显示 family。
+ */
 export function displayName(family: string, source: FontSource): string {
-  return source === 'upload' && family.endsWith(UPLOAD_FAMILY_SUFFIX)
-    ? family.slice(0, -UPLOAD_FAMILY_SUFFIX.length)
-    : family
+  if (source === 'upload') {
+    return family.endsWith(UPLOAD_FAMILY_SUFFIX)
+      ? family.slice(0, -UPLOAD_FAMILY_SUFFIX.length)
+      : family
+  }
+  return Object.hasOwn(NATIVE_NAMES, family) ? NATIVE_NAMES[family]! : family
+}
+
+const LANG_BY_SCRIPT: Readonly<Record<CjkScript, string>> = {
+  sc: 'zh-Hans',
+  tc: 'zh-Hant',
+  hk: 'zh-HK',
+  jp: 'ja',
+  kr: 'ko',
+}
+
+/** 书写系统对应的 BCP 47 语言标签。 */
+export function langOfScript(cjk: CjkScript): string {
+  return LANG_BY_SCRIPT[cjk]
+}
+
+/**
+ * 显示名那一格的 lang：原生名按字体的书写系统标，西文 family 标 en，上传字体的文件名语言未知，不标。
+ * 读屏据此按正确的语言念，回退到界面字体时汉字也取对地区字形。
+ */
+export function nameLang(family: string, source: FontSource): string | undefined {
+  if (source === 'upload') return undefined
+  if (displayName(family, source) === family) return 'en'
+  const cjk = source === 'system' ? SYSTEM_FONT_SCRIPTS[family] : findFontEntry(family)?.cjk
+  return cjk ? langOfScript(cjk) : undefined
 }
 
 let inflight: Promise<FontEntry[]> | null = null
@@ -245,14 +275,14 @@ function normalize(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
-/** 命中强度：0 不匹配，越大越靠前。id 与 family 同权，起始匹配优于中间匹配。 */
+/** 命中强度：0 不匹配，越大越靠前。family、id 与原生名同权，起始匹配优于中间匹配。 */
 function score(entry: FontEntry, query: string): number {
   if (!query) return 1
   const family = normalize(entry.family)
-  const id = entry.id.toLowerCase()
-  if (family === query || id === query) return 4
-  if (family.startsWith(query) || id.startsWith(query)) return 3
-  if (family.includes(query) || id.includes(query)) return 2
+  const names = [family, entry.id.toLowerCase(), normalize(displayName(entry.family, 'google'))]
+  if (names.some((name) => name === query)) return 4
+  if (names.some((name) => name.startsWith(query))) return 3
+  if (names.some((name) => name.includes(query))) return 2
   // 去掉空格后再比一次，让“notosans”能搜到 Noto Sans
   if (family.replace(/[\s-]/g, '').includes(query.replace(/[\s-]/g, ''))) return 1
   return 0

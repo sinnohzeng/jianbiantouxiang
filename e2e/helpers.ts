@@ -5,10 +5,20 @@
  * ?probe=1 挂上 window.__gradientAvatarProbe，见 src/app/probe.ts。
  */
 
+import { fileURLToPath } from 'node:url'
 import { expect, type Locator, type Page } from '@playwright/test'
 import { CI_FACTOR } from './ci-factor'
 
 export const APP_URL = '/?probe=1&lang=zh-CN'
+
+/**
+ * 字体名预览用例的子集夹具，1320 B，只含 I、n、t、e、r 五个字形。
+ * 来源：用 Chrome UA 请求 https://fonts.googleapis.com/css2?family=Inter:wght@400&text=Inter，
+ * 取返回里 src 的地址下载。夹具不放 public/，那里的 woff2 会进 PWA 预缓存。
+ */
+export const PREVIEW_SUBSET_FIXTURE = fileURLToPath(
+  new URL('./fixtures/preview-subset.woff2', import.meta.url),
+)
 
 export interface ProbePixelStats {
   width: number

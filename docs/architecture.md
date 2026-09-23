@@ -34,7 +34,7 @@
 | `src/engine/shaders/` | 四段 fragment shader 源码，一种质感一份 chunk |
 | `src/text/` | 文字量测、换行、自动填满、排版、绘制、明暗判定 |
 | `src/palettes/` | 37 套内置配色、OKLCH 色彩工具、种子色和谐生成 |
-| `src/fonts/` | 精选清单、fontsource 目录缓存与条目查找、按行加载的 css2 与镜像加载链、本地上传注册 |
+| `src/fonts/` | 精选清单与原生名表、fontsource 目录缓存与条目查找、按行加载的 css2 与镜像加载链、字体名预览、本地上传注册 |
 | `src/fonts/family.ts` | font-family 与 canvas font 简写的字符串工具。`src/text` 引用它，`src/fonts` 不引用 `src/text` |
 | `src/graphics/` | 图形来源分派、lucide Path2D、Noto Emoji、上传消毒、五语 emoji 索引、图形绘制 |
 | `src/graphics/generated/` | lucide 全库与精选索引、emoji 基础索引与五语标签，由 `npm run gen:icons` / `gen:emoji` 生成 |
@@ -122,7 +122,7 @@
 繁体界面繁、简、日、韩、拉丁，日文界面日、拉丁、简、繁、韩，韩文界面韩、拉丁、简、繁、日，英文界面拉丁、简、繁、日、韩；
 繁体组同收台湾与香港两类，组内保持 `curated.ts` 的手工顺序，搜索时才按命中强度排。
 打开时高亮该行当前字体在列表里第一次出现的那一项，勾选项带一段只给读屏的“当前”；点中该行当前那款只关弹层，不写配置。
-搜索词与上传报错随面板挂载初始化，关掉再开是干净的。选择器的行与卡片上的字体按钮都用界面字体写名字。
+搜索词与上传报错随面板挂载初始化，关掉再开是干净的。选择器的行与卡片上的字体按钮都用字体自身写名字，见“字体”一节的字体名预览。
 
 顶栏自左向右：品牌、备案号、撤销重做、最近生成、语言、设置、关于。备案号是浅色小字，链到工信部备案系统，
 手机顶栏放不下，改在挑选栏末尾居中一行。最近生成收在顶栏右上角的浮层里，与撤销重做同一处落点：三个都是“回到刚才那一版”。
@@ -258,7 +258,7 @@ flowchart TD
 - `loadFontsForConfig(config)` 对每条并行加载，每款返回 `{ font, via, ok }`：`font` 是输入的那款，界面据它的来源选提示文案；`via` 是实际走的通道（google、mirror、system、upload）。预览、导出、长按图与历史缩略图都走它。加载状态以 `fontKey` 为键，同一款字体只请求一次。
 - `topUpGlyphs(config)` 给已就绪的网络字体补上新出现的字，确实补到时返回 true，预览据此重绘一次。css2 按 `unicode-range` 切片下发，新字所在的切片要再 `load` 一次才会去拉；没就绪或加载失败的字体不补。
 
-目录条目只从 `src/fonts/catalog.ts` 的 `findFontEntry(family)` 同步查：先查精选清单，再查内存目录，按去掉首尾空白后的小写比较。内存目录第一次被访问时从本地缓存解析一次，不看有效期，`fetchCatalog` 拉到新目录时替换；有效期只决定选择器打开时要不要刷新列表，过期条目的 id、字重与版本照样可用。查不到条目时按 family 猜 fontsource id。同一文件的 `weightsOf(family)` 给字重控件用，查不到条目时给一份通用档位；`displayName(family, source)` 是界面上的字体名，上传字体去掉 `-upload` 后缀。
+目录条目只从 `src/fonts/catalog.ts` 的 `findFontEntry(family)` 同步查：先查精选清单，再查内存目录，按去掉首尾空白后的小写比较。内存目录第一次被访问时从本地缓存解析一次，不看有效期，`fetchCatalog` 拉到新目录时替换；有效期只决定选择器打开时要不要刷新列表，过期条目的 id、字重与版本照样可用。查不到条目时按 family 猜 fontsource id。同一文件的 `weightsOf(family)` 给字重控件用，查不到条目时给一份通用档位；`displayName(family, source)` 是界面上字体名的唯一入口，选择器的行、卡片按钮、预览子集的 `text=` 与搜索都调它：上传字体去掉 `-upload` 后缀，其余有原生名的写原生名，没有的写 family。
 
 | 档 | 来源 | 说明 |
 | --- | --- | --- |
@@ -272,6 +272,19 @@ flowchart TD
 加载失败的字体按 `fontKey` 记进 store 的 `ui.fontFallbacks`。每款失败字体整场会话提示一次，提示里带上字体名，上传字体丢失与网络回落各用一句，两款都失败时两条提示分得清。
 
 上传的 TTF、OTF、WOFF、WOFF2 用 `FontFace` 直接注册，不解析字体文件。注册表在模块级，family 名带 `-upload` 后缀，只在本次会话有效。
+
+字体选择器的每一行与卡片上的字体按钮都用字体自身写名字。系统字体与上传字体直接用自己的 family，本机已有字形，不走网络；Google 字体走预览通道 `src/fonts/preview.ts`，它只依赖 `google.ts` 与 `catalog.ts`，与主加载器隔离。
+
+- 请求：`buildCss2TextUrl(family, weight, text)` 拼 css2 的 `text=` 子集，`text` 是显示名，子集只含这几个字，拉丁名 1 到 2.4 KB，中文名 1.2 到 3.6 KB。字重取该字体离 400 最近的一档并显式写进链接，缺 400 的字体不写字重会被拒。每款单独请求，不合并：`text=` 对整个请求共用，合并后每个 face 都要带所有名字的字形。
+- 注册：`fetch` 样式表，取第一条 `src`，以别名 `fp-<fontsource id>` 建 `FontFace`，不写字重描述符，`load` 成功后才 `document.fonts.add`。别名与画布用的真名互不相干：同名注册一份子集会让 `document.fonts.check` 对没覆盖的字返回 true，污染主加载器的就绪判断。先 load 再 add，`document.fonts.ready` 不被预览拖住。
+- 调度：选择器的每一行在 ref 回调里建自己的 `IntersectionObserver`，root 是这次打开的列表滚动容器，下探半屏，进入视口就请求，请求发出后这一行不再观察。观察器随行建销，弹层重开时跟着新的列表节点重建。卡片按钮一直可见，挂载即请求。每款字体整场会话只请求一次，成功与失败都记住；`fetch` 带 `priority: 'low'`，不与画布字体抢带宽。不排队、不设并发上限：样式重算按帧合并，同一帧里注册多少个 face 都只重算一次。
+- 就绪态：界面经 `src/app/panels/use-font-preview.ts` 用 `useSyncExternalStore` 订阅预览模块，已加载过的字体第一帧就用别名渲染，重开选择器、搜索后行重新挂载都不闪。
+- 失败：这一行留在界面字体，不提示、不超时、不重试，刷新页面才重来。预览只走 Google，不走镜像：jsDelivr 上没有 `text=` 子集，中文字体按 `unicode-range` 拉整片要贵 20 到 70 倍，而预览失败的样子就是纯文字名。
+- 分块：预览模块随卡片上的字体行进首屏；按可见性请求的那一段在选择器的行组件 `src/app/panels/font-item.tsx` 里，随面板懒加载。
+
+名字格的排法：有原生名的行，原生名用该字体渲染，后面跟一段界面字体的西文 family 小字，原生名至多占行宽 65%，空间不够先截西文；没有原生名的行写西文 family。所有名字都按 16 px 渲染，不按字母高对齐：Google 字体的度量表良莠不齐，按 `cap-height` 对齐会把 Euphoria Script 放大到被行框裁掉，又把 Long Cang 的拉丁字缩小一号。名字格左右各多留 4 px 裁切框，手写体伸出前进宽度的笔画不被切掉；字重写 normal 并关掉 `font-synthesis`，子集取的是字体自己有的一档，浏览器不再合成假粗体。原生名按书写系统标 `lang`（`zh-Hans`、`zh-Hant`、`zh-HK`、`ja`、`ko`），西文名标 `en`，上传字体的文件名不标。预览就绪前是界面字体，就绪后淡入，偏好减少动效时直接换，行高固定不跳。
+
+原生名表 `NATIVE_NAMES` 在 `src/fonts/curated.ts`，以 family 为键。只收作者或发行方渠道查得到的名字，查不到的不收，显示西文 family；新增一条前先用 css2 `text=` 请求这个名字，确认字形全覆盖。系统字体收操作系统自带的本地化名，所属书写系统记在同文件的 `SYSTEM_FONT_SCRIPTS`。表头写来源与核对日期，逐条出处见 `docs/audits/2026-09-23-v8.0-plan-review.md` 附录。原生名不是界面文案，不进五语字典。
 
 ## 配色
 
@@ -326,7 +339,7 @@ staggered-text、preloader），随它们进来的 three、@react-three/fiber、
 
 ## 代码分割与体积
 
-首屏 JS 不设上限，当前实测 256.46 KB gzip，250 KB 只是脚本里的参考线。`npm run budget` 只是报一次数，不再是闸门：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
+首屏 JS 不设上限，当前实测 256.20 KB gzip，250 KB 只是脚本里的参考线。`npm run budget` 只是报一次数，不再是闸门：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
 
 三条规则守住这个上限。
 
@@ -340,8 +353,8 @@ staggered-text、preloader），随它们进来的 three、@react-three/fiber、
 
 | 层 | 命令 | 覆盖 |
 | --- | --- | --- |
-| 单测 | `npm test` | `tests/` 与 `src/` 同名，jsdom 环境，覆盖种子映射、排版与自动填满、补偿独立性、图标排版、SVG 消毒、品牌图形加载、图形绘制消费端、索引结构、明暗判定、体积二分、预览参考层与预览高度存取、数字框对齐与重置、工作台冒烟、字典对齐 |
-| 端到端 | `npm run e2e` | 两个 project：`desktop` 跑 1440 桌面，`iphone-15` 跑设备模拟。覆盖内置图标、emoji、品牌图形、品牌单色切换、上传 SVG、双列工作台、桌面首屏四节不溢出且画框不超 640、预览区无滚动条、折叠组展开后的滑杆与重置钮、垂直补偿落存档、操作条三格与随机配色只换配色、图标移除钮清空回空态、顶栏设置里的恢复默认、主题与参考层、备案号、手机分隔条拖拽留存、手机底部抽屉、存档刷新恢复、网格开关留存、字号自动态切手动、关于页独立成页、赞赏区渲染、炫技层背景、微信长按保存与既有导出路径 |
+| 单测 | `npm test` | `tests/` 与 `src/` 同名，jsdom 环境，覆盖种子映射、排版与自动填满、补偿独立性、图标排版、SVG 消毒、品牌图形加载、图形绘制消费端、索引结构、明暗判定、体积二分、预览参考层与预览高度存取、数字框对齐与重置、字体名预览的请求与注册、工作台冒烟、字典对齐 |
+| 端到端 | `npm run e2e` | 两个 project：`desktop` 跑 1440 桌面，`iphone-15` 跑设备模拟。覆盖内置图标、emoji、品牌图形、品牌单色切换、上传 SVG、双列工作台、桌面首屏四节不溢出且画框不超 640、预览区无滚动条、折叠组展开后的滑杆与重置钮、垂直补偿落存档、操作条三格与随机配色只换配色、图标移除钮清空回空态、顶栏设置里的恢复默认、主题与参考层、备案号、手机分隔条拖拽留存、手机底部抽屉、存档刷新恢复、网格开关留存、字号自动态切手动、字体名预览、关于页独立成页、赞赏区渲染、炫技层背景、微信长按保存与既有导出路径 |
 | 视觉 | `npm run screenshots` | 桌面 1440、iPhone 15、iPhone SE 三个设备各截深浅两套主题，输出到 `.screenshots/` |
 
 headless chromium 默认没有 GPU，WebGL2 靠 `--use-angle=swiftshader` 等启动参数走软件渲染。`devices['iPhone 15']` 的默认浏览器是 webkit，project 里必须显式覆盖成 chromium，否则那几个参数不生效。

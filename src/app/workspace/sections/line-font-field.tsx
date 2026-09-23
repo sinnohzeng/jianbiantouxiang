@@ -4,6 +4,9 @@
  * 第二行默认跟随第一行：标签后的“跟随”钮点亮，按钮写第一行那款、文字用次要前景色。
  * 在这一行换字体或字重就独立，写入只经 config.ts 的 withLine1Font、withLine2Font 与 FOLLOW_LINE1。
  *
+ * 按钮上的名字用字体自身渲染：Google 字体用字体名预览的别名，挂载即请求，就绪前与失败时是界面字体；
+ * 系统字体与上传字体用自己的 family。字重只由右边的下拉表达，名字一律写 normal。
+ *
  * 字体选择器按行打开。桌面是锚在按钮下方的 Popover，外壳常驻，面板懒加载、弹层关闭即卸载；
  * 手机是底部抽屉，连同面板整块懒加载，点过一次才挂上，之后常驻，关闭动画才放得完。
  */
@@ -21,7 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { displayName, weightsOf } from '@/fonts/catalog'
+import { displayName, findFontEntry, nameLang, weightsOf } from '@/fonts/catalog'
+import { fontFamilyStack } from '@/fonts/family'
 import { useIsMobile } from '@/hooks/use-media'
 import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
@@ -35,6 +39,7 @@ import {
 } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { FontPickerDrawerLazy, FontPickerPanelLazy } from '@/app/panels/lazy'
+import { FONT_NAME_CLASS, useEagerPreview } from '@/app/panels/use-font-preview'
 
 const TRIGGER_CLASS = cn(
   buttonVariants({ variant: 'outline' }),
@@ -69,6 +74,10 @@ export function LineFontField({ line }: { line: 1 | 2 }) {
   const following = line === 2 && typography.line2.font === null
   const weights = weightsOf(font.family)
   const fallback = fallbacks.includes(fontKey(font))
+  // 按钮一直可见，Google 字体挂载即请求预览；系统字体与上传字体直接用自己的 family
+  const alias = useEagerPreview(font.source === 'google' ? findFontEntry(font.family) : undefined)
+  const renderFamily = font.source === 'google' ? alias : font.family
+  const lang = nameLang(font.family, font.source)
   const label = t(line === 1 ? 'panel.text.line1Font' : 'panel.text.line2Font')
 
   const writeWeight = (weight: FontWeight): void => {
@@ -92,7 +101,13 @@ export function LineFontField({ line }: { line: 1 | 2 }) {
         {fallback ? (
           <TriangleAlertIcon aria-hidden className="size-4 text-amber-600 dark:text-amber-400" />
         ) : null}
-        <span id={nameId} className={cn('truncate', following && 'text-muted-foreground')}>
+        <span
+          id={nameId}
+          lang={lang}
+          data-preview={font.source === 'google' && alias ? 'ready' : undefined}
+          style={renderFamily ? { fontFamily: fontFamilyStack(renderFamily) } : undefined}
+          className={cn(FONT_NAME_CLASS, following && 'text-muted-foreground')}
+        >
           {displayName(font.family, font.source)}
         </span>
       </span>

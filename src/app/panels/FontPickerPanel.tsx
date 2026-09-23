@@ -5,8 +5,9 @@
  * 两处共用 `FontPickerPanel`。分组自上而下是已上传、最近使用、精选若干组、全部、系统，最后是上传按钮；
  * 精选按界面语言排组，组内保持 curated.ts 的手工顺序，搜索时才按命中强度排。
  *
- * 过滤交给 searchFonts，关掉 cmdk 自带的过滤。搜索词与上传报错是面板局部状态，
- * 弹层关闭即卸载，重开是干净的。
+ * 面板只管分组、搜索、上传与写入，每一行都是 `FontItem`，名字用字体自身渲染。
+ * 过滤交给 searchFonts，关掉 cmdk 自带的过滤；系统组同时按 family 与显示名匹配。
+ * 搜索词与上传报错是面板局部状态，弹层关闭即卸载，重开是干净的。
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -17,7 +18,6 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
@@ -44,6 +44,7 @@ import {
 } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { ensureCatalog, useFontCatalog } from './font-entries'
+import { FontItem } from './font-item'
 import { pushRecentFont, recentFonts } from './recent-fonts'
 
 /** 全库列表一次最多渲染这么多条，再多靠搜索收窄。 */
@@ -146,7 +147,9 @@ export function FontPickerPanel({ line, onDone }: FontPickerPanelProps) {
 
   const all = useMemo(() => searchFonts(catalog, query, { limit: ALL_LIMIT }), [catalog, query])
 
-  const systemList = SYSTEM_FONTS.filter((family) => matches(family, q))
+  const systemList = SYSTEM_FONTS.filter(
+    (family) => matches(family, q) || matches(displayName(family, 'system'), q),
+  )
 
   const isCurrent = (family: string, source: FontSource): boolean =>
     current.family === family && current.source === source
@@ -204,28 +207,17 @@ export function FontPickerPanel({ line, onDone }: FontPickerPanelProps) {
     }
   }
 
-  const currentMark = <span className="sr-only">{t('font.current')}</span>
-
-  const renderItem = (value: string, name: string, checked: boolean, onSelect: () => void) => (
-    <CommandItem
-      key={value}
-      value={value}
-      data-checked={checked || undefined}
-      className="min-h-11 lg:min-h-9"
-      onSelect={onSelect}
-    >
-      <span className="truncate">{name}</span>
-      {checked ? currentMark : null}
-    </CommandItem>
+  const renderEntry = (entry: FontEntry, groupKey: string) => (
+    <FontItem
+      key={`${groupKey}:${entry.id}`}
+      value={`${groupKey}:${entry.id}`}
+      family={entry.family}
+      source="google"
+      entry={entry}
+      checked={isCurrent(entry.family, 'google')}
+      onSelect={() => chooseEntry(entry)}
+    />
   )
-
-  const renderEntry = (entry: FontEntry, groupKey: string) =>
-    renderItem(
-      `${groupKey}:${entry.id}`,
-      displayName(entry.family, 'google'),
-      isCurrent(entry.family, 'google'),
-      () => chooseEntry(entry),
-    )
 
   return (
     <Command shouldFilter={false} defaultValue={currentValue} className="min-h-0">
@@ -241,14 +233,16 @@ export function FontPickerPanel({ line, onDone }: FontPickerPanelProps) {
 
         {uploaded.length > 0 ? (
           <CommandGroup heading={t('font.uploaded')}>
-            {uploaded.map((item) =>
-              renderItem(
-                `upload:${item.family}`,
-                displayName(item.family, 'upload'),
-                isCurrent(item.family, 'upload'),
-                () => choose(item.family, 'upload', weightsOf(item.family)),
-              ),
-            )}
+            {uploaded.map((item) => (
+              <FontItem
+                key={`upload:${item.family}`}
+                value={`upload:${item.family}`}
+                family={item.family}
+                source="upload"
+                checked={isCurrent(item.family, 'upload')}
+                onSelect={() => choose(item.family, 'upload', weightsOf(item.family))}
+              />
+            ))}
           </CommandGroup>
         ) : null}
 
@@ -273,14 +267,16 @@ export function FontPickerPanel({ line, onDone }: FontPickerPanelProps) {
 
         {systemList.length > 0 ? (
           <CommandGroup heading={t('font.system')}>
-            {systemList.map((family) =>
-              renderItem(
-                `system:${family}`,
-                displayName(family, 'system'),
-                isCurrent(family, 'system'),
-                () => choose(family, 'system', weightsOf(family)),
-              ),
-            )}
+            {systemList.map((family) => (
+              <FontItem
+                key={`system:${family}`}
+                value={`system:${family}`}
+                family={family}
+                source="system"
+                checked={isCurrent(family, 'system')}
+                onSelect={() => choose(family, 'system', weightsOf(family))}
+              />
+            ))}
           </CommandGroup>
         ) : null}
 

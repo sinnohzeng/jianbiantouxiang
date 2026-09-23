@@ -7,6 +7,9 @@
  *
  * 全程只装一个实例，用例之间只清空内容，测试文件因此可以在模块顶层引用它并 spy 方法。
  * 要验“宿主根本没有 localStorage”的分支，在用例里 `vi.stubGlobal('localStorage', undefined)`。
+ *
+ * jsdom 没有 IntersectionObserver。这里装一个惰性替身，observe 之后从不回调，
+ * 字体选择器的行因此不会发预览请求；要验预览链路的用例自己 `vi.stubGlobal` 一个会回调的。
  */
 
 import { beforeEach } from 'vitest'
@@ -36,6 +39,25 @@ export const memoryStorage: Storage = createMemoryStorage()
 
 Object.defineProperty(globalThis, 'localStorage', {
   value: memoryStorage,
+  configurable: true,
+  writable: true,
+})
+
+class InertIntersectionObserver implements IntersectionObserver {
+  readonly root = null
+  readonly rootMargin = '0px'
+  readonly scrollMargin = '0px'
+  readonly thresholds = [0]
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return []
+  }
+}
+
+Object.defineProperty(globalThis, 'IntersectionObserver', {
+  value: InertIntersectionObserver,
   configurable: true,
   writable: true,
 })

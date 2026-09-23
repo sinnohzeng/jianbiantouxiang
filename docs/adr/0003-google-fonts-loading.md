@@ -1,6 +1,6 @@
 # ADR-0003 字体：Google Fonts 动态加载与 FontFace，取代内置字体与轮廓化
 
-- 状态：已采纳
+- 状态：已采纳；“不用 css2 的 `text=` 参数”一条的理由由 [ADR-0007](0007-font-name-preview.md) 修订
 - 日期：2026-08-29
 
 ## 背景

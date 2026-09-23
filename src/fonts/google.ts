@@ -5,6 +5,7 @@
  * 浏览器只拉文字实际用到的切片，常用汉字所在的切片 24 到 43 KB。
  * 不加 `text=` 参数：文字每改一个字就是一份新子集，CSS 只缓存一天；
  * 按 unicode-range 切的静态字体文件缓存一年，换了文字也能复用。
+ * 字体名预览是另一条路：名字固定不变，用 `text=` 只取名字那几个字，见 buildCss2TextUrl 与 preview.ts。
  *
  * 镜像链路走 jsDelivr 上 fontsource 的 npm 包路径。同一份字体，
  * `/fontsource/css/<id>@latest/<weight>.css` 的 CJK 分片没有 unicode-range，
@@ -51,6 +52,15 @@ export function buildCss2Url(family: string, weights: readonly number[]): string
   const list = normalizeWeights(weights)
   const spec = `${encodeFamily(family)}:wght@${list.join(';')}`
   return `${GOOGLE_CSS2_ENDPOINT}?family=${spec}&display=swap`
+}
+
+/**
+ * 字体名预览用的 css2 子集链接：只含 text 里那几个字的字形，拉丁名 1 到 2.4 KB，中文名 1.2 到 3.6 KB。
+ * weight 必须显式写：不写时 Google 按 400 字重取，字体没有这一档就回 HTTP 400。
+ * 不带 display：预览只取返回里的 src，自己注册 FontFace。
+ */
+export function buildCss2TextUrl(family: string, weight: number, text: string): string {
+  return `${GOOGLE_CSS2_ENDPOINT}?family=${encodeFamily(family)}:wght@${weight}&text=${encodeURIComponent(text)}`
 }
 
 /** 单个镜像主机上的样式表地址，每个字重一条。 */

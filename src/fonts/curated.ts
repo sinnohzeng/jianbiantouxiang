@@ -4,9 +4,12 @@
  * 包元数据的 latest 标签，2026-08-31 核对。chiron-sung-hk 没有 npm 包，镜像回落 latest。
  * 中文部分覆盖 Google Fonts 上全部带 chinese-* subset 的字体，
  * 目录接口拉不到时 fetchCatalog 直接回落到这里。
+ *
+ * 文件末尾的原生名表 NATIVE_NAMES 另有来源：2026-09-23 核对，逐条出处见
+ * docs/audits/2026-09-23-v8.0-plan-review.md 附录。
  */
 
-import type { FontEntry } from './catalog'
+import type { CjkScript, FontEntry } from './catalog'
 
 export const CURATED_FONTS: FontEntry[] = [
   {
@@ -470,3 +473,61 @@ export const SYSTEM_FONTS: readonly string[] = [
   'Hiragino Sans',
   'Apple SD Gothic Neo',
 ]
+
+/**
+ * 原生名：字体在自己书写系统里的正式名，以 family 为键，界面上显示它而不是西文 family。
+ *
+ * 来源与核对日期：2026-09-23，逐条出处见 docs/audits/2026-09-23-v8.0-plan-review.md 附录。
+ * 只收作者或发行方渠道查得到的名字，每个名字都用 css2 `text=` 请求过，字形全覆盖；
+ * 查不到的不收，这些字体显示西文 family。
+ * 系统字体收操作系统自带的本地化名，它们用本机字形渲染，不走网络。
+ */
+export const NATIVE_NAMES: Readonly<Record<string, string>> = {
+  // 简体
+  'WDXL Lubrifont SC': '滑油字',
+  'ZCOOL KuaiLe': '站酷快乐体',
+  'ZCOOL QingKe HuangYou': '站酷庆科黄油体',
+  'ZCOOL XiaoWei': '站酷小薇LOGO体',
+  'Zhi Mang Xing': '钟齐志莽行书',
+  // 繁体
+  'Bpmf Huninn': '粉圓',
+  'Bpmf Iansui': '芫荽',
+  'Bpmf Zihi Kai Std': '字嗨注音標楷',
+  'Cactus Classical Serif': '仙人掌明體',
+  'Chiron GoRound TC': '昭源環方',
+  'Chiron Hei HK': '昭源黑體',
+  'Chocolate Classical Sans': '朱古力黑體',
+  Huninn: '粉圓',
+  Iansui: '芫荽',
+  'LXGW Marker Gothic': '霞鶩漫黑',
+  'LXGW WenKai TC': '霞鶩文楷 TC',
+  UoqMunThenKhung: '宇文天穹',
+  'WDXL Lubrifont TC': '滑油字',
+  // 香港
+  'Chiron Sung HK': '昭源宋體',
+  // 日文
+  'Shippori Mincho': 'しっぽり明朝',
+  'Rampart One': 'ランパート',
+  'Yuji Syuku': '佑字肅',
+  'Hachi Maru Pop': 'はちまるポップ',
+  // 韩文
+  'Black Han Sans': '검은고딕',
+  'Do Hyeon': '도현체',
+  Jua: '주아체',
+  'Gowun Dodum': '고운돋움',
+  'Nanum Myeongjo': '나눔명조',
+  'Gasoek One': '가석체',
+  // 系统字体
+  'PingFang SC': '苹方-简',
+  'Microsoft YaHei': '微软雅黑',
+  'Hiragino Sans': 'ヒラギノ角ゴシック',
+  'Apple SD Gothic Neo': '애플 SD 산돌고딕 Neo',
+}
+
+/** 带原生名的系统字体所属的书写系统，给原生名那一格标 lang。Google 字体的书写系统在目录条目的 cjk 上。 */
+export const SYSTEM_FONT_SCRIPTS: Readonly<Record<string, CjkScript>> = {
+  'PingFang SC': 'sc',
+  'Microsoft YaHei': 'sc',
+  'Hiragino Sans': 'jp',
+  'Apple SD Gothic Neo': 'kr',
+}

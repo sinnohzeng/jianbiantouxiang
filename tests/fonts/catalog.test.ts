@@ -10,6 +10,8 @@ import {
   displayName,
   fetchCatalog,
   findFontEntry,
+  langOfScript,
+  nameLang,
   searchFonts,
   toFontEntry,
   weightsOf,
@@ -299,10 +301,64 @@ describe('weightsOf', () => {
 })
 
 describe('displayName', () => {
-  it('上传字体去掉命名空间后缀，其余原样', () => {
+  it('上传字体去掉命名空间后缀，名字里的中文照原样', () => {
     expect(displayName('My Font-upload', 'upload')).toBe('My Font')
+    expect(displayName('站酷快乐体-upload', 'upload')).toBe('站酷快乐体')
+  })
+
+  it('Google 字体有原生名写原生名，没有的写 family', () => {
+    expect(displayName('ZCOOL KuaiLe', 'google')).toBe('站酷快乐体')
     expect(displayName('Inter', 'google')).toBe('Inter')
-    expect(displayName('PingFang SC', 'system')).toBe('PingFang SC')
     expect(displayName('Tail-upload', 'google')).toBe('Tail-upload')
+  })
+
+  it('系统字体写本地化名', () => {
+    expect(displayName('PingFang SC', 'system')).toBe('苹方-简')
+    expect(displayName('Hiragino Sans', 'system')).toBe('ヒラギノ角ゴシック')
+    expect(displayName('system-ui', 'system')).toBe('system-ui')
+  })
+
+  it('原型链上的键不当成原生名', () => {
+    expect(displayName('constructor', 'google')).toBe('constructor')
+  })
+})
+
+describe('按原生名搜索', () => {
+  const list = [
+    toFontEntry({
+      id: 'zcool-kuaile',
+      family: 'ZCOOL KuaiLe',
+      category: 'display',
+      subsets: ['chinese-simplified', 'latin'],
+      weights: [400],
+      type: 'google',
+    }),
+    toFontEntry(RAW[1]),
+  ].filter((entry): entry is FontEntry => entry !== null)
+
+  it('原生名的前缀与片段都能命中，西文 family 照样能搜', () => {
+    expect(searchFonts(list, '站酷').map((f) => f.id)).toEqual(['zcool-kuaile'])
+    expect(searchFonts(list, '快乐').map((f) => f.id)).toEqual(['zcool-kuaile'])
+    expect(searchFonts(list, 'kuaile').map((f) => f.id)).toEqual(['zcool-kuaile'])
+  })
+})
+
+describe('langOfScript 与 nameLang', () => {
+  it('五种书写系统各有语言标签', () => {
+    expect(langOfScript('sc')).toBe('zh-Hans')
+    expect(langOfScript('tc')).toBe('zh-Hant')
+    expect(langOfScript('hk')).toBe('zh-HK')
+    expect(langOfScript('jp')).toBe('ja')
+    expect(langOfScript('kr')).toBe('ko')
+  })
+
+  it('原生名按书写系统标，西文 family 标 en，上传字体不标', () => {
+    expect(nameLang('ZCOOL KuaiLe', 'google')).toBe('zh-Hans')
+    expect(nameLang('Chiron Sung HK', 'google')).toBe('zh-HK')
+    expect(nameLang('Jua', 'google')).toBe('ko')
+    expect(nameLang('Apple SD Gothic Neo', 'system')).toBe('ko')
+    expect(nameLang('Noto Sans SC', 'google')).toBe('en')
+    expect(nameLang('system-ui', 'system')).toBe('en')
+    expect(nameLang('Brush-upload', 'upload')).toBeUndefined()
   })
 })

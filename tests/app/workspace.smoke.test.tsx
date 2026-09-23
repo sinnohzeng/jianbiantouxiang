@@ -11,6 +11,7 @@ import ja from '@/i18n/ja.json'
 import { I18nProvider, LOCALE_STORAGE_KEY } from '@/i18n'
 import { CATALOG_CACHE_KEY, clearCatalogCache } from '@/fonts/catalog'
 import { fontJobs, type FontLoadResult } from '@/fonts/loader'
+import { resetPreviewState } from '@/fonts/preview'
 import { clearUploadedFonts, registerUploadedFont } from '@/fonts/upload'
 import { PreviewStage } from '@/app/PreviewStage'
 import { ExportDrawer } from '@/app/panels/ExportDrawer'
@@ -75,10 +76,17 @@ function config(): AvatarConfig {
 
 beforeEach(() => {
   useAvatarStore.setState({ config: DEFAULT_CONFIG, history: [], ui: { ...DEFAULT_UI } })
+  // 卡片上的字体按钮挂载即请求字体名预览，这里不让它出网，预览记为失败，名字留在界面字体
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => new Response('', { status: 404 })),
+  )
 })
 
 afterEach(() => {
   cleanup()
+  vi.unstubAllGlobals()
+  resetPreviewState()
 })
 
 function firstLine(container: HTMLElement): HTMLInputElement {
@@ -718,6 +726,106 @@ describe('FontPickerPanel', () => {
       source: 'upload',
       weight: 700,
     })
+  })
+})
+
+describe('字体名预览', () => {
+  const SUBSET_CSS =
+    "@font-face { font-family: 'X'; src: url(https://fonts.gstatic.com/l/subset.woff2) format('woff2'); }"
+
+  /** observe 即以相交回调，行一挂上就请求预览。 */
+  class VisibleIntersectionObserver {
+    private readonly callback: IntersectionObserverCallback
+    constructor(callback: IntersectionObserverCallback) {
+      this.callback = callback
+    }
+    observe(target: Element): void {
+      this.callback(
+        [{ isIntersecting: true, target } as IntersectionObserverEntry],
+        this as unknown as IntersectionObserver,
+      )
+    }
+    unobserve(): void {}
+    disconnect(): void {}
+    takeRecords(): IntersectionObserverEntry[] {
+      return []
+    }
+  }
+
+  beforeEach(() => {
+    recentFonts.set([])
+    vi.stubGlobal('IntersectionObserver', VisibleIntersectionObserver)
+    // 带 text= 的是预览子集请求，其余是全库目录：给空目录，回落精选清单
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => new Response(String(url).includes('text=') ? SUBSET_CSS : '[]')),
+    )
+    vi.stubGlobal(
+      'FontFace',
+      class {
+        load() {
+          return Promise.resolve(this)
+        }
+      },
+    )
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: { add: () => {}, delete: () => true },
+    })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    resetPreviewState()
+  })
+
+  /** 某一项的名字格，也就是项里第一个 span。 */
+  function nameCell(value: string): HTMLElement {
+    const item = document.querySelector<HTMLElement>(`[cmdk-item][data-value="${value}"]`)
+    expect(item, value).not.toBeNull()
+    return item!.querySelector<HTMLElement>('span')!
+  }
+
+  it('行滚进视口后换成预览别名渲染', async () => {
+    mount(<FontPickerPanel line={1} onDone={vi.fn()} />)
+    const cell = nameCell('font.curated.sc:zcool-kuaile')
+    await waitFor(() => expect(cell.getAttribute('data-preview')).toBe('ready'))
+    expect(cell.style.fontFamily.startsWith('"fp-zcool-kuaile"')).toBe(true)
+  })
+
+  it('同一款精选字体在“精选”与“全部”两组写的是同一串字', () => {
+    mount(<FontPickerPanel line={1} onDone={vi.fn()} />)
+    const curated = nameCell('font.curated.sc:zcool-kuaile')
+    const all = nameCell('all:zcool-kuaile')
+    expect(curated.textContent).toBe('站酷快乐体')
+    expect(all.textContent).toBe(curated.textContent)
+  })
+
+  it('原生名那一格按书写系统标 lang，拉丁行标 en', () => {
+    mount(<FontPickerPanel line={1} onDone={vi.fn()} />)
+    expect(nameCell('font.curated.sc:zcool-kuaile').lang).toBe('zh-Hans')
+    expect(nameCell('font.curated.tc:chiron-sung-hk').lang).toBe('zh-HK')
+    expect(nameCell('font.curated.jp:shippori-mincho').lang).toBe('ja')
+    expect(nameCell('font.curated.kr:jua').lang).toBe('ko')
+
+    expect(nameCell('font.curated.latin:inter').lang).toBe('en')
+  })
+
+  it('系统字体用自己的 family 渲染，不请求预览', () => {
+    mount(<FontPickerPanel line={1} onDone={vi.fn()} />)
+    const cell = nameCell('system:PingFang SC')
+    expect(cell.textContent).toBe('苹方-简')
+    expect(cell.style.fontFamily.startsWith('"PingFang SC"')).toBe(true)
+    expect(cell.hasAttribute('data-preview')).toBe(false)
+  })
+
+  it('卡片上的字体按钮就绪后用预览别名写名字', async () => {
+    const { container } = mount(<PickColumn />)
+    const trigger = fontTrigger(container, 1)
+    const name = document.getElementById(trigger.getAttribute('aria-labelledby')!.split(' ')[1]!)!
+    await waitFor(() => expect(name.getAttribute('data-preview')).toBe('ready'))
+    expect(name.style.fontFamily.startsWith('"fp-noto-sans-sc"')).toBe(true)
+    expect(name.lang).toBe('en')
   })
 })
 

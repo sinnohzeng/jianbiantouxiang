@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { CURATED_FONTS } from '@/fonts/curated'
+import { CURATED_FONTS, NATIVE_NAMES, SYSTEM_FONTS, SYSTEM_FONT_SCRIPTS } from '@/fonts/curated'
 import { familyToFontsourceId } from '@/fonts/google'
 
 /** 2026-08-29 从 api.fontsource.org 核对：Google Fonts 上带 chinese-* subset 的全部字体。 */
@@ -72,5 +72,22 @@ describe('CURATED_FONTS', () => {
     const withVersion = CURATED_FONTS.filter((f) => f.version !== undefined)
     expect(withVersion.length).toBe(CURATED_FONTS.length - 1)
     for (const f of withVersion) expect(f.version).toMatch(/^\d+\.\d+\.\d+$/)
+  })
+})
+
+describe('NATIVE_NAMES', () => {
+  it('每个键都是带书写系统的精选字体或系统字体，值非空且不等于键', () => {
+    const cjkFamilies = new Set(CURATED_FONTS.filter((f) => f.cjk).map((f) => f.family))
+    for (const [family, name] of Object.entries(NATIVE_NAMES)) {
+      expect(cjkFamilies.has(family) || SYSTEM_FONTS.includes(family), family).toBe(true)
+      expect(name.trim(), family).not.toBe('')
+      expect(name, family).not.toBe(family)
+    }
+  })
+
+  it('带原生名的系统字体都标了书写系统', () => {
+    for (const family of Object.keys(NATIVE_NAMES).filter((f) => SYSTEM_FONTS.includes(f))) {
+      expect(SYSTEM_FONT_SCRIPTS[family], family).toBeDefined()
+    }
   })
 })

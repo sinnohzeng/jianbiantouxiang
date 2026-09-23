@@ -7,6 +7,7 @@ import { expect, test, type Page } from '@playwright/test'
 import {
   APP_URL,
   POLL_TIMEOUT_MS,
+  PREVIEW_SUBSET_FIXTURE,
   PROBE_TEST_TIMEOUT_MS,
   PROBE_TIMEOUT_MS,
   SETTLE_TIMEOUT_MS,
@@ -268,6 +269,65 @@ test('第二行字体：选择器贴在按钮下方且不盖遮罩，字重下�
   await follow.click()
   await expect(follow).toHaveAttribute('aria-pressed', 'true')
   expect((await probeConfig(page)).typography.line2.font).toBeNull()
+})
+
+test.describe('字体名预览', () => {
+  // Service Worker 截走的请求 page.route 拦不到
+  test.use({ serviceWorkers: 'block' })
+
+  const SUBSET_URL = 'https://fonts.gstatic.com/l/preview-test.woff2'
+
+  test('选择器的行滚进视口后用自己的字体写名字，关掉再打开照样换', async ({ page }) => {
+    // 预览子集请求一律回同一份夹具，记下每次请求的显示名
+    const requested: string[] = []
+    await page.route(
+      (url) => url.hostname === 'fonts.googleapis.com' && url.searchParams.has('text'),
+      (route) => {
+        requested.push(new URL(route.request().url()).searchParams.get('text') ?? '')
+        return route.fulfill({
+          contentType: 'text/css',
+          headers: { 'Access-Control-Allow-Origin': '*' },
+          body: `@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; src: url(${SUBSET_URL}) format('woff2'); }`,
+        })
+      },
+    )
+    await page.route(SUBSET_URL, (route) =>
+      route.fulfill({
+        path: PREVIEW_SUBSET_FIXTURE,
+        contentType: 'font/woff2',
+        headers: { 'Access-Control-Allow-Origin': '*' },
+      }),
+    )
+    await openApp(page)
+
+    // 卡片上的按钮一直可见，挂载即换
+    const trigger = page.locator('[data-slot="text-line1-font"] [data-slot="font-trigger"]')
+    await expect(trigger.locator('[data-preview="ready"]')).toHaveCount(1, {
+      timeout: SETTLE_TIMEOUT_MS,
+    })
+
+    await trigger.click()
+    const popover = page.locator('[data-slot="popover-content"]')
+    const ready = popover.locator('[cmdk-item] [data-preview="ready"]').first()
+    await expect(ready).toBeVisible({ timeout: SETTLE_TIMEOUT_MS })
+    expect(await ready.evaluate((node) => getComputedStyle(node).fontFamily)).toMatch(/^"?fp-/)
+    expect(requested).not.toContain('Pacifico')
+
+    await page.keyboard.press('Escape')
+    await expect(popover).toHaveCount(0)
+
+    // 重开是新的列表节点，观察器跟着新行重建；搜一款第一次打开时没滚到的字体
+    await trigger.click()
+    await popover.locator('[data-slot="command-input"]').fill('Pacifico')
+    const row = popover
+      .locator('[cmdk-item][data-value$=":pacifico"] [data-preview="ready"]')
+      .first()
+    await expect(row).toBeVisible({ timeout: SETTLE_TIMEOUT_MS })
+    expect(await row.evaluate((node) => getComputedStyle(node).fontFamily)).toMatch(
+      /^"?fp-pacifico"?,/,
+    )
+    expect(requested).toContain('Pacifico')
+  })
 })
 
 test('常驻操作条：换一版、随机配色、导出三格', async ({ page }) => {
