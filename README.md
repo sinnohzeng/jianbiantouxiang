@@ -14,7 +14,7 @@
 - **37 套配色**：浅色 21 套、深色 16 套；也可以自定义 2 到 6 个颜色，或给一两个种子色，由 OKLCH 算法生成整套。
 - **文字排版**：最多两行（第一行、第二行），第二行为空只渲染第一行；字号默认自动填满，一拖滑杆就以当前值切成手动，点“自动”回去；默认边距 15%、行高 1.03；第二行字号默认跟随第一行的 62%，也能单独定，两行字号互不牵连；逐行水平、垂直补偿只动自己那一行，其余行字号与位置一个像素都不变；五种文字效果（投影、纯色、描边、发光、胶囊底），默认投影 40% 且深浅字反色适配；五档从白到黑的预设色加自选，文字色就是选的那一个，没有自动挡。
 - **图标**：图标节里一个开关，图标置顶、文字两行自动缩小适配；可搜 lucide 内置图标、按中文搜 emoji，或上传 SVG / PNG / WebP。内置图标跟随文字颜色与效果，emoji 跨平台取同一份 Noto SVG，上传 SVG 会先做白名单消毒且只在本次会话有效。
-- **字体**：Google Fonts 全库按需加载，中文字体按 unicode-range 切片只拉用到的字，Noto Sans SC 整包 1.1 MB，实际只下载其中几十 KB；也能上传本地 TTF、OTF、WOFF、WOFF2。
+- **字体**：Google Fonts 全库按需加载，中文字体按 unicode-range 切片只拉用到的字，Noto Sans SC 整包 1.1 MB，实际只下载其中几十 KB；也能上传本地 TTF、OTF、WOFF、WOFF2。第一行与第二行可以分别选字体与字重，第二行默认跟随第一行。选择器里每个字体名都用这款字体自己写出来，中日韩字体显示原生名，比如站酷快乐体、しっぽり明朝，每款只下载名字那几个字，一两 KB。
 - **画布与导出**：64 到 8192 像素，默认方形，也可切圆角或圆形；JPG（默认压到 2 MB 以内）、PNG、WebP；点主按钮直接触发浏览器下载，导出选项里另有“复制图片”按钮；微信内置浏览器里改为长按图片保存。
 - **预览参考层**：安全区与网格参考线两个开关，在顶栏的设置菜单里，只在预览显示，导出的图上没有；开关状态记在本机。
 - **存档与历史**：配置自动存在本机，刷新即恢复；本地保留最近 8 次结果。
@@ -90,7 +90,7 @@ v3 是整体重写。v2 的 SVG 多层径向渐变、SVG 导出与命令行工�
 
 Gradient Avatar turns a few characters into a soft, luminous gradient avatar, entirely in the browser. Try it at <https://jianbiantouxiang.com>.
 
-What it does: four WebGL2 textures (mesh, flow, silk, and grain without circular ripple seeds); 37 palettes plus OKLCH palette generation from one or two seed colors; any Google Font, with CJK fonts loaded as unicode-range slices; auto-fit typography with 15% padding, 1.03 line height, and per-line size and nudge controls; one-click browser download and PNG clipboard copy; JPG, PNG, and WebP export with a file-size target; safe-area and grid overlays for the preview only; settings persist locally; five UI languages; installable as a PWA.
+What it does: four WebGL2 textures (mesh, flow, silk, and grain without circular ripple seeds); 37 palettes plus OKLCH palette generation from one or two seed colors; any Google Font, with CJK fonts loaded as unicode-range slices, a separate font and weight for each line, and a picker that renders every font name in its own typeface; auto-fit typography with 15% padding, 1.03 line height, and per-line size and nudge controls; one-click browser download and PNG clipboard copy; JPG, PNG, and WebP export with a file-size target; safe-area and grid overlays for the preview only; settings persist locally; five UI languages; installable as a PWA.
 
 Assets: brand graphics come from [dashboard-icons](https://github.com/homarr-labs/dashboard-icons) (Apache-2.0); every brand name and logo remains the trademark of its owner, and their inclusion implies no affiliation or endorsement.
 

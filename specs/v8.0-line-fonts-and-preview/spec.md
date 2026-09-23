@@ -1,6 +1,6 @@
 # 逐行字体与字体名预览 v8.0 规约（造什么）
 
-状态：定稿，按 `plan.md` 实施。评审轮的发现与处置见 `docs/audits/2026-09-23-v8.0-plan-review.md`。
+状态：已封存。与实到实现的差异见文末“实到范围”，现状以常驻文档与代码为准。评审轮的发现与处置见 `docs/audits/2026-09-23-v8.0-plan-review.md`。
 
 ## 1. 目标
 
@@ -250,3 +250,16 @@ typography: {
 - 1440×900 桌面首屏四张卡片底边在视口内，两个挑选子列不溢出；手机端字体行控件与“跟随”钮的触控高度不低于 44 px。
 - cmdk、选择器面板与手机抽屉不进首屏入口 chunk。
 - 闸门五步全绿，e2e 两档全绿。
+
+## 实到范围
+
+按规约做完，随 8.0.0 发布，见 `CHANGELOG.md`。与正文有出入的地方：
+
+- D6：没有原生名的行不加 `font-size-adjust`，所有名字一律 16 px。收尾截图发现 Euphoria Script 按大写字母高对齐后被放大到上下都被行框裁掉，15 款样本碰不到这类离群值。
+- D6：偏好减少动效用 `motion-safe:` 前缀包住淡入。计划写的 `motion-reduce:animate-none` 优先级低于 `data-[preview=ready]:animate-in`，挡不住淡入。
+- D6：系统字体没有目录条目，原生名的 `lang` 靠新增的 `SYSTEM_FONT_SCRIPTS` 与 `nameLang(family, source)` 给出；上传字体的名字来自文件名，不标 `lang`。
+- D7：按可见性请求的 `useFontPreview` 放在 `font-item.tsx`，不在 `use-font-preview.ts`，后者被首屏的卡片按钮引用。`preview.ts` 另导出 `isPreviewRequested`，请求过的字体不再挂观察器。
+- D5：桌面弹层直接组 Base UI 的 Positioner 与 Popup，外观照抄 `ui/popover`，因为 `PopoverContent` 不转发 `collisionAvoidance`。桌面第一次打开时面板 chunk 还在加载，焦点先落在弹层上，第二次打开起才进搜索框。
+- D8：`twoLinesOf` 放在 `config.ts`，`cssPx` 放在 `src/lib/canvas.ts`，`src/fonts` 因此不引用 `src/text`；`curated.ts` 的查表函数删掉，条目一律经 `findFontEntry`。
+- D8：`PreviewStage` 的加载态是派生值，记 `fontsReadyFor`，与当前 `fontSetKey` 对不上就算加载中，不是计划写的局部三态。
+- D4：选系统字体或上传字体时字重同样吸附到真实档位，查不到条目时用 300 到 900。

@@ -1,5 +1,47 @@
 # 工程踩坑与经验
 
+## 逐行字体与字体名预览（v8.0，2026-09-23）
+
+### 外部服务的实测结论会过期，复用前先用浏览器 UA 复测
+
+ADR-0003 写着“css2 的 `text=` 在 Noto CJK 上不生效，Noto Sans SC 700 仍返回 4.6 MB”，这条 2026-08-29 的结论在主链路与字体一节的注释里被当作前提沿用。2026-09-23 用 Chrome 的 UA 复测，同一请求只回 2 KB 左右的 woff2。Google 字体按 UA 下发不同格式：curl 默认 UA 拿到 truetype 且没有 `unicode-range`，Safari 与 Firefox 拿到 woff，只有 Chromium 系拿到 woff2。规则：引用仓内任何一条对外部服务的实测结论之前，用浏览器 UA 重跑一次原命令，结论与出处日期一起写；推翻时在原 ADR 的状态行注明被哪一份修订。
+
+### 预览用的字体子集必须用别名注册
+
+把 ZCOOL KuaiLe 的 `text=飞书` 子集用真名注册以后，`document.fonts.check('32px "ZCOOL KuaiLe"', '永')` 返回 true，`load()` resolve 空数组，加载器据此判定“永”字已就绪，画布却画出回退字形。`FontFaceSet` 按 family 名匹配，不区分同名 face 各自覆盖了哪些字。规则：任何只含部分字形的 face 都用独立的 family 名注册，本仓预览用 `fp-<fontsource id>`；不用 `<link>` 注入 css2 样式表，那条路径注册的是真名。
+
+### 给 FontFace 注册排队限流是负优化
+
+计划初稿按“每注册一个 face 整份文档重算一次样式”给预览请求加了 FIFO 队列与 6 路并发上限。评审实测（4 倍降速，200 行别名字体加 2000 个节点）：每注册一个就强制读一次样式，40 次共 219 ms；连续注册 40 个再读一次只要 5 ms；分散在 40 个任务里注册再读一次是 6.3 ms。样式失效是累积的，到下一次读样式时统一重算，成本按帧计。限流只会把完成时刻摊到更多帧，还拖慢首屏。判据：为渲染成本加调度之前，先量“同一帧批量”与“逐个强制 flush”两种情形的差。
+
+### 按字体度量对齐字号，样本要碰得到离群值
+
+规约按 15 款西文字体实测，给选择器里没有原生名的行加了 `font-size-adjust: cap-height 0.7`，15 款都落在 13.2 到 19.2 px。收尾截图时搜“script”，Euphoria Script 被放大到上下都被行框裁掉。`font-size-adjust` 按字体自报的大写字母高换算，Google 字体目录两千来款，这项度量参差不齐，15 款挑出来的常见字体碰不到离群值。改回所有名字一律 16 px，Google Fonts 与 Figma 的字体列表也是这样，字体之间大小不一本身就是字体的样子。判据：依赖字体度量表的样式，要么拿全目录量一遍离群值，要么不用。
+
+### 存档键只在一处定义，端到端测试经探针读配置
+
+存档键升级时，e2e 里有五处写着字面值 `gradient-avatar:v3`。改成引用常量看似顺手，但 `page.evaluate(() => …)` 的函数体会被序列化到页面里执行，模块常量不在作用域内，typecheck 与 lint 都能过，运行时才抛 ReferenceError。更根本的问题是测试不该认识存档格式：`?probe=1` 探针加了 `config()` 与 `flush()`，读配置走前者，刷新恢复用例先调后者再 reload。之后再升键，测试一行不用改。
+
+### shadcn CLI 在本仓生成组件前后各查一次
+
+`shadcn add select` 连出两个问题。一是根 `tsconfig.json` 没有 `paths`，CLI 经 tsconfig-paths 读根配置，把文件写到了仓库根目录的 `./@/components/ui/select.tsx`；用 `TS_NODE_PROJECT=tsconfig.app.json ./node_modules/.bin/shadcn add <item>` 指向应用配置即可。二是上游 base-nova 注册表的 select 条目自己写着 `import { cn } from "cn"`，还声明了 npm 依赖 `cn`，CLI 照做，装上一个无关的包。规则：生成后看一眼 `git status` 与新文件的 import，`cn` 必须来自 `@/lib/utils`，`package.json` 不应多出依赖；这一行 import 的改正不算手改生成件。
+
+### Base UI Popover 的碰撞回退默认会翻到侧面
+
+锚在字体按钮下方的选择器第一帧就翻到按钮右侧并停在那里，e2e 量到 `data-side="right"`。原因是 Positioner 的 `collisionAvoidance.fallbackAxisSide` 默认 `'end'`，弹层初次测量时高度还没收敛，判定下方放不下就换了轴。改成 `{ fallbackAxisSide: 'none' }` 并让列表高度跟 `--available-height` 收缩，弹层始终贴在按钮下方。shadcn 的 `PopoverContent` 不转发这个参数，需要这样定位时在调用方直接组 Positioner 与 Popup。
+
+### 跑 e2e 之前看一眼 4173 端口上是谁
+
+Playwright 的 `reuseExistingServer` 在本地为真，截图脚本也固定连 4173。本轮发现一个几小时前起的 `vite preview` 一直挂着，切片 A 的全量 e2e 与切片 B 子智能体跑的单条 e2e 都复用了它。规则：跑 e2e 或截图前 `lsof -nP -iTCP:4173 -sTCP:LISTEN` 看进程启动时间，早于这次 build 的就停掉，让 Playwright 自己起。
+
+### 并行调研智能体共用一台机器，临时文件与浏览器要有纪律
+
+调研阶段三路智能体并行，其中一路把抓下来的 `h.txt` 与 `r.css` 写在仓库根目录，还关掉了其他智能体正在用的 Playwright MCP 浏览器。规则已写进 `docs/contributing.md` 的“智能体协作”：临时文件只写会话草稿目录；不关闭共享浏览器；派活的 prompt 里把这两条写明。
+
+### 实现子智能体中途卡住，续跑比重开便宜
+
+切片 A 的实现智能体在改了 28 个文件之后流卡住 600 s 被掐断。用原智能体的 id 发消息续跑，它带着完整上下文从断点接着做完，没有重做任何一步。重开一个新智能体要重新读规约、计划与 28 个半成品文件。派活时写明“每次工具调用保持小而快，不一次写出巨型文件，不跑长时间无输出的命令”，之后两片没有再卡。
+
 ## 工作台致密化与债务清理（v6.0，2026-09-10）
 
 ### justify-between 遇上可变宽的兄弟元素，对齐必然破
