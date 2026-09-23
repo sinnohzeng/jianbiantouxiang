@@ -233,9 +233,12 @@ export async function fetchCatalog(opts?: {
 }
 
 export interface SearchOptions {
-  cjk?: CjkScript | 'any' | 'none'
+  /** 按书写系统过滤：给一个或一组脚本只留这些，'none' 只留非中日韩字体。 */
+  cjk?: CjkScript | readonly CjkScript[] | 'any' | 'none'
   recent?: readonly string[]
   limit?: number
+  /** 查询为空时保持列表原序，精选清单的手工顺序靠它留住；有查询时照常按命中强度排。 */
+  keepOrder?: boolean
 }
 
 function normalize(text: string): string {
@@ -263,22 +266,26 @@ export function searchFonts(
 ): FontEntry[] {
   const q = normalize(query)
   const cjk = opts?.cjk ?? 'any'
+  const scripts: readonly CjkScript[] | null =
+    cjk === 'any' || cjk === 'none' ? null : typeof cjk === 'string' ? [cjk] : cjk
   const recent = (opts?.recent ?? []).map((f) => normalize(f))
 
   const scored: { entry: FontEntry; s: number; recentAt: number }[] = []
   for (const entry of list) {
     if (cjk === 'none' && entry.cjk) continue
-    if (cjk !== 'any' && cjk !== 'none' && entry.cjk !== cjk) continue
+    if (scripts && (!entry.cjk || !scripts.includes(entry.cjk))) continue
     const s = score(entry, q)
     if (s === 0) continue
     const recentAt = recent.indexOf(normalize(entry.family))
     scored.push({ entry, s, recentAt: recentAt < 0 ? Number.MAX_SAFE_INTEGER : recentAt })
   }
 
-  scored.sort(
-    (a, b) =>
-      a.recentAt - b.recentAt || b.s - a.s || a.entry.family.localeCompare(b.entry.family, 'en'),
-  )
+  if (!(opts?.keepOrder && q === '')) {
+    scored.sort(
+      (a, b) =>
+        a.recentAt - b.recentAt || b.s - a.s || a.entry.family.localeCompare(b.entry.family, 'en'),
+    )
+  }
 
   const limit = opts?.limit
   const out = scored.map((x) => x.entry)

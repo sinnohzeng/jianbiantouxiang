@@ -139,3 +139,23 @@ describe('对齐', () => {
     expect(container.querySelector('[data-slot="slider-reset"]')).toBeNull()
   })
 })
+
+describe('自动档', () => {
+  it('手动态点一下回到自动，可访问名用带行名的全称', () => {
+    const onReset = vi.fn()
+    renderField({
+      auto: { active: false, label: '跟随', ariaLabel: '第二行字号跟随第一行', onReset },
+    })
+    const button = screen.getByRole('button', { name: '第二行字号跟随第一行' })
+    expect(button.getAttribute('data-slot')).toBe('slider-auto')
+    fireEvent.click(button)
+    expect(onReset).toHaveBeenCalledTimes(1)
+  })
+
+  it('自动态再点不回调', () => {
+    const onReset = vi.fn()
+    renderField({ auto: { active: true, label: '自动', onReset } })
+    fireEvent.click(screen.getByRole('button', { name: '自动' }))
+    expect(onReset).not.toHaveBeenCalled()
+  })
+})

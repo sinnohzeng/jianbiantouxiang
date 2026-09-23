@@ -461,3 +461,12 @@ export const CURATED_FONTS: FontEntry[] = [
     weights: [400],
   },
 ]
+
+/** 系统字体：不走网络，直接用本机已有的字形，选择器的“系统字体”一组列的就是这几款。 */
+export const SYSTEM_FONTS: readonly string[] = [
+  'system-ui',
+  'PingFang SC',
+  'Microsoft YaHei',
+  'Hiragino Sans',
+  'Apple SD Gothic Neo',
+]

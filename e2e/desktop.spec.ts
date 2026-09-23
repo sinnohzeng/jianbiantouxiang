@@ -233,6 +233,43 @@ test('位置微调组能拖垂直补偿，配置里落第一行的 offsetY', asy
   expect((await probeConfig(page)).typography.line1.offsetY).not.toBe(0)
 })
 
+test('第二行字体：选择器贴在按钮下方且不盖遮罩，字重下拉改第二行，跟随钮回到第一行', async ({
+  page,
+}) => {
+  await openApp(page)
+  const field = page.locator('[data-slot="text-line2-font"]')
+  const trigger = field.locator('[data-slot="font-trigger"]')
+
+  await trigger.click()
+  const popover = page.locator('[data-slot="popover-content"]')
+  await expect(popover.locator('[data-slot="command-input"]')).toBeVisible()
+  // 进场带缩放与位移，等动画放完再量
+  await popover.evaluate((node) => Promise.all(node.getAnimations().map((a) => a.finished)))
+  const [anchor, panel] = await Promise.all([trigger.boundingBox(), popover.boundingBox()])
+  expect(panel!.y).toBeGreaterThanOrEqual(anchor!.y + anchor!.height - 0.5)
+  expect(Math.abs(panel!.x - anchor!.x)).toBeLessThanOrEqual(1)
+  await expect(
+    page.locator('[data-slot$="-overlay"], div[role="presentation"][data-base-ui-inert]'),
+  ).toHaveCount(0)
+
+  await page.keyboard.press('Escape')
+  await expect(popover).toHaveCount(0)
+
+  await page.getByRole('combobox', { name: '第二行字重' }).click()
+  await page.getByRole('option', { name: /常规/ }).click()
+  await expect
+    .poll(async () => (await probeConfig(page)).typography.line2.font?.weight, {
+      timeout: POLL_TIMEOUT_MS,
+    })
+    .toBe(400)
+
+  const follow = field.locator('[data-slot="font-follow"]')
+  await expect(follow).toHaveAttribute('aria-pressed', 'false')
+  await follow.click()
+  await expect(follow).toHaveAttribute('aria-pressed', 'true')
+  expect((await probeConfig(page)).typography.line2.font).toBeNull()
+})
+
 test('常驻操作条：换一版、随机配色、导出三格', async ({ page }) => {
   await openApp(page)
 

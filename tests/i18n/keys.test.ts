@@ -17,7 +17,7 @@ import { STYLE_LIST } from '@/engine/styles'
 import { CURATED_ICON_CATEGORIES } from '@/graphics/curated'
 import { BRAND_CATEGORIES } from '@/graphics/generated/brand-index'
 import { EMOJI_GROUPS } from '@/graphics/emoji-index'
-import { SIZE_TARGETS, TEXT_EFFECTS } from '@/state/config'
+import { FONT_WEIGHTS, SIZE_TARGETS, TEXT_EFFECTS } from '@/state/config'
 
 const DICTS: Record<Locale, Record<string, string>> = {
   'zh-CN': zhCN,
@@ -91,7 +91,7 @@ describe('字典对齐', () => {
 
 /**
  * 源码里以整串形式出现过的 key。除了 `t('...')`，还有 TopBar 的 `'theme.dark'`、
- * FontPicker 的 `'font.curated.sc'`、ExportDrawer 的 `setNotice('export.downloaded')`
+ * FontPickerPanel 的 `'font.curated.sc'`、ExportDrawer 的 `setNotice('export.downloaded')`
  * 这类先存进常量或变量、再交给 `t` 的写法。
  */
 function referencedKeys(): Set<string> {
@@ -117,6 +117,8 @@ function dynamicKeys(): string[] {
       ...style.params.map((param) => param.labelKey),
     ]),
     ...TEXT_EFFECTS.map((effect) => `panel.text.effect.${effect}`),
+    // 字重下拉的 font.weight.<n>
+    ...FONT_WEIGHTS.map((weight) => `font.weight.${weight}`),
     // TextPanel 的文字色预设 panel.text.color.preset.<key>
     ...['white', 'silver', 'gray', 'ink', 'black'].map((key) => `panel.text.color.preset.${key}`),
     ...SIZE_TARGETS.map((target) => `export.size.${target}`),

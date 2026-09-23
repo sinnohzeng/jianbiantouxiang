@@ -7,15 +7,19 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
-import { I18nProvider } from '@/i18n'
+import ja from '@/i18n/ja.json'
+import { I18nProvider, LOCALE_STORAGE_KEY } from '@/i18n'
+import { CATALOG_CACHE_KEY, clearCatalogCache } from '@/fonts/catalog'
 import { fontJobs, type FontLoadResult } from '@/fonts/loader'
+import { clearUploadedFonts, registerUploadedFont } from '@/fonts/upload'
 import { PreviewStage } from '@/app/PreviewStage'
 import { ExportDrawer } from '@/app/panels/ExportDrawer'
-import { FontPicker } from '@/app/panels/FontPicker'
+import { FontPickerPanel } from '@/app/panels/FontPickerPanel'
 import { HistoryStrip } from '@/app/panels/HistoryStrip'
 import { IconPicker } from '@/app/panels/IconPicker'
+import { recentFonts } from '@/app/panels/recent-fonts'
 import { PickColumn } from '@/app/workspace/PickColumn'
-import { DEFAULT_CONFIG, type AvatarConfig } from '@/state/config'
+import { DEFAULT_CONFIG, fontKey, type AvatarConfig, type FontChoice } from '@/state/config'
 import { DEFAULT_UI, useAvatarStore } from '@/state/store'
 
 // 预览只验字体 effect：加载器换成桩，fontJobs 保留真实实现；WebGL 挂载换成空壳
@@ -141,19 +145,6 @@ describe('挑选栏 · 文字节', () => {
     expect(ranges(container).length).toBeGreaterThan(0)
     expect(ranges(group(container, 'text-font-size'))).toHaveLength(1)
     expect(ranges(group(container, 'text-effect-strength'))).toHaveLength(1)
-  })
-
-  it('字重磁贴留在文字节，点一下写回', () => {
-    const { container } = mount(<PickColumn />)
-    const tiles = container.querySelectorAll<HTMLInputElement>('input[data-group="text-weight"]')
-    expect(tiles.length).toBeGreaterThan(1)
-    const target = [...tiles].find(
-      (tile) => Number(tile.value) !== DEFAULT_CONFIG.typography.line1.font.weight,
-    )
-    fireEvent.click(target!)
-    expect(config().typography.line1.font.weight).toBe(Number(target!.value))
-    // 第二行跟随第一行，字重不另写
-    expect(config().typography.line2.font).toBeNull()
   })
 
   it('文字色是一排从白到黑的预设色块，点选即写回', () => {
@@ -441,6 +432,295 @@ describe('挑选栏 · 数值行', () => {
   })
 })
 
+const KUAILE: FontChoice = { family: 'ZCOOL KuaiLe', source: 'google', weight: 400 }
+
+/** 按 data-slot 取某一行的字体行，取不到直接报错。 */
+function fontField(container: HTMLElement, line: 1 | 2): HTMLElement {
+  return group(container, `text-line${line}-font`)
+}
+
+function fontTrigger(container: HTMLElement, line: 1 | 2): HTMLButtonElement {
+  return fontField(container, line).querySelector<HTMLButtonElement>('[data-slot="font-trigger"]')!
+}
+
+/** 打开某一行的字重下拉，返回弹出来的选项。Base UI 的 Select 在 mousedown 时打开。 */
+async function openWeights(container: HTMLElement, line: 1 | 2): Promise<HTMLElement[]> {
+  const trigger = fontField(container, line).querySelector<HTMLElement>(
+    '[data-slot="font-weight"]',
+  )!
+  fireEvent.mouseDown(trigger)
+  await screen.findByRole('listbox')
+  return screen.getAllByRole('option')
+}
+
+/** 点一个下拉选项。Base UI 的真实鼠标点选要从选项上按下开始，只发 click 会被当成打开时的误触。 */
+function pickOption(name: RegExp): void {
+  const option = screen.getByRole('option', { name })
+  fireEvent.pointerDown(option)
+  fireEvent.click(option)
+}
+
+function withLine2(font: FontChoice | null, text = '飞书\n效率先锋'): AvatarConfig {
+  return {
+    ...DEFAULT_CONFIG,
+    text,
+    typography: {
+      ...DEFAULT_CONFIG.typography,
+      line2: { ...DEFAULT_CONFIG.typography.line2, font },
+    },
+  }
+}
+
+describe('挑选栏 · 逐行字体', () => {
+  it('两行都有内容时两条字体行，只有第一行时一条', () => {
+    const { container, unmount } = mount(<PickColumn />)
+    expect(container.querySelectorAll('[data-slot="font-trigger"]')).toHaveLength(2)
+    unmount()
+
+    useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, text: '暴富' } })
+    const single = mount(<PickColumn />)
+    expect(single.container.querySelectorAll('[data-slot="font-trigger"]')).toHaveLength(1)
+  })
+
+  it('字体排在自己那一行输入之后、字号之前', () => {
+    const { container } = mount(<PickColumn />)
+    const after = (a: Node, b: Node) =>
+      (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
+    expect(after(firstLine(container), fontField(container, 1))).toBe(true)
+    expect(after(fontField(container, 1), group(container, 'text-font-size'))).toBe(true)
+    expect(after(secondLine(container), fontField(container, 2))).toBe(true)
+    expect(after(fontField(container, 2), group(container, 'text-line2-size'))).toBe(true)
+  })
+
+  it('第二行默认跟随：跟随钮按下，按钮写第一行那款且用次要前景色', () => {
+    const { container } = mount(<PickColumn />)
+    const follow = fontField(container, 2).querySelector('[data-slot="font-follow"]')!
+    expect(follow.getAttribute('aria-pressed')).toBe('true')
+
+    const trigger = screen.getByRole('button', { name: 'Line 2 font Noto Sans SC' })
+    expect(trigger).toBe(fontTrigger(container, 2))
+    expect(trigger.getAttribute('title')).toBe('Noto Sans SC')
+    const name = document.getElementById(trigger.getAttribute('aria-labelledby')!.split(' ')[1]!)!
+    expect(name.className).toContain('text-muted-foreground')
+    expect(fontTrigger(container, 1).textContent).toContain('Noto Sans SC')
+  })
+
+  it('第一行字重下拉写第一行，第二行仍跟随', async () => {
+    const { container } = mount(<PickColumn />)
+    const options = await openWeights(container, 1)
+    expect(options.map((option) => option.textContent)).toContain('Regular400')
+    pickOption(/Regular/)
+    expect(config().typography.line1.font.weight).toBe(400)
+    expect(config().typography.line2.font).toBeNull()
+  })
+
+  it('第二行改字重即独立，点跟随回到 null', async () => {
+    const { container } = mount(<PickColumn />)
+    await openWeights(container, 2)
+    pickOption(/Regular/)
+    expect(config().typography.line2.font).toEqual({
+      ...DEFAULT_CONFIG.typography.line1.font,
+      weight: 400,
+    })
+    expect(config().typography.line1.font).toEqual(DEFAULT_CONFIG.typography.line1.font)
+
+    const follow = fontField(container, 2).querySelector<HTMLButtonElement>(
+      '[data-slot="font-follow"]',
+    )!
+    expect(follow.getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(follow)
+    expect(config().typography.line2.font).toBeNull()
+  })
+
+  it('非精选字体的字重下拉只列目录缓存里的真实档位', async () => {
+    clearCatalogCache()
+    localStorage.setItem(
+      CATALOG_CACHE_KEY,
+      JSON.stringify({
+        at: Date.now() - 30 * 24 * 60 * 60 * 1000,
+        fonts: [{ id: 'roboto-slab', family: 'Roboto Slab', weights: [300, 700] }],
+      }),
+    )
+    useAvatarStore.setState({
+      config: {
+        ...DEFAULT_CONFIG,
+        typography: {
+          ...DEFAULT_CONFIG.typography,
+          line1: {
+            ...DEFAULT_CONFIG.typography.line1,
+            font: { family: 'Roboto Slab', source: 'google', weight: 700 },
+          },
+        },
+      },
+    })
+    const { container } = mount(<PickColumn />)
+    const options = await openWeights(container, 1)
+    expect(options.map((option) => option.textContent)).toEqual(['Light300', 'Bold700'])
+    clearCatalogCache()
+  })
+
+  it('只有一档字重的字体，下拉禁用', () => {
+    useAvatarStore.setState({ config: withLine2(KUAILE) })
+    const { container } = mount(<PickColumn />)
+    const weight = fontField(container, 2).querySelector('[data-slot="font-weight"]')!
+    expect(weight.hasAttribute('data-disabled')).toBe(true)
+  })
+
+  it('第二行字体回落中时按钮带告警图标与读屏说明，第一行不受牵连', () => {
+    useAvatarStore.setState({
+      config: withLine2(KUAILE),
+      ui: { ...DEFAULT_UI, fontFallbacks: [fontKey(KUAILE)] },
+    })
+    const { container } = mount(<PickColumn />)
+    const second = fontTrigger(container, 2)
+    expect(second.querySelector('svg.text-amber-600')).not.toBeNull()
+    const described = document.getElementById(second.getAttribute('aria-describedby')!)
+    expect(described?.textContent).toBe('Failed to load, showing a system font')
+
+    const first = fontTrigger(container, 1)
+    expect(first.querySelector('svg.text-amber-600')).toBeNull()
+    expect(first.hasAttribute('aria-describedby')).toBe(false)
+  })
+
+  it('点字体按钮弹出选择器，关掉再开搜索框是空的', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('[]')),
+    )
+    const { container } = mount(<PickColumn />)
+    fireEvent.click(fontTrigger(container, 1))
+    const input = await screen.findByPlaceholderText('Search fonts')
+    fireEvent.change(input, { target: { value: 'pacif' } })
+    expect((input as HTMLInputElement).value).toBe('pacif')
+
+    fireEvent.click(fontTrigger(container, 1))
+    await waitFor(() => expect(screen.queryByPlaceholderText('Search fonts')).toBeNull())
+
+    fireEvent.click(fontTrigger(container, 1))
+    const reopened = await screen.findByPlaceholderText('Search fonts')
+    expect((reopened as HTMLInputElement).value).toBe('')
+    vi.unstubAllGlobals()
+  })
+})
+
+describe('FontPickerPanel', () => {
+  beforeEach(() => {
+    recentFonts.set([])
+    // 全库目录不发真实请求：空目录让 fetchCatalog 回落精选清单
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('[]')),
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    clearUploadedFonts()
+  })
+
+  function panel(line: 1 | 2, onDone = vi.fn()) {
+    mount(<FontPickerPanel line={line} onDone={onDone} />)
+    return onDone
+  }
+
+  function selected(): HTMLElement | null {
+    return document.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]')
+  }
+
+  it('打开时高亮该行的生效字体，勾选项带读屏的“当前”', () => {
+    useAvatarStore.setState({
+      config: withLine2({ family: 'Noto Serif SC', source: 'google', weight: 700 }),
+    })
+    panel(2)
+    expect(selected()?.textContent).toBe('Noto Serif SCcurrent')
+    expect(selected()?.getAttribute('data-checked')).toBe('true')
+  })
+
+  it('第二行跟随时点打勾那一项，只关弹层，第二行仍跟随，撤销栈不变', () => {
+    useAvatarStore.setState({ past: [] })
+    const onDone = panel(2)
+    const checked = document.querySelector<HTMLElement>('[cmdk-item][data-checked="true"]')!
+    expect(checked.textContent).toContain('Noto Sans SC')
+    fireEvent.click(checked)
+    expect(onDone).toHaveBeenCalledTimes(1)
+    expect(config().typography.line2.font).toBeNull()
+    expect(useAvatarStore.getState().past).toHaveLength(0)
+  })
+
+  it('第二行的选择器写第二行，第一行不动', () => {
+    const onDone = panel(2)
+    fireEvent.click(screen.getAllByRole('option', { name: 'Inter' })[0]!)
+    expect(onDone).toHaveBeenCalledTimes(1)
+    expect(config().typography.line2.font).toEqual({
+      family: 'Inter',
+      source: 'google',
+      weight: 700,
+    })
+    expect(config().typography.line1.font).toEqual(DEFAULT_CONFIG.typography.line1.font)
+    expect(recentFonts.get()).toEqual(['Inter'])
+  })
+
+  it('第一行的选择器写第一行，跟随中的第二行仍是 null', () => {
+    panel(1)
+    fireEvent.click(screen.getAllByRole('option', { name: 'Inter' })[0]!)
+    expect(config().typography.line1.font.family).toBe('Inter')
+    expect(config().typography.line2.font).toBeNull()
+  })
+
+  it('日文界面第一个精选组是日文，第二个是拉丁', async () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'ja')
+    panel(1)
+    await screen.findByText(ja['font.curated.jp'])
+    const curatedHeadings = new Set([
+      ja['font.curated.sc'],
+      ja['font.curated.tc'],
+      ja['font.curated.jp'],
+      ja['font.curated.kr'],
+      ja['font.curated.latin'],
+    ])
+    const headings = [...document.querySelectorAll('[cmdk-group-heading]')]
+      .map((node) => node.textContent ?? '')
+      .filter((text) => curatedHeadings.has(text))
+    expect(headings.slice(0, 2)).toEqual([ja['font.curated.jp'], ja['font.curated.latin']])
+  })
+
+  it('繁体组同时收台湾与香港两类字体', () => {
+    panel(1)
+    const heading = [...document.querySelectorAll('[cmdk-group-heading]')].find(
+      (node) => node.textContent === 'Traditional Chinese picks',
+    )!
+    const items = heading.parentElement!.querySelectorAll('[cmdk-item]')
+    const names = [...items].map((item) => item.textContent)
+    expect(names).toContain('Noto Sans TC')
+    expect(names).toContain('Noto Sans HK')
+  })
+
+  it('本会话上传过的字体在第二行的选择器里可选，选中写成上传来源', async () => {
+    vi.stubGlobal(
+      'FontFace',
+      class {
+        load() {
+          return Promise.resolve(this)
+        }
+      },
+    )
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: { add: () => {}, delete: () => true },
+    })
+    await registerUploadedFont(new File([new Uint8Array([0, 1, 0, 0])], 'Brush.ttf'))
+
+    panel(2)
+    expect(screen.getByText('Uploaded')).toBeTruthy()
+    fireEvent.click(screen.getByRole('option', { name: 'Brush' }))
+    expect(config().typography.line2.font).toEqual({
+      family: 'Brush-upload',
+      source: 'upload',
+      weight: 700,
+    })
+  })
+})
+
 describe('ExportDrawer', () => {
   it('打开后能切格式与体积档', () => {
     mount(<ExportDrawer open onOpenChange={() => {}} />)
@@ -457,15 +737,6 @@ describe('ExportDrawer', () => {
     expect(target).not.toBeNull()
     // PNG 无损，体积档这时应当是禁用的
     expect(target!.disabled).toBe(true)
-  })
-})
-
-describe('FontPicker', () => {
-  it('打开后有搜索框与字体条目', () => {
-    mount(<FontPicker open onOpenChange={() => {}} />)
-    const input = document.querySelector<HTMLInputElement>('[data-slot="command-input"]')
-    expect(input).not.toBeNull()
-    expect(document.querySelectorAll('[data-slot="command-item"]').length).toBeGreaterThan(0)
   })
 })
 

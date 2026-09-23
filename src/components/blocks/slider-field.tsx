@@ -10,7 +10,7 @@
  * 致密尺寸一律 lg: 前缀：手机渲染同一棵树，基值要保持本仓 44 px 触控
  * 与 16 px 输入字号的口径，无前缀收小会让 iOS 聚焦缩放与触控热区一起破线。
  * 手机档的三列按 320 px 宽的 iPhone SE 定：数值列 5rem 装得下最宽的「-0.10em」，
- * 标签列剩 138 px 要放下五种语言里最长的字号标签加一颗「自动」钮；
+ * 标签列剩 138 px 要放下五种语言里最长的字号标签加一颗“自动”或“跟随”钮；
  * 标签只在桌面截断，手机上让它折行，哪种语言的新文案变长都不会先被吃掉。
  *
  * 数值变化时框里的数走一段弹簧过渡，只影响显示，真实值仍然一步到位。
@@ -20,6 +20,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { RotateCcwIcon } from 'lucide-react'
 import { clamp } from '@/engine/math'
 import { useAnimatedNumber } from '@/app/showcase/use-animated-number'
+import { AutoToggle } from '@/components/blocks/auto-toggle'
 import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
@@ -46,12 +47,18 @@ export interface SliderFieldProps {
   /** 重置钮的可访问名，形如“把字号重置为默认”。与 defaultValue 一起给。 */
   resetLabel?: string
   /**
-   * “自动”档。给了就在标签右侧放一个 aria-pressed 按钮：
+   * “自动”档。给了就在标签右侧放一颗 AutoToggle：
    * 自动态点亮，此时 value 是引擎算出来的值；用户拖滑杆或敲数字由调用方切成手动，
    * 手动态点这个按钮回到自动。它住在标签那一格里，不另占列，
-   * 数值框的对齐因此与它有无无关。
+   * 数值框的对齐因此与它有无无关。`ariaLabel` 是带行名全称的可访问名。
    */
-  auto?: { active: boolean; label: string; hint?: string; onReset: () => void }
+  auto?: {
+    active: boolean
+    label: string
+    ariaLabel?: string
+    hint?: string
+    onReset: () => void
+  }
 }
 
 /** 步进的小数位，用来把对齐结果的浮点尾巴切掉。 */
@@ -120,23 +127,15 @@ export function SliderField({
     toDisplay(defaultValue, scale, precision) !== display
 
   const autoNode = auto ? (
-    <button
-      type="button"
-      data-slot="slider-auto"
-      aria-pressed={auto.active}
-      title={auto.hint}
+    <AutoToggle
+      slot="slider-auto"
+      active={auto.active}
+      label={auto.label}
+      ariaLabel={auto.ariaLabel}
+      hint={auto.hint}
       disabled={disabled}
       onClick={auto.onReset}
-      className={cn(
-        'focus-visible:ring-ring/50 shrink-0 rounded-md border px-2 text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none motion-reduce:transition-none',
-        'lg:h-5 lg:px-1 lg:text-[11px]',
-        auto.active
-          ? 'border-primary bg-primary text-primary-foreground'
-          : 'border-border text-muted-foreground hover:text-foreground',
-      )}
-    >
-      {auto.label}
-    </button>
+    />
   ) : null
 
   const valueNode = (

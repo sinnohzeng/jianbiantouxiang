@@ -235,6 +235,28 @@ describe('searchFonts', () => {
   it('limit 截断结果', () => {
     expect(searchFonts(list, '', { limit: 2 })).toHaveLength(2)
   })
+
+  it('cjk 给一组脚本时收其中任一种', () => {
+    expect(searchFonts(list, '', { cjk: ['tc', 'hk'] }).map((f) => f.id)).toEqual(['noto-serif-tc'])
+    expect(searchFonts(list, '', { cjk: ['sc', 'tc'] }).map((f) => f.id)).toEqual([
+      'noto-sans-sc',
+      'noto-serif-tc',
+    ])
+  })
+
+  it('keepOrder 在空查询时保持原序，有查询时照常按命中强度排', () => {
+    const reversed = [...list].reverse()
+    expect(searchFonts(reversed, '', { keepOrder: true }).map((f) => f.id)).toEqual([
+      'pacifico',
+      'noto-serif-tc',
+      'noto-sans-sc',
+      'inter',
+    ])
+    expect(searchFonts(reversed, 'noto', { keepOrder: true }).map((f) => f.id)).toEqual([
+      'noto-sans-sc',
+      'noto-serif-tc',
+    ])
+  })
 })
 
 describe('findFontEntry', () => {

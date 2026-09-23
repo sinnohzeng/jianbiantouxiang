@@ -10,6 +10,7 @@ import {
   RENDER_TIMEOUT_MS,
   centreBetweenBars,
   openApp,
+  probeConfig,
   probeEncode,
   probeFlush,
   probeStats,
@@ -96,6 +97,49 @@ test('手机上图形选择器走底部抽屉且无横向滚动', async ({ page 
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
   await expect(page.locator('[data-slot="graphic-picker"]')).toContainText('1f334')
+})
+
+test('手机上字体行控件够高，跟随钮的热区向上扩，第二行字体抽屉写明为哪一行选', async ({ page }) => {
+  await openApp(page)
+  const field = page.locator('[data-slot="text-line2-font"]')
+  const trigger = field.locator('[data-slot="font-trigger"]')
+  const weight = field.locator('[data-slot="font-weight"]')
+  await centreBetweenBars(page, weight)
+  for (const control of [trigger, weight]) {
+    expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+  }
+
+  // 先改第二行字重让它独立，跟随钮才有事可做
+  await weight.click()
+  await page.getByRole('option', { name: /常规/ }).click()
+  await expect
+    .poll(async () => (await probeConfig(page)).typography.line2.font?.weight, {
+      timeout: POLL_TIMEOUT_MS,
+    })
+    .toBe(400)
+
+  // 可见的钮只有 22 px 高，在它上沿外 10 px 处点也要算点中。
+  // 贴着预览下沿时那 10 px 会落在分隔条上，所以把钮滚到视口正中再点
+  const follow = field.locator('[data-slot="font-follow"]')
+  await follow.evaluate((node) => node.scrollIntoView({ block: 'center' }))
+  await expect(follow).toHaveAttribute('aria-pressed', 'false')
+  const box = (await follow.boundingBox())!
+  const [x, y] = [box.x + box.width / 2, box.y - 10]
+  const hit = await page.evaluate(
+    ([px, py]) =>
+      document.elementFromPoint(px!, py!)?.closest('[data-slot="font-follow"]') !== null,
+    [x, y],
+  )
+  expect(hit).toBe(true)
+  await page.touchscreen.tap(x, y)
+  await expect(follow).toHaveAttribute('aria-pressed', 'true')
+  expect((await probeConfig(page)).typography.line2.font).toBeNull()
+
+  await centreBetweenBars(page, trigger)
+  await trigger.click()
+  const drawer = page.locator('[data-slot="drawer-popup"]')
+  await expect(drawer).toBeVisible()
+  await expect(drawer.locator('[data-slot="drawer-title"]')).toHaveText('第二行字体')
 })
 
 test('拖分隔条后预览变矮，刷新仍是新高度', async ({ page }) => {

@@ -1,20 +1,17 @@
 /**
- * 文字节：两行输入、字体、字重、样式、文字色，以及跟着它们的数值滑杆。
+ * 文字节：两行输入、逐行字体与字重、样式、文字色，以及跟着它们的数值滑杆。
  *
- * 参数跟着它所修饰的东西走：字号紧跟自己那一行输入，强度紧跟文字样式。
+ * 参数跟着它所修饰的东西走：字体紧跟自己那一行输入，字号在字体之下，强度紧跟文字样式。
  * 低频的两组收在末尾的折叠组里，默认收起：“版面”是边距行高字距，
  * “位置微调”是逐行的水平与垂直补偿。
  */
 
-import { Suspense, useId, useMemo, useState } from 'react'
-import { TypeIcon } from 'lucide-react'
+import { useId, useMemo } from 'react'
 import { ColorField } from '@/components/blocks/color-field'
 import { PanelSection } from '@/components/blocks/panel-section'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useT } from '@/i18n'
-import { displayName, weightsOf } from '@/fonts/catalog'
 import {
   DEFAULT_CONFIG,
   FONT_SIZE_STEP,
@@ -26,13 +23,12 @@ import {
   TEXT_EFFECTS,
   snapFontRatio,
   twoLinesOf,
-  withLine1Font,
 } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
-import { FontPickerLazy } from '@/app/panels/lazy'
 import { joinLines, stripBreaks } from '@/app/workspace/shared'
 import { clamp } from '@/engine/math'
 import { SectionCard } from './card'
+import { LineFontField } from './line-font-field'
 import { Row } from './row'
 
 /**
@@ -63,7 +59,7 @@ const OFFSET_RANGE = {
 } as const
 
 /**
- * 一排可换行的 radio chips，字重与文字样式共用。
+ * 一排可换行的 radio chips，文字样式用它。
  * 分段控件在 250–300 px 的列里会把选项文案截成「Shad…」：它的选项等分容器宽，
  * 文案长度不由自己决定。chips 按内容自适应、放不下就换行，永不截断。
  */
@@ -113,9 +109,6 @@ export function TextSection() {
   const setUi = useAvatarStore((state) => state.setUi)
   // 预览排版后回写的自动基准字号，与 line1.size 同一单位（画布短边比例）
   const autoFontSize = useAvatarStore((state) => state.ui.autoFontSize)
-  const [fontOpen, setFontOpen] = useState(false)
-  // 字体选择器是懒加载的，挂上就等于拉 chunk，所以只在用户点开之后才挂
-  const [fontMounted, setFontMounted] = useState(false)
 
   const type = config.typography
   const { line1, line2 } = type
@@ -123,7 +116,6 @@ export function TextSection() {
   const [first, second] = useMemo(() => twoLinesOf(config.text), [config.text])
   const hasFirst = first.trim() !== ''
   const hasSecond = second.trim() !== ''
-  const weights = useMemo(() => weightsOf(line1.font.family), [line1.font.family])
   // 第一行的当前基准：自动态是预览回写的解，定值态是配置值；第二行跟随时取它的 62%。
   // 滑杆显示的自动值向下对齐到步进：值在网格上，轻触滑杆不会被取整到比求解上限更大的一档；
   // 钉住第二行时用未取整的基准，钉完的那一帧一个像素都不动
@@ -153,6 +145,8 @@ export function TextSection() {
           }
         />
       </div>
+
+      <LineFontField line={1} />
 
       {/* 字号：默认自动。滑杆在自动态显示引擎刚算出的值，一拖就以它为起点切到手动，
           不会从上一次的手动值跳过去。这一行不给默认值：回默认这件事由“自动”按钮承担，
@@ -204,8 +198,11 @@ export function TextSection() {
         />
       </div>
 
+      {/* 第二行字体默认跟随第一行，第二行有内容才有这一行 */}
+      {hasSecond ? <LineFontField line={2} /> : null}
+
       {/* 第二行字号与第一行同一单位。默认跟随第一行取 62%，一拖就钉成自己的值，
-          点“自动”回到跟随。两行都有内容才有这一行 */}
+          点“跟随”回到跟随。两行都有内容才有这一行 */}
       {hasFirst && hasSecond ? (
         <div data-slot="text-line2-size">
           <Row
@@ -218,7 +215,8 @@ export function TextSection() {
             unit="%"
             auto={{
               active: line2.size === null,
-              label: t('panel.text.fontSize.auto'),
+              label: t('panel.text.follow'),
+              ariaLabel: t('panel.text.line2Size.follow'),
               hint: t('panel.text.line2Size.autoHint'),
               onReset: () => setTypography({ line2: { size: null } }),
             }}
@@ -226,41 +224,6 @@ export function TextSection() {
           />
         </div>
       ) : null}
-
-      <div className="flex flex-col gap-1">
-        <Label className="text-muted-foreground text-[11px]">{t('panel.text.font')}</Label>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-11 w-full justify-between px-3 lg:h-9"
-          onClick={() => {
-            setFontMounted(true)
-            setFontOpen(true)
-          }}
-        >
-          <span className="truncate">{displayName(line1.font.family, line1.font.source)}</span>
-          <TypeIcon aria-hidden="true" />
-        </Button>
-        {/* 打开过一次就一直挂着，关闭动画才有得放；没打开过就不拉那份 chunk */}
-        {fontMounted ? (
-          <Suspense fallback={null}>
-            <FontPickerLazy open={fontOpen} onOpenChange={setFontOpen} />
-          </Suspense>
-        ) : null}
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <Label className="text-muted-foreground text-[11px]">{t('panel.text.fontWeight')}</Label>
-        <ChipGroup
-          name="text-weight"
-          label={t('panel.text.fontWeight')}
-          value={line1.font.weight}
-          options={weights.map((weight) => ({ value: weight, label: String(weight) }))}
-          onChange={(weight) =>
-            setTypography(withLine1Font(type, { ...line1.font, weight }, weights))
-          }
-        />
-      </div>
 
       <div className="flex flex-col gap-1">
         <Label className="text-muted-foreground text-[11px]">{t('panel.text.effect')}</Label>

@@ -30,7 +30,10 @@ export interface ProbeConfig {
   seed: string
   style: string
   palette: string
-  typography: { line1: { offsetY: number } }
+  typography: {
+    line1: { offsetY: number }
+    line2: { font: { family: string; source: string; weight: number } | null }
+  }
   layout: { icon: { source: string; id: string; mono: boolean } }
 }
 
