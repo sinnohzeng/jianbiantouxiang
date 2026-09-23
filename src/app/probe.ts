@@ -4,6 +4,7 @@
  * 预览那张 WebGL 画布没开 preserveDrawingBuffer，读回来是空的，Playwright 没法直接断言画面；
  * 导出走的又是 Web Share 或下载，产物不一定落到文件系统。所以这里把合成与编码这两段
  * 挂到 window 上让测试直接调，走的是与真实导出完全相同的那条链路。
+ * 测试读配置也走探针：`config()` 取 store 里的当前值，`flush()` 把防抖中的存档立刻落盘。
  *
  * 只在开发模式或 URL 带 ?probe=1 时装：main.tsx 用 import() 引，生产 chunk 里没有它，
  * 也没有任何产品代码引用 window.__gradientAvatarProbe。
@@ -12,7 +13,8 @@
 import { releaseCanvas } from '@/lib/canvas'
 import { composeAvatar } from '@/export/compose'
 import { encodeCanvas } from '@/export/encode'
-import { useAvatarStore } from '@/state/store'
+import type { AvatarConfig } from '@/state/config'
+import { flushConfigSync, useAvatarStore } from '@/state/store'
 
 /** 统计用的默认边长。够看出画面有没有内容，又不至于让软件渲染跑很久。 */
 const STATS_SIZE = 192
@@ -42,6 +44,10 @@ export interface GradientAvatarProbe {
   stats(size?: number): Promise<ProbePixelStats>
   /** 按当前配置合成并编码，返回产物的类型与体积。 */
   encode(size?: number): Promise<ProbeEncodeResult>
+  /** 当前配置，即 store 里的那份。 */
+  config(): AvatarConfig
+  /** 把防抖中的配置立刻写进存档。 */
+  flush(): void
 }
 
 declare global {
@@ -90,5 +96,10 @@ async function encode(size?: number): Promise<ProbeEncodeResult> {
 }
 
 export function installProbe(): void {
-  window.__gradientAvatarProbe = { stats, encode }
+  window.__gradientAvatarProbe = {
+    stats,
+    encode,
+    config: () => useAvatarStore.getState().config,
+    flush: flushConfigSync,
+  }
 }

@@ -11,6 +11,7 @@ import {
   centreBetweenBars,
   openApp,
   probeEncode,
+  probeFlush,
   probeStats,
 } from './helpers'
 
@@ -56,11 +57,8 @@ test('改文字后刷新页面，文字从本机存档恢复', async ({ page }) 
   const firstLine = page.locator('#avatar-text-first')
   await centreBetweenBars(page, firstLine)
   await firstLine.fill('手机往返')
-  await expect
-    .poll(() => page.evaluate(() => localStorage.getItem('gradient-avatar:v3') ?? ''), {
-      timeout: POLL_TIMEOUT_MS,
-    })
-    .toContain('手机往返')
+  // 存档是防抖写入，刷新前让探针立刻落盘
+  await probeFlush(page)
 
   await page.reload()
   const restored = page.locator('#avatar-text-first')

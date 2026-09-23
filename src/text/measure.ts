@@ -1,3 +1,4 @@
+import { cssPx } from '@/lib/canvas'
 import type { AvatarConfig } from '@/state/config'
 
 /** 一次测量的结果，ascent 与 descent 取墨迹包围盒，供真实垂直居中使用。 */
@@ -45,33 +46,6 @@ export function toGraphemes(text: string): string[] {
   const out: string[] = []
   for (const item of segmenter.segment(text)) out.push(item.segment)
   return out
-}
-
-/** 把像素值写成合法 CSS 长度，避免极小数被序列化成科学计数法。 */
-export function cssPx(value: number): string {
-  const safe = Number.isFinite(value) ? value : 0
-  return `${Math.round(safe * 1000) / 1000}px`
-}
-
-/** 家族名之后追加的系统字体链，覆盖三大平台的中日韩与拉丁默认字体。 */
-export const SYSTEM_FALLBACK =
-  'system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif'
-
-/** 家族名一律加引号：用户可上传任意名字的字体，空格与中文名不加引号会被解析成多个家族。 */
-export function quoteFamily(family: string): string {
-  const name = family.trim().replace(/["\\]/g, '')
-  return name ? `"${name}"` : ''
-}
-
-export function fontFamilyStack(family: string): string {
-  const head = quoteFamily(family)
-  return head ? `${head}, ${SYSTEM_FALLBACK}` : SYSTEM_FALLBACK
-}
-
-/** 组装 canvas font 简写：字重 + 字号 + 家族链。 */
-export function fontString(config: AvatarConfig, fontSizePx: number): string {
-  const weight = Math.round(config.typography.fontWeight)
-  return `${weight} ${cssPx(fontSizePx)} ${fontFamilyStack(config.typography.fontFamily)}`
 }
 
 /** 字间距按 em 存储，落到像素要乘当前字号。 */

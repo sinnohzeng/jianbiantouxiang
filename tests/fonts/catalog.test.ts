@@ -4,11 +4,15 @@ import {
   CATALOG_CACHE_KEY,
   CATALOG_TTL_MS,
   CATALOG_URL,
+  FALLBACK_WEIGHTS,
   type FontEntry,
   clearCatalogCache,
+  displayName,
   fetchCatalog,
+  findFontEntry,
   searchFonts,
   toFontEntry,
+  weightsOf,
 } from '@/fonts/catalog'
 import { CURATED_FONTS } from '@/fonts/curated'
 import { memoryStorage as store } from '../setup'
@@ -63,6 +67,7 @@ function seedCache(at: number, fonts: FontEntry[]): void {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  clearCatalogCache()
 })
 
 describe('toFontEntry', () => {
@@ -70,8 +75,6 @@ describe('toFontEntry', () => {
     expect(toFontEntry(RAW[0])).toEqual({
       id: 'noto-sans-sc',
       family: 'Noto Sans SC',
-      category: 'sans-serif',
-      subsets: ['chinese-simplified', 'latin'],
       weights: [400, 700],
       version: '5.3.0',
       cjk: 'sc',
@@ -85,6 +88,16 @@ describe('toFontEntry', () => {
     expect(toFontEntry(null)).toBeNull()
   })
 
+  it('字重只收九档，其余丢弃', () => {
+    expect(
+      toFontEntry({ id: 'x', family: 'X', type: 'google', weights: [950, 700, '400', 450, 1] })
+        ?.weights,
+    ).toEqual([400, 700])
+    expect(toFontEntry({ id: 'x', family: 'X', type: 'google', weights: [950] })?.weights).toEqual([
+      400,
+    ])
+  })
+
   it('weights 缺失时补 400', () => {
     expect(toFontEntry({ id: 'x', family: 'X', type: 'google', subsets: [] })?.weights).toEqual([
       400,
@@ -94,9 +107,7 @@ describe('toFontEntry', () => {
 
 describe('fetchCatalog', () => {
   it('缓存未过期时直接命中，不发请求', async () => {
-    const cached: FontEntry[] = [
-      { id: 'cached', family: 'Cached', category: 'serif', subsets: ['latin'], weights: [400] },
-    ]
+    const cached: FontEntry[] = [{ id: 'cached', family: 'Cached', weights: [400] }]
     seedCache(Date.now() - 1000, cached)
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
@@ -106,9 +117,7 @@ describe('fetchCatalog', () => {
   })
 
   it('缓存过期后重新拉取并回写', async () => {
-    seedCache(Date.now() - CATALOG_TTL_MS - 1, [
-      { id: 'stale', family: 'Stale', category: 'serif', subsets: ['latin'], weights: [400] },
-    ])
+    seedCache(Date.now() - CATALOG_TTL_MS - 1, [{ id: 'stale', family: 'Stale', weights: [400] }])
     const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => okResponse(RAW))
     vi.stubGlobal('fetch', fetchMock)
 
@@ -127,9 +136,7 @@ describe('fetchCatalog', () => {
   })
 
   it('force 时无视新鲜缓存', async () => {
-    seedCache(Date.now(), [
-      { id: 'cached', family: 'Cached', category: 'serif', subsets: ['latin'], weights: [400] },
-    ])
+    seedCache(Date.now(), [{ id: 'cached', family: 'Cached', weights: [400] }])
     const fetchMock = vi.fn(async () => okResponse(RAW))
     vi.stubGlobal('fetch', fetchMock)
 
@@ -148,9 +155,7 @@ describe('fetchCatalog', () => {
   })
 
   it('请求失败但有过期缓存时用过期缓存', async () => {
-    const stale: FontEntry[] = [
-      { id: 'stale', family: 'Stale', category: 'serif', subsets: ['latin'], weights: [400] },
-    ]
+    const stale: FontEntry[] = [{ id: 'stale', family: 'Stale', weights: [400] }]
     seedCache(Date.now() - CATALOG_TTL_MS - 1, stale)
     vi.stubGlobal(
       'fetch',
@@ -184,28 +189,22 @@ describe('fetchCatalog', () => {
 
 describe('searchFonts', () => {
   const list: FontEntry[] = [
-    { id: 'inter', family: 'Inter', category: 'sans-serif', subsets: ['latin'], weights: [400] },
+    { id: 'inter', family: 'Inter', weights: [400] },
     {
       id: 'noto-sans-sc',
       family: 'Noto Sans SC',
-      category: 'sans-serif',
-      subsets: ['chinese-simplified'],
       weights: [400],
       cjk: 'sc',
     },
     {
       id: 'noto-serif-tc',
       family: 'Noto Serif TC',
-      category: 'serif',
-      subsets: ['chinese-traditional'],
       weights: [400],
       cjk: 'tc',
     },
     {
       id: 'pacifico',
       family: 'Pacifico',
-      category: 'handwriting',
-      subsets: ['latin'],
       weights: [400],
     },
   ]
@@ -223,10 +222,7 @@ describe('searchFonts', () => {
     expect(searchFonts(list, 'notosans').map((f) => f.id)).toEqual(['noto-sans-sc'])
   })
 
-  it('按分类与脚本过滤', () => {
-    expect(searchFonts(list, '', { category: 'handwriting' }).map((f) => f.id)).toEqual([
-      'pacifico',
-    ])
+  it('按脚本过滤', () => {
     expect(searchFonts(list, '', { cjk: 'sc' }).map((f) => f.id)).toEqual(['noto-sans-sc'])
     expect(searchFonts(list, '', { cjk: 'none' }).map((f) => f.id)).toEqual(['inter', 'pacifico'])
   })
@@ -238,5 +234,53 @@ describe('searchFonts', () => {
 
   it('limit 截断结果', () => {
     expect(searchFonts(list, '', { limit: 2 })).toHaveLength(2)
+  })
+})
+
+describe('findFontEntry', () => {
+  it('精选清单按 family 命中，不看大小写与首尾空白', () => {
+    expect(findFontEntry('  noto sans sc  ')?.id).toBe('noto-sans-sc')
+    expect(findFontEntry('ZCOOL KUAILE')?.id).toBe('zcool-kuaile')
+  })
+
+  it('精选清单之外查本地目录缓存，过期也照样命中', () => {
+    seedCache(Date.now() - CATALOG_TTL_MS * 5, [
+      { id: 'cached-sans', family: 'Cached Sans', weights: [300, 500] },
+    ])
+    expect(findFontEntry('cached sans')?.id).toBe('cached-sans')
+  })
+
+  it('fetchCatalog 拉到新目录后查找随之更新', async () => {
+    const fresh = { id: 'fresh-sans', family: 'Fresh Sans', weights: [400], type: 'google' }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => okResponse([fresh])),
+    )
+    expect(findFontEntry('Fresh Sans')).toBeUndefined()
+    await fetchCatalog({ force: true })
+    expect(findFontEntry('fresh sans')?.id).toBe('fresh-sans')
+  })
+
+  it('哪里都没有时返回 undefined', () => {
+    expect(findFontEntry('Nonexistent Font')).toBeUndefined()
+  })
+})
+
+describe('weightsOf', () => {
+  it('查到条目时给它的字重表', () => {
+    expect(weightsOf('Bebas Neue')).toEqual([400])
+  })
+
+  it('未知 family 给通用档位', () => {
+    expect(weightsOf('Nonexistent Font')).toBe(FALLBACK_WEIGHTS)
+  })
+})
+
+describe('displayName', () => {
+  it('上传字体去掉命名空间后缀，其余原样', () => {
+    expect(displayName('My Font-upload', 'upload')).toBe('My Font')
+    expect(displayName('Inter', 'google')).toBe('Inter')
+    expect(displayName('PingFang SC', 'system')).toBe('PingFang SC')
+    expect(displayName('Tail-upload', 'google')).toBe('Tail-upload')
   })
 })

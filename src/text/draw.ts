@@ -1,7 +1,8 @@
+import { cssPx } from '@/lib/canvas'
 import type { AvatarConfig } from '@/state/config'
 import { INK_DARK, INK_LIGHT, isLightColor } from './ink'
 import type { LayoutLine, PillRect, TextLayout } from './layout'
-import { cssPx, toGraphemes } from './measure'
+import { toGraphemes } from './measure'
 
 type PaintMode = 'fill' | 'stroke'
 

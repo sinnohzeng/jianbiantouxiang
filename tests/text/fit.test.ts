@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { fitStack, safeArea } from '@/text/fit'
-import { twoLinesOf } from '@/text/wrap'
-import type { PartialConfig } from '@/state/config'
+import { twoLinesOf, type PartialConfig } from '@/state/config'
 import { createStubMeasure, makeConfig } from './helpers'
 
 const measure = createStubMeasure()
@@ -29,14 +28,14 @@ describe('manual 模式', () => {
   it('直接用给定的短边比例，不做搜索', () => {
     const result = fit({
       text: '猪',
-      typography: { sizeMode: 'manual', fontSize: 0.5, padding: 0.1 },
+      typography: { line1: { size: 0.5 }, padding: 0.1 },
     })
     expect(result.primary?.fontSizePx).toBeCloseTo(500)
   })
 
   it('短边决定字号', () => {
     const result = fit(
-      { text: '猪', typography: { sizeMode: 'manual', fontSize: 0.5, padding: 0.1 } },
+      { text: '猪', typography: { line1: { size: 0.5 }, padding: 0.1 } },
       1000,
       400,
     )
@@ -46,7 +45,7 @@ describe('manual 模式', () => {
   it('超框时如实标记，不偷偷缩字号', () => {
     const result = fit({
       text: '猪猪家族',
-      typography: { sizeMode: 'manual', fontSize: 0.9, padding: 0.1 },
+      typography: { line1: { size: 0.9 }, padding: 0.1 },
     })
     expect(result.primary?.fontSizePx).toBeCloseTo(900)
     expect(result.fits).toBe(false)
@@ -77,7 +76,7 @@ describe('auto 模式', () => {
   })
 
   it('第二行定了短边比例就按定值排，与基准无关', () => {
-    const fixed = { text: '飞书\n先锋', typography: { padding: 0.1, line2Size: 0.3 } }
+    const fixed = { text: '飞书\n先锋', typography: { line2: { size: 0.3 }, padding: 0.1 } }
     const auto = fit(fixed)
     expect(auto.secondary?.fontSizePx).toBeCloseTo(300, 0)
     // 基准仍由第一行的宽约束定，第二行不牵连它
@@ -85,11 +84,11 @@ describe('auto 模式', () => {
 
     const small = fit({
       ...fixed,
-      typography: { ...fixed.typography, sizeMode: 'manual', fontSize: 0.1 },
+      typography: { ...fixed.typography, line1: { size: 0.1 } },
     })
     const large = fit({
       ...fixed,
-      typography: { ...fixed.typography, sizeMode: 'manual', fontSize: 0.5 },
+      typography: { ...fixed.typography, line1: { size: 0.5 } },
     })
     expect(small.secondary?.fontSizePx).toBeCloseTo(300)
     expect(large.secondary?.fontSizePx).toBeCloseTo(300)
@@ -98,7 +97,7 @@ describe('auto 模式', () => {
   })
 
   it('第二行定得太大时自动档只缩第一行，超框如实标记', () => {
-    const result = fit({ text: '飞书\n先锋', typography: { padding: 0.1, line2Size: 0.9 } })
+    const result = fit({ text: '飞书\n先锋', typography: { line2: { size: 0.9 }, padding: 0.1 } })
     expect(result.secondary?.fontSizePx).toBeCloseTo(900)
     expect(result.primary?.fontSizePx).toBeCloseTo(40)
     // 留白跟着较大的那段走
@@ -135,7 +134,7 @@ describe('auto 模式', () => {
   it('第一行空、第二行有内容：晋升主行，补偿参数跟着内容走', () => {
     const result = fit({
       text: '\n说明',
-      typography: { padding: 0.1, lineOffsetsX: [0.1, 0.2] },
+      typography: { line1: { offsetX: 0.1 }, line2: { offsetX: 0.2 }, padding: 0.1 },
     })
     expect(result.primary?.block.lines[0]?.text).toBe('说明')
     expect(result.primary?.offset).toBeCloseTo(0.2)
@@ -149,7 +148,7 @@ describe('auto 模式', () => {
     const plain = fit({ text: '中', typography: { padding: 0.1 } })
     const shifted = fit({
       text: '中',
-      typography: { padding: 0.1, lineOffsetsX: [0.1, 0] },
+      typography: { line1: { offsetX: 0.1 }, padding: 0.1 },
     })
     expect(shifted.primary?.fontSizePx).toBeCloseTo(plain.primary?.fontSizePx ?? 0, 0)
     expect(shifted.contained).toBe(true)
@@ -160,7 +159,7 @@ describe('auto 模式', () => {
     // 手动 0.2：两个 CJK 块宽 400，安全区 800 两侧各余 200，偏移 20 px 放得下
     const result = fit({
       text: '中中',
-      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, lineOffsetsX: [0.02, 0] },
+      typography: { line1: { size: 0.2, offsetX: 0.02 }, padding: 0.1 },
     })
     expect(result.primary?.block.width).toBeCloseTo(400)
     expect(result.fits).toBe(true)
@@ -172,7 +171,7 @@ describe('auto 模式', () => {
     const plain = fit({ text: '中', typography: { padding: 0.1 } })
     const shifted = fit({
       text: '中',
-      typography: { padding: 0.1, lineOffsetsY: [0.2, 0] },
+      typography: { line1: { offsetY: 0.2 }, padding: 0.1 },
     })
     expect(shifted.ratio).toBeCloseTo(plain.ratio, 5)
     expect(shifted.primary?.fontSizePx).toBeCloseTo(plain.primary?.fontSizePx ?? 0, 0)
@@ -184,7 +183,7 @@ describe('auto 模式', () => {
     // 手动 0.2：块高 200，安全区高 800 上下各余 300，往下挪 20 px 放得下
     const result = fit({
       text: '中中',
-      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, lineOffsetsY: [0.02, 0] },
+      typography: { line1: { size: 0.2, offsetY: 0.02 }, padding: 0.1 },
     })
     expect(result.primary?.block.height).toBeCloseTo(200)
     expect(result.fits).toBe(true)
@@ -193,7 +192,7 @@ describe('auto 模式', () => {
   it('水平与垂直同时越界 fits 仍为假', () => {
     const result = fit({
       text: '中',
-      typography: { padding: 0.1, lineOffsetsX: [0.1, 0], lineOffsetsY: [0.2, 0] },
+      typography: { line1: { offsetX: 0.1, offsetY: 0.2 }, padding: 0.1 },
     })
     expect(result.contained).toBe(true)
     expect(result.fits).toBe(false)
@@ -238,5 +237,40 @@ describe('safeArea', () => {
       1000,
     )
     expect(area).toEqual({ x: 0, y: 0, width: 1000, height: 1000 })
+  })
+})
+
+describe('逐行字体', () => {
+  const kuaile = { family: 'ZCOOL KuaiLe', source: 'google', weight: 400 } as const
+
+  it('第二行独立字体进第二段的 font，第一行不受影响', () => {
+    const result = fit({ text: '飞书\n先锋', typography: { line2: { font: kuaile } } })
+    expect(result.secondary?.font).toContain('"ZCOOL KuaiLe"')
+    expect(result.secondary?.font.startsWith('400 ')).toBe(true)
+    expect(result.primary?.font).toContain('"Noto Sans SC"')
+  })
+
+  it('第一行为空时晋升的那一行用第二行的生效字体', () => {
+    const result = fit({ text: '\n说明', typography: { line2: { font: kuaile } } })
+    expect(result.primary?.font).toContain('"ZCOOL KuaiLe"')
+    expect(result.secondary).toBeNull()
+  })
+
+  it('定值档下第二行换字体，第一行的字号与字体不变', () => {
+    const typography = { line1: { size: 0.2 }, padding: 0.1 }
+    const follow = fit({ text: '飞书\n先锋', typography })
+    const pinned = fit({
+      text: '飞书\n先锋',
+      typography: { ...typography, line2: { font: kuaile } },
+    })
+    expect(pinned.primary?.fontSizePx).toBe(follow.primary?.fontSizePx)
+    expect(pinned.primary?.font).toBe(follow.primary?.font)
+    expect(pinned.secondary?.font).not.toBe(follow.secondary?.font)
+  })
+
+  it('自动档下第二行换字体仍能放进安全框', () => {
+    const result = fit({ text: '飞书\n效率先锋', typography: { line2: { font: kuaile } } })
+    expect(result.fits).toBe(true)
+    expect(result.secondary?.font).toContain('"ZCOOL KuaiLe"')
   })
 })

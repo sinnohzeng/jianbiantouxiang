@@ -2,15 +2,15 @@
  * 字体目录：从 fontsource API 拉全量列表，裁掉用不上的字段后按 7 天缓存到 localStorage。
  * 只保留 type 为 google 的条目，因为主加载链路走 Google Fonts css2，
  * fontsource 独有的字体在那条链路上取不到。
+ *
+ * 按 family 查条目只有 `findFontEntry` 一个入口：先查精选清单，再查内存里的目录。
+ * 内存目录第一次被访问时从本地缓存解析一次，不看有效期，`fetchCatalog` 拉到新目录时替换；
+ * 有效期只决定选择器打开时要不要刷新列表，过期条目的 id、字重与版本照样可用。
  */
 
+import { FONT_WEIGHTS, type FontSource, type FontWeight } from '@/state/config'
 import { CURATED_FONTS } from './curated'
-
-// 目录接口不可用时的兜底数据，从 catalog 这里也能取，省得调用方分辨两个模块
-export { CURATED_FONTS } from './curated'
-
-export type FontCategory =
-  'sans-serif' | 'serif' | 'display' | 'handwriting' | 'monospace' | 'other'
+import { UPLOAD_FAMILY_SUFFIX } from './upload'
 
 export type CjkScript = 'sc' | 'tc' | 'hk' | 'jp' | 'kr'
 
@@ -19,25 +19,18 @@ export interface FontEntry {
   /** fontsource npm 包版本；镜像 CSS 用它替代 @latest。 */
   version?: string
   family: string
-  category: FontCategory
-  subsets: string[]
-  weights: number[]
+  /** 字体真实提供的字重，升序，只含 FONT_WEIGHTS 九档。 */
+  weights: FontWeight[]
   cjk?: CjkScript
 }
 
 export const CATALOG_URL = 'https://api.fontsource.org/v1/fonts'
-export const CATALOG_CACHE_KEY = 'ga3.fonts.catalog.v1'
+export const CATALOG_CACHE_KEY = 'gradient-avatar:font-catalog:v1'
 export const CATALOG_TTL_MS = 7 * 24 * 60 * 60 * 1000
 export const CATALOG_TIMEOUT_MS = 8000
 
-const CATEGORIES: readonly FontCategory[] = [
-  'sans-serif',
-  'serif',
-  'display',
-  'handwriting',
-  'monospace',
-  'other',
-]
+/** 查不到条目时的字重兜底，覆盖绝大多数可变字体。 */
+export const FALLBACK_WEIGHTS: readonly FontWeight[] = [300, 400, 500, 600, 700, 800, 900]
 
 /** subset 到脚本标记的映射，顺序即优先级：一份字体同时带简繁时按简体归类。 */
 const CJK_SUBSETS: readonly [string, CjkScript][] = [
@@ -63,47 +56,35 @@ interface RawFont {
   type?: unknown
 }
 
-function toCategory(value: unknown): FontCategory {
-  return typeof value === 'string' && (CATEGORIES as readonly string[]).includes(value)
-    ? (value as FontCategory)
-    : 'other'
-}
-
 function toStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
 }
 
-function toWeights(value: unknown): number[] {
+/** 只留 FONT_WEIGHTS 九档里的值，天然升序去重；一档都没有时给 400。 */
+function toWeights(value: unknown): FontWeight[] {
   if (!Array.isArray(value)) return [400]
-  const out = value
-    .map((v) => (typeof v === 'number' ? v : Number(v)))
-    .filter((v) => Number.isFinite(v) && v >= 100 && v <= 1000)
-    .map((v) => Math.round(v))
-  return out.length > 0 ? [...new Set(out)].sort((a, b) => a - b) : [400]
+  const listed = new Set(value.map((v) => Number(v)))
+  const out = FONT_WEIGHTS.filter((w) => listed.has(w))
+  return out.length > 0 ? out : [400]
 }
 
-export function cjkOfSubsets(subsets: readonly string[]): CjkScript | undefined {
+function cjkOfSubsets(subsets: readonly string[]): CjkScript | undefined {
   for (const [subset, script] of CJK_SUBSETS) {
     if (subsets.includes(subset)) return script
   }
   return undefined
 }
 
-/** 把 API 原始条目压成 FontEntry；字段缺失或非 google 来源的直接丢弃。 */
+/** 把 API 原始条目压成 FontEntry；字段缺失、图标字体或非 google 来源的直接丢弃。 */
 export function toFontEntry(raw: unknown): FontEntry | null {
   if (typeof raw !== 'object' || raw === null) return null
   const r = raw as RawFont
   if (typeof r.id !== 'string' || typeof r.family !== 'string') return null
-  if (r.type !== 'google') return null
-  const category = toCategory(r.category)
-  if (category === 'other' && r.category === 'icons') return null
-  const subsets = toStringArray(r.subsets)
-  const cjk = cjkOfSubsets(subsets)
+  if (r.type !== 'google' || r.category === 'icons') return null
+  const cjk = cjkOfSubsets(toStringArray(r.subsets))
   const entry: FontEntry = {
     id: r.id,
     family: r.family,
-    category,
-    subsets,
     weights: toWeights(r.weights),
     ...(typeof r.version === 'string' && /^\d+\.\d+\.\d+$/.test(r.version)
       ? { version: r.version }
@@ -155,7 +136,28 @@ function writeCache(fonts: FontEntry[]): void {
   }
 }
 
+/** family 的比较口径：去掉首尾空白后小写。 */
+function familyKey(family: string): string {
+  return family.trim().toLowerCase()
+}
+
+function indexByFamily(list: readonly FontEntry[]): Map<string, FontEntry> {
+  return new Map(list.map((entry) => [familyKey(entry.family), entry]))
+}
+
+const CURATED_BY_FAMILY = indexByFamily(CURATED_FONTS)
+
+/** 内存里的目录，null 表示还没从本地缓存解析过。 */
+let memo: Map<string, FontEntry> | null = null
+
+function catalogByFamily(): Map<string, FontEntry> {
+  memo ??= indexByFamily(readCache()?.fonts ?? [])
+  return memo
+}
+
+/** 清掉本地缓存，内存里那份目录一起作废，下次查找重新从缓存解析。 */
 export function clearCatalogCache(): void {
+  memo = null
   const store = storage()
   if (!store) return
   try {
@@ -163,6 +165,25 @@ export function clearCatalogCache(): void {
   } catch {
     // 同上
   }
+}
+
+/** 按 family 查目录条目：先查精选清单，再查内存目录。同步返回，不发请求。 */
+export function findFontEntry(family: string): FontEntry | undefined {
+  const key = familyKey(family)
+  return CURATED_BY_FAMILY.get(key) ?? catalogByFamily().get(key)
+}
+
+/** 这款字体可选的字重，查不到条目时给一份通用档位。 */
+export function weightsOf(family: string): readonly FontWeight[] {
+  const weights = findFontEntry(family)?.weights ?? []
+  return weights.length > 0 ? weights : FALLBACK_WEIGHTS
+}
+
+/** 界面上显示的字体名。上传字体去掉 family 的命名空间后缀，其余原样。 */
+export function displayName(family: string, source: FontSource): string {
+  return source === 'upload' && family.endsWith(UPLOAD_FAMILY_SUFFIX)
+    ? family.slice(0, -UPLOAD_FAMILY_SUFFIX.length)
+    : family
 }
 
 let inflight: Promise<FontEntry[]> | null = null
@@ -184,7 +205,7 @@ async function requestCatalog(timeoutMs: number): Promise<FontEntry[]> {
 }
 
 /**
- * 取字体目录：缓存未过期直接用；过期或缺失时请求接口，成功后回写缓存。
+ * 取字体目录：缓存未过期直接用；过期或缺失时请求接口，成功后回写缓存并替换内存目录。
  * 请求失败先退到过期缓存，再退到精选清单，保证选择器任何时候都有内容。
  */
 export async function fetchCatalog(opts?: {
@@ -198,6 +219,7 @@ export async function fetchCatalog(opts?: {
   inflight ??= requestCatalog(opts?.timeoutMs ?? CATALOG_TIMEOUT_MS)
     .then((fonts) => {
       writeCache(fonts)
+      memo = indexByFamily(fonts)
       return fonts
     })
     .finally(() => {
@@ -211,7 +233,6 @@ export async function fetchCatalog(opts?: {
 }
 
 export interface SearchOptions {
-  category?: FontCategory | 'all'
   cjk?: CjkScript | 'any' | 'none'
   recent?: readonly string[]
   limit?: number
@@ -241,13 +262,11 @@ export function searchFonts(
   opts?: SearchOptions,
 ): FontEntry[] {
   const q = normalize(query)
-  const category = opts?.category ?? 'all'
   const cjk = opts?.cjk ?? 'any'
   const recent = (opts?.recent ?? []).map((f) => normalize(f))
 
   const scored: { entry: FontEntry; s: number; recentAt: number }[] = []
   for (const entry of list) {
-    if (category !== 'all' && entry.category !== category) continue
     if (cjk === 'none' && entry.cjk) continue
     if (cjk !== 'any' && cjk !== 'none' && entry.cjk !== cjk) continue
     const s = score(entry, q)

@@ -12,7 +12,7 @@
  * 网格与安全区参考线的开关在操作条的「更多」里，不压在作品上。
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { TriangleAlertIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { getRenderCaps } from '@/engine/caps'
@@ -24,10 +24,8 @@ import { resolveSeed } from '@/engine/seed'
 import { drawGraphic } from '@/graphics/draw'
 import { loadGraphic } from '@/graphics/source'
 import type { Graphic } from '@/graphics/types'
-import { fetchCatalog } from '@/fonts/catalog'
-import type { FontEntry } from '@/fonts/catalog'
-import { getCuratedByFamily } from '@/fonts/curated'
-import { loadFontForConfig, quoteFamily } from '@/fonts/loader'
+import { displayName } from '@/fonts/catalog'
+import { fontJobs, loadFontsForConfig, topUpGlyphs, type FontLoadResult } from '@/fonts/loader'
 import { drawText } from '@/text/draw'
 import { safeArea } from '@/text/fit'
 import { layoutText } from '@/text/layout'
@@ -39,6 +37,7 @@ import { useThrottled } from '@/app/use-throttled'
 import { useIsMobile, useMediaQuery } from '@/hooks/use-media'
 import { useT } from '@/i18n'
 import { cn } from '@/lib/utils'
+import { fontKey } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 
 /**
@@ -52,20 +51,6 @@ const MAX_PREVIEW_DPR = 2
 
 /** 上下文丢失后最多重建几次。反复丢说明这台设备扛不住，再重建也是白搭。 */
 const MAX_CONTEXT_RESTARTS = 3
-
-/** 目录条目先查精选清单，再查 fontsource 目录的本地缓存，查到才传给加载器。 */
-async function resolveFontEntry(family: string, source: string): Promise<FontEntry | undefined> {
-  if (source !== 'google') return undefined
-  const curated = getCuratedByFamily(family)
-  if (curated) return curated
-  try {
-    const catalog = await fetchCatalog()
-    const key = family.trim().toLowerCase()
-    return catalog.find((entry) => entry.family.trim().toLowerCase() === key)
-  } catch {
-    return undefined
-  }
-}
 
 export function PreviewStage() {
   const t = useT()
@@ -112,10 +97,18 @@ export function PreviewStage() {
     () => safeArea(preview, box.width, box.height),
     [preview, box.width, box.height],
   )
-  // 字体状态放 store，面板与预览看同一份，不必各存一份局部状态
-  const fontLoading = useAvatarStore((state) => state.ui.fontStatus === 'loading')
+  // 要加载的字体集合：两行各自的生效字体，空行不算。它是字体 effect 唯一的字体依赖
+  const fontSetKey = useMemo(
+    () =>
+      fontJobs(config)
+        .map((job) => fontKey(job.font))
+        .join('\n'),
+    [config],
+  )
+  // 最近一次加载完成的字体集合；与当前集合对不上就是还在加载
+  const [fontsReadyFor, setFontsReadyFor] = useState<string | null>(null)
+  const fontLoading = fontsReadyFor !== fontSetKey
 
-  const { fontFamily, fontSource, fontWeight } = config.typography
   const ink = preview.typography.color
 
   // 挂载一次，之后只 update。style 换了由 mount 内部重建 shader 程序
@@ -186,49 +179,48 @@ export function PreviewStage() {
     }
   }, [iconSource, iconId, iconMono])
 
+  // 回落中的字体按 fontKey 记进 store；每款失败字体整场会话只提示一次
+  const onFontsLoaded = useEffectEvent((results: readonly FontLoadResult[]) => {
+    const failed = results.filter((result) => !result.ok)
+    setUi({ fontFallbacks: failed.map((result) => fontKey(result.font)) })
+    for (const { font } of failed) {
+      const key = fontKey(font)
+      if (toastedRef.current.has(key)) continue
+      toastedRef.current.add(key)
+      const name = displayName(font.family, font.source)
+      toast.warning(
+        font.source === 'upload'
+          ? t('preview.font.upload', { name })
+          : t('preview.font.fallback', { name }),
+      )
+    }
+  })
+
   // 字体：加载完成才重绘，否则 canvas 会先用回退字形画一遍
   useEffect(() => {
     let cancelled = false
-    setUi({ fontStatus: 'loading' })
-
-    void resolveFontEntry(fontFamily, fontSource)
-      .then((entry) => loadFontForConfig(useAvatarStore.getState().config, { entry }))
-      .then((result) => {
-        if (cancelled) return
-        setUi({ fontStatus: result.ok ? 'ready' : 'fallback' })
-        setFontTick((tick) => tick + 1)
-        if (result.ok) return
-        const key = `${fontSource}|${fontFamily}`
-        if (toastedRef.current.has(key)) return
-        toastedRef.current.add(key)
-        toast.warning(
-          fontSource === 'upload' ? t('preview.font.upload') : t('preview.font.fallback'),
-        )
-      })
-
+    void loadFontsForConfig(useAvatarStore.getState().config).then((results) => {
+      if (cancelled) return
+      setFontsReadyFor(fontSetKey)
+      setFontTick((tick) => tick + 1)
+      onFontsLoaded(results)
+    })
     return () => {
       cancelled = true
     }
-  }, [fontFamily, fontSource, fontWeight, setUi, t])
+  }, [fontSetKey])
 
   // CJK 字体按 unicode-range 切片下发，新打的字要单独 load 一次才有字形
   useEffect(() => {
-    const set = globalThis.document?.fonts
-    const sample = preview.text
-    if (!set || fontLoading || sample.trim() === '') return
+    if (fontLoading) return
     let cancelled = false
-    void set
-      .load(`${fontWeight} 32px ${quoteFamily(fontFamily)}`, sample)
-      .then(() => {
-        if (!cancelled) setFontTick((tick) => tick + 1)
-      })
-      .catch(() => {
-        // 字体没就绪时这里必然失败，回退字形照样能画
-      })
+    void topUpGlyphs(useAvatarStore.getState().config).then((changed) => {
+      if (changed && !cancelled) setFontTick((tick) => tick + 1)
+    })
     return () => {
       cancelled = true
     }
-  }, [preview.text, fontFamily, fontWeight, fontLoading])
+  }, [preview.text, fontSetKey, fontLoading])
 
   // 高光与文字。放进 rAF 画，既不挤占布局这一帧，也让排版结果的回写落在回调里
   useEffect(() => {
@@ -267,9 +259,9 @@ export function PreviewStage() {
       setOverflow(layout.overflow)
 
       // 把自动求得的基准字号比例回写给面板：字号滑杆在自动态显示它，
-      // 用户一拖就从这个值切到手动。只在 auto 档写，手动档的 fontSizePx 就是用户自己的值。
+      // 用户一拖就从这个值切到手动。只在第一行字号为 null 时写，定值就是用户自己的值。
       // 写的是求解器的原值，对齐到滑杆步进由面板在显示时做；变化不到万分之一不写，免得每帧都动 store
-      if (drawConfig.typography.sizeMode === 'auto') {
+      if (drawConfig.typography.line1.size === null) {
         const current = useAvatarStore.getState().ui.autoFontSize
         if (current === null || Math.abs(current - layout.fontRatio) > 1e-4) {
           setUi({ autoFontSize: layout.fontRatio })

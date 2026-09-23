@@ -24,10 +24,22 @@ export interface ProbeEncodeResult {
   hitTarget: boolean
 }
 
+/** 用例要读的那几位配置。探针返回整份配置，这里只声明断言用得到的字段。 */
+export interface ProbeConfig {
+  text: string
+  seed: string
+  style: string
+  palette: string
+  typography: { line1: { offsetY: number } }
+  layout: { icon: { source: string; id: string; mono: boolean } }
+}
+
 interface ProbeWindow {
   __gradientAvatarProbe?: {
     stats(size?: number): Promise<ProbePixelStats>
     encode(size?: number): Promise<ProbeEncodeResult>
+    config(): ProbeConfig
+    flush(): void
   }
 }
 
@@ -100,6 +112,16 @@ export function probeEncode(page: Page, size?: number): Promise<ProbeEncodeResul
     (px) => (globalThis as unknown as ProbeWindow).__gradientAvatarProbe!.encode(px),
     size,
   )
+}
+
+/** store 里的当前配置，同步可读，不经存档的防抖。 */
+export function probeConfig(page: Page): Promise<ProbeConfig> {
+  return page.evaluate(() => (globalThis as unknown as ProbeWindow).__gradientAvatarProbe!.config())
+}
+
+/** 把防抖中的配置立刻写进存档，测刷新恢复前调一次。 */
+export function probeFlush(page: Page): Promise<void> {
+  return page.evaluate(() => (globalThis as unknown as ProbeWindow).__gradientAvatarProbe!.flush())
 }
 
 /**

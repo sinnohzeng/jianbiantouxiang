@@ -80,7 +80,7 @@ v4.0 把补偿改成落位纯位移之后，回归用例只盖了 `manual` 档�
 
 ### 移除一条数据通道，测试与调试口径要一起换
 
-配置不再进 URL 之后，e2e 里「复制链接再打开」的往返、`常驻操作条` 用例盯 `location.hash` 变化、截图脚本用 `#c=` 喂配置，这三处都跟着失效。替代口径统一是存档注入：往 localStorage 的 `gradient-avatar:v3` 写 `{ v: 3, config }` 再加载页面，断言也改看存档。删功能时先 grep 测试、脚本与文档里的旧通道，不然会留下一批「看起来在测、其实在测已经不存在的东西」的用例。
+配置不再进 URL 之后，e2e 里「复制链接再打开」的往返、`常驻操作条` 用例盯 `location.hash` 变化、截图脚本用 `#c=` 喂配置，这三处都跟着失效。替代口径统一是存档注入：往 localStorage 的 `PERSIST_KEY`（`src/state/persist.ts`）写 `{ config }` 再加载页面，断言读探针的 `config()`。删功能时先 grep 测试、脚本与文档里的旧通道，不然会留下一批「看起来在测、其实在测已经不存在的东西」的用例。
 
 ### Tailwind v4 的变体顺序：`peer-hover` 排在 `peer-checked` 之后
 
@@ -404,7 +404,7 @@ warp 在浅配色上会揉成锡纸，折痕两侧色差本来就小，swirl 一
   截一张图三十秒就看见了。`scripts/screenshots.mjs` 那套加上存档注入可以直接喂任意配置。
 
 **验证命令。** `npm test` 加一次真实渲染核查：起 `npm run dev`，用 `page.addInitScript` 往 localStorage 的
-`gradient-avatar:v3` 写一份 `{ v: 3, config }` 再打开页面截图（应用只在模块初始化时读一次存档，写完要重新加载）。
+`PERSIST_KEY`（`src/state/persist.ts`）写一份 `{ config }` 再打开页面截图（应用只在模块初始化时读一次存档，写完要重新加载）。
 v5.0 之前这里走的是 `#c=` 分享链接，那条通道已经拆掉。
 
 **失效条件。** 绘制层改成由排版层直接产出绘制指令（不再靠字段传话）之后，这条不再适用。

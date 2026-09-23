@@ -61,11 +61,11 @@ describe('buildMirrorCssUrls', () => {
     ])
   })
 
-  it('两个主机按优先级铺平，cdn 在前 gcore 在后', () => {
-    expect(MIRROR_HOSTS).toEqual(['cdn.jsdelivr.net', 'gcore.jsdelivr.net'])
+  it('两个主机按优先级铺平，cdn 在前 fastly 在后', () => {
+    expect(MIRROR_HOSTS).toEqual(['cdn.jsdelivr.net', 'fastly.jsdelivr.net'])
     expect(buildMirrorCssUrls('zcool-kuaile', [400], '5.3.0')).toEqual([
       'https://cdn.jsdelivr.net/npm/@fontsource/zcool-kuaile@5.3.0/400.css',
-      'https://gcore.jsdelivr.net/npm/@fontsource/zcool-kuaile@5.3.0/400.css',
+      'https://fastly.jsdelivr.net/npm/@fontsource/zcool-kuaile@5.3.0/400.css',
     ])
   })
 })

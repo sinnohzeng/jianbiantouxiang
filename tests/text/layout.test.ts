@@ -14,7 +14,7 @@ describe('单行落位', () => {
   it('单行水平垂直都居中，坐标由度量决定', () => {
     const result = layout({
       text: '中文',
-      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+      typography: { line1: { size: 0.2 }, padding: 0.1, effect: 'plain' },
     })
     expect(result.lines).toHaveLength(1)
     const line = result.lines[0]!
@@ -34,7 +34,7 @@ describe('单行落位', () => {
 describe('两行栈', () => {
   const TWO: PartialConfig = {
     text: '甲甲\n乙乙乙',
-    typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+    typography: { line1: { size: 0.2 }, padding: 0.1, effect: 'plain' },
   }
 
   it('主行在上，次行在下，中间留白按主行字号 0.18', () => {
@@ -64,7 +64,7 @@ describe('两行栈', () => {
 describe('行级水平补偿互相独立', () => {
   const TWO: PartialConfig = {
     text: '甲甲\n乙乙乙',
-    typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+    typography: { line1: { size: 0.2 }, padding: 0.1, effect: 'plain' },
   }
 
   it('往左移第一行：第一行位移，第二行像素位置不变', () => {
@@ -72,7 +72,7 @@ describe('行级水平补偿互相独立', () => {
     const before = layout(TWO)
     const after = layout({
       ...TWO,
-      typography: { ...TWO.typography, lineOffsetsX: [-0.1, 0] },
+      typography: { ...TWO.typography, line1: { ...TWO.typography?.line1, offsetX: -0.1 } },
     })
     expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x - 100)
     expect(after.lines[1]!.x).toBeCloseTo(before.lines[1]!.x)
@@ -83,7 +83,7 @@ describe('行级水平补偿互相独立', () => {
     const before = layout(TWO)
     const after = layout({
       ...TWO,
-      typography: { ...TWO.typography, lineOffsetsX: [0.1, 0] },
+      typography: { ...TWO.typography, line1: { ...TWO.typography?.line1, offsetX: 0.1 } },
     })
     expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x + 100)
     expect(after.lines[1]!.x).toBeCloseTo(before.lines[1]!.x)
@@ -93,7 +93,7 @@ describe('行级水平补偿互相独立', () => {
     const before = layout(TWO)
     const after = layout({
       ...TWO,
-      typography: { ...TWO.typography, lineOffsetsX: [0, 0.05] },
+      typography: { ...TWO.typography, line2: { offsetX: 0.05 } },
     })
     expect(after.lines[1]!.x).toBeCloseTo(before.lines[1]!.x + 50)
     expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x)
@@ -104,7 +104,7 @@ describe('行级水平补偿互相独立', () => {
     const after = layout({
       ...TWO,
       text: '\n乙乙乙',
-      typography: { ...TWO.typography, lineOffsetsX: [0, 0.1] },
+      typography: { ...TWO.typography, line2: { offsetX: 0.1 } },
     })
     expect(after.lines).toHaveLength(1)
     expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x + 100)
@@ -115,14 +115,14 @@ describe('行级水平补偿互相独立', () => {
     // 第一行一动基准字号就缩，第二行跟着变小变位，用户看到的正是「第一行影响第二行」
     const AUTO: PartialConfig = {
       text: '甲甲甲甲\n乙乙',
-      typography: { sizeMode: 'auto', padding: 0.1, effect: 'plain' },
+      typography: { padding: 0.1, effect: 'plain' },
     }
 
     it('往左移第一行：两行字号都不变，第二行像素位置不变', () => {
       const before = layout(AUTO)
       const after = layout({
         ...AUTO,
-        typography: { ...AUTO.typography, lineOffsetsX: [-0.1, 0] },
+        typography: { ...AUTO.typography, line1: { offsetX: -0.1 } },
       })
       expect(after.lines[0]!.fontSizePx).toBeCloseTo(before.lines[0]!.fontSizePx)
       expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x - 100)
@@ -135,7 +135,7 @@ describe('行级水平补偿互相独立', () => {
       const before = layout(AUTO)
       const after = layout({
         ...AUTO,
-        typography: { ...AUTO.typography, lineOffsetsX: [0, 0.08] },
+        typography: { ...AUTO.typography, line2: { offsetX: 0.08 } },
       })
       expect(after.lines[0]!.fontSizePx).toBeCloseTo(before.lines[0]!.fontSizePx)
       expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x)
@@ -147,12 +147,12 @@ describe('行级水平补偿互相独立', () => {
       // v4.0 的余量扣在被补偿的那一行上：第二行 6 个 CJK 宽 744，可用宽被 0.1 的补偿压到 600 就折成两行
       const LONG_SECOND: PartialConfig = {
         text: '甲甲甲甲\n乙乙乙乙乙乙',
-        typography: { sizeMode: 'auto', padding: 0.1, effect: 'plain' },
+        typography: { padding: 0.1, effect: 'plain' },
       }
       const before = layout(LONG_SECOND)
       const after = layout({
         ...LONG_SECOND,
-        typography: { ...LONG_SECOND.typography, lineOffsetsX: [0, 0.1] },
+        typography: { ...LONG_SECOND.typography, line2: { offsetX: 0.1 } },
       })
       expect(after.lines).toHaveLength(2)
       expect(after.lines[0]!.fontSizePx).toBeCloseTo(before.lines[0]!.fontSizePx)
@@ -160,13 +160,13 @@ describe('行级水平补偿互相独立', () => {
       expect(after.overflow).toBe(true)
     })
 
-    it('排版结果带基准字号比例，与 fontSize 同一单位', () => {
+    it('排版结果带基准字号比例，与 line1.size 同一单位', () => {
       const result = layout(AUTO)
       // 四个 CJK 填满 800 宽的安全区 → 基准 200 px，短边 1000 → 比例 0.2
       expect(result.fontRatio).toBeCloseTo(0.2, 2)
       const manual = layout({
         ...AUTO,
-        typography: { ...AUTO.typography, sizeMode: 'manual', fontSize: 0.3 },
+        typography: { ...AUTO.typography, line1: { size: 0.3 } },
       })
       expect(manual.fontRatio).toBeCloseTo(0.3)
     })
@@ -175,12 +175,12 @@ describe('行级水平补偿互相独立', () => {
       // v4.0 里余量扣掉 100 px 后第一行折成两行，块高增加，第二行被推下去 103 px
       const MANUAL: PartialConfig = {
         text: '甲甲甲甲\n乙乙',
-        typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+        typography: { line1: { size: 0.2 }, padding: 0.1, effect: 'plain' },
       }
       const before = layout(MANUAL)
       const after = layout({
         ...MANUAL,
-        typography: { ...MANUAL.typography, lineOffsetsX: [0.05, 0] },
+        typography: { ...MANUAL.typography, line1: { ...MANUAL.typography?.line1, offsetX: 0.05 } },
       })
       expect(after.lines).toHaveLength(2)
       expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x + 50)
@@ -193,7 +193,7 @@ describe('行级水平补偿互相独立', () => {
       const before = layout(AUTO)
       const after = layout({
         ...AUTO,
-        typography: { ...AUTO.typography, lineOffsetsX: [-0.1, 0] },
+        typography: { ...AUTO.typography, line1: { offsetX: -0.1 } },
       })
       expect(before.overflow).toBe(false)
       expect(after.overflow).toBe(true)
@@ -205,14 +205,14 @@ describe('行级水平补偿互相独立', () => {
 describe('行级垂直补偿互相独立', () => {
   const TWO: PartialConfig = {
     text: '甲甲\n乙乙乙',
-    typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+    typography: { line1: { size: 0.2 }, padding: 0.1, effect: 'plain' },
   }
 
   it('往上移第一行：第一行位移，第二行像素位置不变', () => {
     const before = layout(TWO)
     const after = layout({
       ...TWO,
-      typography: { ...TWO.typography, lineOffsetsY: [-0.1, 0] },
+      typography: { ...TWO.typography, line1: { ...TWO.typography?.line1, offsetY: -0.1 } },
     })
     expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y - 100)
     expect(after.lines[0]!.x).toBeCloseTo(before.lines[0]!.x)
@@ -224,7 +224,7 @@ describe('行级垂直补偿互相独立', () => {
     const before = layout(TWO)
     const after = layout({
       ...TWO,
-      typography: { ...TWO.typography, lineOffsetsY: [0.1, 0] },
+      typography: { ...TWO.typography, line1: { ...TWO.typography?.line1, offsetY: 0.1 } },
     })
     expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y + 100)
     expect(after.lines[1]!.y).toBeCloseTo(before.lines[1]!.y)
@@ -234,7 +234,7 @@ describe('行级垂直补偿互相独立', () => {
     const before = layout(TWO)
     const after = layout({
       ...TWO,
-      typography: { ...TWO.typography, lineOffsetsY: [0, 0.05] },
+      typography: { ...TWO.typography, line2: { offsetY: 0.05 } },
     })
     expect(after.lines[1]!.y).toBeCloseTo(before.lines[1]!.y + 50)
     expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y)
@@ -245,7 +245,7 @@ describe('行级垂直补偿互相独立', () => {
     const after = layout({
       ...TWO,
       text: '\n乙乙乙',
-      typography: { ...TWO.typography, lineOffsetsY: [0, 0.1] },
+      typography: { ...TWO.typography, line2: { offsetY: 0.1 } },
     })
     expect(after.lines).toHaveLength(1)
     expect(after.lines[0]!.y).toBeCloseTo(before.lines[0]!.y + 100)
@@ -254,14 +254,14 @@ describe('行级垂直补偿互相独立', () => {
   describe('自动字号下同样独立', () => {
     const AUTO: PartialConfig = {
       text: '甲甲甲甲\n乙乙',
-      typography: { sizeMode: 'auto', padding: 0.1, effect: 'plain' },
+      typography: { padding: 0.1, effect: 'plain' },
     }
 
     it('下移第一行垂直，两行字号都不变', () => {
       const before = layout(AUTO)
       const after = layout({
         ...AUTO,
-        typography: { ...AUTO.typography, lineOffsetsY: [0.1, 0] },
+        typography: { ...AUTO.typography, line1: { offsetY: 0.1 } },
       })
       expect(after.lines[0]!.fontSizePx).toBeCloseTo(before.lines[0]!.fontSizePx)
       expect(after.lines[1]!.fontSizePx).toBeCloseTo(before.lines[1]!.fontSizePx)
@@ -275,7 +275,7 @@ describe('行级垂直补偿互相独立', () => {
       const before = layout(AUTO)
       const after = layout({
         ...AUTO,
-        typography: { ...AUTO.typography, lineOffsetsY: [0.25, 0] },
+        typography: { ...AUTO.typography, line1: { offsetY: 0.25 } },
       })
       expect(before.overflow).toBe(false)
       expect(after.overflow).toBe(true)
@@ -292,7 +292,7 @@ describe('图标进栈', () => {
     const result = layout(
       {
         text: '产品设计部',
-        typography: { sizeMode: 'manual', fontSize: 0.1, padding: 0.1, effect: 'plain' },
+        typography: { line1: { size: 0.1 }, padding: 0.1, effect: 'plain' },
         layout: { graphic: 0.5, icon: { source: 'builtin', id: 'tree-palm' } },
       },
       GRAPHIC,
@@ -326,7 +326,7 @@ describe('图标进栈', () => {
     const withText = layout(
       {
         text: '产品设计部',
-        typography: { sizeMode: 'manual', fontSize: 0.1, padding: 0.1, effect: 'plain' },
+        typography: { line1: { size: 0.1 }, padding: 0.1, effect: 'plain' },
         layout: {
           graphic: 0.5,
           graphicOffsetX: 0.05,
@@ -357,7 +357,7 @@ describe('图标进栈', () => {
   it('垂直补偿按安全框高度挪图形，纯图形时同样生效，文字基线一个像素不变', () => {
     const TEXT: PartialConfig = {
       text: '产品设计部',
-      typography: { sizeMode: 'manual', fontSize: 0.1, padding: 0.1, effect: 'plain' },
+      typography: { line1: { size: 0.1 }, padding: 0.1, effect: 'plain' },
       layout: { graphic: 0.5, icon: { source: 'builtin', id: 'tree-palm' } },
     }
     const before = layout(TEXT, GRAPHIC)
@@ -388,7 +388,7 @@ describe('图标进栈', () => {
     const result = layout(
       {
         text: '文字',
-        typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1 },
+        typography: { line1: { size: 0.2 }, padding: 0.1 },
         layout: { icon: { source: 'none', id: '' } },
       },
       GRAPHIC,
@@ -400,7 +400,7 @@ describe('图标进栈', () => {
     const result = layout(
       {
         text: '文字',
-        typography: { sizeMode: 'manual', fontSize: 0.1, padding: 0.1 },
+        typography: { line1: { size: 0.1 }, padding: 0.1 },
         layout: { graphic: 0.8, icon: { source: 'builtin', id: 'wide' } },
       },
       { width: 400, height: 100 },

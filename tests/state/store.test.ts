@@ -43,10 +43,10 @@ afterEach(() => {
 
 describe('setConfig 与分组动作', () => {
   it('嵌套局部更新只改目标字段', () => {
-    store().setConfig({ typography: { fontSize: 0.6 } })
+    store().setConfig({ typography: { line1: { size: 0.6 } } })
     const { typography } = store().config
-    expect(typography.fontSize).toBe(0.6)
-    expect(typography.fontFamily).toBe(DEFAULT_CONFIG.typography.fontFamily)
+    expect(typography.line1.size).toBe(0.6)
+    expect(typography.line1.font).toEqual(DEFAULT_CONFIG.typography.line1.font)
     expect(typography.pill).toEqual(DEFAULT_CONFIG.typography.pill)
   })
 
@@ -284,8 +284,12 @@ describe('ui 状态', () => {
 
   it('setUi 局部更新，其余字段保持', () => {
     store().setUi({ autoFontSize: 0.21 })
-    store().setUi({ fontStatus: 'loading' })
-    expect(store().ui).toEqual({ ...DEFAULT_UI, autoFontSize: 0.21, fontStatus: 'loading' })
+    store().setUi({ fontFallbacks: ['google|Inter|700'] })
+    expect(store().ui).toEqual({
+      ...DEFAULT_UI,
+      autoFontSize: 0.21,
+      fontFallbacks: ['google|Inter|700'],
+    })
   })
 })
 

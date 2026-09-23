@@ -1,13 +1,8 @@
 import { normalizeConfig, type AvatarConfig } from '@/state/config'
 import { HISTORY_MAX, type HistoryEntry } from '@/state/history'
 
-/**
- * 键名带版本。v4 换的是配置契约而不是存档外壳，旧存档继续读，
- * 配置在 `normalizeConfig` 里迁移，所以键名不升、老数据不作废。
- */
-export const PERSIST_KEY = 'gradient-avatar:v3'
-
-const PERSIST_VERSION = 3
+/** 存档键是存档结构的唯一版本号：结构一变就升键，旧键不读。 */
+export const PERSIST_KEY = 'gradient-avatar:v4'
 
 export interface PersistedState {
   config: AvatarConfig
@@ -27,7 +22,7 @@ function storage(): Storage | null {
   }
 }
 
-/** 读整份存档。取不到、解析失败、版本对不上一律返回 null。 */
+/** 读整份存档 `{ config, history }`。取不到、解析失败、config 不是对象一律返回 null。 */
 export function loadPersistedState(): PersistedState | null {
   const store = storage()
   if (!store) return null
@@ -46,7 +41,7 @@ export function loadPersistedState(): PersistedState | null {
   } catch {
     return null
   }
-  if (!isRecord(parsed) || parsed.v !== PERSIST_VERSION || !isRecord(parsed.config)) return null
+  if (!isRecord(parsed) || !isRecord(parsed.config)) return null
 
   const history: HistoryEntry[] = Array.isArray(parsed.history)
     ? parsed.history
@@ -73,7 +68,7 @@ export function loadPersisted(): AvatarConfig | null {
 function fitStorage(config: AvatarConfig, history: readonly HistoryEntry[]): HistoryEntry[] {
   const limit = 400 * 1024
   let entries = history.slice(0, HISTORY_MAX)
-  while (JSON.stringify({ v: PERSIST_VERSION, config, history: entries }).length > limit) {
+  while (JSON.stringify({ config, history: entries }).length > limit) {
     const index = entries.findLastIndex((entry) => entry.thumb !== undefined)
     if (index === -1) break
     entries = entries.map((entry, position) =>
@@ -90,10 +85,7 @@ export function savePersisted(config: AvatarConfig, history?: readonly HistoryEn
 
   const kept = history ?? loadPersistedState()?.history ?? []
   try {
-    store.setItem(
-      PERSIST_KEY,
-      JSON.stringify({ v: PERSIST_VERSION, config, history: fitStorage(config, kept) }),
-    )
+    store.setItem(PERSIST_KEY, JSON.stringify({ config, history: fitStorage(config, kept) }))
   } catch {
     // 配额写满或隐私模式，丢掉这次写入即可，界面不受影响
   }

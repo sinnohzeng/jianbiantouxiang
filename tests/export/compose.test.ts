@@ -1,7 +1,12 @@
 import { composeWith, type ComposeDeps } from '@/export/compose-core'
 import type { Graphic } from '@/graphics/types'
 import type { Rect } from '@/text/layout'
-import { normalizeConfig, type AvatarConfig, type PartialConfig } from '@/state/config'
+import {
+  DEFAULT_CONFIG,
+  normalizeConfig,
+  type AvatarConfig,
+  type PartialConfig,
+} from '@/state/config'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   indexOfOp,
@@ -49,9 +54,9 @@ function makeHarness(): Harness {
   })
 
   const deps: ComposeDeps<typeof LAYOUT> = {
-    loadFontForConfig: vi.fn(async () => {
-      order.push('loadFontForConfig')
-      return { family: 'Noto Sans SC', source: 'google', ok: true }
+    loadFonts: vi.fn(async () => {
+      order.push('loadFonts')
+      return [{ font: DEFAULT_CONFIG.typography.line1.font, via: 'google' as const, ok: true }]
     }),
     loadGraphicForConfig,
     renderGradient: vi.fn(async () => {
@@ -101,7 +106,7 @@ describe('composeWith 流程', () => {
 
     expect(h.order).toEqual([
       'loadGraphicForConfig',
-      'loadFontForConfig',
+      'loadFonts',
       'renderGradient',
       'drawHighlight',
       'layoutText',
@@ -205,7 +210,7 @@ describe('composeWith 文字', () => {
     expect(h.drawText).not.toHaveBeenCalled()
     expect(h.order).toEqual([
       'loadGraphicForConfig',
-      'loadFontForConfig',
+      'loadFonts',
       'renderGradient',
       'drawHighlight',
     ])

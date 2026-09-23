@@ -52,7 +52,7 @@ npm run dev
 | 单测 | `tests/`，目录与文件名跟 `src/` 对齐 |
 | 端到端 | `e2e/`，文件名决定跑在哪一档 |
 
-七个库目录里只有 `src/fonts/` 保留 `index.ts` 出口（`src/App.tsx` 在用），其余六个目录与 `src/graphics/` 一样没有出口文件，跨目录按需直接引用内部模块（如 `@/graphics/draw`、`@/engine/math`、`@/palettes/color`）。桶文件会把整目录的符号拖进引用方的依赖图，懒加载边界因此变糊。
+库目录都没有出口文件，跨目录直接引用模块（如 `@/graphics/draw`、`@/engine/math`、`@/fonts/catalog`）。桶文件会把整目录的符号拖进引用方的依赖图，懒加载边界因此变糊。
 
 ## 提交
 
@@ -126,7 +126,7 @@ docs: 补齐字体加载链的说明
 - 改动界面要跑 `npm run e2e`，再跑 `npm run screenshots` 并逐张看图。截图脚本打的是 `npm run preview` 的地址，先构建再截。
 - 端到端断言画面走 `window.__gradientAvatarProbe`，它只在开发模式或 URL 带 `?probe=1` 时装。要断言导出产物就用探针的 `encode()`，不要去猜下载文件的落点。
 - 改默认值要同步更新 `DEFAULT_CONFIG`、对应 spec、README、architecture、CHANGELOG 和测试；还要补一条显式旧值的用例。存档缺字段时由 `normalizeConfig` 补当前默认值。
-- 端到端或截图要喂任意配置时，配置不进 URL，用 `page.addInitScript` 往 localStorage 的 `gradient-avatar:v3` 写一份 `{ v: 3, config }` 再打开页面；应用只在模块初始化时读一次存档。
+- 端到端读配置走探针的 `config()`，测刷新恢复前调探针的 `flush()` 立刻落盘，用例不读 localStorage。截图要喂任意配置时，配置不进 URL，用 `page.addInitScript` 往 `PERSIST_KEY`（`src/state/persist.ts`）写一份 `{ config }` 再打开页面；应用只在模块初始化时读一次存档。
 - 新增 i18n key 后跑一遍 `npm test`，`tests/i18n/keys.test.ts` 会扫源码核对五份字典。
 
 ## 智能体协作

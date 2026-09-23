@@ -7,6 +7,7 @@ import {
   normalizeConfig,
   type AvatarConfig,
   type PartialConfig,
+  type TypographyPatch,
 } from '@/state/config'
 import {
   HISTORY_MAX,
@@ -16,8 +17,6 @@ import {
 } from '@/state/history'
 import { loadPersisted, loadPersistedState, savePersisted } from '@/state/persist'
 
-export type FontStatus = 'idle' | 'loading' | 'ready' | 'fallback'
-
 export interface UiState {
   exportOpen: boolean
   /**
@@ -26,10 +25,14 @@ export interface UiState {
    * 只由 setUi 从 exportOpen 派生，外部不必自己维护。
    */
   exportMounted: boolean
-  fontStatus: FontStatus
   /**
-   * 预览最近一次自动求得的基准字号，按画布短边比例，与 `typography.fontSize` 同一单位。
-   * 由 PreviewStage 在排版之后写入，只在 `sizeMode` 为 auto 时更新；
+   * 画布上正在回落系统字体的字体，按 `fontKey` 记。PreviewStage 每次加载完写入，
+   * 全部成功时是空数组。是派生值不是配置，不进存档与历史。
+   */
+  fontFallbacks: readonly string[]
+  /**
+   * 预览最近一次自动求得的第一行基准字号，按画布短边比例，与 `typography.line1.size` 同一单位。
+   * 由 PreviewStage 在排版之后写入，只在第一行字号为自动（null）时更新；
    * 字号滑杆在自动态就显示它，用户一拖就以它为起点切到手动，画面不跳。
    * 是派生值不是配置，不进存档与历史。
    */
@@ -42,11 +45,10 @@ export const UNDO_MAX = 50
 export const DEFAULT_UI: UiState = {
   exportOpen: false,
   exportMounted: false,
-  fontStatus: 'idle',
+  fontFallbacks: [],
   autoFontSize: null,
 }
 
-type TypographyPatch = NonNullable<PartialConfig['typography']>
 type LayoutPatch = NonNullable<PartialConfig['layout']>
 type StyleParamsPatch = NonNullable<PartialConfig['styleParams']>
 type CanvasPatch = NonNullable<PartialConfig['canvas']>
@@ -137,7 +139,7 @@ export function initialConfigSource(): ConfigSource {
 
 /**
  * 初始配置：本机存档优先，没有就用默认。
- * v5 起配置不再进 URL；要给测试或截图脚本喂配置，往 `PERSIST_KEY` 写一份存档再打开页面。
+ * 配置不进 URL；要给截图脚本喂配置，往 `PERSIST_KEY` 写一份 `{ config }` 再打开页面。
  */
 export function readInitialConfig(): AvatarConfig {
   const stored = loadPersisted()

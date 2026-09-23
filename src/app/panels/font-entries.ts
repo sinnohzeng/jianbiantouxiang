@@ -1,6 +1,6 @@
 /**
- * 字体目录的界面侧缓存：精选清单立即可用，全库目录首次打开字体选择器时才拉。
- * 字重控件与字体加载都要按 family 查到 FontEntry，查不到就没法知道有哪些字重。
+ * 字体选择器的目录订阅：精选清单立即可用，全库目录首次打开字体选择器时才拉。
+ * 按 family 查条目与字重不在这里，走 catalog 的 `findFontEntry` 与 `weightsOf`。
  *
  * fetchCatalog 拉不到时不抛错，原样返回 CURATED_FONTS 那个引用。
  * 把它当真目录写进模块变量，整个会话就被钉死在这几十个精选字体上，网络恢复也不会再拉一次。
@@ -9,10 +9,7 @@
 
 import { useCallback, useSyncExternalStore } from 'react'
 import { fetchCatalog, type FontEntry } from '@/fonts/catalog'
-import { CURATED_FONTS, getCuratedByFamily } from '@/fonts/curated'
-
-/** 目录拉不到时的字重兜底，覆盖绝大多数可变字体。 */
-export const FALLBACK_WEIGHTS: readonly number[] = [300, 400, 500, 600, 700, 800, 900]
+import { CURATED_FONTS } from '@/fonts/curated'
 
 let catalog: FontEntry[] = []
 let pending: Promise<FontEntry[]> | null = null
@@ -39,15 +36,8 @@ export function ensureCatalog(): Promise<FontEntry[]> {
 }
 
 /** 已经拿到的目录，没拉到过就先给精选清单。 */
-export function catalogSnapshot(): FontEntry[] {
+function catalogSnapshot(): FontEntry[] {
   return catalog.length > 0 ? catalog : CURATED_FONTS
-}
-
-/** 按 family 查条目：先查已拉到的目录，再回精选清单。 */
-export function findEntry(family: string): FontEntry | undefined {
-  const target = family.trim().toLowerCase()
-  const hit = catalog.find((entry) => entry.family.toLowerCase() === target)
-  return hit ?? getCuratedByFamily(family)
 }
 
 /**
@@ -71,11 +61,4 @@ export function useFontCatalog(enabled = true): FontEntry[] {
   )
 
   return useSyncExternalStore(subscribe, catalogSnapshot, catalogSnapshot)
-}
-
-/** 当前字体可选的字重，查不到条目时给一份通用档位。 */
-export function weightsOf(family: string): number[] {
-  const entry = findEntry(family)
-  const weights = entry?.weights ?? []
-  return weights.length > 0 ? [...weights].sort((a, b) => a - b) : [...FALLBACK_WEIGHTS]
 }

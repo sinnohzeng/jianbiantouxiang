@@ -2,8 +2,9 @@
  * 字体样式表的 URL 构造。
  *
  * 主链路走 Google Fonts css2：返回的 @font-face 全部带 unicode-range，
- * 浏览器只拉文字实际用到的切片，Noto Sans SC 单片约 2 KB。
- * 不加 `text=` 参数，Noto CJK 上它不生效（2026-08-29 实测仍返回整套字体）。
+ * 浏览器只拉文字实际用到的切片，常用汉字所在的切片 24 到 43 KB。
+ * 不加 `text=` 参数：文字每改一个字就是一份新子集，CSS 只缓存一天；
+ * 按 unicode-range 切的静态字体文件缓存一年，换了文字也能复用。
  *
  * 镜像链路走 jsDelivr 上 fontsource 的 npm 包路径。同一份字体，
  * `/fontsource/css/<id>@latest/<weight>.css` 的 CJK 分片没有 unicode-range，
@@ -14,8 +15,8 @@
 
 export const GOOGLE_CSS2_ENDPOINT = 'https://fonts.googleapis.com/css2'
 
-/** 镜像主机按优先级排列，前者不可达时依次下推。 */
-export const MIRROR_HOSTS: readonly string[] = ['cdn.jsdelivr.net', 'gcore.jsdelivr.net']
+/** 镜像主机按优先级排列，前者不可达时依次下推。第二档走 Fastly，与第一档不在同一张 CDN 上。 */
+export const MIRROR_HOSTS: readonly string[] = ['cdn.jsdelivr.net', 'fastly.jsdelivr.net']
 
 function normalizeWeights(weights: readonly number[]): number[] {
   const out = weights

@@ -3,10 +3,17 @@ import { CURATED_FONTS } from '@/fonts/curated'
 import { LOCALES } from '@/i18n'
 import {
   DEFAULT_CONFIG,
-  LINE_OVERRIDE_MAX,
+  FOLLOW_LINE1,
   LOCALE_DEFAULT_FONT,
   configHash,
+  fontKey,
+  lineFont,
+  nearestWeight,
   normalizeConfig,
+  withLine1Font,
+  withLine2Font,
+  type AvatarConfig,
+  type FontChoice,
 } from '@/state/config'
 
 describe('normalizeConfig 补默认', () => {
@@ -28,20 +35,24 @@ describe('normalizeConfig 补默认', () => {
     expect(config.typography).toEqual(DEFAULT_CONFIG.typography)
   })
 
-  it('v 恒为 4，旧版本号也归一到 v4', () => {
-    expect(normalizeConfig({ v: 2 }).v).toBe(4)
-    expect(normalizeConfig({ v: 3 }).v).toBe(4)
-  })
-
   it('默认是方形、白色文字、15% 边距、1.03 行高与两行示例', () => {
     expect(DEFAULT_CONFIG.canvas.shape).toBe('square')
     expect(DEFAULT_CONFIG.text).toBe('飞书\n效率先锋')
     expect(DEFAULT_CONFIG.typography.color).toBe('#ffffff')
     expect(DEFAULT_CONFIG.typography.padding).toBe(0.15)
     expect(DEFAULT_CONFIG.typography.lineHeight).toBe(1.03)
-    expect(DEFAULT_CONFIG.typography.line2Size).toBeNull()
-    expect(DEFAULT_CONFIG.typography.lineOffsetsX).toEqual([0, 0])
-    expect(DEFAULT_CONFIG.typography.lineOffsetsY).toEqual([0, 0])
+    expect(DEFAULT_CONFIG.typography.line1).toEqual({
+      font: { family: 'Noto Sans SC', source: 'google', weight: 700 },
+      size: null,
+      offsetX: 0,
+      offsetY: 0,
+    })
+    expect(DEFAULT_CONFIG.typography.line2).toEqual({
+      font: null,
+      size: null,
+      offsetX: 0,
+      offsetY: 0,
+    })
     expect(DEFAULT_CONFIG.layout.graphicOffsetY).toBe(0)
   })
 
@@ -59,12 +70,11 @@ describe('normalizeConfig 夹值与校验', () => {
       styleParams: { intensity: -3, scale: 99, rotation: -10 },
       canvas: { width: 100000, height: 1, radius: 5 },
       typography: {
-        fontSize: 0,
+        line1: { size: 0, offsetX: -9, offsetY: 9 },
+        line2: { size: 0, offsetX: 9, offsetY: -9 },
         padding: 2,
         lineHeight: 0.1,
         letterSpacing: 3,
-        lineOffsetsX: [-9, 9],
-        lineOffsetsY: [9, -9],
       },
     })
     expect(config.highlight).toBe(1)
@@ -74,12 +84,15 @@ describe('normalizeConfig 夹值与校验', () => {
     expect(config.canvas.width).toBe(8192)
     expect(config.canvas.height).toBe(64)
     expect(config.canvas.radius).toBe(0.5)
-    expect(config.typography.fontSize).toBe(0.04)
+    expect(config.typography.line1.size).toBe(0.04)
+    expect(config.typography.line2.size).toBe(0.02)
     expect(config.typography.padding).toBe(0.3)
     expect(config.typography.lineHeight).toBe(0.85)
     expect(config.typography.letterSpacing).toBe(0.5)
-    expect(config.typography.lineOffsetsX).toEqual([-0.25, 0.25])
-    expect(config.typography.lineOffsetsY).toEqual([0.25, -0.25])
+    expect(config.typography.line1.offsetX).toBe(-0.25)
+    expect(config.typography.line1.offsetY).toBe(0.25)
+    expect(config.typography.line2.offsetX).toBe(0.25)
+    expect(config.typography.line2.offsetY).toBe(-0.25)
   })
 
   it('NaN 与非数值回落到默认', () => {
@@ -116,12 +129,13 @@ describe('normalizeConfig 夹值与校验', () => {
     const config = normalizeConfig({
       style: 'silk',
       canvas: { shape: 'circle' },
-      typography: { effect: 'glow', fontSource: 'upload' },
+      typography: { effect: 'glow', line1: { font: { family: 'Mine-upload', source: 'upload' } } },
       exportOptions: { format: 'webp', sizeTarget: 'none' },
     })
     expect(config.style).toBe('silk')
     expect(config.canvas.shape).toBe('circle')
     expect(config.typography.effect).toBe('glow')
+    expect(config.typography.line1.font.source).toBe('upload')
     expect(config.exportOptions.format).toBe('webp')
   })
 
@@ -160,7 +174,7 @@ describe('normalizeConfig 夹值与校验', () => {
 
 describe('normalizeConfig 的 layout 子树', () => {
   it('缺 layout 的旧配置补成默认版式', () => {
-    const config = normalizeConfig({ text: '产品设计部', typography: { fontSize: 0.5 } })
+    const config = normalizeConfig({ text: '产品设计部', typography: { line1: { size: 0.5 } } })
     expect(config.layout).toEqual(DEFAULT_CONFIG.layout)
   })
 
@@ -169,13 +183,9 @@ describe('normalizeConfig 的 layout 子树', () => {
     expect('kind' in normalizeConfig({ layout: { kind: 'logo' } }).layout).toBe(false)
   })
 
-  it('v3 旧链接三行以上文字：第三行起并入第二行', () => {
-    const config = normalizeConfig({ v: 3, text: '一行\n二行\n三行\n四行' })
-    expect(config.text).toBe('一行\n二行三行四行')
-  })
-
-  it('v4 载荷里多余的换行同样收敛到两行', () => {
-    expect(normalizeConfig({ v: 4, text: '甲\n乙\n丙' }).text).toBe('甲\n乙丙')
+  it('三行以上文字：第三行起并入第二行', () => {
+    expect(normalizeConfig({ text: '一行\n二行\n三行\n四行' }).text).toBe('一行\n二行三行四行')
+    expect(normalizeConfig({ text: '甲\n乙\n丙' }).text).toBe('甲\n乙丙')
   })
 
   it('前导空行保留槽位：第一行空、第二行有内容是合法的图标加说明形态', () => {
@@ -230,13 +240,9 @@ describe('normalizeConfig 的 layout 子树', () => {
     ).toEqual({ source: 'emoji', id: '', mono: false })
   })
 
-  it('icon.mono 只认布尔真，旧存档一律补 false', () => {
-    // 契约版本没升，5.3 之前的存档里根本没有这一位
-    const legacy = normalizeConfig({
-      v: 4,
-      layout: { icon: { source: 'brand', id: 'github-light' } },
-    })
-    expect(legacy.layout.icon).toEqual({ source: 'brand', id: 'github-light', mono: false })
+  it('icon.mono 只认布尔真，缺省补 false', () => {
+    const missing = normalizeConfig({ layout: { icon: { source: 'brand', id: 'github-light' } } })
+    expect(missing.layout.icon).toEqual({ source: 'brand', id: 'github-light', mono: false })
 
     expect(
       normalizeConfig({ layout: { icon: { source: 'brand', id: 'lark', mono: true } } }).layout.icon
@@ -251,77 +257,37 @@ describe('normalizeConfig 的 layout 子树', () => {
     }
   })
 
-  it('两向补偿夹值、补默认并限制长度', () => {
+  it('逐行补偿缺省补 0，超界夹到 ±0.25', () => {
     const config = normalizeConfig({
-      typography: {
-        lineOffsetsX: [-0.4, 0.3, 1],
-        lineOffsetsY: [0.9, -0.9, 1],
-      },
+      typography: { line1: { offsetX: 0.1 }, line2: { offsetX: -0.4, offsetY: 0.9 } },
     })
-    // 两行模型只留两档，第三档直接丢弃
-    expect(config.typography.lineOffsetsX).toEqual([-0.25, 0.25])
-    expect(config.typography.lineOffsetsY).toEqual([0.25, -0.25])
-
-    const huge = normalizeConfig({
-      typography: {
-        lineOffsetsX: Array.from({ length: 30 }, () => 0),
-        lineOffsetsY: Array.from({ length: 30 }, () => 0),
-      },
-    })
-    expect(huge.typography.lineOffsetsX).toHaveLength(LINE_OVERRIDE_MAX)
-    expect(huge.typography.lineOffsetsY).toHaveLength(LINE_OVERRIDE_MAX)
+    expect(config.typography.line1.offsetX).toBe(0.1)
+    expect(config.typography.line1.offsetY).toBe(0)
+    expect(config.typography.line2.offsetX).toBe(-0.25)
+    expect(config.typography.line2.offsetY).toBe(0.25)
   })
 
-  it('旧存档没有垂直补偿时补 0，水平值原样保留', () => {
-    // 契约版本没升，旧存档里没有这两位，靠 normalize 补 0
-    const legacy = normalizeConfig({
-      v: 4,
-      typography: { lineOffsetsX: [0.1, -0.05] },
-      layout: { graphicOffsetX: 0.08, icon: { source: 'builtin', id: 'tree-palm' } },
-    })
-    expect(legacy.typography.lineOffsetsX).toEqual([0.1, -0.05])
-    expect(legacy.typography.lineOffsetsY).toEqual([0, 0])
-    expect(legacy.layout.graphicOffsetX).toBe(0.08)
-    expect(legacy.layout.graphicOffsetY).toBe(0)
+  it('第一行字号夹到 0.04..0.92，null、缺省与非有限数都是自动', () => {
+    const size = (value: unknown) =>
+      normalizeConfig({ typography: { line1: { size: value } } }).typography.line1.size
+    expect(size(0.3)).toBe(0.3)
+    expect(size(1.5)).toBe(0.92)
+    expect(size(0)).toBe(0.04)
+    expect(size(null)).toBeNull()
+    expect(size(Number.NaN)).toBeNull()
+    expect(size('0.3')).toBeNull()
+    expect(normalizeConfig({ typography: {} }).typography.line1.size).toBeNull()
   })
 
-  it('不在契约里的 kind 与 scale 读进来即忽略', () => {
-    const config = normalizeConfig({
-      layout: { kind: 'status', scale: 0.3 },
-    })
-    expect(config.typography.line2Size).toBeNull()
-  })
-
-  it('第二行字号夹到与第一行同一区间，null 与缺省都是跟随', () => {
-    expect(normalizeConfig({ typography: { line2Size: 0.3 } }).typography.line2Size).toBe(0.3)
-    expect(normalizeConfig({ typography: { line2Size: 1.5 } }).typography.line2Size).toBe(0.92)
-    expect(normalizeConfig({ typography: { line2Size: 0 } }).typography.line2Size).toBe(0.02)
-    expect(normalizeConfig({ typography: { line2Size: null } }).typography.line2Size).toBeNull()
-    expect(normalizeConfig({ typography: {} }).typography.line2Size).toBeNull()
-    expect(
-      normalizeConfig({ typography: { line2Size: Number.NaN } }).typography.line2Size,
-    ).toBeNull()
-  })
-
-  it('旧存档的次行乘数：手动档折成短边比例，自动档回到跟随', () => {
-    const manual = normalizeConfig({
-      typography: { sizeMode: 'manual', fontSize: 0.5, lineSizeScales: [1, 0.5] },
-    })
-    expect(manual.typography.line2Size).toBeCloseTo(0.25)
-
-    const auto = normalizeConfig({ typography: { lineSizeScales: [1, 0.5] } })
-    expect(auto.typography.line2Size).toBeNull()
-
-    // 乘数就是跟随比例，等于没改过，升上来仍是跟随
-    const untouched = normalizeConfig({
-      typography: { sizeMode: 'manual', fontSize: 0.5, lineSizeScales: [1, 0.62] },
-    })
-    expect(untouched.typography.line2Size).toBeNull()
-
-    const clamped = normalizeConfig({
-      typography: { sizeMode: 'manual', fontSize: 0.9, lineSizeScales: [1, 5] },
-    })
-    expect(clamped.typography.line2Size).toBe(0.92)
+  it('第二行字号夹到 0.02..0.92，null 与缺省都是跟随', () => {
+    const size = (value: unknown) =>
+      normalizeConfig({ typography: { line2: { size: value } } }).typography.line2.size
+    expect(size(0.3)).toBe(0.3)
+    expect(size(1.5)).toBe(0.92)
+    expect(size(0)).toBe(0.02)
+    expect(size(null)).toBeNull()
+    expect(size(Number.NaN)).toBeNull()
+    expect(normalizeConfig({ typography: {} }).typography.line2.size).toBeNull()
   })
 })
 
@@ -366,23 +332,130 @@ describe('LOCALE_DEFAULT_FONT', () => {
     for (const family of Object.values(LOCALE_DEFAULT_FONT)) {
       const entry = CURATED_FONTS.find((item) => item.family === family)
       expect(entry, family).toBeDefined()
-      expect(entry?.weights, family).toContain(DEFAULT_CONFIG.typography.fontWeight)
+      expect(entry?.weights, family).toContain(DEFAULT_CONFIG.typography.line1.font.weight)
     }
   })
 
-  it('每种语言的默认字体带对应 subset，字形不会掉回系统字体', () => {
-    const subsetsOf = (family: string): string[] =>
-      CURATED_FONTS.find((item) => item.family === family)?.subsets ?? []
-    expect(subsetsOf(LOCALE_DEFAULT_FONT.ko)).toContain('korean')
-    expect(subsetsOf(LOCALE_DEFAULT_FONT.ja)).toContain('japanese')
-    expect(subsetsOf(LOCALE_DEFAULT_FONT['zh-HK'])).toContain('chinese-traditional')
-    expect(subsetsOf(LOCALE_DEFAULT_FONT['zh-CN'])).toContain('chinese-simplified')
-    expect(subsetsOf(LOCALE_DEFAULT_FONT.en)).toContain('latin')
-    // 韩文界面配简体字体正是原来的缺陷：谚文不在它的切片里
-    expect(subsetsOf(LOCALE_DEFAULT_FONT['zh-CN'])).not.toContain('korean')
+  it('每种语言的默认字体覆盖对应文字，字形不会掉回系统字体', () => {
+    const cjkOf = (family: string) => CURATED_FONTS.find((item) => item.family === family)?.cjk
+    expect(cjkOf(LOCALE_DEFAULT_FONT.ko)).toBe('kr')
+    expect(cjkOf(LOCALE_DEFAULT_FONT.ja)).toBe('jp')
+    expect(cjkOf(LOCALE_DEFAULT_FONT['zh-HK'])).toBe('tc')
+    expect(cjkOf(LOCALE_DEFAULT_FONT['zh-CN'])).toBe('sc')
+    expect(cjkOf(LOCALE_DEFAULT_FONT.en)).toBeUndefined()
   })
 
   it('简体中文那份与 DEFAULT_CONFIG 一致，默认档不必额外写一次 store', () => {
-    expect(LOCALE_DEFAULT_FONT['zh-CN']).toBe(DEFAULT_CONFIG.typography.fontFamily)
+    expect(LOCALE_DEFAULT_FONT['zh-CN']).toBe(DEFAULT_CONFIG.typography.line1.font.family)
+  })
+})
+
+describe('字体归一：整份成立或整份作废', () => {
+  const line1Font = (font: unknown) =>
+    normalizeConfig({ typography: { line1: { font } } }).typography.line1.font
+  const line2Font = (font: unknown) =>
+    normalizeConfig({ typography: { line2: { font } } }).typography.line2.font
+
+  it('family 去掉空白后为空时作废，第二行回到跟随', () => {
+    expect(line2Font({ family: '  ', source: 'google', weight: 400 })).toBeNull()
+  })
+
+  it('family 去掉首尾空白后保留', () => {
+    expect(line2Font({ family: ' Inter ', source: 'google', weight: 400 })?.family).toBe('Inter')
+  })
+
+  it('字重取整到最近的一档，超界夹到 100..900', () => {
+    expect(line2Font({ family: 'Inter', source: 'google', weight: 450 })?.weight).toBe(500)
+    expect(line2Font({ family: 'Inter', source: 'google', weight: 1000 })?.weight).toBe(900)
+    expect(line2Font({ family: 'Inter', source: 'google', weight: 20 })?.weight).toBe(100)
+    expect(line2Font({ family: 'Inter', source: 'google' })?.weight).toBe(400)
+  })
+
+  it('来源非法时整份作废', () => {
+    expect(line2Font({ family: 'Inter', source: 'cdn', weight: 400 })).toBeNull()
+    expect(line1Font({ family: 'Inter', source: 'cdn', weight: 400 })).toEqual(
+      DEFAULT_CONFIG.typography.line1.font,
+    )
+  })
+
+  it('第一行字体不是对象时回默认字体', () => {
+    expect(line1Font('x')).toEqual(DEFAULT_CONFIG.typography.line1.font)
+    expect(line1Font(null)).toEqual(DEFAULT_CONFIG.typography.line1.font)
+  })
+})
+
+const SC: FontChoice = { family: 'Noto Sans SC', source: 'google', weight: 700 }
+const JP: FontChoice = { family: 'Noto Sans JP', source: 'google', weight: 700 }
+const KUAILE: FontChoice = { family: 'ZCOOL KuaiLe', source: 'google', weight: 400 }
+
+function typographyWith(line2Font: FontChoice | null): AvatarConfig['typography'] {
+  return normalizeConfig({ typography: { line1: { font: SC }, line2: { font: line2Font } } })
+    .typography
+}
+
+describe('lineFont 与 fontKey', () => {
+  it('第二行为 null 时读第一行那款，钉住时读自己的', () => {
+    expect(lineFont(typographyWith(null), 2)).toEqual(SC)
+    expect(lineFont(typographyWith(KUAILE), 2)).toEqual(KUAILE)
+    expect(lineFont(typographyWith(KUAILE), 1)).toEqual(SC)
+  })
+
+  it('来源、family、字重任一不同就是另一个键', () => {
+    expect(fontKey(SC)).toBe('google|Noto Sans SC|700')
+    expect(fontKey({ ...SC, weight: 400 })).not.toBe(fontKey(SC))
+    expect(fontKey({ ...SC, source: 'system' })).not.toBe(fontKey(SC))
+  })
+})
+
+describe('withLine2Font 与 FOLLOW_LINE1', () => {
+  it('与第一行全相同时写 null，回到跟随', () => {
+    expect(withLine2Font(typographyWith(KUAILE), { ...SC })).toEqual({ line2: { font: null } })
+  })
+
+  it('字重不同就钉住', () => {
+    const next = { ...SC, weight: 400 as const }
+    expect(withLine2Font(typographyWith(null), next)).toEqual({ line2: { font: next } })
+  })
+
+  it('FOLLOW_LINE1 把第二行字体写回 null', () => {
+    expect(FOLLOW_LINE1).toEqual({ line2: { font: null } })
+  })
+})
+
+describe('withLine1Font', () => {
+  const jpWeights = [100, 200, 300, 400, 500, 600, 700, 800, 900] as const
+
+  it('第二行跟随时只写第一行', () => {
+    expect(withLine1Font(typographyWith(null), JP, jpWeights)).toEqual({ line1: { font: JP } })
+  })
+
+  it('第二行只改过字重时随第一行换款，字重吸附到新字体有的一档', () => {
+    const onlyWeight = typographyWith({ ...SC, weight: 400 })
+    expect(withLine1Font(onlyWeight, KUAILE, [400])).toEqual({
+      line1: { font: KUAILE },
+      line2: { font: { ...KUAILE, weight: 400 } },
+    })
+    const light = typographyWith({ ...SC, weight: 300 })
+    expect(withLine1Font(light, JP, [400, 700])).toEqual({
+      line1: { font: JP },
+      line2: { font: { ...JP, weight: 400 } },
+    })
+  })
+
+  it('第二行钉在别款字体上时不动', () => {
+    expect(withLine1Font(typographyWith(KUAILE), JP, jpWeights)).toEqual({ line1: { font: JP } })
+  })
+})
+
+describe('nearestWeight', () => {
+  it('取最近的一档，等距时偏大', () => {
+    expect(nearestWeight([400, 700], 500)).toBe(400)
+    expect(nearestWeight([400, 700], 600)).toBe(700)
+    expect(nearestWeight([300, 500], 400)).toBe(500)
+    expect(nearestWeight([400], 900)).toBe(400)
+  })
+
+  it('字重表为空时原样返回目标', () => {
+    expect(nearestWeight([], 700)).toBe(700)
   })
 })

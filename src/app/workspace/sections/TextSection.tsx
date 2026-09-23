@@ -14,19 +14,23 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useT } from '@/i18n'
+import { displayName, weightsOf } from '@/fonts/catalog'
 import {
   DEFAULT_CONFIG,
   FONT_SIZE_STEP,
-  LINE2_MIN_RATIO,
-  STATUS_SECOND_LINE_SCALE,
+  LINE2_FOLLOW_SCALE,
+  LINE2_SIZE_MIN,
+  LINE_OFFSET_MAX,
+  LINE_SIZE_MAX,
+  LINE_SIZE_MIN,
   TEXT_EFFECTS,
   snapFontRatio,
+  twoLinesOf,
+  withLine1Font,
 } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
-import { twoLinesOf } from '@/text/wrap'
-import { weightsOf } from '@/app/panels/font-entries'
 import { FontPickerLazy } from '@/app/panels/lazy'
-import { joinLines, stripBreaks, withLineValue } from '@/app/workspace/shared'
+import { joinLines, stripBreaks } from '@/app/workspace/shared'
 import { clamp } from '@/engine/math'
 import { SectionCard } from './card'
 import { Row } from './row'
@@ -48,10 +52,10 @@ const COLOR_PRESETS: readonly {
   { hex: '#000000', key: 'black' },
 ]
 
-/** 逐行补偿两条共用：量程 ±25%，步进 0.25%，显示一位小数。 */
+/** 逐行补偿四条共用：量程取契约上限，步进 0.25%，显示一位小数。 */
 const OFFSET_RANGE = {
-  min: -0.25,
-  max: 0.25,
+  min: -LINE_OFFSET_MAX,
+  max: LINE_OFFSET_MAX,
   step: 0.0025,
   scale: 100,
   precision: 1,
@@ -107,24 +111,25 @@ export function TextSection() {
   const setConfig = useAvatarStore((state) => state.setConfig)
   const setTypography = useAvatarStore((state) => state.setTypography)
   const setUi = useAvatarStore((state) => state.setUi)
-  // 预览排版后回写的自动基准字号，与 fontSize 同一单位（画布短边比例）
+  // 预览排版后回写的自动基准字号，与 line1.size 同一单位（画布短边比例）
   const autoFontSize = useAvatarStore((state) => state.ui.autoFontSize)
   const [fontOpen, setFontOpen] = useState(false)
   // 字体选择器是懒加载的，挂上就等于拉 chunk，所以只在用户点开之后才挂
   const [fontMounted, setFontMounted] = useState(false)
 
   const type = config.typography
+  const { line1, line2 } = type
   const defaults = DEFAULT_CONFIG.typography
   const [first, second] = useMemo(() => twoLinesOf(config.text), [config.text])
   const hasFirst = first.trim() !== ''
   const hasSecond = second.trim() !== ''
-  const weights = useMemo(() => weightsOf(type.fontFamily), [type.fontFamily])
-  // 第一行的当前基准：自动态是预览回写的解，手动态是配置值；第二行跟随时取它的 62%。
+  const weights = useMemo(() => weightsOf(line1.font.family), [line1.font.family])
+  // 第一行的当前基准：自动态是预览回写的解，定值态是配置值；第二行跟随时取它的 62%。
   // 滑杆显示的自动值向下对齐到步进：值在网格上，轻触滑杆不会被取整到比求解上限更大的一档；
   // 钉住第二行时用未取整的基准，钉完的那一帧一个像素都不动
-  const baseFontSize = type.sizeMode === 'auto' ? (autoFontSize ?? type.fontSize) : type.fontSize
-  const shownFontSize = type.sizeMode === 'auto' ? snapFontRatio(baseFontSize) : baseFontSize
-  const followSize = clamp(baseFontSize * STATUS_SECOND_LINE_SCALE, LINE2_MIN_RATIO, 0.92)
+  const baseFontSize = line1.size ?? autoFontSize ?? LINE_SIZE_MIN
+  const shownFontSize = line1.size === null ? snapFontRatio(baseFontSize) : baseFontSize
+  const followSize = clamp(baseFontSize * LINE2_FOLLOW_SCALE, LINE2_SIZE_MIN, LINE_SIZE_MAX)
 
   const effectOptions = TEXT_EFFECTS.map((effect) => ({
     value: effect,
@@ -156,28 +161,27 @@ export function TextSection() {
         <Row
           label={t('panel.text.fontSize')}
           value={shownFontSize}
-          min={0.04}
-          max={0.92}
+          min={LINE_SIZE_MIN}
+          max={LINE_SIZE_MAX}
           step={FONT_SIZE_STEP}
           scale={100}
           unit="%"
           auto={{
-            active: type.sizeMode === 'auto',
+            active: line1.size === null,
             label: t('panel.text.fontSize.auto'),
             hint: t('panel.text.fontSize.autoHint'),
             onReset: () => {
-              // 先清掉上一次的回写值：否则切回去的那一帧滑杆会先显示旧解再跳到新解
-              setUi({ autoFontSize: null })
-              setTypography({ sizeMode: 'auto' })
+              // 用当前定值占位，直到预览回写新解：滑杆原地不动，不会先闪一下上一次的旧解
+              if (line1.size !== null) setUi({ autoFontSize: line1.size })
+              setTypography({ line1: { size: null } })
             },
           }}
-          onChange={(fontSize) =>
+          onChange={(size) =>
             setTypography({
-              sizeMode: 'manual',
-              fontSize,
+              line1: { size },
               // 第二行还在跟随时先把它钉在此刻的大小：拖第一行只动第一行
-              ...(hasFirst && hasSecond && type.line2Size === null
-                ? { line2Size: followSize }
+              ...(hasFirst && hasSecond && line2.size === null
+                ? { line2: { size: followSize } }
                 : {}),
             })
           }
@@ -206,19 +210,19 @@ export function TextSection() {
         <div data-slot="text-line2-size">
           <Row
             label={t('panel.text.line2Size')}
-            value={type.line2Size ?? followSize}
-            min={LINE2_MIN_RATIO}
-            max={0.92}
+            value={line2.size ?? followSize}
+            min={LINE2_SIZE_MIN}
+            max={LINE_SIZE_MAX}
             step={FONT_SIZE_STEP}
             scale={100}
             unit="%"
             auto={{
-              active: type.line2Size === null,
+              active: line2.size === null,
               label: t('panel.text.fontSize.auto'),
               hint: t('panel.text.line2Size.autoHint'),
-              onReset: () => setTypography({ line2Size: null }),
+              onReset: () => setTypography({ line2: { size: null } }),
             }}
-            onChange={(line2Size) => setTypography({ line2Size })}
+            onChange={(size) => setTypography({ line2: { size } })}
           />
         </div>
       ) : null}
@@ -234,7 +238,7 @@ export function TextSection() {
             setFontOpen(true)
           }}
         >
-          <span className="truncate">{type.fontFamily}</span>
+          <span className="truncate">{displayName(line1.font.family, line1.font.source)}</span>
           <TypeIcon aria-hidden="true" />
         </Button>
         {/* 打开过一次就一直挂着，关闭动画才有得放；没打开过就不拉那份 chunk */}
@@ -250,9 +254,11 @@ export function TextSection() {
         <ChipGroup
           name="text-weight"
           label={t('panel.text.fontWeight')}
-          value={type.fontWeight}
+          value={line1.font.weight}
           options={weights.map((weight) => ({ value: weight, label: String(weight) }))}
-          onChange={(fontWeight) => setTypography({ fontWeight })}
+          onChange={(weight) =>
+            setTypography(withLine1Font(type, { ...line1.font, weight }, weights))
+          }
         />
       </div>
 
@@ -388,21 +394,17 @@ export function TextSection() {
             <>
               <Row
                 label={t('panel.text.lineOffsetX', { index: 1 })}
-                value={type.lineOffsetsX[0] ?? 0}
-                defaultValue={defaults.lineOffsetsX[0] ?? 0}
+                value={line1.offsetX}
+                defaultValue={defaults.line1.offsetX}
                 {...OFFSET_RANGE}
-                onChange={(offset) =>
-                  setTypography({ lineOffsetsX: withLineValue(type.lineOffsetsX, 0, offset, 0) })
-                }
+                onChange={(offsetX) => setTypography({ line1: { offsetX } })}
               />
               <Row
                 label={t('panel.text.lineOffsetY', { index: 1 })}
-                value={type.lineOffsetsY[0] ?? 0}
-                defaultValue={defaults.lineOffsetsY[0] ?? 0}
+                value={line1.offsetY}
+                defaultValue={defaults.line1.offsetY}
                 {...OFFSET_RANGE}
-                onChange={(offset) =>
-                  setTypography({ lineOffsetsY: withLineValue(type.lineOffsetsY, 0, offset, 0) })
-                }
+                onChange={(offsetY) => setTypography({ line1: { offsetY } })}
               />
             </>
           ) : null}
@@ -410,21 +412,17 @@ export function TextSection() {
             <>
               <Row
                 label={t('panel.text.lineOffsetX', { index: 2 })}
-                value={type.lineOffsetsX[1] ?? 0}
-                defaultValue={defaults.lineOffsetsX[1] ?? 0}
+                value={line2.offsetX}
+                defaultValue={defaults.line2.offsetX}
                 {...OFFSET_RANGE}
-                onChange={(offset) =>
-                  setTypography({ lineOffsetsX: withLineValue(type.lineOffsetsX, 1, offset, 0) })
-                }
+                onChange={(offsetX) => setTypography({ line2: { offsetX } })}
               />
               <Row
                 label={t('panel.text.lineOffsetY', { index: 2 })}
-                value={type.lineOffsetsY[1] ?? 0}
-                defaultValue={defaults.lineOffsetsY[1] ?? 0}
+                value={line2.offsetY}
+                defaultValue={defaults.line2.offsetY}
                 {...OFFSET_RANGE}
-                onChange={(offset) =>
-                  setTypography({ lineOffsetsY: withLineValue(type.lineOffsetsY, 1, offset, 0) })
-                }
+                onChange={(offsetY) => setTypography({ line2: { offsetY } })}
               />
             </>
           ) : null}

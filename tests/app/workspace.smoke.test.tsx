@@ -4,10 +4,12 @@
  * 滑杆散在四张卡片里，条数随图标有无、文字行数、当前质感与折叠组开合四个维度变。
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { I18nProvider } from '@/i18n'
+import { fontJobs, type FontLoadResult } from '@/fonts/loader'
+import { PreviewStage } from '@/app/PreviewStage'
 import { ExportDrawer } from '@/app/panels/ExportDrawer'
 import { FontPicker } from '@/app/panels/FontPicker'
 import { HistoryStrip } from '@/app/panels/HistoryStrip'
@@ -15,6 +17,19 @@ import { IconPicker } from '@/app/panels/IconPicker'
 import { PickColumn } from '@/app/workspace/PickColumn'
 import { DEFAULT_CONFIG, type AvatarConfig } from '@/state/config'
 import { DEFAULT_UI, useAvatarStore } from '@/state/store'
+
+// 预览只验字体 effect：加载器换成桩，fontJobs 保留真实实现；WebGL 挂载换成空壳
+const loader = vi.hoisted(() => ({
+  loadFontsForConfig: vi.fn<(config: AvatarConfig) => Promise<FontLoadResult[]>>(async () => []),
+  topUpGlyphs: vi.fn<(config: AvatarConfig) => Promise<boolean>>(async () => false),
+}))
+vi.mock('@/fonts/loader', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/fonts/loader')>()),
+  ...loader,
+}))
+vi.mock('@/engine/mount', () => ({
+  createGradientMount: () => ({ update: () => {}, dispose: () => {} }),
+}))
 
 beforeAll(() => {
   // Base UI 的弹层组件要这几个浏览器 API，jsdom 里没有
@@ -133,10 +148,12 @@ describe('挑选栏 · 文字节', () => {
     const tiles = container.querySelectorAll<HTMLInputElement>('input[data-group="text-weight"]')
     expect(tiles.length).toBeGreaterThan(1)
     const target = [...tiles].find(
-      (tile) => Number(tile.value) !== DEFAULT_CONFIG.typography.fontWeight,
+      (tile) => Number(tile.value) !== DEFAULT_CONFIG.typography.line1.font.weight,
     )
     fireEvent.click(target!)
-    expect(config().typography.fontWeight).toBe(Number(target!.value))
+    expect(config().typography.line1.font.weight).toBe(Number(target!.value))
+    // 第二行跟随第一行，字重不另写
+    expect(config().typography.line2.font).toBeNull()
   })
 
   it('文字色是一排从白到黑的预设色块，点选即写回', () => {
@@ -288,7 +305,7 @@ describe('挑选栏 · 数值行', () => {
   it('第一行字号紧跟第一行输入：自动态显示回写值，拖一下切手动，点“自动”回去', () => {
     useAvatarStore.setState({ ui: { ...useAvatarStore.getState().ui, autoFontSize: 0.31 } })
     const { container } = mount(<PickColumn />)
-    expect(config().typography.sizeMode).toBe('auto')
+    expect(config().typography.line1.size).toBeNull()
 
     const row = group(container, 'text-font-size')
     const input = firstLine(container)
@@ -297,17 +314,18 @@ describe('挑选栏 · 数值行', () => {
     const autoButton = row.querySelector<HTMLButtonElement>('[data-slot="slider-auto"]')
     expect(autoButton?.getAttribute('aria-pressed')).toBe('true')
 
-    // 自动态滑杆显示的是预览回写的自动值，不是配置里陈旧的手动值 0.42
+    // 自动态滑杆显示的是预览回写的自动值
     const slider = ranges(row)[0]!
     expect(Number(slider.value)).toBeCloseTo(0.31)
 
     fireEvent.change(slider, { target: { value: '0.33' } })
-    expect(config().typography.sizeMode).toBe('manual')
-    expect(config().typography.fontSize).toBeCloseTo(0.33)
+    expect(config().typography.line1.size).toBeCloseTo(0.33)
     expect(autoButton?.getAttribute('aria-pressed')).toBe('false')
 
+    // 点回自动后滑杆停在刚才的定值上，等预览回写新解再动
     fireEvent.click(autoButton!)
-    expect(config().typography.sizeMode).toBe('auto')
+    expect(config().typography.line1.size).toBeNull()
+    expect(Number(ranges(row)[0]!.value)).toBeCloseTo(0.33)
   })
 
   it('第二行字号紧跟在第二行输入之后：默认跟随第一行的 62%，一拖就是自己的短边比例', () => {
@@ -322,27 +340,27 @@ describe('挑选栏 · 数值行', () => {
     expect(Number(ranges(row)[0]!.value)).toBeCloseTo(0.31)
 
     fireEvent.change(ranges(row)[0]!, { target: { value: '0.3' } })
-    expect(config().typography.line2Size).toBeCloseTo(0.3)
-    // 第一行仍是自动，第二行的手动值不牵连它
-    expect(config().typography.sizeMode).toBe('auto')
+    expect(config().typography.line2.size).toBeCloseTo(0.3)
+    // 第一行仍是自动，第二行的定值不牵连它
+    expect(config().typography.line1.size).toBeNull()
     expect(autoButton?.getAttribute('aria-pressed')).toBe('false')
 
     fireEvent.click(autoButton!)
-    expect(config().typography.line2Size).toBeNull()
+    expect(config().typography.line2.size).toBeNull()
   })
 
   it('拖第一行字号时第二行钉在此刻的大小', () => {
     useAvatarStore.setState({ ui: { ...useAvatarStore.getState().ui, autoFontSize: 0.5 } })
     const { container } = mount(<PickColumn />)
-    expect(config().typography.line2Size).toBeNull()
+    expect(config().typography.line2.size).toBeNull()
 
     fireEvent.change(ranges(group(container, 'text-font-size'))[0]!, { target: { value: '0.7' } })
-    expect(config().typography.fontSize).toBeCloseTo(0.7)
+    expect(config().typography.line1.size).toBeCloseTo(0.7)
     // 拖之前第二行跟随 0.5 × 0.62，拖完仍是这个数
-    expect(config().typography.line2Size).toBeCloseTo(0.31)
+    expect(config().typography.line2.size).toBeCloseTo(0.31)
 
     fireEvent.change(ranges(group(container, 'text-font-size'))[0]!, { target: { value: '0.2' } })
-    expect(config().typography.line2Size).toBeCloseTo(0.31)
+    expect(config().typography.line2.size).toBeCloseTo(0.31)
   })
 
   it('位置微调组展开后是四行：两行各自的水平与垂直', () => {
@@ -355,8 +373,9 @@ describe('挑选栏 · 数值行', () => {
     fireEvent.change(list[1]!, { target: { value: '0.01' } })
     fireEvent.change(list[2]!, { target: { value: '-0.03' } })
     fireEvent.change(list[3]!, { target: { value: '-0.02' } })
-    expect(config().typography.lineOffsetsX).toEqual([0.02, -0.03])
-    expect(config().typography.lineOffsetsY).toEqual([0.01, -0.02])
+    const { line1, line2 } = config().typography
+    expect([line1.offsetX, line1.offsetY]).toEqual([0.02, 0.01])
+    expect([line2.offsetX, line2.offsetY]).toEqual([-0.03, -0.02])
   })
 
   it('只有一行时：没有第二行字号，位置微调只剩第一行那两条', () => {
@@ -367,7 +386,7 @@ describe('挑选栏 · 数值行', () => {
     const offset = openGroup(container, 'text-group-offset')
     expect(ranges(offset)).toHaveLength(2)
     fireEvent.change(ranges(offset)[0]!, { target: { value: '0.05' } })
-    expect(config().typography.lineOffsetsX[0]).toBeCloseTo(0.05)
+    expect(config().typography.line1.offsetX).toBeCloseTo(0.05)
   })
 
   it('质感的参数组展开后是当前 style 的五个参数加光感', () => {
@@ -558,5 +577,38 @@ describe('挑选栏 · 品牌单色', () => {
 
     expect(config().layout.icon.mono).toBe(true)
     expect(useAvatarStore.getState().past).toHaveLength(1)
+  })
+})
+
+describe('PreviewStage 的字体加载', () => {
+  it('第二行填上文字、字体与第一行不同时再加载一次', async () => {
+    loader.loadFontsForConfig.mockClear()
+    // jsdom 没有画布实现，取上下文一律给 null，预览按拿不到上下文的分支跳过绘制
+    const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
+    const kuaile = { family: 'ZCOOL KuaiLe', source: 'google', weight: 400 } as const
+    useAvatarStore.setState({
+      config: {
+        ...DEFAULT_CONFIG,
+        text: '飞书',
+        typography: {
+          ...DEFAULT_CONFIG.typography,
+          line2: { ...DEFAULT_CONFIG.typography.line2, font: kuaile },
+        },
+      },
+    })
+    mount(<PreviewStage />)
+
+    // 第二行没有文字，钉住的字体不加载
+    await waitFor(() => expect(loader.loadFontsForConfig).toHaveBeenCalledTimes(1))
+    const first = loader.loadFontsForConfig.mock.calls[0]![0]
+    expect(fontJobs(first).map((job) => job.font.family)).toEqual(['Noto Sans SC'])
+
+    act(() => {
+      useAvatarStore.getState().setConfig({ text: '飞书\n先锋' })
+    })
+    await waitFor(() => expect(loader.loadFontsForConfig).toHaveBeenCalledTimes(2))
+    const second = loader.loadFontsForConfig.mock.calls[1]![0]
+    expect(fontJobs(second).map((job) => job.font)).toContainEqual(kuaile)
+    getContext.mockRestore()
   })
 })

@@ -1,11 +1,20 @@
 /**
- * 字体加载：css2 主链路，超时后依次降级到两个 jsDelivr 镜像，全失败回系统字体。
+ * 字体加载：按行加载。`fontJobs` 给出“哪款字体要画哪些字”，两行同一款字体时合并成一条；
+ * 每款字体走 css2 主链路，超时后依次降级到两个 jsDelivr 镜像，全失败回系统字体。
  * 文字绘制必须等 document.fonts.load 就绪，否则 canvas 会用回退字形出图。
+ * 加载状态都以 `fontKey` 为键，来源、family、字重任一不同就是另一款字体。
  */
 
-import type { AvatarConfig } from '@/state/config'
-import type { FontEntry } from './catalog'
-import { getCuratedByFamily } from './curated'
+import {
+  fontKey,
+  lineFont,
+  nearestWeight,
+  twoLinesOf,
+  type AvatarConfig,
+  type FontChoice,
+} from '@/state/config'
+import { findFontEntry } from './catalog'
+import { fontString } from './family'
 import {
   MIRROR_HOSTS,
   buildCss2Url,
@@ -14,94 +23,67 @@ import {
 } from './google'
 import { getUploadedFont } from './upload'
 
-export type FontLoadSource = 'google' | 'mirror' | 'system' | 'upload'
+/** 实际走的通道：google 与 mirror 是网络加载成功，system 是系统字体或回落，upload 是本地注册表。 */
+export type FontLoadVia = 'google' | 'mirror' | 'system' | 'upload'
 
 export interface FontLoadResult {
-  family: string
-  source: FontLoadSource
+  /** 输入的那款字体，界面据它的 source 选提示文案。 */
+  font: FontChoice
+  via: FontLoadVia
   ok: boolean
+}
+
+/** 一款字体与它要画的字。 */
+export interface FontJob {
+  font: FontChoice
+  text: string
 }
 
 /** 每一档（css2、镜像 1、镜像 2）各自的等待上限。 */
 export const DEFAULT_FONT_TIMEOUT_MS = 4000
 
-/** document.fonts.load 的探测样本上限，取配置文字去重后的前若干字。 */
+/** document.fonts.load 的探测样本上限，取文字去重后的前若干字。 */
 const SAMPLE_LIMIT = 64
 
-const SYSTEM_STACK = [
-  'system-ui',
-  '-apple-system',
-  '"Segoe UI"',
-  '"PingFang SC"',
-  '"Hiragino Sans GB"',
-  '"Microsoft YaHei"',
-  '"Noto Sans CJK SC"',
-  'sans-serif',
-].join(', ')
-
-const GENERIC_BY_CATEGORY: Record<FontEntry['category'], string> = {
-  'sans-serif': 'sans-serif',
-  serif: 'serif',
-  display: 'sans-serif',
-  handwriting: 'cursive',
-  monospace: 'monospace',
-  other: 'sans-serif',
-}
+/** document.fonts.load 用的字号，只影响匹配，不影响取到的字形。 */
+const PROBE_PX = 32
 
 /** href 到样式表就绪状态的映射，保证同一个 URL 只注入一次。 */
 const sheets = new Map<string, Promise<boolean>>()
-/** 加载中的请求，key 为 family|weight，让并发调用共享同一个 Promise。 */
+/** 加载中的请求，让并发调用共享同一个 Promise。 */
 const inflight = new Map<string, Promise<FontLoadResult>>()
-/** 已就绪的结果，命中后不再走网络。 */
+/** 已就绪的网络字体，命中后不再走网络。 */
 const settled = new Map<string, FontLoadResult>()
-const readyFamilies = new Set<string>()
-/** 每个 family|weight 已经 document.fonts.load 过的字符，用来判断样本里有没有新字。 */
+/** 每款字体已经 document.fonts.load 过的字符，用来判断文字里有没有新字。 */
 const loadedChars = new Map<string, Set<string>>()
-
-export function isFontReady(family: string): boolean {
-  return readyFamilies.has(family)
-}
 
 /** 丢弃内存里的加载状态，注入过的 <link> 不动。测试与切换环境时用。 */
 export function resetFontLoaderState(): void {
   sheets.clear()
   inflight.clear()
   settled.clear()
-  readyFamilies.clear()
   loadedChars.clear()
 }
 
-/** family 含空格或非标识符字符时必须加引号，否则 CSS 解析会截断。 */
-export function quoteFamily(family: string): string {
-  const name = family.trim()
-  if (!name) return ''
-  return /^[A-Za-z_][A-Za-z0-9_-]*$/.test(name) ? name : `"${name.replace(/"/g, '')}"`
+/**
+ * 哪款字体要画哪些字：有文字的行按生效字体归组，同一款字体的两行文字合并。
+ * 第二行钉了别款字体但没有文字时不加载它。两行都空时给第一行字体，由探测样本触发加载。
+ */
+export function fontJobs(config: AvatarConfig): FontJob[] {
+  const t = config.typography
+  const jobs = new Map<string, FontJob>()
+  twoLinesOf(config.text).forEach((text, index) => {
+    if (text === '') return
+    const font = lineFont(t, index === 0 ? 1 : 2)
+    const key = fontKey(font)
+    const job = jobs.get(key)
+    if (job) job.text += text
+    else jobs.set(key, { font, text })
+  })
+  return jobs.size > 0 ? [...jobs.values()] : [{ font: t.line1.font, text: '' }]
 }
 
-/** 预览与导出共用的 font-family 值：目标字体在前，系统栈兜底。 */
-export function fontFamilyCss(config: AvatarConfig): string {
-  const quoted = quoteFamily(config.typography.fontFamily)
-  if (!quoted) return SYSTEM_STACK
-  const entry = getCuratedByFamily(config.typography.fontFamily)
-  const generic = entry ? GENERIC_BY_CATEGORY[entry.category] : null
-  return generic && generic !== 'sans-serif'
-    ? `${quoted}, ${SYSTEM_STACK}, ${generic}`
-    : `${quoted}, ${SYSTEM_STACK}`
-}
-
-/** 取字体真实提供的字重里离目标最近的一个，偏大优先。 */
-export function nearestWeight(available: readonly number[], want: number): number {
-  if (available.length === 0) return want
-  let best = available[0]!
-  for (const w of available) {
-    const d = Math.abs(w - want)
-    const bd = Math.abs(best - want)
-    if (d < bd || (d === bd && w > best)) best = w
-  }
-  return best
-}
-
-/** 配置文字去掉空白并去重后的字符表，顺序即首次出现的顺序。 */
+/** 文字去掉空白并去重后的字符表，顺序即首次出现的顺序。 */
 function uniqueChars(text: string): string[] {
   return [...new Set([...text].filter((c) => c.trim().length > 0))]
 }
@@ -172,8 +154,7 @@ function loadStylesheet(href: string): Promise<boolean> {
  */
 async function activate(
   hrefs: readonly string[],
-  family: string,
-  weight: number,
+  font: Pick<FontChoice, 'family' | 'weight'>,
   sample: string,
   timeoutMs: number,
 ): Promise<boolean> {
@@ -191,7 +172,7 @@ async function activate(
 
   const remaining = Math.max(200, timeoutMs - (Date.now() - started))
   const faces = await withTimeout<FontFace[] | null>(
-    set.load(`${weight} 32px ${quoteFamily(family)}`, sample),
+    set.load(fontString(font, PROBE_PX), sample),
     remaining,
     null,
   )
@@ -200,116 +181,105 @@ async function activate(
 }
 
 /**
- * 补齐样本里还没加载过的字形。
+ * 补齐文字里还没加载过的字形，确实加载了新字时返回 true。
  * css2 对 CJK 按 unicode-range 切片下发，新字所在的分片必须再 load 一次才会去拉；
  * 首次探测又只取了前 SAMPLE_LIMIT 个字，超出的同样没拉过。
  * 超时或失败不记账，下一次调用还会重试。
  */
 async function ensureGlyphs(
   key: string,
-  family: string,
-  weight: number,
+  font: FontChoice,
   chars: readonly string[],
   timeoutMs: number,
-): Promise<void> {
+): Promise<boolean> {
   const set = globalThis.document?.fonts
-  if (!set) return
+  if (!set) return false
   const loaded = loadedChars.get(key)
   const missing = loaded ? chars.filter((c) => !loaded.has(c)) : [...chars]
-  if (missing.length === 0) return
+  if (missing.length === 0) return false
 
-  const font = `${weight} 32px ${quoteFamily(family)}`
+  const shorthand = fontString(font, PROBE_PX)
+  let changed = false
   for (let i = 0; i < missing.length; i += SAMPLE_LIMIT) {
     const chunk = missing.slice(i, i + SAMPLE_LIMIT)
     // 包一层 async，把部分环境里 load 的同步抛错也收进 withTimeout 的回退
     const probe = (async () => {
-      await set.load(font, chunk.join(''))
+      await set.load(shorthand, chunk.join(''))
       return true
     })()
     const ok = await withTimeout(probe, timeoutMs, false)
-    if (!ok) return
+    if (!ok) return changed
     markLoaded(key, chunk)
+    changed = true
   }
+  return changed
 }
 
-/** 目录条目优先用调用方给的（来自 fetchCatalog），退到精选清单，再退到按 family 猜 id。 */
-function resolveEntry(
-  family: string,
-  weight: number,
-  hint?: FontEntry,
-): { id: string; weight: number; version?: string } {
-  const entry = hint ?? getCuratedByFamily(family)
-  return {
-    id: entry ? entry.id : familyToFontsourceId(family),
-    weight: entry ? nearestWeight(entry.weights, weight) : weight,
-    version: entry?.version,
-  }
+/** 目录条目同步查，查不到时按 family 猜 fontsource id，字重原样请求。 */
+function resolveEntry(font: FontChoice): {
+  id: string
+  weight: FontChoice['weight']
+  version?: string
+} {
+  const entry = findFontEntry(font.family)
+  if (!entry) return { id: familyToFontsourceId(font.family), weight: font.weight }
+  return { id: entry.id, weight: nearestWeight(entry.weights, font.weight), version: entry.version }
 }
 
 async function loadGoogleFont(
-  family: string,
-  weight: number,
+  font: FontChoice,
   sample: string,
   timeoutMs: number,
-  hint?: FontEntry,
 ): Promise<FontLoadResult> {
-  const { id, weight: resolved, version } = resolveEntry(family, weight, hint)
+  const { id, weight, version } = resolveEntry(font)
+  const face = { family: font.family, weight }
 
-  if (await activate([buildCss2Url(family, [resolved])], family, resolved, sample, timeoutMs)) {
-    return { family, source: 'google', ok: true }
+  if (await activate([buildCss2Url(font.family, [weight])], face, sample, timeoutMs)) {
+    return { font, via: 'google', ok: true }
   }
   for (const host of MIRROR_HOSTS) {
-    const urls = buildMirrorCssUrlsForHost(host, id, [resolved], version)
-    if (await activate(urls, family, resolved, sample, timeoutMs)) {
-      return { family, source: 'mirror', ok: true }
+    const urls = buildMirrorCssUrlsForHost(host, id, [weight], version)
+    if (await activate(urls, face, sample, timeoutMs)) {
+      return { font, via: 'mirror', ok: true }
     }
   }
-  return { family, source: 'system', ok: false }
+  return { font, via: 'system', ok: false }
 }
 
 /**
- * 按配置加载字体。system 不需要网络；upload 查本地注册表；
- * google 走 css2 → cdn.jsdelivr.net → gcore.jsdelivr.net，每档超时 timeoutMs。
- * 缓存只按 family|weight 命中，本次文字里的新字仍要补一次 document.fonts.load，
+ * 加载一款字体。system 不需要网络；upload 查本地注册表；
+ * google 走 css2 → cdn.jsdelivr.net → fastly.jsdelivr.net，每档超时 timeoutMs。
+ * 缓存按 fontKey 命中，本次文字里的新字仍要补一次 document.fonts.load，
  * 否则改完文字立刻导出会拿到回退字形。
  */
-export function loadFontForConfig(
-  config: AvatarConfig,
-  opts?: { timeoutMs?: number; entry?: FontEntry },
-): Promise<FontLoadResult> {
-  const { fontFamily, fontSource, fontWeight } = config.typography
+function loadFont(job: FontJob, timeoutMs: number): Promise<FontLoadResult> {
+  const { font } = job
 
-  if (fontSource === 'system') {
-    return Promise.resolve({ family: fontFamily, source: 'system', ok: true })
+  if (font.source === 'system') {
+    return Promise.resolve({ font, via: 'system', ok: true })
   }
-  if (fontSource === 'upload') {
+  if (font.source === 'upload') {
     // 上传字体是整份文件注册进 document.fonts，没有分片，不需要按文字补拉
-    const found = getUploadedFont(fontFamily)
-    return Promise.resolve(
-      found
-        ? { family: fontFamily, source: 'upload', ok: true }
-        : { family: fontFamily, source: 'system', ok: false },
-    )
+    const ok = getUploadedFont(font.family) !== undefined
+    return Promise.resolve({ font, via: ok ? 'upload' : 'system', ok })
   }
 
-  const key = `${fontFamily}|${fontWeight}`
-  const timeoutMs = opts?.timeoutMs ?? DEFAULT_FONT_TIMEOUT_MS
-  const chars = uniqueChars(config.text)
+  const key = fontKey(font)
+  const chars = uniqueChars(job.text)
 
   const done = settled.get(key)
   if (done) {
-    return ensureGlyphs(key, fontFamily, fontWeight, chars, timeoutMs).then(() => done)
+    return ensureGlyphs(key, font, chars, timeoutMs).then(() => done)
   }
 
   let task = inflight.get(key)
   if (!task) {
-    const sample = sampleText(config.text)
-    task = loadGoogleFont(fontFamily, fontWeight, sample, timeoutMs, opts?.entry)
+    const sample = sampleText(job.text)
+    task = loadGoogleFont(font, sample, timeoutMs)
       .then((result) => {
         // 失败不写 settled，换网络环境后可以重试
         if (result.ok) {
           settled.set(key, result)
-          readyFamilies.add(result.family)
           markLoaded(key, sample)
         }
         return result
@@ -320,9 +290,33 @@ export function loadFontForConfig(
     inflight.set(key, task)
   }
 
-  // 共享 inflight 的调用文字可能不同，各自再补齐自己样本里的字
+  // 共享 inflight 的调用文字可能不同，各自再补齐自己文字里的字
   return task.then(async (result) => {
-    if (result.ok) await ensureGlyphs(key, fontFamily, fontWeight, chars, timeoutMs)
+    if (result.ok) await ensureGlyphs(key, font, chars, timeoutMs)
     return result
   })
+}
+
+/** 按配置并行加载每款要用的字体，每款返回一条结果，顺序同 `fontJobs`。 */
+export function loadFontsForConfig(
+  config: AvatarConfig,
+  opts?: { timeoutMs?: number },
+): Promise<FontLoadResult[]> {
+  const timeoutMs = opts?.timeoutMs ?? DEFAULT_FONT_TIMEOUT_MS
+  return Promise.all(fontJobs(config).map((job) => loadFont(job, timeoutMs)))
+}
+
+/**
+ * 给已就绪的网络字体补上文字里新出现的字，确实补到新字时返回 true，画布据此重绘一次。
+ * 未就绪或加载失败的字体不发 load。
+ */
+export async function topUpGlyphs(config: AvatarConfig): Promise<boolean> {
+  const changed = await Promise.all(
+    fontJobs(config).map((job) => {
+      const key = fontKey(job.font)
+      if (!settled.has(key)) return false
+      return ensureGlyphs(key, job.font, uniqueChars(job.text), DEFAULT_FONT_TIMEOUT_MS)
+    }),
+  )
+  return changed.includes(true)
 }

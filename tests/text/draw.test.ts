@@ -17,7 +17,7 @@ function render(overrides: PartialConfig, color = '#FFFFFF') {
 // 这一组用例验的是绘制机制，effect 显式钉成 plain，不受默认效果变化影响
 const BASE: PartialConfig = {
   text: '猪猪',
-  typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+  typography: { line1: { size: 0.2 }, padding: 0.1, effect: 'plain' },
 }
 
 describe('drawText 基本行为', () => {
@@ -156,7 +156,7 @@ describe('逐行字号', () => {
   /** 首行 200 px、次行 124 px（默认比例 0.62）。这一组盯的是「字段有没有真的被用来落笔」。 */
   const STATUS: PartialConfig = {
     text: '请假中\n09-01',
-    typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+    typography: { line1: { size: 0.2 }, padding: 0.1, effect: 'plain' },
   }
 
   it('次行按自己的字号落笔，不跟着首行走', () => {
@@ -169,11 +169,10 @@ describe('逐行字号', () => {
     const { paints } = render({
       text: '飞书\n效率',
       typography: {
-        sizeMode: 'manual',
-        fontSize: 0.2,
+        line1: { size: 0.2 },
+        line2: { size: 0.2 },
         padding: 0.1,
         effect: 'plain',
-        line2Size: 0.2,
       },
     })
     expect([...new Set(paints.map((paint) => fontSizeOf(paint.font)))]).toEqual([200])
@@ -182,7 +181,7 @@ describe('逐行字号', () => {
   it('默认比例下按行级字号落笔', () => {
     const { paints } = render({
       text: '飞书\n效率',
-      typography: { sizeMode: 'manual', fontSize: 0.2, padding: 0.1, effect: 'plain' },
+      typography: { line1: { size: 0.2 }, padding: 0.1, effect: 'plain' },
     })
     expect(fontSizeOf(paints[0]?.font ?? '')).toBeCloseTo(200)
     expect(fontSizeOf(paints.at(-1)?.font ?? '')).toBeCloseTo(124)
@@ -192,8 +191,7 @@ describe('逐行字号', () => {
     const { paints } = render({
       ...STATUS,
       typography: {
-        sizeMode: 'manual',
-        fontSize: 0.2,
+        line1: { size: 0.2 },
         padding: 0.1,
         effect: 'glow',
         effectStrength: 1,
@@ -209,8 +207,7 @@ describe('逐行字号', () => {
     const { paints } = render({
       ...STATUS,
       typography: {
-        sizeMode: 'manual',
-        fontSize: 0.2,
+        line1: { size: 0.2 },
         padding: 0.1,
         effect: 'outline',
         effectStrength: 1,

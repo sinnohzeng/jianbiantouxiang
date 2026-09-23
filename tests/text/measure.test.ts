@@ -2,40 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   createApproxMeasure,
   createCanvasMeasure,
-  cssPx,
-  fontFamilyStack,
-  fontString,
   isCjk,
   letterSpacingPxOf,
-  quoteFamily,
   toGraphemes,
 } from '@/text/measure'
 import { makeConfig } from './helpers'
-
-describe('fontString', () => {
-  it('带字重、字号与加引号的家族名', () => {
-    const config = makeConfig({ typography: { fontFamily: 'Noto Sans SC', fontWeight: 700 } })
-    const font = fontString(config, 42)
-    expect(font.startsWith('700 42px "Noto Sans SC",')).toBe(true)
-  })
-
-  it('家族名一律加引号并附系统回退链', () => {
-    expect(quoteFamily('ZCOOL KuaiLe')).toBe('"ZCOOL KuaiLe"')
-    expect(fontFamilyStack('思源黑体')).toContain('"思源黑体", system-ui')
-    expect(fontFamilyStack('思源黑体')).toContain('sans-serif')
-  })
-
-  it('空家族名只留系统回退链', () => {
-    expect(fontFamilyStack('  ')).not.toContain('""')
-    expect(fontFamilyStack('  ').startsWith('system-ui')).toBe(true)
-  })
-
-  it('极小字号不写成科学计数法', () => {
-    expect(cssPx(0.0000001)).toBe('0px')
-    expect(cssPx(Number.NaN)).toBe('0px')
-    expect(cssPx(12.3456)).toBe('12.346px')
-  })
-})
 
 describe('字符分类', () => {
   it('识别中日韩与全角标点', () => {

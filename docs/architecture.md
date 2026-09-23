@@ -34,14 +34,15 @@
 | `src/engine/shaders/` | 四段 fragment shader 源码，一种质感一份 chunk |
 | `src/text/` | 文字量测、换行、自动填满、排版、绘制、明暗判定 |
 | `src/palettes/` | 37 套内置配色、OKLCH 色彩工具、种子色和谐生成 |
-| `src/fonts/` | 精选清单、fontsource 目录缓存、css2 与镜像加载链、本地上传注册 |
+| `src/fonts/` | 精选清单、fontsource 目录缓存与条目查找、按行加载的 css2 与镜像加载链、本地上传注册 |
+| `src/fonts/family.ts` | font-family 与 canvas font 简写的字符串工具。`src/text` 引用它，`src/fonts` 不引用 `src/text` |
 | `src/graphics/` | 图形来源分派、lucide Path2D、Noto Emoji、上传消毒、五语 emoji 索引、图形绘制 |
 | `src/graphics/generated/` | lucide 全库与精选索引、emoji 基础索引与五语标签，由 `npm run gen:icons` / `gen:emoji` 生成 |
 | `src/export/` | 画布合成、编码与体积二分、导出动作、下载、图片剪贴板、文件名 |
 | `src/state/` | `AvatarConfig` 契约、zustand store、本地存档、历史 |
 | `src/i18n/` | 五份扁平字典与 Provider |
 | `src/hooks/` | 媒体查询与防抖 |
-| `src/lib/` | 画布小工具与 `cn`：engine 与 export 共用的最底层，不依赖任何业务目录 |
+| `src/lib/` | 画布小工具（含画布属性的像素串 `cssPx`）与 `cn`：engine、export、text、fonts 共用的最底层，不依赖任何业务目录 |
 | `tests/` | Vitest 单测，目录与 `src/` 同名 |
 | `e2e/` | Playwright 用例，`smoke` 两档都跑，`desktop` 与 `mobile` 各归一档 |
 | `scripts/screenshots.mjs` | 设备模拟截图，输出到 `.screenshots/` |
@@ -114,7 +115,7 @@ localStorage `gradient-avatar:preview-height`，模块 `src/app/preview-height.t
 
 ## 共享契约
 
-`src/state/config.ts` 的 `AvatarConfig` 是全仓唯一的参数来源。它同时是 localStorage 的存档格式与历史条目的内容。项目仍在开发期，契约可以改语义，改的时候 `normalizeConfig` 负责把旧存档读成合法配置，读不成就回默认。
+`src/state/config.ts` 的 `AvatarConfig` 是全仓唯一的参数来源。它同时是 localStorage 的存档格式与历史条目的内容。项目在开发期，契约随需要改结构，不写迁移：换结构就升 `src/state/persist.ts` 的 `PERSIST_KEY`，旧存档不读。`normalizeConfig` 负责同一结构下的残缺与越界输入，缺的补默认，越界的夹回。
 
 | 字段组 | 内容 | 谁在读 |
 | --- | --- | --- |
@@ -123,11 +124,15 @@ localStorage `gradient-avatar:preview-height`，模块 `src/app/preview-height.t
 | `highlight` | 2D 合成阶段的柔白高光强度 | 合成 |
 | `palette`、`customColors` | 内置配色 id 或 `custom`，自定义时给 2 到 6 个 hex | 配色、引擎 |
 | `canvas` | 宽高、形状、圆角比例 | 合成、导出 |
-| `typography` | 字体与来源、字重、字号模式与字号、行级字号比例与水平补偿、边距、行高、字间距、文字效果与强度、取色模式与颜色、胶囊底参数 | 文字、字体 |
+| `typography` | 逐行参数两组 `line1`、`line2`，每组是字体（family、来源、字重）、字号与水平垂直两向补偿；两行共用的边距、行高、字间距、文字效果与强度、颜色、胶囊底参数。两组里的 `null` 表示由系统派生：第一行字号由求解器派生，第二行的字体与字号由第一行派生 | 文字、字体 |
 | `layout` | 图形比例、图形来源与品牌单色开关（`icon.mono`，仅品牌来源生效，默认 `false`）；v4 起无用途分派，图标、第一行、第二行一个纵向栈 | 文字排版、图形 |
 | `exportOptions` | 格式、体积档、底色 | 编码 |
 
 同一模块另外导出三个函数。`DEFAULT_CONFIG` 是默认值的唯一定义处；`normalizeConfig` 把任意局部输入补成完整配置，数值按区间夹值、枚举做合法性校验，任何输入都不抛错；`configHash` 对键排序后做 FNV-1a，用作历史去重与渲染去重的标记。
+
+字体整份成立或整份作废：family 去掉首尾空白后非空、来源是 google、system、upload 之一才成立，字重取整到 100 到 900 九档。第一行字体作废回默认字体，第二行字体作废即跟随。字号与补偿的区间是导出常量：`LINE_SIZE_MIN` 0.04、`LINE2_SIZE_MIN` 0.02、`LINE_SIZE_MAX` 0.92、`LINE_OFFSET_MAX` 0.25，第二行跟随时的比例 `LINE2_FOLLOW_SCALE` 0.62，两行之间的留白比例 `LINE_GAP_RATIO` 0.18。
+
+逐行字体的读写也收在这里。`lineFont(t, line)` 取某一行的生效字体，第二行为 `null` 时就是第一行那款；`fontKey` 是一款字体的身份键，来源、family、字重任一不同就是另一款。写字体只走三个函数：`withLine1Font` 写第一行，第二行只改过字重时随第一行换款并吸附字重；`withLine2Font` 写第二行，与第一行全相同时写 `null` 回到跟随；`FOLLOW_LINE1` 把第二行写回跟随。`nearestWeight` 把字重吸附到字体真有的一档，`twoLinesOf` 是两行模型对换行的唯一解释，归一、排版、字体加载与界面共用。
 
 ## 渲染管线
 
@@ -191,11 +196,11 @@ flowchart TD
 
 ## 文字排版
 
-v4 只有一种版式：图标（可选）→ 第一行 → 第二行的纵向栈，水平居中，整体在可用区域里垂直居中。`fitStack` 在 `MIN_FONT_RATIO` 到 `MAX_FONT_RATIO` 之间二分 12 轮找基准字号，第二行跟随时等于基准乘 0.62，手动定了短边比例就按定值排，两种情况都只搜基准一个自由度，两档都放开会有无穷多组解落在安全框里。严格档要求不劈开拉丁词且主行不折行，放不下才落宽松档。
+只有一种版式：图标（可选）→ 第一行 → 第二行的纵向栈，水平居中，整体在可用区域里垂直居中。`fitStack` 在 `LINE_SIZE_MIN` 到 `LINE_SIZE_MAX` 之间二分 12 轮找基准字号，第二行的 `line2.size` 为 `null` 时等于基准乘 `LINE2_FOLLOW_SCALE`，定了短边比例就按定值排，两种情况都只搜基准一个自由度，两档都放开会有无穷多组解落在安全框里。每一段带自己的字体：第一行取 `line1.font`，第二行取 `lineFont(t, 2)`，量宽与绘制都用 `src/fonts/family.ts` 的 `fontString` 拼出这一段的 canvas font。严格档要求不劈开拉丁词且主行不折行，放不下才落宽松档。
 
-每一行可以按 `lineOffsetsX`（画布宽比例）与 `lineOffsetsY`（画布高比例）做视觉补偿，图标按 `graphicOffsetX`、`graphicOffsetY`（安全框宽高比例）补偿。补偿不参与求解：换行与二分都按完整安全区算，落位时做纯位移，改第 i 行只动第 i 行，其余行的字号与坐标一个像素都不变；图标补偿也不挤压文字可用区。位移后越出安全区只反映在 `overflow` 提示里，不缩字号。第二行跟随时乘 0.62，手动时用 `line2Size`；绘制层按行设置 `ctx.font`，描边、投影、发光的尺度也随之按行走。第一行为空、第二行有内容是合法槽位（图标加说明文字），空槽位留住，补偿参数跟着内容走。
+每一行可以按自己那组的 `offsetX`（画布宽比例）与 `offsetY`（画布高比例）做视觉补偿，图标按 `graphicOffsetX`、`graphicOffsetY`（安全框宽高比例）补偿。补偿不参与求解：换行与二分都按完整安全区算，落位时做纯位移，改第 i 行只动第 i 行，其余行的字号与坐标一个像素都不变；图标补偿也不挤压文字可用区。位移后越出安全区只反映在 `overflow` 提示里，不缩字号。绘制层按段设置 `ctx.font`，字号与字体都按段走，描边、投影、发光的尺度也随之按段走。第一行为空、第二行有内容是合法槽位（图标加说明文字），空槽位留住，第二行晋升为主行时整组取 `line2` 的字体、字号与补偿。
 
-字号有自动与手动两档。自动档由 `fitStack` 求解，`TextLayout.fontRatio` 带出求得的基准比例，预览每次排版后把它写进 store 的 `ui.autoFontSize`。这是派生值，不进配置与存档。字号滑杆常驻可用：自动态显示这个回写值，一拖就以它为起点切成手动，旁边的“自动”按钮把 `sizeMode` 拨回自动，画面全程不跳。
+第一行字号 `line1.size` 为 `null` 时自动，由 `fitStack` 求解，`TextLayout.fontRatio` 带出求得的基准比例，预览每次排版后把它写进 store 的 `ui.autoFontSize`。这是派生值，不进配置与存档。字号滑杆常驻可用：自动态显示这个回写值，一拖就以它为起点写成定值，旁边的“自动”按钮把 `line1.size` 写回 `null`，滑杆停在刚才的定值上直到新解回写，画面全程不跳。
 
 安全框由 `typography.padding` 从画布四边扣出，默认值 0.15；`typography.lineHeight` 默认 1.03。量宽一律走 canvas `measureText`，CJK 逐字换行、拉丁按词换行。
 
@@ -224,16 +229,24 @@ v4 只有一种版式：图标（可选）→ 第一行 → 第二行的纵向�
 
 ## 字体
 
-加载入口是 `src/fonts/loader.ts` 的 `loadFontForConfig`，绘制前必须等 `document.fonts.load` 就绪，否则画布会用回退字形出图。
+加载器 `src/fonts/loader.ts` 对外三个函数。绘制前必须等 `document.fonts.load` 就绪，否则画布会用回退字形出图。
+
+- `fontJobs(config)` 给出哪款字体要画哪些字：有文字的行按 `lineFont` 取生效字体，同一款字体的两行文字合并成一条；两行都空时给第一行字体，用拉丁与 CJK 各一个字的样本探测。第二行钉了别款字体但还没有文字时不加载它。预览的字体 effect 以这组字体的 `fontKey` 串为依赖，填上第二行文字后依赖变化，effect 重跑，把第二行的字体加载进来。
+- `loadFontsForConfig(config)` 对每条并行加载，每款返回 `{ font, via, ok }`：`font` 是输入的那款，界面据它的来源选提示文案；`via` 是实际走的通道（google、mirror、system、upload）。预览、导出、长按图与历史缩略图都走它。加载状态以 `fontKey` 为键，同一款字体只请求一次。
+- `topUpGlyphs(config)` 给已就绪的网络字体补上新出现的字，确实补到时返回 true，预览据此重绘一次。css2 按 `unicode-range` 切片下发，新字所在的切片要再 `load` 一次才会去拉；没就绪或加载失败的字体不补。
+
+目录条目只从 `src/fonts/catalog.ts` 的 `findFontEntry(family)` 同步查：先查精选清单，再查内存目录，按去掉首尾空白后的小写比较。内存目录第一次被访问时从本地缓存解析一次，不看有效期，`fetchCatalog` 拉到新目录时替换；有效期只决定选择器打开时要不要刷新列表，过期条目的 id、字重与版本照样可用。查不到条目时按 family 猜 fontsource id。同一文件的 `weightsOf(family)` 给字重控件用，查不到条目时给一份通用档位；`displayName(family, source)` 是界面上的字体名，上传字体去掉 `-upload` 后缀。
 
 | 档 | 来源 | 说明 |
 | --- | --- | --- |
-| 1 | Google Fonts css2 | 返回的 `@font-face` 全部带 `unicode-range`，浏览器只拉用到的切片。不加 `text=` 参数，Noto CJK 上它不生效 |
+| 1 | Google Fonts css2 | 返回的 `@font-face` 全部带 `unicode-range`，浏览器只拉用到的切片，常用汉字所在的切片 24 到 43 KB。不加 `text=`：文字每改一个字就是一份新子集，CSS 只缓存一天；按切片的静态字体文件缓存一年，换了文字也能复用 |
 | 2 | `cdn.jsdelivr.net` 上的 `@fontsource` CSS | 走 npm 包路径，每条分片都带 `unicode-range` |
-| 3 | `gcore.jsdelivr.net` 上的同一份 CSS | 同上，换主机 |
+| 3 | `fastly.jsdelivr.net` 上的同一份 CSS | 同上，走 Fastly，与第二档不在同一张 CDN 上 |
 | 4 | 系统字体栈 | 界面提示已回落 |
 
-每一档各有 4 秒等待上限。字体目录来自 fontsource 公共 API，裁掉用不上的字段后按 7 天缓存进 localStorage，只保留 `type` 为 google 的条目；接口不可用时回落到 `curated.ts` 的精选清单，它覆盖 Google Fonts 上全部带中文 subset 的字体。
+每一档各有 4 秒等待上限。字体目录来自 fontsource 公共 API，按 7 天缓存进 localStorage 的 `gradient-avatar:font-catalog:v1`，每条只留 id、版本、family、字重与由 subset 派生的 `cjk`；只保留 `type` 为 google 的非图标条目，字重只收 100 到 900 九档。接口不可用时回落到 `curated.ts` 的精选清单，它覆盖 Google Fonts 上全部带中文 subset 的字体。
+
+加载失败的字体按 `fontKey` 记进 store 的 `ui.fontFallbacks`。每款失败字体整场会话提示一次，提示里带上字体名，上传字体丢失与网络回落各用一句，两款都失败时两条提示分得清。
 
 上传的 TTF、OTF、WOFF、WOFF2 用 `FontFace` 直接注册，不解析字体文件。注册表在模块级，family 名带 `-upload` 后缀，只在本次会话有效。
 
@@ -253,11 +266,11 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 初始配置只有两档：localStorage 存档、默认值。配置不进 URL；地址栏上只有三个与配置无关的查询参数：`?lang=` 首屏消费后摘掉，`?probe=1` 装端到端探针，`?samples=1` 打开样张页。`initialConfigSource()` 记下它来自哪一档，默认示例文字只在 `default` 这一档才跟随界面语言。存档缺字段时由 `normalizeConfig` 补当前默认值。
 
-状态变更后攒 300 ms 写一次 localStorage，不碰 `history`。导出前调 `flushConfigSync()` 立刻落盘，导出与存档才是同一份配置。要给端到端或截图脚本喂配置，用 `page.addInitScript` 往 `PERSIST_KEY`（`gradient-avatar:v3`）写一份 `{ v: 3, config }` 再打开页面。
+存档是 `PERSIST_KEY`（`gradient-avatar:v4`）下的一份 `{ config, history }`，读档只要求 `config` 是对象，其余交给 `normalizeConfig`。状态变更后攒 300 ms 写一次 localStorage，不碰 `history`。导出前调 `flushConfigSync()` 立刻落盘，导出与存档才是同一份配置。端到端用例读配置走探针：`config()` 取 store 里的当前值，`flush()` 立刻落盘，不读 localStorage。要给截图脚本喂配置，用 `page.addInitScript` 往 `PERSIST_KEY` 写一份 `{ config }` 再打开页面。
 
 预览参考层（安全区、网格）的开关与手机预览高度一样是“怎么看”而不是“出什么图”：各自是模块级状态加 localStorage（`gradient-avatar:overlays`、`gradient-avatar:preview-height`），不进 `AvatarConfig`，导出永远不画。两个参考层的开关收在顶栏的设置菜单里，带文案与勾选态，不摆在画框角上挡住要看的那一块。网格是 CSS 渐变画的 DOM 图层，放在着色器宿主之外，格子边长取画框短边的 1/12，从中心铺开，中心十字加粗，白色低透明度加 `mix-blend-mode: difference`，深浅底都可辨。
 
-历史最多 8 条，按 `configHash` 去重，与配置一起进同一份存档。存档键名带版本号，换结构时旧数据自然失效。
+历史最多 8 条，按 `configHash` 去重，与配置一起进同一份存档。存档键是存档结构的唯一版本号，结构一变就升键，旧键不读。
 
 ## 界面多语言
 
@@ -310,7 +323,7 @@ staggered-text、preloader），随它们进来的 three、@react-three/fiber、
 
 headless chromium 默认没有 GPU，WebGL2 靠 `--use-angle=swiftshader` 等启动参数走软件渲染。`devices['iPhone 15']` 的默认浏览器是 webkit，project 里必须显式覆盖成 chromium，否则那几个参数不生效。
 
-预览画布读不回像素，端到端断言因此走探针。`src/app/probe.ts` 把 `composeAvatar` 与 `encodeCanvas` 挂到 `window.__gradientAvatarProbe`，用的是与真实导出完全相同的那条链路。它只在开发模式或 URL 带 `?probe=1` 时用 `import()` 装，产品代码一处都不引用它，不带参数打开就不会下载那份 chunk。
+预览画布读不回像素，端到端断言因此走探针。`src/app/probe.ts` 把 `composeAvatar` 与 `encodeCanvas` 挂到 `window.__gradientAvatarProbe`，用的是与真实导出完全相同的那条链路；另挂 `config()` 读 store 里的当前配置、`flush()` 把防抖中的配置立刻落盘，用例读配置不经 localStorage。它只在开发模式或 URL 带 `?probe=1` 时用 `import()` 装，产品代码一处都不引用它，不带参数打开就不会下载那份 chunk。
 
 ## 构建与部署
 

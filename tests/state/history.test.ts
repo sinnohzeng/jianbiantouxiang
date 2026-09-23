@@ -26,7 +26,10 @@ describe('pushHistory', () => {
 
   it('只有嵌套字段不同时不算重复', () => {
     const base = withText('一')
-    const tweaked: AvatarConfig = { ...base, typography: { ...base.typography, fontSize: 0.5 } }
+    const tweaked: AvatarConfig = {
+      ...base,
+      typography: { ...base.typography, line1: { ...base.typography.line1, size: 0.5 } },
+    }
     expect(pushHistory([entry('一')], tweaked)).toHaveLength(2)
   })
 

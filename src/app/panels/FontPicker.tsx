@@ -18,11 +18,17 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
-import { searchFonts, type CjkScript, type FontEntry } from '@/fonts/catalog'
+import { searchFonts, weightsOf, type CjkScript, type FontEntry } from '@/fonts/catalog'
 import { CURATED_FONTS } from '@/fonts/curated'
-import { nearestWeight } from '@/fonts/loader'
 import { FontUploadError, registerUploadedFont } from '@/fonts/upload'
 import { useT } from '@/i18n'
+import {
+  lineFont,
+  nearestWeight,
+  withLine1Font,
+  type FontSource,
+  type FontWeight,
+} from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { ensureCatalog, useFontCatalog } from './font-entries'
 import { loadRecentFonts, pushRecentFont } from './recent-fonts'
@@ -67,6 +73,7 @@ export function FontPicker({ open, onOpenChange, trigger }: FontPickerProps) {
   const t = useT()
   const config = useAvatarStore((state) => state.config)
   const setTypography = useAvatarStore((state) => state.setTypography)
+  const current = lineFont(config.typography, 1)
 
   const controlled = open !== undefined
   const [innerOpen, setInnerOpen] = useState(false)
@@ -91,20 +98,17 @@ export function FontPicker({ open, onOpenChange, trigger }: FontPickerProps) {
     [controlled, onOpenChange],
   )
 
+  // 选中写第一行，字重吸附到新字体真实提供的一档；条目自带字重表时用它，否则按 family 查
   const choose = useCallback(
-    (family: string, source: 'google' | 'system' | 'upload', weights?: readonly number[]) => {
-      const available = weights ?? []
-      setTypography({
-        fontFamily: family,
-        fontSource: source,
-        ...(available.length > 0
-          ? { fontWeight: nearestWeight(available, config.typography.fontWeight) }
-          : {}),
-      })
+    (family: string, source: FontSource, entryWeights?: readonly FontWeight[]) => {
+      const typography = useAvatarStore.getState().config.typography
+      const weights = entryWeights ?? weightsOf(family)
+      const weight = nearestWeight(weights, typography.line1.font.weight)
+      setTypography(withLine1Font(typography, { family, source, weight }, weights))
       setRecent(pushRecentFont(family))
       setOpen(false)
     },
-    [config.typography.fontWeight, setOpen, setTypography],
+    [setOpen, setTypography],
   )
 
   const recentEntries = useMemo(() => {
@@ -148,7 +152,7 @@ export function FontPicker({ open, onOpenChange, trigger }: FontPickerProps) {
     <CommandItem
       key={`${groupKey}:${entry.id}`}
       value={`${groupKey}:${entry.id}`}
-      data-checked={config.typography.fontFamily === entry.family || undefined}
+      data-checked={(current.source === 'google' && current.family === entry.family) || undefined}
       className="min-h-11"
       onSelect={() => choose(entry.family, 'google', entry.weights)}
     >
@@ -191,7 +195,7 @@ export function FontPicker({ open, onOpenChange, trigger }: FontPickerProps) {
             <CommandItem
               key={`system:${family}`}
               value={`system:${family}`}
-              data-checked={config.typography.fontFamily === family || undefined}
+              data-checked={(current.source === 'system' && current.family === family) || undefined}
               className="min-h-11"
               onSelect={() => choose(family, 'system')}
             >
@@ -243,7 +247,7 @@ export function FontPicker({ open, onOpenChange, trigger }: FontPickerProps) {
               className="h-11 w-full justify-start"
               onClick={() => setOpen(true)}
             >
-              <span className="truncate">{config.typography.fontFamily}</span>
+              <span className="truncate">{current.family}</span>
             </Button>
           ))
         : null}

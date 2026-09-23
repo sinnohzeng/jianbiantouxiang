@@ -1,4 +1,5 @@
 import { resolveSeed } from '@/engine/seed'
+import type { FontLoadResult } from '@/fonts/loader'
 import type { Graphic } from '@/graphics/types'
 import type { AvatarConfig } from '@/state/config'
 import type { Rect } from '@/text/layout'
@@ -10,7 +11,8 @@ import { createCanvas, get2d, releaseCanvas } from '@/lib/canvas'
  * L 是排版结果，合成只负责在量测、取色与绘制之间传递，不读它的字段。
  */
 export interface ComposeDeps<L extends { graphic?: Rect }> {
-  loadFontForConfig(config: AvatarConfig): Promise<unknown>
+  /** 两行各自的字体都要就绪，同一款字体只加载一次。 */
+  loadFonts(config: AvatarConfig): Promise<FontLoadResult[]>
   /** 图标徽章的来源加载。失败实现返回 null，不中断导出。 */
   loadGraphicForConfig(config: AvatarConfig): Promise<Graphic | null>
   renderGradient(config: AvatarConfig, width: number, height: number): Promise<HTMLCanvasElement>
@@ -46,7 +48,7 @@ export async function composeWith<L extends { graphic?: Rect }>(
   // 字体没就绪就量测，导出会用回退字体，和预览对不上。
   // 图形与字体互不依赖，并行加载，别让 emoji 网络把字体链也串住。
   const graphicPromise = deps.loadGraphicForConfig(config)
-  await deps.loadFontForConfig(config)
+  await deps.loadFonts(config)
   const graphic = await graphicPromise
 
   const gradient = await deps.renderGradient(config, width, height)

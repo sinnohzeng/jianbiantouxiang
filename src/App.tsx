@@ -4,14 +4,20 @@ import { AppShell } from '@/app/AppShell'
 import { ShowcaseMotionProvider } from '@/app/showcase/motion'
 import { ShowcasePreloader } from '@/app/showcase/Preloader'
 import { useTheme } from '@/app/theme'
-import { getCuratedByFamily, nearestWeight } from '@/fonts'
+import { weightsOf } from '@/fonts/catalog'
 import { I18nProvider, dictOf, useLocale, useT } from '@/i18n'
-import { DEFAULT_CONFIG, LOCALE_DEFAULT_FONT, type PartialConfig } from '@/state/config'
+import {
+  DEFAULT_CONFIG,
+  LOCALE_DEFAULT_FONT,
+  nearestWeight,
+  withLine1Font,
+  type PartialConfig,
+} from '@/state/config'
 import { initialConfigSource, useAvatarStore } from '@/state/store'
 
 const OWNED_DEFAULTS = {
   text: DEFAULT_CONFIG.text,
-  fontFamily: DEFAULT_CONFIG.typography.fontFamily,
+  family: DEFAULT_CONFIG.typography.line1.font.family,
 } as const
 
 /**
@@ -29,6 +35,9 @@ const OWNED_DEFAULTS = {
  * 三、懒加载语言的字典没到货时 `t` 落到英文，这一轮整个跳过，
  * 否则示例文字先被写成 Hello 再改成目标语言，白闪一次也白写一次 store。
  * 文字与字体一起写，字体探测的样本才始终和文字同一种语言。
+ *
+ * 字体只接管跟随态：第一行经 `withLine1Font` 写入，第二行跟着第一行走。
+ * 第二行字体被动过就放手，只改了字重也算，两行字体都保持用户的选择。
  */
 export function LocaleDefaults() {
   const t = useT()
@@ -49,8 +58,10 @@ export function LocaleDefaults() {
 
     const fromUser = initialConfigSource() !== 'default'
     if (fromUser || text !== owned.current.text) released.current.text = true
-    if (fromUser || typography.fontSource !== 'google') released.current.font = true
-    if (typography.fontFamily !== owned.current.fontFamily) released.current.font = true
+    const line1Font = typography.line1.font
+    if (fromUser || line1Font.source !== 'google') released.current.font = true
+    if (line1Font.family !== owned.current.family) released.current.font = true
+    if (typography.line2.font !== null) released.current.font = true
     if (released.current.text && released.current.font) return
 
     // 字典还在路上，等它到货再一次写完
@@ -68,15 +79,14 @@ export function LocaleDefaults() {
 
     if (!released.current.font) {
       const family = LOCALE_DEFAULT_FONT[locale]
-      if (family !== typography.fontFamily) {
-        const entry = getCuratedByFamily(family)
-        owned.current.fontFamily = family
-        patch.typography = {
-          fontFamily: family,
-          fontWeight: entry
-            ? nearestWeight(entry.weights, typography.fontWeight)
-            : typography.fontWeight,
-        }
+      if (family !== line1Font.family) {
+        const weights = weightsOf(family)
+        owned.current.family = family
+        patch.typography = withLine1Font(
+          typography,
+          { family, source: 'google', weight: nearestWeight(weights, line1Font.weight) },
+          weights,
+        )
       }
     }
 

@@ -44,7 +44,6 @@ describe('savePersisted / loadPersisted', () => {
     store.setItem(
       PERSIST_KEY,
       JSON.stringify({
-        v: 3,
         config: DEFAULT_CONFIG,
         history: [{ config: withText('一'), thumb: 'https://evil.example/a.jpg' }],
       }),
@@ -99,9 +98,8 @@ describe('损坏数据', () => {
     ['空串', ''],
     ['坏 JSON', '{ 不是 JSON'],
     ['载荷是数组', '[1,2,3]'],
-    ['版本对不上', JSON.stringify({ v: 2, config: DEFAULT_CONFIG })],
-    ['缺 config', JSON.stringify({ v: 3, history: [] })],
-    ['config 不是对象', JSON.stringify({ v: 3, config: '文字' })],
+    ['缺 config', JSON.stringify({ history: [] })],
+    ['config 不是对象', JSON.stringify({ config: '文字' })],
   ])('%s 时返回 null', (_name, raw) => {
     if (raw !== null) store.setItem(PERSIST_KEY, raw)
     expect(loadPersisted()).toBeNull()
@@ -109,7 +107,7 @@ describe('损坏数据', () => {
   })
 
   it('history 不是数组时按空历史处理', () => {
-    store.setItem(PERSIST_KEY, JSON.stringify({ v: 3, config: DEFAULT_CONFIG, history: 7 }))
+    store.setItem(PERSIST_KEY, JSON.stringify({ config: DEFAULT_CONFIG, history: 7 }))
     expect(loadPersistedState()).toEqual({ config: DEFAULT_CONFIG, history: [] })
   })
 
@@ -117,7 +115,6 @@ describe('损坏数据', () => {
     store.setItem(
       PERSIST_KEY,
       JSON.stringify({
-        v: 3,
         config: { text: '半份配置', canvas: { width: 99999 } },
         history: [{ config: { text: '半份历史' } }, '不是对象'],
       }),

@@ -69,9 +69,9 @@ describe('默认字体跟随界面语言', () => {
     mount()
 
     expect(config().text).toBe('Hello')
-    expect(config().typography.fontFamily).toBe('Inter')
+    expect(config().typography.line1.font.family).toBe('Inter')
     // Inter 提供 100 到 900，700 原样保留
-    expect(config().typography.fontWeight).toBe(700)
+    expect(config().typography.line1.font.weight).toBe(700)
   })
 
   it('简体中文界面维持默认的 Noto Sans SC，一次都不写 store', () => {
@@ -85,7 +85,7 @@ describe('默认字体跟随界面语言', () => {
     stop()
 
     expect(config().text).toBe(DEFAULT_CONFIG.text)
-    expect(config().typography.fontFamily).toBe('Noto Sans SC')
+    expect(config().typography.line1.font.family).toBe('Noto Sans SC')
     expect(writes).toHaveLength(0)
   })
 
@@ -98,7 +98,7 @@ describe('默认字体跟随界面语言', () => {
     })
 
     await waitFor(() => {
-      expect(config().typography.fontFamily).toBe('Noto Sans KR')
+      expect(config().typography.line1.font.family).toBe('Noto Sans KR')
     })
     expect(config().text).toBe('안녕')
   })
@@ -106,7 +106,7 @@ describe('默认字体跟随界面语言', () => {
   it('用户自己选过字体后不再跟随语言', () => {
     localStorage.setItem(LOCALE_STORAGE_KEY, 'zh-CN')
     act(() => {
-      useAvatarStore.getState().setTypography({ fontFamily: 'ZCOOL KuaiLe' })
+      useAvatarStore.getState().setTypography({ line1: { font: { family: 'ZCOOL KuaiLe' } } })
     })
     mount()
 
@@ -114,9 +114,29 @@ describe('默认字体跟随界面语言', () => {
       switchLocale?.('en')
     })
 
-    expect(config().typography.fontFamily).toBe('ZCOOL KuaiLe')
+    expect(config().typography.line1.font.family).toBe('ZCOOL KuaiLe')
     // 文字没被动过，仍跟着语言走
     expect(config().text).toBe('Hello')
+  })
+
+  it('第二行字重改过之后切语言，两行字体都不变', async () => {
+    localStorage.setItem(LOCALE_STORAGE_KEY, 'zh-CN')
+    const line2 = { ...DEFAULT_CONFIG.typography.line1.font, weight: 400 as const }
+    act(() => {
+      useAvatarStore.getState().setTypography({ line2: { font: line2 } })
+    })
+    mount()
+
+    act(() => {
+      switchLocale?.('ko')
+    })
+
+    // 日语字典留给下面“到货前不写”那组验首屏，这里切韩语。文字仍跟着语言走，等它换成韩语示例，说明这一轮接管已经跑完
+    await waitFor(() => {
+      expect(config().text).toBe('안녕')
+    })
+    expect(config().typography.line1.font).toEqual(DEFAULT_CONFIG.typography.line1.font)
+    expect(config().typography.line2.font).toEqual(line2)
   })
 
   it('配置来自本机存档时文字与字体一个都不改', () => {
@@ -125,7 +145,7 @@ describe('默认字体跟随界面语言', () => {
     mount()
 
     expect(config().text).toBe(DEFAULT_CONFIG.text)
-    expect(config().typography.fontFamily).toBe('Noto Sans SC')
+    expect(config().typography.line1.font.family).toBe('Noto Sans SC')
   })
 })
 
@@ -158,7 +178,7 @@ describe('用户输入不被示例文字顶掉', () => {
       switchLocale?.('ko')
     })
     await waitFor(() => {
-      expect(config().typography.fontFamily).toBe('Noto Sans KR')
+      expect(config().typography.line1.font.family).toBe('Noto Sans KR')
     })
 
     expect(config().text).toBe('猪猪老公')
@@ -176,7 +196,7 @@ describe('用户输入不被示例文字顶掉', () => {
     })
 
     expect(config().text).toBe('Hello')
-    expect(config().typography.fontFamily).toBe('Inter')
+    expect(config().typography.line1.font.family).toBe('Inter')
   })
 })
 
@@ -199,7 +219,7 @@ describe('懒加载语言的字典到货前不写', () => {
     })
     stop()
 
-    expect(config().typography.fontFamily).toBe('Noto Sans JP')
+    expect(config().typography.line1.font.family).toBe('Noto Sans JP')
     expect(writes.map((item) => item.text)).toEqual(['こんにちは'])
   })
 })

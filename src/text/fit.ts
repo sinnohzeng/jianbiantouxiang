@@ -1,11 +1,19 @@
 import { clamp } from '@/engine/math'
-import { STATUS_GAP_RATIO, STATUS_SECOND_LINE_SCALE, type AvatarConfig } from '@/state/config'
-import { fontString, letterSpacingPxOf, type MeasureFn } from './measure'
-import { twoLinesOf, wrapLineParts } from './wrap'
+import { fontString } from '@/fonts/family'
+import {
+  LINE2_FOLLOW_SCALE,
+  LINE_GAP_RATIO,
+  LINE_SIZE_MAX,
+  LINE_SIZE_MIN,
+  lineFont,
+  twoLinesOf,
+  type AvatarConfig,
+  type FontChoice,
+} from '@/state/config'
+import { letterSpacingPxOf, type MeasureFn } from './measure'
+import { wrapLineParts } from './wrap'
 
-/** 自动填满的搜索区间，与 config 里 fontSize 的取值范围一致。 */
-export const MIN_FONT_RATIO = 0.04
-export const MAX_FONT_RATIO = 0.92
+/** 自动填满的二分轮数，区间是 LINE_SIZE_MIN..LINE_SIZE_MAX。 */
 export const FIT_ITERATIONS = 12
 
 const EPS = 1e-3
@@ -40,10 +48,11 @@ export interface TextBlock {
 /** 单段（第一行或第二行）的排版结果。 */
 export interface ParagraphFit {
   block: TextBlock
-  /** 实际字号：第一行是基准字号，第二行跟随时是基准乘行级比例，手动时是自己的短边比例。 */
+  /** 实际字号：第一行是基准字号，第二行跟随时是基准乘跟随比例，手动时是自己的短边比例。 */
   fontSizePx: number
   lineHeightPx: number
   letterSpacingPx: number
+  /** 这一段的 canvas font 简写，按这一段自己的生效字体拼。 */
   font: string
   /** 水平补偿，画布宽比例。落位时纯位移，只动自己这一段。 */
   offset: number
@@ -62,7 +71,7 @@ export interface StackFit {
   width: number
   height: number
   /**
-   * 基准字号按画布短边的比例，与 `typography.fontSize` 同一单位，自动档的求解结果从这里读。
+   * 基准字号按画布短边的比例，与 `typography.line1.size` 同一单位，自动档的求解结果从这里读。
    */
   ratio: number
   /** 位移之后整栈是否仍在安全区内，界面据此提示。 */
@@ -84,13 +93,14 @@ const EMPTY_BLOCK: TextBlock = { broke: false, lines: [], baselines: [], width: 
  */
 function composeParagraph(
   config: AvatarConfig,
-  text: string,
+  slot: Slot,
   fontSizePx: number,
   maxWidth: number,
   measure: MeasureFn,
 ): TextBlock {
+  const { text } = slot
   if (text === '') return { ...EMPTY_BLOCK }
-  const font = fontString(config, fontSizePx)
+  const font = fontString(slot.font, fontSizePx)
   const letterSpacingPx = letterSpacingPxOf(config, fontSizePx)
   const parts = wrapLineParts(text, maxWidth, measure, font, letterSpacingPx)
 
@@ -202,8 +212,10 @@ export function safeArea(
   return { x: (width - w) / 2, y: (height - h) / 2, width: w, height: h }
 }
 
+/** 栈里的一段：文字、生效字体、字号档与两向补偿。 */
 interface Slot {
   text: string
+  font: FontChoice
   /** 相对基准字号的乘数。 */
   scale: number
   /** 给了就按这个短边比例定死，不随基准字号变；第二行手动字号走这里。 */
@@ -215,15 +227,15 @@ interface Slot {
 /**
  * 栈模型的排版求解。
  *
- * 第一行是基准字号，二分只搜基准。第二行跟随时等于基准乘 STATUS_SECOND_LINE_SCALE，
+ * 第一行是基准字号，二分只搜基准。第二行跟随时等于基准乘 LINE2_FOLLOW_SCALE，
  * 手动定了短边比例就按定值排，两种情况都只有基准一个自由度：两个都放开会有无穷多组解落在安全框里。
- * 第一行为空、第二行有内容时晋升主行按满比例渲染，参数不跟槽位走。
+ * 第一行为空、第二行有内容时第二行晋升主行，按满比例渲染，用自己的生效字体与补偿。
+ * 每一段按自己的生效字体量宽与绘制，第二行字体跟随时就是第一行那款。
  *
  * 水平与垂直补偿都完全不参与求解：换行与二分按完整的安全区算，落位时再纯位移（见 layout 层）。
  * 位移后越出安全区只反映在 `fits` 上，交给界面提示，不回头缩字号。
- * v4.0 曾在求解阶段按「安全区宽 − 2 × |补偿| × 画布宽」预留余量，结果是 auto 档里
- * 拖第一行的补偿会压小基准字号，第二行跟着缩、跟着动，正是用户看到的「第一行影响第二行」。
- * v7.0 加垂直补偿时同一个坑要绕开：垂直余量只进 `fits`，二分与 `tidy` 一个字不看它。
+ * 求解阶段若按补偿预留余量，自动档里拖第一行的补偿会压小基准字号，第二行跟着缩、跟着动，
+ * 所以水平与垂直余量都只进 `fits`，二分与 `tidy` 一个字不看它。
  */
 export function fitStack(
   config: AvatarConfig,
@@ -237,29 +249,33 @@ export function fitStack(
   const typography = config.typography
   const [line1, line2] = twoLinesOf(config.text)
 
+  const { line1: first, line2: second } = typography
   const slots: Slot[] = []
   if (line1 === '' && line2 !== '') {
     slots.push({
       text: line2,
+      font: lineFont(typography, 2),
       scale: 1,
-      offset: typography.lineOffsetsX[1] ?? 0,
-      offsetY: typography.lineOffsetsY[1] ?? 0,
+      offset: second.offsetX,
+      offsetY: second.offsetY,
     })
   } else if (line1 !== '') {
     slots.push({
       text: line1,
+      font: first.font,
       scale: 1,
-      offset: typography.lineOffsetsX[0] ?? 0,
-      offsetY: typography.lineOffsetsY[0] ?? 0,
+      offset: first.offsetX,
+      offsetY: first.offsetY,
     })
     if (line2 !== '') {
       slots.push({
         text: line2,
-        ...(typography.line2Size === null
-          ? { scale: STATUS_SECOND_LINE_SCALE }
-          : { scale: 1, ratio: typography.line2Size }),
-        offset: typography.lineOffsetsX[1] ?? 0,
-        offsetY: typography.lineOffsetsY[1] ?? 0,
+        font: lineFont(typography, 2),
+        ...(second.size === null
+          ? { scale: LINE2_FOLLOW_SCALE }
+          : { scale: 1, ratio: second.size }),
+        offset: second.offsetX,
+        offsetY: second.offsetY,
       })
     }
   }
@@ -270,7 +286,7 @@ export function fitStack(
     gapPx: 0,
     width: 0,
     height: 0,
-    ratio: clamp(typography.fontSize, MIN_FONT_RATIO, MAX_FONT_RATIO),
+    ratio: first.size ?? LINE_SIZE_MIN,
     fits: true,
     contained: true,
     safeWidth: box.width,
@@ -281,11 +297,11 @@ export function fitStack(
   const maxWidth = Math.max(1, box.width)
 
   const build = (rawRatio: number): StackFit => {
-    const ratio = clamp(rawRatio, MIN_FONT_RATIO, MAX_FONT_RATIO)
+    const ratio = clamp(rawRatio, LINE_SIZE_MIN, LINE_SIZE_MAX)
     const baseSize = ratio * shortSide
     const parts = slots.map((slot): ParagraphFit => {
       const fontSizePx = slot.ratio === undefined ? baseSize * slot.scale : slot.ratio * shortSide
-      const block = composeParagraph(config, slot.text, fontSizePx, maxWidth, measure)
+      const block = composeParagraph(config, slot, fontSizePx, maxWidth, measure)
       // 居中落位再位移 offset × 画布宽，左右两侧各要多出这么多才不越界
       const shiftedWidth = block.width + 2 * Math.abs(slot.offset) * width
       return {
@@ -293,7 +309,7 @@ export function fitStack(
         fontSizePx,
         lineHeightPx: typography.lineHeight * fontSizePx,
         letterSpacingPx: letterSpacingPxOf(config, fontSizePx),
-        font: fontString(config, fontSizePx),
+        font: fontString(slot.font, fontSizePx),
         offset: slot.offset,
         offsetY: slot.offsetY,
         fits: shiftedWidth <= box.width + EPS,
@@ -303,9 +319,7 @@ export function fitStack(
     const secondary = parts[1] ?? null
     // 两段之间的留白按较大的那个字号算：第二行手动放大过第一行时，留白跟着大的走
     const gapPx =
-      primary && secondary
-        ? Math.max(primary.fontSizePx, secondary.fontSizePx) * STATUS_GAP_RATIO
-        : 0
+      primary && secondary ? Math.max(primary.fontSizePx, secondary.fontSizePx) * LINE_GAP_RATIO : 0
     const blockWidth = Math.max(primary?.block.width ?? 0, secondary?.block.width ?? 0)
     const blockHeight = (primary?.block.height ?? 0) + gapPx + (secondary?.block.height ?? 0)
     /*
@@ -334,7 +348,7 @@ export function fitStack(
     }
   }
 
-  if (typography.sizeMode === 'manual') return build(typography.fontSize)
+  if (first.size !== null) return build(first.size)
 
   /**
    * 严格档要求两件事：没把哪个拉丁词从中间劈开，且两行各自都还是一行。
@@ -356,9 +370,9 @@ export function fitStack(
     singleLine(fit.secondary)
 
   const search = (strict: boolean): StackFit => {
-    let low = MIN_FONT_RATIO
-    let high = MAX_FONT_RATIO
-    let best = build(MIN_FONT_RATIO)
+    let low = LINE_SIZE_MIN
+    let high = LINE_SIZE_MAX
+    let best = build(LINE_SIZE_MIN)
     for (let i = 0; i < FIT_ITERATIONS; i += 1) {
       const mid = (low + high) / 2
       const candidate = build(mid)

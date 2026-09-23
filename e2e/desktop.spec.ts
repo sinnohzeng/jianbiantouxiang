@@ -12,35 +12,13 @@ import {
   SETTLE_TIMEOUT_MS,
   openApp,
   openGroup,
+  probeConfig,
   probeEncode,
+  probeFlush,
   probeStats,
   waitReady,
+  type ProbeConfig,
 } from './helpers'
-
-interface StoredConfig {
-  seed: string
-  style: string
-  palette: string
-}
-
-/** 读本机存档里的配置。落盘有 300 ms 防抖，取值一律配 expect.poll 用。 */
-function readStoredConfig(page: Page): Promise<StoredConfig | null> {
-  return page.evaluate(() => {
-    const raw = localStorage.getItem('gradient-avatar:v3')
-    if (!raw) return null
-    return (JSON.parse(raw) as { config: StoredConfig }).config
-  })
-}
-
-/** 存档里的排版段，用来验逐行补偿真的落了盘。 */
-function readStoredTypography(page: Page): Promise<{ lineOffsetsY?: number[] } | null> {
-  return page.evaluate(() => {
-    const raw = localStorage.getItem('gradient-avatar:v3')
-    if (!raw) return null
-    return (JSON.parse(raw) as { config: { typography?: { lineOffsetsY?: number[] } } }).config
-      .typography as { lineOffsetsY?: number[] }
-  })
-}
 
 test('预览挂着 WebGL 画布，合成结果不是一张平色', async ({ page }) => {
   await openApp(page)
@@ -109,12 +87,8 @@ test('改文字后刷新页面，文字从本机存档恢复，地址栏不带�
   await openApp(page)
 
   await page.locator('#avatar-text-first').fill('存档往返')
-  // 存档是 300 ms 防抖写入，等它落地再刷新
-  await expect
-    .poll(() => page.evaluate(() => localStorage.getItem('gradient-avatar:v3') ?? ''), {
-      timeout: SETTLE_TIMEOUT_MS,
-    })
-    .toContain('存档往返')
+  // 存档是防抖写入，刷新前让探针立刻落盘
+  await probeFlush(page)
   expect(await page.evaluate(() => window.location.hash)).toBe('')
 
   await page.reload()
@@ -246,7 +220,7 @@ test('版面组：改过的边距出现重置钮，点一下回默认', async ({
   ).toHaveCount(0)
 })
 
-test('位置微调组能拖垂直补偿，存档里落 lineOffsetsY', async ({ page }) => {
+test('位置微调组能拖垂直补偿，配置里落第一行的 offsetY', async ({ page }) => {
   await openApp(page)
   await openGroup(page, 'text-group-offset')
 
@@ -256,11 +230,7 @@ test('位置微调组能拖垂直补偿，存档里落 lineOffsetsY', async ({ p
   await page.keyboard.press('ArrowRight')
   await expect(vertical).toHaveValue('0.0025')
 
-  await expect
-    .poll(async () => (await readStoredTypography(page))?.lineOffsetsY?.[0] ?? 0, {
-      timeout: POLL_TIMEOUT_MS,
-    })
-    .not.toBe(0)
+  expect((await probeConfig(page)).typography.line1.offsetY).not.toBe(0)
 })
 
 test('常驻操作条：换一版、随机配色、导出三格', async ({ page }) => {
@@ -274,38 +244,21 @@ test('常驻操作条：换一版、随机配色、导出三格', async ({ page 
   await expect(page.locator('[data-slot="export-action"]')).toContainText('导出')
   await expect(page.locator('[data-slot="export-options"]')).toHaveCount(1)
 
-  // 换一版只换种子；比较存档里的 seed 字段，而不是「存档有没有写过」。
-  // 存档是延后写的，点完那一刻可能还没有：轮询到「有非空 seed 且不同于点前」为止，
-  // 不能拿 undefined 不等于 null 蒙混过关
-  const seedBefore = await readStoredConfig(page).then((config) => config?.seed ?? null)
+  // 换一版只换种子：点完读 store 里的配置，种子非空且不同于点前
+  const seedBefore = (await probeConfig(page)).seed
   await page.locator('[data-slot="shuffle-color"]').click()
-  await expect
-    .poll(
-      async () => {
-        const seed = (await readStoredConfig(page))?.seed
-        return seed && seed !== seedBefore ? seed : null
-      },
-      { timeout: POLL_TIMEOUT_MS },
-    )
-    .toBeTruthy()
+  const seedAfter = (await probeConfig(page)).seed
+  expect(seedAfter).toBeTruthy()
+  expect(seedAfter).not.toBe(seedBefore)
 })
 
 test('随机配色只换配色，种子与质感不动', async ({ page }) => {
   await openApp(page)
 
-  // 先换一版把存档写出来，拿它当基线，不然首次读到的是空
-  await page.locator('[data-slot="shuffle-color"]').click()
-  await expect
-    .poll(async () => (await readStoredConfig(page))?.seed, { timeout: POLL_TIMEOUT_MS })
-    .toBeTruthy()
-  const before = (await readStoredConfig(page))!
-
+  const before = await probeConfig(page)
   await page.locator('[data-slot="shuffle-palette"]').click()
-  await expect
-    .poll(async () => (await readStoredConfig(page))?.palette, { timeout: POLL_TIMEOUT_MS })
-    .not.toBe(before.palette)
-
-  const after = (await readStoredConfig(page))!
+  const after = await probeConfig(page)
+  expect(after.palette).not.toBe(before.palette)
   expect(after.seed).toBe(before.seed)
   expect(after.style).toBe(before.style)
 })
@@ -349,19 +302,9 @@ test('图标徽章能用中文搜到棕榈 emoji 并导出', async ({ page }) =>
   expect(encoded.hitTarget).toBe(true)
 })
 
-interface StoredIcon {
-  source: string
-  id: string
-  mono: boolean
-}
-
-/** 读本机存档里的图标那一位。写盘有防抖，调用方自己用 expect.poll 等。 */
-function readIcon(page: Page): Promise<StoredIcon | null> {
-  return page.evaluate(() => {
-    const raw = localStorage.getItem('gradient-avatar:v3')
-    if (!raw) return null
-    return (JSON.parse(raw) as { config: { layout: { icon: StoredIcon } } }).config.layout.icon
-  })
+/** store 里的图标那一位。 */
+async function readIcon(page: Page): Promise<ProbeConfig['layout']['icon']> {
+  return (await probeConfig(page)).layout.icon
 }
 
 test('图标徽章能在品牌页搜到 GitHub 并导出', async ({ page }) => {
@@ -374,11 +317,8 @@ test('图标徽章能在品牌页搜到 GitHub 并导出', async ({ page }) => {
   // 名字精确匹配，免得选中同样命中的 GitHub Copilot
   await page.getByRole('option', { name: 'GitHub', exact: true }).click()
 
-  // 存档里落的是品牌 id 本身，取原色稿还是官方单色稿由 icon.mono 在加载期定
-  await expect
-    .poll(async () => (await readIcon(page))?.source, { timeout: POLL_TIMEOUT_MS })
-    .toBe('brand')
-  expect((await readIcon(page))?.id).toBe('github')
+  // 配置里落的是品牌 id 本身，取原色稿还是官方单色稿由 icon.mono 在加载期定
+  expect(await readIcon(page)).toMatchObject({ source: 'brand', id: 'github' })
 
   await page.locator('#avatar-text-first').fill('产品设计部')
 
@@ -406,10 +346,7 @@ test('挑选栏能把没有官方单色稿的品牌切成单色并导出', async
   await expect(monoTile).toBeVisible()
   await monoTile.click()
 
-  await expect
-    .poll(async () => (await readIcon(page))?.mono, { timeout: POLL_TIMEOUT_MS })
-    .toBe(true)
-  expect((await readIcon(page))?.id).toBe('lark')
+  expect(await readIcon(page)).toMatchObject({ id: 'lark', mono: true })
 
   await page.locator('#avatar-text-first').fill('产品设计部')
 
@@ -447,9 +384,7 @@ test('单色那一档只跟着品牌来源出现', async ({ page }) => {
   await expect(page.locator('[data-slot="graphic-picker"]')).toHaveCount(0)
   await expect(monoControl).toHaveCount(0)
   await expect(page.locator('[data-slot="graphic-pick"]')).toBeVisible()
-  await expect
-    .poll(async () => (await readIcon(page))?.source, { timeout: POLL_TIMEOUT_MS })
-    .toBe('none')
+  expect((await readIcon(page)).source).toBe('none')
 })
 
 test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
@@ -576,10 +511,10 @@ test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ pa
   await expect(auto).toHaveAttribute('aria-pressed', 'true')
   await expect(auto2).toHaveAttribute('aria-pressed', 'true')
 
-  // 自动态滑杆显示预览回写的求解值，得等首帧排版完成；
+  // 自动态滑杆显示预览回写的求解值，回写前停在下限 0.04，得等首帧排版完成；
   // 网络字体到货会再排一次，值可能再变一档，所以等它连续两次读数相同再取基线
   const slider = page.getByRole('slider', { name: '第一行字号' })
-  await expect.poll(() => slider.inputValue(), { timeout: POLL_TIMEOUT_MS }).not.toBe('0.42')
+  await expect.poll(() => slider.inputValue(), { timeout: POLL_TIMEOUT_MS }).not.toBe('0.04')
   await expect
     .poll(
       async () => {

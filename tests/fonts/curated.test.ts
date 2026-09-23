@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { CURATED_FONTS, getCuratedByFamily, getCuratedById } from '@/fonts/curated'
-import { cjkOfSubsets } from '@/fonts/catalog'
+import { CURATED_FONTS } from '@/fonts/curated'
 import { familyToFontsourceId } from '@/fonts/google'
 
 /** 2026-08-29 从 api.fontsource.org 核对：Google Fonts 上带 chinese-* subset 的全部字体。 */
@@ -73,19 +72,5 @@ describe('CURATED_FONTS', () => {
     const withVersion = CURATED_FONTS.filter((f) => f.version !== undefined)
     expect(withVersion.length).toBe(CURATED_FONTS.length - 1)
     for (const f of withVersion) expect(f.version).toMatch(/^\d+\.\d+\.\d+$/)
-  })
-
-  it('cjk 标记与 subsets 自洽', () => {
-    for (const f of CURATED_FONTS) {
-      expect(f.cjk).toBe(cjkOfSubsets(f.subsets))
-    }
-  })
-})
-
-describe('查表', () => {
-  it('按 id 与 family 都能取到，family 忽略大小写与首尾空格', () => {
-    expect(getCuratedById('noto-sans-sc')?.family).toBe('Noto Sans SC')
-    expect(getCuratedByFamily('  noto sans sc  ')?.id).toBe('noto-sans-sc')
-    expect(getCuratedByFamily('Nonexistent Font')).toBeUndefined()
   })
 })

@@ -1,6 +1,6 @@
 import { drawHighlight } from '@/engine/highlight'
 import { renderGradient } from '@/engine/render'
-import { loadFontForConfig } from '@/fonts/loader'
+import { loadFontsForConfig } from '@/fonts/loader'
 import { drawGraphic } from '@/graphics/draw'
 import { loadGraphic } from '@/graphics/source'
 import type { AvatarConfig } from '@/state/config'
@@ -13,7 +13,7 @@ import { composeWith, type ComposeDeps } from './compose-core'
  * 这里只负责把真实实现接上，单测因此不用碰 WebGL 与字体网络。
  */
 const deps: ComposeDeps<TextLayout> = {
-  loadFontForConfig,
+  loadFonts: loadFontsForConfig,
   loadGraphicForConfig: (config) => loadGraphic(config.layout.icon),
   renderGradient,
   drawHighlight,
