@@ -5,6 +5,17 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [8.0.1] - 2026-10-24
+
+依赖升到最新，存档格式不变。
+
+### 变更
+
+- 大版本：motion 13 → 14、vitest 4 → 5、vite-plugin-pwa 1 → 2、three 0.185 → 0.186（连同 `@types/three`）、`@paper-design/shaders` 0.0.80 → 0.0.82；其余依赖升到最新的补丁与小版本，lucide-react 从 1.37 到 1.61
+- `@paper-design/shaders` 0.0.82 的 `dispose` 会丢上下文，`releaseGlCanvas` 仍负责把画布缩到 1×1；四种质感用到的 shader 只删了未用的 uniform，画面不变
+- `npm run gen:icons` 改读 lucide-react 1.45 起主模块导出的 `__iconData`；内置图标索引仍是 lucide-react 1.37 的快照，重生成要先给改名的旧图标名做存档映射，见 `docs/engineering-lessons.md`
+- CI 的 `actions/checkout`、`actions/setup-node`、`actions/upload-artifact` 升到 v7；Node 仍是 24，ESA Pages 按 `engines.node` 的主版本选构建环境
+
 ## [8.0.0] - 2026-09-23
 
 逐行字体与字体名预览，规约见 `specs/v8.0-line-fonts-and-preview/`。
