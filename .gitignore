@@ -8,7 +8,6 @@ test-results/
 playwright-report/
 .DS_Store
 *.log
-.remember/
 .firecrawl/
 .superpowers/
 .playwright-mcp/

@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
   // src/components/ui 是 shadcn 生成的代码，跟随上游，不纳入本仓风格检查
-  { ignores: ['dist', 'dev-dist', 'src/components/ui', 'node_modules', '.remember'] },
+  { ignores: ['dist', 'dev-dist', 'src/components/ui', 'node_modules'] },
   js.configs.recommended,
   tseslint.configs.recommended,
   reactHooks.configs.flat['recommended-latest'],
