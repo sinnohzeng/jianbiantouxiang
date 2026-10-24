@@ -13,7 +13,7 @@ const outputDir = path.resolve(import.meta.dirname, '../src/graphics/generated')
 const generator = 'npm run gen:icons'
 
 interface IconModule {
-  __iconNode?: unknown
+  __iconData?: { node?: unknown }
 }
 
 function isNode(value: unknown): value is readonly (readonly [string, Record<string, string>])[] {
@@ -24,12 +24,13 @@ const files = (await readdir(iconsDir)).filter((file) => file.endsWith('.mjs'))
 const sources: LucideIconSource[] = []
 for (const file of files) {
   const source = await readFile(path.join(iconsDir, file), 'utf8')
-  // 别名文件只有 re-export，主文件才有 __iconNode；只收主图标，避免同一图形重复出现
-  if (!source.includes('__iconNode')) continue
+  // 别名文件只有 re-export，主文件才有 __iconData；只收主图标，避免同一图形重复出现
+  if (!source.includes('__iconData')) continue
   const name = file.slice(0, -'.mjs'.length)
   const module = (await import(pathToFileURL(path.join(iconsDir, file)).href)) as IconModule
-  if (!isNode(module.__iconNode)) throw new Error(`${file} 的 __iconNode 不认识`)
-  sources.push({ name, node: module.__iconNode })
+  const node = module.__iconData?.node
+  if (!isNode(node)) throw new Error(`${file} 的 __iconData.node 不认识`)
+  sources.push({ name, node })
 }
 
 const entries = lucideIconEntries(sources)

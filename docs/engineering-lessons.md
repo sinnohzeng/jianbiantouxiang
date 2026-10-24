@@ -485,7 +485,9 @@ URL hash 只编码与当前默认值的差异。把 `padding` 从 0.1 改到 0.1
 
 `src/graphics/lucide.ts` 动态 import `generated/lucide-curated` 与 `lucide-full`。只写消费端不跑生成器时，typecheck 直接报模块不存在；这不是可以等到“下次生成”的警告，而是主干缺产物。规则：生成脚本、纯转换层、产物与消费端同批提交；`npm run gen:icons` 与 `npm run gen:emoji` 是唯一重建入口，产物文件头写明命令，不手改。
 
-lucide-react 1.37 的 `icons/` 目录有 2048 个 `.mjs`，其中 1790 个主模块带 `__iconNode`，其余是别名转发。索引只按主模块收，别名不进索引，否则同一个图形会在选择器里出现两次。精选清单要用主名：`filter`、`smile`、`home` 这一批都是别名，规范名分别是 `funnel`、`face-slightly-smiling`、`house`。
+`icons/` 目录里主模块导出 `__iconData`（1.45 之前叫 `__iconNode`），其余是一行 re-export 的别名。索引只按主模块收，别名不进索引，否则同一个图形会在选择器里出现两次。精选清单要用主名：`filter`、`smile`、`home` 这一批都是别名，规范名分别是 `funnel`、`face-slightly-smiling`、`house`。
+
+已提交的索引是 lucide-react 1.37 的快照（1790 个主图标）。1.37 之后有 10 个主名降成了别名，例如 `building-2` 改叫 `building-complex`、`music` 改叫 `eighth-notes`、`trash-2` 并进 `trash`，精选里的 `building-2` 与 `music` 在其中。存档里的 builtin 名就是这些主名，重生成索引会让旧存档查不到图形；重生成前先在 `normalizeConfig` 里把旧名映射到新名，精选清单同批改名。
 
 ### 图形加载不要把索引拖进首屏
 
