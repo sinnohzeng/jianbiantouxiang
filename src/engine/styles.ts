@@ -15,7 +15,7 @@ import type { Rng } from './seed'
 import { loadFragmentShader } from './shader-source'
 
 /**
- * 下面四组常量抄自 @paper-design/shaders 0.0.80，不从包里 import 是有意为之：
+ * 下面四组常量抄自 @paper-design/shaders 0.0.82，不从包里 import 是有意为之：
  * meta 与 shader 源码同在一个模块，静态引用 meta 就会把那段 GLSL 拖进首屏 chunk。
  * 升级包版本时对照 dist/shaders/*.js 与 dist/shader-sizing.js 复核这四组值。
  */

@@ -177,8 +177,8 @@ export async function renderGradient(
       notifyFallback(options, error instanceof CanvasSizeTimeout ? 'size-timeout' : 'mount-failed')
     } finally {
       mount?.dispose()
-      // dispose 既不丢上下文也不缩画布，不显式还回去就得等 GC。
-      // 浏览器的上下文上限是硬的，顶掉的往往是页面上常驻的预览
+      // dispose 丢了上下文但不缩画布，这一步把画布缩到 1×1。
+      // 构造半路抛错时 dispose 不会被调到，上下文也靠这一步还回去
       releaseGlCanvas(glCanvas)
       container.remove()
     }

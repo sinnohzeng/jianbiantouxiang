@@ -12,9 +12,9 @@
 | 样式 | Tailwind CSS v4、`@tailwindcss/vite` | 主题走 CSS 变量，深浅两套 |
 | 组件 | shadcn/ui（CLI 4，Base UI 底层）、lucide-react、cmdk、sonner | 原语在 `src/components/ui/`，跟随上游 |
 | 状态 | zustand 5 | 单 store，模块加载即读本机存档 |
-| 渲染 | `@paper-design/shaders` 0.0.80 | WebGL2 fragment shader，Apache-2.0 |
+| 渲染 | `@paper-design/shaders` 0.0.82 | WebGL2 fragment shader，Apache-2.0 |
 | 颜色 | culori 4 | 全部计算在 OKLCH 空间 |
-| 测试 | Vitest 4（jsdom）、Testing Library、Playwright 1.62 | 单测加两组端到端 |
+| 测试 | Vitest 5（jsdom）、Testing Library、Playwright 1.64 | 单测加两组端到端 |
 | 规范 | ESLint 10、typescript-eslint、Prettier | `src/components/ui` 与散文目录不进格式化 |
 | 托管 | 阿里云 ESA Pages（主站）、Cloudflare Pages（旧域名 301） | 构建 `npm run build`，输出 `dist`；构建配置在 `esa.jsonc`，接入步骤与核对命令见 `docs/deploy.md` |
 
@@ -339,7 +339,7 @@ staggered-text、preloader），随它们进来的 three、@react-three/fiber、
 
 ## 代码分割与体积
 
-首屏 JS 不设上限，当前实测 256.20 KB gzip，250 KB 只是脚本里的参考线。`npm run budget` 只是报一次数，不再是闸门：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
+首屏 JS 不设上限，当前实测 274.49 KB gzip，250 KB 只是脚本里的参考线。`npm run budget` 只是报一次数，不再是闸门：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
 
 三条规则守住这个上限。
 
