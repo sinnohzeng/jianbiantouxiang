@@ -10,7 +10,7 @@
 - Node 24 以上。`npm ci` 装依赖，构建与测试不需要任何密钥。
 - 常驻文档、冻结快照、项目记忆三层怎么分工，一条事实该不该进 `docs/memory/`，规范何时封存：见 `docs/contributing.md`“分层与记忆准入”一节，这里不复述。
 
-## 验证闸门
+## 验证门禁
 
 提交前必须全绿：
 
@@ -30,7 +30,7 @@ npm run lint && npm run format:check && npm run typecheck && npm test && npm run
 
 ## 智能体规模
 
-- 核查、对抗检验、评审、验收类子智能体每轮合计不超过 5 个，一遍单人评审只报闸门（lint、format:check、typecheck、单测、build、e2e）抓不到的问题；分工细则见 `docs/contributing.md`“智能体协作”一节，这里不复述。
+- 核查、对抗检验、评审、验收类子智能体每轮合计不超过 5 个，一遍单人评审只报门禁（lint、format:check、typecheck、单测、build、e2e）抓不到的问题；分工细则见 `docs/contributing.md`“智能体协作”一节，这里不复述。
 - 子智能体不做 git 操作，不读 `.env.local`。
 
 ## 改默认值

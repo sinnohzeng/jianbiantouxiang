@@ -339,7 +339,7 @@ staggered-text、preloader），随它们进来的 three、@react-three/fiber、
 
 ## 代码分割与体积
 
-首屏 JS 不设上限，当前实测 274.49 KB gzip，250 KB 只是脚本里的参考线。`npm run budget` 只是报一次数，不再是闸门：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
+首屏 JS 不设上限，当前实测 274.49 KB gzip，250 KB 只是脚本里的参考线。`npm run budget` 只是报一次数，不再是门禁：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
 
 三条规则守住这个上限。
 

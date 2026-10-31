@@ -10,7 +10,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { gzipSync } from 'node:zlib'
 
-/** 参考线，不是闸门：视觉效果排在体积前面，超了只提示一句。 */
+/** 参考线，不是门禁：视觉效果排在体积前面，超了只提示一句。 */
 const REFERENCE_BYTES = 250 * 1024
 const HTML_PATH = path.resolve(process.cwd(), 'dist/index.html')
 
