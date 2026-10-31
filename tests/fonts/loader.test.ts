@@ -363,7 +363,7 @@ describe('topUpGlyphs', () => {
 })
 
 describe('默认超时', () => {
-  it('对齐规约里的 4 秒', () => {
+  it('对齐规范里的 4 秒', () => {
     expect(DEFAULT_FONT_TIMEOUT_MS).toBe(4000)
   })
 })

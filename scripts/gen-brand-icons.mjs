@@ -2,7 +2,7 @@
 /**
  * 内置品牌图形生成器。
  *
- * 清单 scripts/brand-list.json 是唯一真源：远端条目按 `source + id + '.svg'` 从
+ * 清单 scripts/brand-list.json 是唯一事实来源：远端条目按 `source + id + '.svg'` 从
  * homarr-labs/dashboard-icons 拉取，带 file 的条目从 assets/brand 拷贝（owner 提供的官方素材）。
  * 两类都落到 public/brand/<id>.<ext>，并生成 src/graphics/generated/brand-index.ts。
  *

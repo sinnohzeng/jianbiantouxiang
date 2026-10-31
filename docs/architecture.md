@@ -242,7 +242,7 @@ flowchart TD
 | 品牌 | `src/graphics/generated/brand-index.ts` 的 58 个条目，六类分组，带中英文名、别名与官方单色变体名（`white` 字段，14 个条目有值） | 同源静态文件 `public/brand/<id>.svg\|png`，SVG 走 fetch 加消毒再转 Blob，PNG 直接 `Image`，保留原色 |
 | 上传 | 无索引，模块级会话注册表 | SVG 先经元素与属性白名单重建；PNG / WebP 直接 `Image`，保留原色 |
 
-品牌图形的清单真源是 `scripts/brand-list.json`，`npm run gen:brand` 把远端条目从 homarr-labs/dashboard-icons 拉下来、把 `assets/brand/` 里 owner 提供的素材拷过去，统一落到 `public/brand/`，同时生成索引；两个产物都不手改。
+品牌图形的清单事实来源是 `scripts/brand-list.json`，`npm run gen:brand` 把远端条目从 homarr-labs/dashboard-icons 拉下来、把 `assets/brand/` 里 owner 提供的素材拷过去，统一落到 `public/brand/`，同时生成索引；两个产物都不手改。
 
 单色由 `layout.icon.mono` 这个布尔字段控制，只在 `icon.source === 'brand'` 时生效，默认 `false`。58 个品牌里 14 个有上游给的官方单色稿（如 `github-light`），`brand.ts` 的 `fileOf()` 命中就取它，保留品牌自己处理过的镂空与留白；其余 44 个取原色稿交给绘制期处理。`src/graphics/draw.ts` 的 `paintMono()` 把图形画到一张按落位尺寸开的离屏画布，`globalCompositeOperation = 'source-in'` 填当前文字色再贴回主画布，官方单色稿与原色稿走同一条着色路径，预览与导出共用；离屏画布不缓存，取不到 2D 上下文就退回原色绘制。挑选栏“图标”节的分段控件与选择器里的分段控件读写同一份配置字段。
 

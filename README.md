@@ -70,7 +70,7 @@ npm run gen:app-icons # 用本机 chromium 把 SVG 应用图标位图化
 | --- | --- |
 | 模块划分与数据流 | `docs/architecture.md` |
 | 为什么选这条技术路线 | `docs/adr/`、`docs/research/` |
-| 规约与实施计划 | `specs/` |
+| 规范与实施计划 | `specs/` |
 | 踩过的坑 | `docs/engineering-lessons.md` |
 | 跨会话项目记忆 | `docs/memory/` |
 | 参与开发 | `docs/contributing.md` |
