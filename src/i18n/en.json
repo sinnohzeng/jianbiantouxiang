@@ -229,6 +229,7 @@
   "preview.grid": "Grid",
   "preview.label": "Preview",
   "preview.longPressSave": "Press and hold the image to save it as a JPG",
+  "preview.smallText": "Text is small at 48 px. Shorten it or remove the second line.",
   "preview.overflow": "Text overflows the safe area",
   "preview.safeArea": "Safe area guide",
   "preview.webgl.desc": "Falling back to a static approximation, which differs from the real render",

@@ -64,3 +64,18 @@ describe('letterSpacingPxOf', () => {
     expect(letterSpacingPxOf(config, 200)).toBeCloseTo(10)
   })
 })
+
+describe('真实墨迹而非字体框', () => {
+  it.each([0, -4])('保留合法下伸部 %i，避免大写字与标点偏离视觉中心', (descent) => {
+    const ctx = {
+      font: '',
+      measureText: () => ({
+        width: 80,
+        actualBoundingBoxAscent: 70,
+        actualBoundingBoxDescent: descent,
+        fontBoundingBoxDescent: 20,
+      }),
+    } as unknown as CanvasRenderingContext2D
+    expect(createCanvasMeasure(ctx)('ABC', '700 100px X', 0).descent).toBe(descent)
+  })
+})

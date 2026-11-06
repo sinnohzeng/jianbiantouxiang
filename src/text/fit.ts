@@ -1,3 +1,4 @@
+import { insideCircle } from './circle'
 import { clamp } from '@/engine/math'
 import { fontString } from '@/fonts/family'
 import {
@@ -164,10 +165,8 @@ function shapeFitScale(
   let cx: number
   let cy: number
   if (shape === 'circle') {
-    // 非正方形画布上遮罩是内接圆不是椭圆，见 compose-core 的 clipShape
-    r = short / 2
-    cx = 0
-    cy = 0
+    // 圆形逐元素求解，不能先把所有内容限制在内接正方形内。
+    return 1
   } else if (shape === 'rounded') {
     r = Math.min(radius * short, short / 2)
     if (r <= 0) return 1
@@ -196,7 +195,7 @@ function shapeFitScale(
  * 文字安全框：先按边距内缩，再收进遮罩里。
  *
  * 只按边距算的方框四角会落在圆形遮罩外面，圆形头像上多行文字的首尾字会被直接切掉。
- * 所以这一步按原比例把方框缩到四角贴着圆弧，圆角矩形同理，方角与小圆角不受影响。
+ * 圆形由 fitStack/layout 按真实元素边界求解；圆角矩形仍按角点收缩，方角不受影响。
  */
 export function safeArea(
   config: AvatarConfig,
@@ -333,7 +332,36 @@ export function fitStack(
         : { ...part, fits: part.fits && 2 * Math.abs(part.offsetY) * height <= verticalRoom + EPS }
     const primaryFit = settle(primary)
     const secondaryFit = settle(secondary)
-    const contained = blockWidth <= box.width + EPS && blockHeight <= box.height + EPS
+    const circular =
+      (config.canvas.shape === 'circle' || first.size === null) &&
+      config.layout.icon.source === 'none'
+    const inCrop = (shifted: boolean) => {
+      if (!circular) return true
+      let top = (height - blockHeight) / 2
+      return parts.every((part) => {
+        const fits = part.block.lines.every((line, index) =>
+          insideCircle(
+            {
+              x: (width - line.width) / 2 + (shifted ? part.offset * width : 0),
+              y:
+                top +
+                (part.block.baselines[index] ?? 0) -
+                line.ascent +
+                (shifted ? part.offsetY * height : 0),
+              width: line.width,
+              height: line.ascent + line.descent,
+            },
+            width / 2,
+            height / 2,
+            shortSide * (0.5 - typography.padding),
+          ),
+        )
+        top += part.block.height + gapPx
+        return fits
+      })
+    }
+    const contained =
+      blockWidth <= box.width + EPS && blockHeight <= box.height + EPS && inCrop(false)
     return {
       primary: primaryFit,
       secondary: secondaryFit,
@@ -341,7 +369,7 @@ export function fitStack(
       width: blockWidth,
       height: blockHeight,
       ratio,
-      fits: contained && (primaryFit?.fits ?? true) && (secondaryFit?.fits ?? true),
+      fits: contained && (primaryFit?.fits ?? true) && (secondaryFit?.fits ?? true) && inCrop(true),
       contained,
       safeWidth: box.width,
       safeHeight: box.height,

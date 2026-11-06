@@ -62,7 +62,7 @@ function fontSizeOf(font: string): number {
 }
 
 function pickMetric(actual: number | undefined, fallbackBox: number | undefined, approx: number) {
-  if (typeof actual === 'number' && Number.isFinite(actual) && actual > 0) return actual
+  if (typeof actual === 'number' && Number.isFinite(actual)) return actual
   if (typeof fallbackBox === 'number' && Number.isFinite(fallbackBox) && fallbackBox > 0) {
     return fallbackBox
   }

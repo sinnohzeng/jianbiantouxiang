@@ -13,3 +13,5 @@ playwright-report/
 .playwright-mcp/
 inbox/
 .wrangler/
+
+dist-service/

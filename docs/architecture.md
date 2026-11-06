@@ -34,7 +34,7 @@
 | `src/engine/shaders/` | 四段 fragment shader 源码，一种质感一份 chunk |
 | `src/text/` | 文字量测、换行、自动填满、排版、绘制、明暗判定 |
 | `src/palettes/` | 37 套内置配色、OKLCH 色彩工具、种子色和谐生成 |
-| `src/fonts/` | 精选清单与原生名表、fontsource 目录缓存与条目查找、按行加载的 css2 与镜像加载链、字体名预览、本地上传注册 |
+| `src/fonts/` | 精选清单与原生名表、fontsource 目录缓存与条目查找、默认字体的本站分片、按行加载的 css2 与镜像加载链、字体名预览、本地上传注册 |
 | `src/fonts/family.ts` | font-family 与 canvas font 简写的字符串工具。`src/text` 引用它，`src/fonts` 不引用 `src/text` |
 | `src/graphics/` | 图形来源分派、lucide Path2D、Noto Emoji、上传消毒、五语 emoji 索引、图形绘制 |
 | `src/graphics/generated/` | lucide 全库与精选索引、emoji 基础索引与五语标签，由 `npm run gen:icons` / `gen:emoji` 生成 |
@@ -225,7 +225,7 @@ flowchart TD
 
 第一行字号 `line1.size` 为 `null` 时自动，由 `fitStack` 求解，`TextLayout.fontRatio` 带出求得的基准比例，预览每次排版后把它写进 store 的 `ui.autoFontSize`。这是派生值，不进配置与存档。字号滑杆常驻可用：自动态显示这个回写值，一拖就以它为起点写成定值，旁边的“自动”按钮把 `line1.size` 写回 `null`，滑杆停在刚才的定值上直到新解回写，画面全程不跳。
 
-安全框由 `typography.padding` 从画布四边扣出，默认值 0.15；`typography.lineHeight` 默认 1.03。量宽一律走 canvas `measureText`，CJK 逐字换行、拉丁按词换行。
+安全框由 `typography.padding` 从画布四边扣出，默认值 0.06；`typography.lineHeight` 默认 1.03。量宽一律走 canvas `measureText`，CJK 逐字换行、拉丁按词换行。
 
 文字色就是用户挑的那一个，预览与导出读同一个字段，没有第二条判定路径。`src/text/ink.ts` 只留纯色彩数学，供配色表与选择器判明暗。
 
@@ -384,3 +384,15 @@ service worker 默认只在页面加载时查一次更新，标签页开着不�
 - 主“导出”按钮直接触发浏览器下载；导出抽屉提供“下载”与“复制图片”两个显式动作。微信内置浏览器拦截 `a[download]`，那里改为提示长按图片保存。
 - WebP 只在 `toBlob('image/webp')` 实际返回 `image/webp` 的浏览器里提供，不引入 WASM 编码器。PNG 无损，体积不可控，靠界面提示。
 - 上传的字体与图形只在本次会话有效：文件字节不写盘，配置里只留一个会话内的引用，刷新后字体回落系统字体、图形位留空，界面提示重新上传。
+
+## 自动化服务
+
+`src/automation/` 是独立 v1 输入、Logo 预处理、双行安全排版和渲染桥；复用 `composeWith`、shader、`drawText`、`drawGraphic` 和编码。`service/vite.config.ts` 将此入口和字体构建到 `dist-service/`，不进入网页首屏。`service/renderer.mjs` 运行有界队列与隔离 Chromium context；CLI 和 MCP 共用该 runner。MCP 采用官方 SDK 的 stdio/无会话 Streamable HTTP。部署、安全边界、兼容性与参数以 [automation.md](automation.md) 为准。
+
+## 圆裁与紧凑图文自动排版
+
+自动字号默认按圆形使用场景验收，输出形状仍由 canvas.shape 控制。无图形时 fitStack 根据每行真实墨迹矩形与圆弧求最大字号；有图形时先把图文栈紧凑居中，再将自动图文整体收进圆内。显式手动字号与补偿保留，越界提示不偷偷改值。默认边距 0.06；现有存档的明确边距不被覆盖。零或负的实际下伸部是有效字体数据，不再替换为字体框高度。
+
+网页预览和导出共用 layoutText；CLI/MCP 的单行字段契约复用圆形几何判定，但保留独立的固定字体排版入口。无需数据库、额外队列系统或布局服务。scripts/review-layout.mjs 使用本地打包字体与实际合成管线生成圆裁和 24/32/48/64 px 样张；这些是测试尺寸，不是飞书官方标准。
+
+默认 Noto Sans SC 700 通过动态 CSS 从本站打包资源加载，按 unicode-range 加载字形分片；其余字体仍走 Google / jsDelivr。OFL 许可证位于 public/fonts/OFL-NotoSansSC.txt。默认字体先从本站解析并验证 FontFace loaded 状态，避免外部字体不可达时影响初始排版。

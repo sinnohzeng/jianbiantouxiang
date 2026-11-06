@@ -24,6 +24,24 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - run: npm run test:service
+      - run: npm run build:service
+
+  automation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:service
+      - run: npm run test:service:integration
+        env:
+          # Trusted test fixtures only; deployed services keep the Chromium sandbox enabled.
+          AVATAR_CHROMIUM_SANDBOX: '0'
 
   e2e:
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}

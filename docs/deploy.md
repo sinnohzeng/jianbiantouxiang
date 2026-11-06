@@ -71,7 +71,7 @@ curl -sI http://jianbiantouxiang.com/ | grep -iE "^(http|location)"
 
 ### 国内可用性
 
-- 字体在运行时先走 Google Fonts css2，失败回落 jsDelivr 上的 fontsource 镜像；emoji 走 jsDelivr 上的 Noto Emoji。两条加载路径见 `docs/architecture.md`，ESA 上不需要改。
+- 默认 Noto Sans SC 700 随站点分发；其他字体在运行时先走 Google Fonts css2，失败回落 jsDelivr 上的 fontsource 镜像；emoji 走 jsDelivr 上的 Noto Emoji。两条加载路径见 `docs/architecture.md`，ESA 上不需要改。
 - 构建机拉 npm 超时时，在仓库加 `.npmrc` 写 `registry=https://registry.npmmirror.com`。lockfile 里 `resolved` 字段写的是 `registry.npmjs.org`，npm 的 `replace-registry-host` 配置默认值 `npmjs` 会在安装时把这个主机换成配置的 registry，不必重生成 lockfile；本地验证方法是 `npm ci --loglevel http 2>&1 | grep -m3 fetch`，看到的主机应是 npmmirror。Cloudflare 那边同样走这份 `.npmrc`，npmmirror 在境外也能访问。这是备选，没有超时就不加。
 
 ## Cloudflare Pages
@@ -79,3 +79,7 @@ curl -sI http://jianbiantouxiang.com/ | grep -iE "^(http|location)"
 旧域名的托管。构建命令 `npm run build`，输出目录 `dist`，Node 24。`public/_headers` 给哈希资源一年缓存并加三条安全头，`public/_redirects` 只有一条 `/* /index.html 200` 的兜底；`/about` 由静态文件在兜底之前解析，不要再给它写 200 重写，`tests/build/redirects.test.ts` 守着这条。
 
 域名切换后在 Cloudflare 给 `jianbian.zixuan.net` 加一条 Redirect Rule，301 到 `https://jianbiantouxiang.com` 加原路径，保留至少三个月，让搜索引擎与聊天记录里的旧链接都能落到新站。
+
+## 独立 MCP 服务
+
+CLI/MCP 的 Node + Chromium 服务与本页的静态 Pages 分开部署。构建、认证、资源限额、沙箱及反代要求见 [automation.md](automation.md#本地-http-与部署)。不要将 MCP 进程加入现有 ESA Pages 构建或变更生产站的路由来试跑。

@@ -367,3 +367,17 @@ describe('默认超时', () => {
     expect(DEFAULT_FONT_TIMEOUT_MS).toBe(4000)
   })
 })
+
+it('默认中文粗体优先使用本站字体，无需注入外部样式表', async () => {
+  Object.defineProperty(document.fonts, Symbol.iterator, {
+    configurable: true,
+    value: function* () {
+      yield { family: 'Noto Sans SC', weight: '700' }
+    },
+  })
+  fontsLoad.mockResolvedValue([{ status: 'loaded' }])
+  const result = await loadOne(config({ family: 'Noto Sans SC' }, '产品研发'))
+  expect(result?.via).toBe('bundled')
+  expect(result?.ok).toBe(true)
+  expect(hrefs).toEqual([])
+})
