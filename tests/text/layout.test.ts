@@ -299,7 +299,7 @@ describe('图标进栈', () => {
     )
     const graphic = result.graphic!
     expect(graphic.height).toBeCloseTo(400)
-    expect(graphic.y).toBeCloseTo(220)
+    expect(graphic.y).toBeCloseTo(227.5)
     expect(graphic.x).toBeCloseTo(300)
     // 文字全部落在图标与留白之下
     const textTop = Math.min(...result.lines.map((line) => line.y - line.ascent))
@@ -457,8 +457,8 @@ it('自动圆裁为宽字标保留可见图文间距，文字组间距不随缩�
   expect(result.overflow).toBe(false)
   expect(
     first!.y - first!.ascent - result.graphic!.y - result.graphic!.height,
-  ).toBeGreaterThanOrEqual(74.9)
-  expect(second!.y - second!.ascent - first!.y - first!.descent).toBeGreaterThanOrEqual(49.9)
+  ).toBeGreaterThanOrEqual(59.9)
+  expect(second!.y - second!.ascent - first!.y - first!.descent).toBeGreaterThanOrEqual(34.9)
   const bottom = second!.y + second!.descent
   expect((result.graphic!.y + bottom) / 2).toBeCloseTo(500)
 })

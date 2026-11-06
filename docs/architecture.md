@@ -153,7 +153,7 @@ localStorage `gradient-avatar:preview-height`，模块 `src/app/preview-height.t
 
 同一模块另外导出三个函数。`DEFAULT_CONFIG` 是默认值的唯一定义处；`normalizeConfig` 把任意局部输入补成完整配置，数值按区间夹值、枚举做合法性校验，任何输入都不抛错；`configHash` 对键排序后做 FNV-1a，用作历史去重与渲染去重的标记。
 
-字体整份成立或整份作废：family 去掉首尾空白后非空、来源是 google、system、upload 之一才成立，字重取整到 100 到 900 九档。第一行字体作废回默认字体，第二行字体作废即跟随。字号与补偿的区间是导出常量：`LINE_SIZE_MIN` 0.04、`LINE2_SIZE_MIN` 0.02、`LINE_SIZE_MAX` 0.92、`LINE_OFFSET_MAX` 0.25，无图标自动双行由 `line2FollowScale` 返回 1，有图标自动排版 `AUTO_LOGO_LINE2_SCALE` 为 0.8，首行手动时 `LINE2_FOLLOW_SCALE` 为 0.62，两行之间的留白比例 `LINE_GAP_RATIO` 0.18。
+字体整份成立或整份作废：family 去掉首尾空白后非空、来源是 google、system、upload 之一才成立，字重取整到 100 到 900 九档。第一行字体作废回默认字体，第二行字体作废即跟随。字号与补偿的区间是导出常量：`LINE_SIZE_MIN` 0.04、`LINE2_SIZE_MIN` 0.02、`LINE_SIZE_MAX` 0.92、`LINE_OFFSET_MAX` 0.25，无图标自动双行由 `line2FollowScale` 返回 1，有图标自动排版 `AUTO_LOGO_LINE2_SCALE` 为 0.62，首行手动时 `LINE2_FOLLOW_SCALE` 为 0.62，两行之间的留白比例 `LINE_GAP_RATIO` 0.18。
 
 逐行字体的读写也收在这里。`lineFont(t, line)` 取某一行的生效字体，第二行为 `null` 时就是第一行那款；`fontKey` 是一款字体的身份键，来源、family、字重任一不同就是另一款。写字体只走三个函数：`withLine1Font` 写第一行，第二行只改过字重时随第一行换款并吸附字重；`withLine2Font` 写第二行，与第一行全相同时写 `null` 回到跟随；`FOLLOW_LINE1` 把第二行写回跟随。`nearestWeight` 把字重吸附到字体真有的一档，`twoLinesOf` 是两行模型对换行的唯一解释，归一、排版、字体加载与界面共用。
 
@@ -406,8 +406,8 @@ service worker 默认只在页面加载时查一次更新，标签页开着不�
 
 ### 光学补偿与客户案例
 
-默认启用有界整行光学补偿，不调整单个字的字距；显式手动位置优先，可在文字排版中关闭。文字横移不超过 0.02em，Logo 与文字整组纵移不超过画布短边 1.5%，圆裁边界优先且不缩字号。掩膜质心仅为诊断代理，不是审美评分。预览、导出和自动化复用 `src/text/optical.ts`。
+默认启用有界整行光学补偿，不调整单个字的字距；显式手动位置优先，可在文字排版中关闭。文字横移不超过 0.02em，自动 Logo 图文组以可见墨迹边界为基线、少量参考墨迹分量，纵移不超过短边 3.5%；圆裁需要时整体最多缩小 6%，不足则减小位移。纯文字保持原有 1.5% 上限，不缩字号。掩膜质心仅为诊断代理，不是审美评分。预览、导出和自动化复用 `src/text/optical.ts`。
 
 Noto Serif SC 600/700 按需加载，新选宋体默认 600，已有字重保留，许可见 `public/FONT-NOTO-SERIF-SC-LICENSE.txt`。东黎品牌案例保留原白色和素材内置留白，品牌权利见 `src/graphics/client-assets/README.md`，不属于项目 MIT 授权。自动化参数和样张复现见 [自动化说明](automation.md)。
 
-品牌与标题之间按标识宽高比分配间距：宽字标取短边 7.5%，其他图形取 6%；带 Logo 的主副行间距取短边 5% 与主字号 24% 中的较大值。自动圆裁求解保留间距，再重新居中整组。
+品牌与标题之间按标识宽高比分配间距：宽字标取短边 6%，其他图形取 4.5%；带 Logo 的主副行间距取短边 3.5% 与主字号 18% 中的较大值。自动圆裁求解保留间距，再重新居中整组。

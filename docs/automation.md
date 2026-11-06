@@ -60,7 +60,7 @@ node service/cli.mjs batch --config service/examples/batch.json --out-dir ./avat
 | format | png / jpg / webp |
 | strict | 默认 true；渲染退化、缺字或越过安全区即失败。false 可接受近似渲染/字体回退并返回告警 |
 
-Logo 在上，文字两行作为一个紧凑组，整个图文栈居中。无 Logo 时两行以相同字号共同适配，文字组本身居中。有 Logo 时主行目标上限为边长 60%，副行不超过主行的 80%；真实字体量测后按宽高与圆弧约束缩放，不再用固定小字号限制短标题。圆形安全区逐个校验图文包围框，不把整张画布缩成内接正方形。6% 为本产品默认留白，不是飞书官方规范。
+Logo 在上，文字两行作为一个紧凑组，整个图文栈居中。无 Logo 时两行以相同字号共同适配，文字组本身居中。有 Logo 时主行目标上限为边长 60%，副行不超过主行的 62%；真实字体量测后按宽高与圆弧约束缩放，不再用固定小字号限制短标题。圆形安全区逐个校验图文包围框，不把整张画布缩成内接正方形。6% 为本产品默认留白，不是飞书官方规范。
 
 `displayChecks` 返回 24、32、48、64 px 下各行的墨迹高度；48 px 时任一行不足 6 px 发出 `text-small-at-48px:shorten-text-or-remove-second-line`，这是产品评估阈值而非可读性认证。长文本保持单行并明确告警，不以无限缩小冒充可读。需要方形布局可显式设 `safeShape: square`。
 
@@ -191,7 +191,7 @@ node service/review.mjs /tmp/gradient-avatar-review
 
 ## 字体、光学校正与客户预设
 
-`font` 可选 `sans`（默认）或 `serif`，分别使用随包 Noto Sans SC 700 / Noto Serif SC 600；`optical` 默认 true，关闭后获得几何基线。CLI 使用 `--font serif` 与 `--no-optical`。返回 `optical` 的建议位移、实际位移和边界限制；不得用这些值冒充视觉质量评分。
+`font` 可选 `sans`（默认）或 `serif`，分别使用随包 Noto Sans SC 700 / Noto Serif SC 600；`optical` 默认 true，关闭后获得几何基线。CLI 使用 `--font serif` 与 `--no-optical`。返回 `optical` 的建议位移、实际位移、`groupScale` 和边界限制；自动 Logo 图文组纵移最多短边 3.5%，为圆裁最多统一缩小 6%，不足则减小位移。纯文字不缩放并保持原有位移上限；不得用这些值冒充视觉质量评分。
 
 `preset` / CLI `--preset` 可选 `dongli-symbol-white`、`dongli-lockup-full-white`、`dongli-wordmark-bilingual-inline-white`，与自带 `logo` 互斥，要求深色配色。群聊优先图形标，完整/横版在小尺寸有密集细节警告。原始白色与约 9% 长边留白保留，不能重新染色。自带素材可设 `logo.preservePadding: true` 保留文件画布；默认裁掉透明留白。
 
@@ -203,4 +203,4 @@ node scripts/optical-review.mjs /tmp/optical-review /path/to/private/harmay-logo
 
 第二个参数可省略；脚本用官方 MCP SDK 实际生成几何/光学成对原图、JSON 元数据和 24/32/48/64 px 圆裁网页。HARMAY 原稿自行提供，不进入开源仓库。运行沿用服务的 Chromium 配置，不自动关闭沙箱。32 px 极细衬线或扁宽品牌字标仍可能无法辨字；这不是光学移动能解决的。应同时检查原图、1:1 小图、实际客户端，不以截图放大替代可读性。
 
-图文间距与主副行间距分别求解：宽字标到标题至少短边 7.5%，其他标识至少 6%；有 Logo 的两行间距至少短边 5%，兼顾 0.24em。Logo 内置品牌留白额外保留，因此其可见轮廓之间可能更宽。间距改善不等于保证所有内容好看，应按 `scripts/optical-review.mjs` 生成真实小图验收。
+图文间距与主副行间距分别求解：宽字标到标题目标为短边 6%，其他标识为 4.5%；有 Logo 的两行间距取短边 3.5% 与 0.18em 的较大值，光学圆裁微缩时按比例缩放。Logo 内置品牌留白额外保留，因此其可见轮廓之间可能更宽。间距改善不等于保证所有内容好看，应按 `scripts/optical-review.mjs` 生成真实小图验收。

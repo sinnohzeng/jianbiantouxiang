@@ -291,10 +291,10 @@ describe('圆形实际行宽', () => {
   })
 })
 
-it('有 Logo 的自动副行保持 80% 层级以改善小尺寸', () => {
+it('有 Logo 的自动副行保持 62% 层级，辅助信息不与主行争夺分量', () => {
   const result = fit({
     text: '飞书对接\n外部群',
     layout: { icon: { source: 'builtin', id: 'star', mono: true } },
   })
-  expect(result.secondary?.fontSizePx).toBeCloseTo((result.primary?.fontSizePx ?? 0) * 0.8)
+  expect(result.secondary?.fontSizePx).toBeCloseTo((result.primary?.fontSizePx ?? 0) * 0.62)
 })

@@ -58,10 +58,31 @@ test(
           logo: wideLogo,
           size: 512,
         })
-        assert.ok(m.lines[0].bounds.y - m.logoBounds.y - m.logoBounds.height >= 38)
-        assert.ok(m.lines[1].bounds.y - m.lines[0].bounds.y - m.lines[0].bounds.height >= 25)
+        assert.ok(m.lines[0].bounds.y - m.logoBounds.y - m.logoBounds.height >= 28)
+        assert.ok(m.lines[1].bounds.y - m.lines[0].bounds.y - m.lines[0].bounds.height >= 16)
         assert.ok(m.lines[0].fontSize >= 85)
         assert.equal(m.overflow, false)
+      }
+      for (const presetId of [
+        'dongli-symbol-white',
+        'dongli-lockup-full-white',
+        'dongli-wordmark-bilingual-inline-white',
+      ]) {
+        const input = { line1: '飞书对接', line2: '外部群', preset: presetId, size: 512 }
+        const off = (await renderer.run({ ...input, optical: false })).metadata
+        const on = (await renderer.run(input)).metadata
+        assert.equal(on.overflow, false)
+        assert.ok(
+          on.optical.groupShiftY < -5,
+          'preserved brand padding must not pin visible contents low',
+        )
+        assert.ok(on.optical.groupScale >= 0.94 && on.optical.groupScale <= 1)
+        assert.ok(on.lines[0].fontSize >= off.lines[0].fontSize * 0.94)
+        assert.ok(Math.abs(on.lines[1].fontSize / on.lines[0].fontSize - 0.62) < 0.001)
+        for (const r of [on.logoBounds, ...on.lines.map((l) => l.bounds)])
+          for (const x of [r.x, r.x + r.width])
+            for (const y of [r.y, r.y + r.height])
+              assert.ok(Math.hypot(x - 256, y - 256) <= 512 * 0.44 + 0.1)
       }
       const preset = await renderer.run({
         line1: '飞书对接',

@@ -1,0 +1,244 @@
+[
+  {
+    "version": "8.2.1",
+    "case": "dongli-one-optical",
+    "visibleTop": 142,
+    "visibleBottom": 377,
+    "boundsCenterY": 259.5,
+    "thresholdMassCenterY": 280.88,
+    "primaryFontSize": 93.46846461296082,
+    "secondaryFontSize": null,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        0
+      ],
+      "groupShiftY": -7.68,
+      "proposedGroupShiftY": -7.68,
+      "limited": true
+    }
+  },
+  {
+    "version": "8.2.1",
+    "case": "dongli-two-optical",
+    "visibleTop": 110,
+    "visibleBottom": 423,
+    "boundsCenterY": 266.5,
+    "thresholdMassCenterY": 279.89,
+    "primaryFontSize": 86.77905321121216,
+    "secondaryFontSize": 69.42324256896973,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -1.7355810642242433,
+        -1.3884648513793945
+      ],
+      "groupShiftY": 0,
+      "proposedGroupShiftY": -6.558080639618595,
+      "limited": true
+    }
+  },
+  {
+    "version": "8.2.1",
+    "case": "dongli-full-optical",
+    "visibleTop": 73,
+    "visibleBottom": 437,
+    "boundsCenterY": 255.0,
+    "thresholdMassCenterY": 294.66,
+    "primaryFontSize": 100.29834508895874,
+    "secondaryFontSize": 80.23867607116699,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -2.005966901779175,
+        0
+      ],
+      "groupShiftY": -7.68,
+      "proposedGroupShiftY": -7.68,
+      "limited": true
+    }
+  },
+  {
+    "version": "8.2.1",
+    "case": "dongli-inline-optical",
+    "visibleTop": 134,
+    "visibleBottom": 403,
+    "boundsCenterY": 268.5,
+    "thresholdMassCenterY": 291.59,
+    "primaryFontSize": 87.93192744255066,
+    "secondaryFontSize": 70.34554195404053,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -1.7586385488510132,
+        -1.4069108390808105
+      ],
+      "groupShiftY": 0,
+      "proposedGroupShiftY": -7.68,
+      "limited": true
+    }
+  },
+  {
+    "version": "8.2.1",
+    "case": "harmay-one-optical",
+    "visibleTop": 164,
+    "visibleBottom": 343,
+    "boundsCenterY": 253.5,
+    "thresholdMassCenterY": 261.93,
+    "primaryFontSize": 105.39831175804136,
+    "secondaryFontSize": null,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -0.5269915587902068
+      ],
+      "groupShiftY": -1.935802233434913,
+      "proposedGroupShiftY": -1.935802233434913,
+      "limited": true
+    }
+  },
+  {
+    "version": "8.2.1",
+    "case": "harmay-two-optical",
+    "visibleTop": 124,
+    "visibleBottom": 386,
+    "boundsCenterY": 255.0,
+    "thresholdMassCenterY": 253.09,
+    "primaryFontSize": 94.87083556652067,
+    "secondaryFontSize": 75.89666845321655,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -1.8974167113304135,
+        -1.517933369064331
+      ],
+      "groupShiftY": 0,
+      "proposedGroupShiftY": 0,
+      "limited": false
+    }
+  },
+  {
+    "version": "8.2.2",
+    "case": "dongli-one-optical",
+    "visibleTop": 136,
+    "visibleBottom": 364,
+    "boundsCenterY": 250.0,
+    "thresholdMassCenterY": 270.48,
+    "primaryFontSize": 94.14854049682617,
+    "secondaryFontSize": null,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -0.9414854049682617
+      ],
+      "groupShiftY": -17.34179516955828,
+      "proposedGroupShiftY": -17.34179516955828,
+      "limited": true,
+      "groupScale": 1
+    }
+  },
+  {
+    "version": "8.2.2",
+    "case": "dongli-two-optical",
+    "visibleTop": 111,
+    "visibleBottom": 396,
+    "boundsCenterY": 253.5,
+    "thresholdMassCenterY": 260.59,
+    "primaryFontSize": 87.62730830727376,
+    "secondaryFontSize": 54.32893115050973,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -1.8352113246917725,
+        -1.137831021308899
+      ],
+      "groupShiftY": -13.871642145891489,
+      "proposedGroupShiftY": -14.525948160442681,
+      "limited": true,
+      "groupScale": 0.9549560546874999
+    }
+  },
+  {
+    "version": "8.2.2",
+    "case": "dongli-full-optical",
+    "visibleTop": 77,
+    "visibleBottom": 417,
+    "boundsCenterY": 247.0,
+    "thresholdMassCenterY": 279.4,
+    "primaryFontSize": 103.12828302383423,
+    "secondaryFontSize": 63.939535474777216,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        0,
+        -1.2787907094955444
+      ],
+      "groupShiftY": -16.555525337163203,
+      "proposedGroupShiftY": -16.555525337163203,
+      "limited": true,
+      "groupScale": 1
+    }
+  },
+  {
+    "version": "8.2.2",
+    "case": "dongli-inline-optical",
+    "visibleTop": 134,
+    "visibleBottom": 369,
+    "boundsCenterY": 251.5,
+    "thresholdMassCenterY": 265.53,
+    "primaryFontSize": 88.01293041470161,
+    "secondaryFontSize": 54.568016857115,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -1.8492924928665162,
+        -1.1465613455772399
+      ],
+      "groupShiftY": -17.057244531250003,
+      "proposedGroupShiftY": -17.92,
+      "limited": true,
+      "groupScale": 0.9518551635742187
+    }
+  },
+  {
+    "version": "8.2.2",
+    "case": "harmay-one-optical",
+    "visibleTop": 170,
+    "visibleBottom": 341,
+    "boundsCenterY": 255.5,
+    "thresholdMassCenterY": 261.92,
+    "primaryFontSize": 106.26830856800076,
+    "secondaryFontSize": null,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        0
+      ],
+      "groupShiftY": 0,
+      "proposedGroupShiftY": 0,
+      "limited": true,
+      "groupScale": 1
+    }
+  },
+  {
+    "version": "8.2.2",
+    "case": "harmay-two-optical",
+    "visibleTop": 137,
+    "visibleBottom": 374,
+    "boundsCenterY": 255.5,
+    "thresholdMassCenterY": 246.85,
+    "primaryFontSize": 99.18993215560911,
+    "secondaryFontSize": 61.49775793647765,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -1.9837986431121823,
+        -1.1301476492104143
+      ],
+      "groupShiftY": 0,
+      "proposedGroupShiftY": 0,
+      "limited": false,
+      "groupScale": 1
+    }
+  }
+]

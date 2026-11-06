@@ -136,7 +136,7 @@ it('纯文字北区与连接器同字号，Logo 双行保留主副层级', () =>
     { width: 100, height: 20 },
     measure,
   )
-  expect(logo.lines[1]?.fontSizePx).toBeCloseTo((logo.lines[0]?.fontSizePx ?? 0) * 0.8)
+  expect(logo.lines[1]?.fontSizePx).toBeCloseTo((logo.lines[0]?.fontSizePx ?? 0) * 0.62)
 })
 
 it('宽字标与主副行保留不同层级的可见间距，同时整体居中', () => {
@@ -151,8 +151,8 @@ it('宽字标与主副行保留不同层级的可见间距，同时整体居中'
   const [first, second] = l.lines
   const logoGap = first!.y - first!.ascent - l.graphic!.y - l.graphic!.height
   const textGap = second!.y - second!.ascent - first!.y - first!.descent
-  expect(logoGap).toBeGreaterThanOrEqual(38)
-  expect(textGap).toBeGreaterThanOrEqual(25)
+  expect(logoGap).toBeGreaterThanOrEqual(30)
+  expect(textGap).toBeGreaterThanOrEqual(17)
   expect(logoGap).toBeGreaterThan(textGap)
   expect((l.graphic!.y + second!.y + second!.descent) / 2).toBeCloseTo(256)
   expect(l.overflow).toBe(false)

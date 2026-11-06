@@ -17,6 +17,7 @@ export interface OpticalReport {
   groupShiftY: number
   proposedGroupShiftY: number
   limited: boolean
+  groupScale: number
 }
 
 /** Alpha mass is only a diagnostic proxy, never a perceptual ground truth. */
@@ -61,6 +62,20 @@ export function opticalShift(delta: number, short: number): number {
   return Math.max(-short * 0.015, Math.min(short * 0.015, delta * 0.25))
 }
 
+/** Visible bounds are the baseline; ink mass supplies only a quarter-strength correction.
+ * Reserved transparent brand space must not masquerade as visible content. */
+export function brandGroupShift(
+  boundsCenter: number,
+  massCenter: number,
+  center: number,
+  short: number,
+): number {
+  const delta = center - (boundsCenter * 0.75 + massCenter * 0.25)
+  return Math.abs(delta) < short * 0.004
+    ? 0
+    : Math.max(-short * 0.035, Math.min(short * 0.035, delta))
+}
+
 export function applyOpticalLayout(
   layout: TextLayout,
   config: AvatarConfig,
@@ -75,6 +90,7 @@ export function applyOpticalLayout(
     groupShiftY: 0,
     proposedGroupShiftY: 0,
     limited: false,
+    groupScale: 1,
   }
   const result = {
     ...layout,
@@ -169,19 +185,75 @@ export function applyOpticalLayout(
     })
     const group = sample()
     if (group) {
-      const proposed = opticalShift(height / 2 - group.y / scale, short)
+      const automaticBrand =
+        !!result.graphic &&
+        config.typography.line1.size === null &&
+        config.typography.line2.size === null
+      const proposed = automaticBrand
+        ? brandGroupShift(
+            (group.bounds.y + group.bounds.height / 2) / scale,
+            group.y / scale,
+            height / 2,
+            short,
+          )
+        : opticalShift(height / 2 - group.y / scale, short)
       report.proposedGroupShiftY = proposed
       const boxes = [...rows, ...(result.graphic ? [result.graphic] : [])]
       let shift = proposed
-      for (let n = 0; n < 12 && !boxes.every((r) => fits({ ...r, y: r.y + shift })); n++)
+      // Tight circle fits previously vetoed useful translation. Reserve at most 6% size.
+      const transformed = (r: Rect, factor: number, dy: number): Rect => ({
+        x: width / 2 + (r.x - width / 2) * factor,
+        y: height / 2 + (r.y + dy - height / 2) * factor,
+        width: r.width * factor,
+        height: r.height * factor,
+      })
+      if (automaticBrand && shift && !boxes.every((r) => fits(transformed(r, 1, shift)))) {
+        for (let n = 0; n < 12 && !boxes.every((r) => fits(transformed(r, 0.94, shift))); n++)
+          shift *= 0.5
+        let lo = 0.94,
+          hi = 1
+        if (boxes.every((r) => fits(transformed(r, lo, shift)))) {
+          for (let n = 0; n < 16; n++) {
+            const mid = (lo + hi) / 2
+            if (boxes.every((r) => fits(transformed(r, mid, shift)))) lo = mid
+            else hi = mid
+          }
+          report.groupScale = lo
+          for (const l of result.lines) {
+            l.x = width / 2 + (l.x - width / 2) * lo
+            l.y = height / 2 + (l.y - height / 2) * lo
+            l.width *= lo
+            l.ascent *= lo
+            l.descent *= lo
+            l.fontSizePx *= lo
+            l.letterSpacingPx *= lo
+            l.font = l.font.replace(/[-\d.]+px/, `${l.fontSizePx}px`)
+          }
+          for (const r of rows) Object.assign(r, transformed(r, lo, 0))
+          if (result.graphic) Object.assign(result.graphic, transformed(result.graphic, lo, 0))
+          shift *= lo
+        }
+      }
+      const fittedBoxes = [...rows, ...(result.graphic ? [result.graphic] : [])]
+      for (let n = 0; n < 12 && !fittedBoxes.every((r) => fits({ ...r, y: r.y + shift })); n++)
         shift *= 0.5
-      if (!boxes.every((r) => fits({ ...r, y: r.y + shift })) || Math.abs(shift) < short * 0.0005)
+      if (
+        !fittedBoxes.every((r) => fits({ ...r, y: r.y + shift })) ||
+        Math.abs(shift) < short * 0.0005
+      )
         shift = 0
       report.limited ||= Math.abs(shift - proposed) > short * 0.0005
       report.groupShiftY = shift
       for (const l of result.lines) l.y += shift
       if (result.graphic) result.graphic.y += shift
       for (const r of rows) r.y += shift
+    }
+    if (report.groupScale !== 1) {
+      result.fontSizePx *= report.groupScale
+      result.fontRatio *= report.groupScale
+      result.lineHeightPx *= report.groupScale
+      result.letterSpacingPx *= report.groupScale
+      result.font = result.lines[0]?.font ?? result.font
     }
     if (rows.length) {
       const x = Math.min(...rows.map((r) => r.x)),

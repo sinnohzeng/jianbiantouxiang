@@ -141,7 +141,7 @@ export const LINE_OFFSET_MAX = 0.25
 export const LINE2_FOLLOW_SCALE = 0.62
 
 /** 自动图文副行：保持层级，同时避免缩成小头像里的细小标签。 */
-export const AUTO_LOGO_LINE2_SCALE = 0.8
+export const AUTO_LOGO_LINE2_SCALE = 0.62
 
 /** 自动纯文字标识两行等大；有 Logo 时保留标题/副标题层级。 */
 export function line2FollowScale(config: AvatarConfig): number {
