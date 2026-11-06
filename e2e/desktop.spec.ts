@@ -715,3 +715,30 @@ test('光学补偿可关闭并在刷新后保持选择', async ({ page }) => {
   await openGroup(page, 'text-group-layout')
   await expect(control).toHaveAttribute('aria-pressed', 'false')
 })
+
+test('新选宋体使用 600 并从本站加载，手动字重存档保持', async ({ page }) => {
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
+  await openApp(page)
+  await page.locator('[data-slot="text-line2-font"] [data-slot="font-trigger"]').click()
+  const popover = page.locator('[data-slot="popover-content"]')
+  await popover.locator('[data-slot="command-input"]').fill('Noto Serif SC')
+  await popover
+    .getByRole('option', { name: /Noto Serif SC/ })
+    .first()
+    .click()
+  await expect.poll(async () => (await probeConfig(page)).typography.line2.font?.weight).toBe(600)
+  await page.waitForFunction(() =>
+    [...document.fonts].some(
+      (f) =>
+        f.family.replace(/["']/g, '') === 'Noto Serif SC' &&
+        f.weight === '600' &&
+        f.status === 'loaded',
+    ),
+  )
+  await page.getByRole('combobox', { name: '第二行字重' }).click()
+  await page.getByRole('option', { name: '粗体 700', exact: true }).click()
+  await probeFlush(page)
+  await page.reload()
+  await waitReady(page)
+  expect((await probeConfig(page)).typography.line2.font?.weight).toBe(700)
+})

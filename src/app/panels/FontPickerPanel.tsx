@@ -182,7 +182,9 @@ export function FontPickerPanel({ line, onDone }: FontPickerPanelProps) {
       onDone()
       return
     }
-    const next: FontChoice = { family, source, weight: nearestWeight(weights, active.weight) }
+    const preferredWeight =
+      family === 'Noto Serif SC' && family !== active.family ? 600 : active.weight
+    const next: FontChoice = { family, source, weight: nearestWeight(weights, preferredWeight) }
     setTypography(line === 1 ? withLine1Font(latest, next, weights) : withLine2Font(latest, next))
     if (source === 'google') pushRecentFont(family)
     onDone()

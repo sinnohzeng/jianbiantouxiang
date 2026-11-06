@@ -138,3 +138,22 @@ it('纯文字北区与连接器同字号，Logo 双行保留主副层级', () =>
   )
   expect(logo.lines[1]?.fontSizePx).toBeCloseTo((logo.lines[0]?.fontSizePx ?? 0) * 0.8)
 })
+
+it('宽字标与主副行保留不同层级的可见间距，同时整体居中', () => {
+  const l = badgeLayout(
+    512,
+    0.06,
+    0.38,
+    ['飞书对接', '外部群'],
+    { width: 900, height: 100 },
+    measure,
+  )
+  const [first, second] = l.lines
+  const logoGap = first!.y - first!.ascent - l.graphic!.y - l.graphic!.height
+  const textGap = second!.y - second!.ascent - first!.y - first!.descent
+  expect(logoGap).toBeGreaterThanOrEqual(38)
+  expect(textGap).toBeGreaterThanOrEqual(25)
+  expect(logoGap).toBeGreaterThan(textGap)
+  expect((l.graphic!.y + second!.y + second!.descent) / 2).toBeCloseTo(256)
+  expect(l.overflow).toBe(false)
+})

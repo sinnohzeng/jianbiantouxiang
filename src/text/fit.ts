@@ -1,3 +1,4 @@
+import { titleGap } from './spacing'
 import { insideCircle } from './circle'
 import { clamp } from '@/engine/math'
 import { fontString } from '@/fonts/family'
@@ -318,7 +319,11 @@ export function fitStack(
     const secondary = parts[1] ?? null
     // 两段之间的留白按较大的那个字号算：第二行手动放大过第一行时，留白跟着大的走
     const gapPx =
-      primary && secondary ? Math.max(primary.fontSizePx, secondary.fontSizePx) * LINE_GAP_RATIO : 0
+      primary && secondary
+        ? config.layout.icon.source !== 'none'
+          ? titleGap(Math.min(width, height), Math.max(primary.fontSizePx, secondary.fontSizePx))
+          : Math.max(primary.fontSizePx, secondary.fontSizePx) * LINE_GAP_RATIO
+        : 0
     const blockWidth = Math.max(primary?.block.width ?? 0, secondary?.block.width ?? 0)
     const blockHeight = (primary?.block.height ?? 0) + gapPx + (secondary?.block.height ?? 0)
     /*

@@ -1,3 +1,4 @@
+import { brandGap, titleGap } from '@/text/spacing'
 import { AUTO_LOGO_LINE2_SCALE } from '@/state/config'
 import { insideCircle } from '@/text/circle'
 import type { Rect, TextLayout, LayoutLine } from '@/text/layout'
@@ -20,10 +21,15 @@ export function badgeLayout(
   measure: InkMeasure,
   safeShape: 'circle' | 'square' = 'circle',
   family = 'Noto Sans SC',
+  weight = 700,
 ): TextLayout {
   const inset = size * padding
   const safeBox = { x: inset, y: inset, width: size - 2 * inset, height: size - 2 * inset }
-  const gap = size * 0.035
+  const logoGap = graphic ? brandGap(size, graphic.width / graphic.height) : 0
+  const textGap = () =>
+    graphic ? titleGap(size, Math.max(...lines.map((l) => l.fontSizePx), 0)) : size * 0.035
+  const gapsHeight = () =>
+    (graphicRect && lines.length ? logoGap : 0) + Math.max(0, lines.length - 1) * textGap()
   const inkWidth = safeBox.width - size * 0.02
   const lines: LayoutLine[] = []
   let graphicRect: Rect | undefined
@@ -60,7 +66,7 @@ export function badgeLayout(
       width: metrics.left + metrics.right,
       ascent: metrics.ascent,
       descent: metrics.descent,
-      font: `700 ${fontSize}px "${family}"`,
+      font: `${weight} ${fontSize}px "${family}"`,
       fontSizePx: fontSize,
       letterSpacingPx: 0,
     })
@@ -76,7 +82,7 @@ export function badgeLayout(
       const m = measure(line.text, fontSize)
       Object.assign(line, {
         fontSizePx: fontSize,
-        font: `700 ${fontSize}px "${family}"`,
+        font: `${weight} ${fontSize}px "${family}"`,
         x: (size + m.left - m.right) / 2,
         width: m.left + m.right,
         ascent: m.ascent,
@@ -85,18 +91,15 @@ export function badgeLayout(
     }
   }
   const stackHeight = () =>
-    (graphicRect?.height ?? 0) +
-    lines.reduce((n, l) => n + l.ascent + l.descent, 0) +
-    Math.max(0, lines.length + Number(!!graphicRect) - 1) * gap
+    (graphicRect?.height ?? 0) + lines.reduce((n, l) => n + l.ascent + l.descent, 0) + gapsHeight()
   for (let i = 0; i < 4 && stackHeight() > safeBox.height - size * 0.02; i++) {
-    const fixed =
-      (graphicRect?.height ?? 0) + Math.max(0, lines.length + Number(!!graphicRect) - 1) * gap
+    const fixed = (graphicRect?.height ?? 0) + gapsHeight()
     const factor = ((safeBox.height - size * 0.02 - fixed) / (stackHeight() - fixed)) * 0.98
     for (const line of lines) {
       line.fontSizePx *= factor
       const m = measure(line.text, line.fontSizePx)
       Object.assign(line, {
-        font: `700 ${line.fontSizePx}px "${family}"`,
+        font: `${weight} ${line.fontSizePx}px "${family}"`,
         x: (size + m.left - m.right) / 2,
         width: m.left + m.right,
         ascent: m.ascent,
@@ -110,11 +113,11 @@ export function badgeLayout(
     let y = (size - stackHeight()) / 2
     if (graphicRect) {
       graphicRect.y = y
-      y += graphicRect.height + gap
+      y += graphicRect.height + logoGap
     }
     for (const l of lines) {
       l.y = y + l.ascent
-      y += l.ascent + l.descent + gap
+      y += l.ascent + l.descent + textGap()
     }
   }
   const cropFits = () => {
@@ -147,7 +150,7 @@ export function badgeLayout(
           width: m.left + m.right,
           ascent: m.ascent,
           descent: m.descent,
-          font: `700 ${l.fontSizePx}px "${family}"`,
+          font: `${weight} ${l.fontSizePx}px "${family}"`,
         })
       }
       settle()

@@ -66,7 +66,7 @@ Logo 在上，文字两行作为一个紧凑组，整个图文栈居中。无 Lo
 
 文字与单色 Logo 的深浅取自最终渐变底图的抽样对比度，采样更好的黑/白方案生效。`sampledMinContrast` 是内容矩形内的采样指标，**不是逐像素可读性或 WCAG 合规保证**；低于 4.5 返回告警，可换配色/种子。`logo.color: original` 保留图形色彩，不保证原色 Logo 的对比度。
 
-当前只提供随包 Noto Sans SC 700（包含拉丁与大量中日韩字符）。按字体包 Unicode 范围检测缺字，严格模式拒绝；未开放远程字体、本地字体上传、表情目录和品牌目录。系统回退字体在不同机器可能不同。相同输入在固定浏览器和渲染环境中可复现；不同 GPU/浏览器版本不承诺字节相同。
+提供随包 Noto Sans SC 700 与 Noto Serif SC 600（包含拉丁与大量中日韩字符）。按字体包 Unicode 范围检测缺字，严格模式拒绝；远程字体、本地字体上传及表情目录未开放；品牌预设限明确列出的东黎三款。系统回退字体在不同机器可能不同。相同输入在固定浏览器和渲染环境中可复现；不同 GPU/浏览器版本不承诺字节相同。
 
 ## Logo 处理
 
@@ -191,7 +191,7 @@ node service/review.mjs /tmp/gradient-avatar-review
 
 ## 字体、光学校正与客户预设
 
-`font` 可选 `sans`（默认）或 `serif`，分别使用随包 Noto Sans/Serif SC 700；`optical` 默认 true，关闭后获得几何基线。CLI 使用 `--font serif` 与 `--no-optical`。返回 `optical` 的建议位移、实际位移和边界限制；不得用这些值冒充视觉质量评分。
+`font` 可选 `sans`（默认）或 `serif`，分别使用随包 Noto Sans SC 700 / Noto Serif SC 600；`optical` 默认 true，关闭后获得几何基线。CLI 使用 `--font serif` 与 `--no-optical`。返回 `optical` 的建议位移、实际位移和边界限制；不得用这些值冒充视觉质量评分。
 
 `preset` / CLI `--preset` 可选 `dongli-symbol-white`、`dongli-lockup-full-white`、`dongli-wordmark-bilingual-inline-white`，与自带 `logo` 互斥，要求深色配色。群聊优先图形标，完整/横版在小尺寸有密集细节警告。原始白色与约 9% 长边留白保留，不能重新染色。自带素材可设 `logo.preservePadding: true` 保留文件画布；默认裁掉透明留白。
 
@@ -202,3 +202,5 @@ node scripts/optical-review.mjs /tmp/optical-review /path/to/private/harmay-logo
 ```
 
 第二个参数可省略；脚本用官方 MCP SDK 实际生成几何/光学成对原图、JSON 元数据和 24/32/48/64 px 圆裁网页。HARMAY 原稿自行提供，不进入开源仓库。运行沿用服务的 Chromium 配置，不自动关闭沙箱。32 px 极细衬线或扁宽品牌字标仍可能无法辨字；这不是光学移动能解决的。应同时检查原图、1:1 小图、实际客户端，不以截图放大替代可读性。
+
+图文间距与主副行间距分别求解：宽字标到标题至少短边 7.5%，其他标识至少 6%；有 Logo 的两行间距至少短边 5%，兼顾 0.24em。Logo 内置品牌留白额外保留，因此其可见轮廓之间可能更宽。间距改善不等于保证所有内容好看，应按 `scripts/optical-review.mjs` 生成真实小图验收。

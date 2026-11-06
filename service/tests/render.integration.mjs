@@ -44,6 +44,25 @@ test(
             for (const y of [l.bounds.y, l.bounds.y + l.bounds.height])
               assert.ok(Math.hypot(x - 256, y - 256) <= 512 * 0.44 + 0.1)
       }
+      const wideLogo = {
+        mimeType: 'image/svg+xml',
+        data: Buffer.from(
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 100"><path fill="white" d="M0 0H900V100H0Z"/></svg>',
+        ).toString('base64'),
+      }
+      for (const font of ['sans', 'serif']) {
+        const { metadata: m } = await renderer.run({
+          line1: '飞书对接',
+          line2: '外部群',
+          font,
+          logo: wideLogo,
+          size: 512,
+        })
+        assert.ok(m.lines[0].bounds.y - m.logoBounds.y - m.logoBounds.height >= 38)
+        assert.ok(m.lines[1].bounds.y - m.lines[0].bounds.y - m.lines[0].bounds.height >= 25)
+        assert.ok(m.lines[0].fontSize >= 85)
+        assert.equal(m.overflow, false)
+      }
       const preset = await renderer.run({
         line1: '飞书对接',
         preset: 'dongli-symbol-white',

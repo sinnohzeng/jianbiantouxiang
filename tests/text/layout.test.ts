@@ -299,7 +299,7 @@ describe('图标进栈', () => {
     )
     const graphic = result.graphic!
     expect(graphic.height).toBeCloseTo(400)
-    expect(graphic.y).toBeCloseTo(226)
+    expect(graphic.y).toBeCloseTo(220)
     expect(graphic.x).toBeCloseTo(300)
     // 文字全部落在图标与留白之下
     const textTop = Math.min(...result.lines.map((line) => line.y - line.ascent))
@@ -442,4 +442,23 @@ describe('自动图文整体与圆裁', () => {
       expect(result.overflow).toBe(false)
     },
   )
+})
+
+it('自动圆裁为宽字标保留可见图文间距，文字组间距不随缩放挤回去', () => {
+  const result = layout(
+    {
+      text: '飞书对接\n外部群',
+      typography: { line1: { size: null }, line2: { size: null } },
+      layout: { icon: { source: 'upload', id: 'fixture' } },
+    },
+    { width: 900, height: 100 },
+  )
+  const [first, second] = result.lines
+  expect(result.overflow).toBe(false)
+  expect(
+    first!.y - first!.ascent - result.graphic!.y - result.graphic!.height,
+  ).toBeGreaterThanOrEqual(74.9)
+  expect(second!.y - second!.ascent - first!.y - first!.descent).toBeGreaterThanOrEqual(49.9)
+  const bottom = second!.y + second!.descent
+  expect((result.graphic!.y + bottom) / 2).toBeCloseTo(500)
 })

@@ -1,3 +1,4 @@
+import { brandGap, titleGap } from './spacing'
 import { applyOpticalLayout, type OpticalReport } from './optical'
 import type { Graphic } from '@/graphics/types'
 import { insideCircle } from './circle'
@@ -65,9 +66,6 @@ function getSharedMeasure(): MeasureFn {
   return sharedMeasure
 }
 
-/** 图标与文字之间的留白，按安全框高度算。 */
-const LOGO_GAP_RATIO = 0.06
-
 /** 胶囊底板：把整块文字按 pill.padding 外扩，圆角按短边算。 */
 function pillOf(config: AvatarConfig, box: Rect, fontSizePx: number): PillRect {
   const pad = config.typography.pill.padding * fontSizePx
@@ -88,6 +86,7 @@ function placeGraphic(
   safeBox: Rect,
   graphic: GraphicSize,
   hasText: boolean,
+  short: number,
 ): { graphicRect: Rect; textArea: Rect } {
   const aspect = graphic.width / Math.max(1, graphic.height)
   // 两向补偿都按安全框算，与逐行文字补偿同一口径：水平看宽，垂直看高
@@ -122,7 +121,7 @@ function placeGraphic(
     gw = safeBox.width
     gh = gw / aspect
   }
-  const gap = safeBox.height * LOGO_GAP_RATIO
+  const gap = brandGap(short, aspect)
   return {
     graphicRect: {
       x: safeBox.x + (safeBox.width - gw) / 2 + shift,
@@ -161,7 +160,7 @@ function geometricLayoutText(
   let graphicRect: Rect | undefined
   let textArea: Rect = safeBox
   if (graphic && config.layout.icon.source !== 'none') {
-    const placed = placeGraphic(config, safeBox, graphic, hasText)
+    const placed = placeGraphic(config, safeBox, graphic, hasText, Math.min(width, height))
     graphicRect = placed.graphicRect
     textArea = placed.textArea
   }
@@ -217,37 +216,101 @@ function geometricLayoutText(
     config.typography.line1.size === null &&
     config.typography.line2.size === null
   ) {
-    const rects = [
-      { ...graphicRect, x: graphicRect.x - gx, y: graphicRect.y - gy },
-      ...positioned.map(({ line: l, offset }) => ({
-        x: l.x - offset.x,
-        y: l.y - l.ascent - offset.y,
-        width: l.width,
-        height: l.ascent + l.descent,
-      })),
-    ]
-    const extent = Math.max(
-      ...rects.map((r) =>
-        Math.hypot(
-          Math.max(Math.abs(r.x - width / 2), Math.abs(r.x + r.width - width / 2)),
-          Math.max(Math.abs(r.y - height / 2), Math.abs(r.y + r.height - height / 2)),
+    if (lines.length > 0 && lines.length <= 2) {
+      const baseGraphic = { ...graphicRect }
+      const originals = positioned.map(({ line, offset }) => ({ line, offset, base: { ...line } }))
+      const scaleTo = (factor: number) => {
+        if (!graphicRect) return
+        const logoSpace = brandGap(Math.min(width, height), baseGraphic.width / baseGraphic.height)
+        const textSpace =
+          lines.length > 1
+            ? titleGap(
+                Math.min(width, height),
+                Math.max(...originals.map(({ base }) => base.fontSizePx)) * factor,
+              )
+            : 0
+        const stackHeight =
+          (baseGraphic.height +
+            originals.reduce((sum, { base }) => sum + base.ascent + base.descent, 0)) *
+            factor +
+          logoSpace +
+          textSpace
+        let y = (height - stackHeight) / 2
+        graphicRect.width = baseGraphic.width * factor
+        graphicRect.height = baseGraphic.height * factor
+        graphicRect.x = (width - graphicRect.width) / 2 + gx
+        graphicRect.y = y + gy
+        y += graphicRect.height + logoSpace
+        for (const { line, offset, base } of originals) {
+          line.width = base.width * factor
+          line.ascent = base.ascent * factor
+          line.descent = base.descent * factor
+          line.fontSizePx = base.fontSizePx * factor
+          line.font = base.font.replace(/[-\d.]+px/, `${line.fontSizePx}px`)
+          line.letterSpacingPx = base.letterSpacingPx * factor
+          line.x = (width - line.width) / 2 + offset.x
+          line.y = y + line.ascent + offset.y
+          y += line.ascent + line.descent + textSpace
+        }
+      }
+      const fitsCircle = () => {
+        if (!graphicRect) return false
+        return [
+          { ...graphicRect, x: graphicRect.x - gx, y: graphicRect.y - gy },
+          ...positioned.map(({ line, offset }) => ({
+            x: line.x - offset.x,
+            y: line.y - line.ascent - offset.y,
+            width: line.width,
+            height: line.ascent + line.descent,
+          })),
+        ].every((rect) => insideCircle(rect, width / 2, height / 2, radius))
+      }
+      scaleTo(1)
+      if (!fitsCircle()) {
+        let lo = 0,
+          hi = 1
+        for (let i = 0; i < 16; i++) {
+          const mid = (lo + hi) / 2
+          scaleTo(mid)
+          if (fitsCircle()) lo = mid
+          else hi = mid
+        }
+        contentScale = lo
+        scaleTo(lo)
+      }
+    } else {
+      const rects = [
+        { ...graphicRect, x: graphicRect.x - gx, y: graphicRect.y - gy },
+        ...positioned.map(({ line: l, offset }) => ({
+          x: l.x - offset.x,
+          y: l.y - l.ascent - offset.y,
+          width: l.width,
+          height: l.ascent + l.descent,
+        })),
+      ]
+      const extent = Math.max(
+        ...rects.map((r) =>
+          Math.hypot(
+            Math.max(Math.abs(r.x - width / 2), Math.abs(r.x + r.width - width / 2)),
+            Math.max(Math.abs(r.y - height / 2), Math.abs(r.y + r.height - height / 2)),
+          ),
         ),
-      ),
-    )
-    contentScale = Math.min(1, radius / Math.max(1, extent))
-    graphicRect.x = width / 2 + (graphicRect.x - gx - width / 2) * contentScale + gx
-    graphicRect.y = height / 2 + (graphicRect.y - gy - height / 2) * contentScale + gy
-    graphicRect.width *= contentScale
-    graphicRect.height *= contentScale
-    for (const { line: l, offset } of positioned) {
-      l.x = width / 2 + (l.x - offset.x - width / 2) * contentScale + offset.x
-      l.y = height / 2 + (l.y - offset.y - height / 2) * contentScale + offset.y
-      l.fontSizePx *= contentScale
-      l.font = l.font.replace(/[-\d.]+px/, `${l.fontSizePx}px`)
-      l.width *= contentScale
-      l.ascent *= contentScale
-      l.descent *= contentScale
-      l.letterSpacingPx *= contentScale
+      )
+      contentScale = Math.min(1, radius / Math.max(1, extent))
+      graphicRect.x = width / 2 + (graphicRect.x - gx - width / 2) * contentScale + gx
+      graphicRect.y = height / 2 + (graphicRect.y - gy - height / 2) * contentScale + gy
+      graphicRect.width *= contentScale
+      graphicRect.height *= contentScale
+      for (const { line: l, offset } of positioned) {
+        l.x = width / 2 + (l.x - offset.x - width / 2) * contentScale + offset.x
+        l.y = height / 2 + (l.y - offset.y - height / 2) * contentScale + offset.y
+        l.fontSizePx *= contentScale
+        l.font = l.font.replace(/[-\d.]+px/, `${l.fontSizePx}px`)
+        l.width *= contentScale
+        l.ascent *= contentScale
+        l.descent *= contentScale
+        l.letterSpacingPx *= contentScale
+      }
     }
   }
   const cropOverflow =

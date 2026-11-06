@@ -23,8 +23,9 @@ async function render(raw: unknown, validateOnly = false) {
     if (input.logo) throw new Error('Use preset or logo, not both')
     input.logo = presetLogo(input.preset)
   }
+  const weight = input.font === 'serif' ? 600 : 700
   const family = input.font === 'serif' ? 'Noto Serif SC' : 'Noto Sans SC'
-  if (input.font === 'serif') await import('@fontsource/noto-serif-sc/700.css')
+  if (input.font === 'serif') await import('@fontsource/noto-serif-sc/600.css')
   const palette = PALETTES.find((p) => p.id === input.palette)
   if (!palette) throw new Error(`Unknown palette: ${input.palette}`)
   if (input.preset && palette.tone !== 'dark')
@@ -41,7 +42,7 @@ async function render(raw: unknown, validateOnly = false) {
     warnings.push(warning)
   }
   const fontFaces = await document.fonts.load(
-    `700 32px "${family}"`,
+    `${weight} 32px "${family}"`,
     input.line1 + input.line2 || 'Aa中',
   )
   if (!fontFaces.length || fontFaces.some((font) => font.status !== 'loaded'))
@@ -68,7 +69,7 @@ async function render(raw: unknown, validateOnly = false) {
       [input.line1, input.line2],
       logo?.graphic ?? null,
       (text, size) => {
-        ctx.font = `700 ${size}px "${family}"`
+        ctx.font = `${weight} ${size}px "${family}"`
         const m = ctx.measureText(text)
         return {
           left: m.actualBoundingBoxLeft,
@@ -79,6 +80,7 @@ async function render(raw: unknown, validateOnly = false) {
       },
       input.safeShape,
       family,
+      weight,
     )
     layout = applyOpticalLayout(
       layout,
@@ -110,7 +112,7 @@ async function render(raw: unknown, validateOnly = false) {
       seed: input.seed,
       color: config.typography.color,
       sampledMinContrast,
-      font: family + ' 700',
+      font: family + ' ' + weight,
       optical: layout.optical,
       preset: input.preset ?? null,
       safeArea: layout.safeBox,

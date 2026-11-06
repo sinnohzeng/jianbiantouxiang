@@ -235,16 +235,21 @@ async function loadGoogleFont(
   const face = { family: font.family, weight }
 
   // 默认字体来自本站，首次排版不依赖 Google/CDN 的可达性。
-  if (['Noto Sans SC', 'Noto Serif SC'].includes(font.family) && weight === 700) {
+  if (
+    (font.family === 'Noto Sans SC' && weight === 700) ||
+    (font.family === 'Noto Serif SC' && [600, 700].includes(weight))
+  ) {
     const local = await withTimeout(
       (async () => {
-        if (font.family === 'Noto Serif SC') await import('@fontsource/noto-serif-sc/700.css')
-        else await import('@fontsource/noto-sans-sc/700.css')
+        if (font.family === 'Noto Serif SC') {
+          if (weight === 600) await import('@fontsource/noto-serif-sc/600.css')
+          else await import('@fontsource/noto-serif-sc/700.css')
+        } else await import('@fontsource/noto-sans-sc/700.css')
         const set = globalThis.document?.fonts
         if (
           !set ||
           !Array.from(set).some(
-            (f) => f.family.replace(/["']/g, '') === font.family && f.weight === '700',
+            (f) => f.family.replace(/["']/g, '') === font.family && f.weight === String(weight),
           )
         )
           return false
