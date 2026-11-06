@@ -1,0 +1,13 @@
+{
+  "items": [
+    { "line1": "产品研发", "line2": "Product Studio", "palette": "aurora", "size": 512 },
+    {
+      "line1": "设计团队",
+      "line2": "Design Team",
+      "palette": "glacier",
+      "style": "silk",
+      "size": 512
+    },
+    { "line1": "PROJECT", "line2": "BUILD SOMETHING", "style": "flow", "size": 512 }
+  ]
+}

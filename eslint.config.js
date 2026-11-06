@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
   // src/components/ui 是 shadcn 生成的代码，跟随上游，不纳入本仓风格检查
-  { ignores: ['dist', 'dev-dist', 'src/components/ui', 'node_modules'] },
+  { ignores: ['dist', 'dist-service', 'dev-dist', 'src/components/ui', 'node_modules'] },
   js.configs.recommended,
   tseslint.configs.recommended,
   reactHooks.configs.flat['recommended-latest'],
@@ -22,7 +22,14 @@ export default tseslint.config(
     },
   },
   {
-    files: ['scripts/**/*.mjs', 'e2e/**/*.ts', 'playwright.config.ts', 'vite.config.ts'],
+    files: [
+      'scripts/**/*.mjs',
+      'service/**/*.mjs',
+      'service/vite.config.ts',
+      'e2e/**/*.ts',
+      'playwright.config.ts',
+      'vite.config.ts',
+    ],
     languageOptions: {
       globals: globals.node,
     },

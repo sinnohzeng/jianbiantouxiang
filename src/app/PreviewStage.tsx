@@ -75,6 +75,7 @@ export function PreviewStage() {
   const canLongPress = isMobile || coarsePointer
   const saveImage = usePreviewSaveImage(config, canLongPress)
   const [overflow, setOverflow] = useState(false)
+  const [smallText, setSmallText] = useState(false)
   const [fontTick, setFontTick] = useState(0)
   const [graphic, setGraphic] = useState<Graphic | null>(null)
 
@@ -93,10 +94,12 @@ export function PreviewStage() {
   const iconSource = preview.layout.icon.source
   const iconId = preview.layout.icon.id
   const iconMono = preview.layout.icon.mono
-  const safeGuide = useMemo(
-    () => safeArea(preview, box.width, box.height),
-    [preview, box.width, box.height],
-  )
+  const safeGuide = useMemo(() => {
+    if (preview.typography.line1.size !== null && preview.canvas.shape !== 'circle')
+      return safeArea(preview, box.width, box.height)
+    const side = Math.min(box.width, box.height) * (1 - 2 * preview.typography.padding)
+    return { x: (box.width - side) / 2, y: (box.height - side) / 2, width: side, height: side }
+  }, [preview, box.width, box.height])
   // 要加载的字体集合：两行各自的生效字体，空行不算。它是字体 effect 唯一的字体依赖
   const fontSetKey = useMemo(
     () =>
@@ -248,6 +251,11 @@ export function PreviewStage() {
 
       const drawConfig = preview
       const layout = layoutText(drawConfig, pixelWidth, pixelHeight, undefined, graphic)
+      setSmallText(
+        layout.lines.some(
+          (l) => ((l.ascent + l.descent) * 48) / Math.min(pixelWidth, pixelHeight) < 6,
+        ),
+      )
       if (graphic && layout.graphic) {
         drawGraphic(textCtx, graphic, layout.graphic, drawConfig, ink)
       }
@@ -417,7 +425,7 @@ export function PreviewStage() {
                   transform: 'translate(-50%, -50%)',
                 }}
               />
-              {/* 安全框按形状收过，圆形下比边距画出来的方框小一圈，取的是排版真正用的那个框 */}
+              {/* 自动档显示圆裁安全边界；手动方图显示矩形边距 */}
               <div
                 className="absolute border border-dashed border-white/60 mix-blend-difference"
                 style={{
@@ -425,7 +433,10 @@ export function PreviewStage() {
                   top: `${safeGuide.y}px`,
                   width: `${safeGuide.width}px`,
                   height: `${safeGuide.height}px`,
-                  borderRadius: '4px',
+                  borderRadius:
+                    preview.typography.line1.size === null || preview.canvas.shape === 'circle'
+                      ? '50%'
+                      : '4px',
                 }}
               />
             </div>
@@ -467,6 +478,9 @@ export function PreviewStage() {
           </p>
         ) : null}
         {overflow ? <p className="text-destructive text-xs">{t('preview.overflow')}</p> : null}
+        {smallText ? (
+          <p className="text-muted-foreground text-xs">{t('preview.smallText')}</p>
+        ) : null}
       </div>
     </div>
   )

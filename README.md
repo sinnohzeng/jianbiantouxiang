@@ -12,7 +12,7 @@
 
 - **四种质感**：柔光（mesh）、流动（flow）、丝绸（silk）、颗粒（grain），由 WebGL2 片元着色器实时渲染。同一配置在同一设备上每次输出一致，换个种子就是一张新图。不支持 WebGL2 的浏览器会回落到静态近似渐变，导出得到的也是这张近似图。
 - **37 套配色**：浅色 21 套、深色 16 套；也可以自定义 2 到 6 个颜色，或给一两个种子色，由 OKLCH 算法生成整套。
-- **文字排版**：最多两行（第一行、第二行），第二行为空只渲染第一行；字号默认自动填满，一拖滑杆就以当前值切成手动，点“自动”回去；默认边距 15%、行高 1.03；第二行字号默认跟随第一行的 62%，也能单独定，两行字号互不牵连；逐行水平、垂直补偿只动自己那一行，其余行字号与位置一个像素都不变；五种文字效果（投影、纯色、描边、发光、胶囊底），默认投影 40% 且深浅字反色适配；五档从白到黑的预设色加自选，文字色就是选的那一个，没有自动挡。
+- **文字排版**：最多两行（第一行、第二行），第二行为空只渲染第一行；字号默认自动填满，一拖滑杆就以当前值切成手动，点“自动”回去；默认 Noto Sans SC 700 从本站加载；默认边距 6%、行高 1.03；自动字号按圆形头像裁切优化，即使导出方图也保留圆裁主体；小字提示建议缩短文案；第二行字号默认跟随第一行的 62%，也能单独定，两行字号互不牵连；逐行水平、垂直补偿只动自己那一行，其余行字号与位置一个像素都不变；五种文字效果（投影、纯色、描边、发光、胶囊底），默认投影 40% 且深浅字反色适配；五档从白到黑的预设色加自选，文字色就是选的那一个，没有自动挡。
 - **图标**：图标节里一个开关，图标置顶、文字两行自动缩小适配；可搜 lucide 内置图标、按中文搜 emoji，或上传 SVG / PNG / WebP。内置图标跟随文字颜色与效果，emoji 跨平台取同一份 Noto SVG，上传 SVG 会先做白名单消毒且只在本次会话有效。
 - **字体**：Google Fonts 全库按需加载，中文字体按 unicode-range 切片只拉用到的字，Noto Sans SC 整包 1.1 MB，实际只下载其中几十 KB；也能上传本地 TTF、OTF、WOFF、WOFF2。第一行与第二行可以分别选字体与字重，第二行默认跟随第一行。选择器里每个字体名都用这款字体自己写出来，中日韩字体显示原生名，比如站酷快乐体、しっぽり明朝，每款只下载名字那几个字，一两 KB。
 - **画布与导出**：64 到 8192 像素，默认方形，也可切圆角或圆形；JPG（默认压到 2 MB 以内）、PNG、WebP；点主按钮直接触发浏览器下载，导出选项里另有“复制图片”按钮；微信内置浏览器里改为长按图片保存。
@@ -21,6 +21,10 @@
 - **界面**：五种语言（简体、繁體、English、日本語、한국어），深浅主题，可安装为 PWA。
 
 ![文字效果样张](docs/assets/samples/text-effects.jpg)
+
+## CLI、批量与 MCP
+
+仓库提供独立的命令行和远程 MCP 服务，可传 PNG/SVG Logo 与两行文字生成方形头像；包括 Logo 裁边、黑白底处理、自动配色、安全区与溢出报告。先运行 `npm ci`、安装 Playwright Chromium，再 `npm run build:service`。命令、输入格式、客户端兼容性与部署限制见 [自动化使用说明](docs/automation.md)。远程服务需要独立 Node + Chromium 容器，现有网页继续静态部署。
 
 ## 怎么用
 
@@ -77,7 +81,7 @@ npm run gen:app-icons # 用本机 chromium 把 SVG 应用图标位图化
 
 ## 与 v2 的关系
 
-v3 是整体重写。v2 的 SVG 多层径向渐变、SVG 导出与命令行工具都已下线：渲染换成了着色器，头像也只需要位图。要用旧版本，切到 `v2.3.0` 标签。变更细节见 `CHANGELOG.md`。
+v3 是整体重写。v2 的 SVG 多层径向渐变、SVG 导出与旧命令行工具已下线。当前 CLI/MCP 通过无界面 Chromium 复用 shader 导出管线，输出位图。要用旧版本，切到 `v2.3.0` 标签。变更细节见 `CHANGELOG.md`。
 
 ## 素材与致谢
 
@@ -90,7 +94,7 @@ v3 是整体重写。v2 的 SVG 多层径向渐变、SVG 导出与命令行工�
 
 Gradient Avatar turns a few characters into a soft, luminous gradient avatar, entirely in the browser. Try it at <https://jianbiantouxiang.com>.
 
-What it does: four WebGL2 textures (mesh, flow, silk, and grain without circular ripple seeds); 37 palettes plus OKLCH palette generation from one or two seed colors; any Google Font, with CJK fonts loaded as unicode-range slices, a separate font and weight for each line, and a picker that renders every font name in its own typeface; auto-fit typography with 15% padding, 1.03 line height, and per-line size and nudge controls; one-click browser download and PNG clipboard copy; JPG, PNG, and WebP export with a file-size target; safe-area and grid overlays for the preview only; settings persist locally; five UI languages; installable as a PWA.
+What it does: four WebGL2 textures (mesh, flow, silk, and grain without circular ripple seeds); 37 palettes plus OKLCH palette generation from one or two seed colors; any Google Font, with CJK fonts loaded as unicode-range slices, a separate font and weight for each line, and a picker that renders every font name in its own typeface; auto-fit typography with 6% padding, 1.03 line height, and per-line size and nudge controls; one-click browser download and PNG clipboard copy; JPG, PNG, and WebP export with a file-size target; safe-area and grid overlays for the preview only; settings persist locally; five UI languages; installable as a PWA.
 
 Assets: brand graphics come from [dashboard-icons](https://github.com/homarr-labs/dashboard-icons) (Apache-2.0); every brand name and logo remains the trademark of its owner, and their inclusion implies no affiliation or endorsement.
 

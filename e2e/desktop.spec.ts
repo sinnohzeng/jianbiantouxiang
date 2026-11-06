@@ -207,15 +207,15 @@ test('版面组：改过的边距出现重置钮，点一下回默认', async ({
   await openGroup(page, 'text-group-layout')
 
   const padding = page.getByRole('slider', { name: '边距' })
-  await expect(padding).toHaveValue('0.15')
+  await expect(padding).toHaveValue('0.06')
   await padding.focus()
   await page.keyboard.press('ArrowRight')
-  await expect(padding).toHaveValue('0.155')
+  await expect(padding).toHaveValue('0.065')
 
   const reset = page.locator('[data-slot="text-group-layout"] [data-slot="slider-reset"]')
   await expect(reset).toHaveCount(1)
   await reset.click()
-  await expect(padding).toHaveValue('0.15')
+  await expect(padding).toHaveValue('0.06')
   await expect(
     page.locator('[data-slot="text-group-layout"] [data-slot="slider-reset"]'),
   ).toHaveCount(0)
@@ -664,4 +664,34 @@ test('炫技层背景挂着自己的 WebGL 画布，预览与导出都不受影�
   const stats = await probeStats(page)
   expect(stats.opaque).toBe(stats.width * stats.height)
   expect(stats.colors).toBeGreaterThan(16)
+})
+
+test('长文显示小头像可读性提示，缩短后消失', async ({ page }) => {
+  await openApp(page)
+  await page.locator('#avatar-text-first').fill('产品设计与工程研发团队')
+  await page.locator('#avatar-text-second').fill('Design Engineering')
+  const warning = page.getByText('48 像素小头像中文字偏小，建议缩短文字或移除第二行')
+  await expect(warning).toBeVisible()
+  await page.locator('#avatar-text-first').fill('研发')
+  await page.locator('#avatar-text-second').fill('')
+  await expect(warning).toHaveCount(0)
+})
+
+test('默认中文粗体在第三方网络不可用时仍从本站加载', async ({ page }) => {
+  await page.route('**/*', (route) =>
+    new URL(route.request().url()).hostname === 'localhost' ? route.continue() : route.abort(),
+  )
+  await page.goto(APP_URL)
+  await waitReady(page)
+  await expect
+    .poll(
+      () =>
+        page.evaluate(async () => {
+          const faces = await document.fonts.load('700 32px "Noto Sans SC"', '飞书效率先锋')
+          return faces.length > 0 && faces.every((f) => f.status === 'loaded')
+        }),
+      { timeout: PROBE_TIMEOUT_MS },
+    )
+    .toBe(true)
+  await expect(page.getByText(/Noto Sans SC没加载成功/)).toHaveCount(0)
 })

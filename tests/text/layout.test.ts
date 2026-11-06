@@ -163,7 +163,7 @@ describe('行级水平补偿互相独立', () => {
     it('排版结果带基准字号比例，与 line1.size 同一单位', () => {
       const result = layout(AUTO)
       // 四个 CJK 填满 800 宽的安全区 → 基准 200 px，短边 1000 → 比例 0.2
-      expect(result.fontRatio).toBeCloseTo(0.2, 2)
+      expect(result.fontRatio).toBeCloseTo(0.8 / Math.hypot(4, 1.8), 3)
       const manual = layout({
         ...AUTO,
         typography: { ...AUTO.typography, line1: { size: 0.3 } },
@@ -288,7 +288,7 @@ describe('行级垂直补偿互相独立', () => {
 describe('图标进栈', () => {
   const GRAPHIC = { width: 100, height: 100 }
 
-  it('有文字时图标占安全框顶部，文字在剩余区域垂直居中', () => {
+  it('图标和文字作为紧凑整体垂直居中', () => {
     const result = layout(
       {
         text: '产品设计部',
@@ -299,7 +299,7 @@ describe('图标进栈', () => {
     )
     const graphic = result.graphic!
     expect(graphic.height).toBeCloseTo(400)
-    expect(graphic.y).toBeCloseTo(100)
+    expect(graphic.y).toBeCloseTo(226)
     expect(graphic.x).toBeCloseTo(300)
     // 文字全部落在图标与留白之下
     const textTop = Math.min(...result.lines.map((line) => line.y - line.ascent))
@@ -409,4 +409,37 @@ describe('图标进栈', () => {
     expect(graphic.width).toBeLessThanOrEqual(800 + 1e-6)
     expect(graphic.width / graphic.height).toBeCloseTo(4)
   })
+})
+
+describe('自动图文整体与圆裁', () => {
+  it.each(['研发', '研发\nSTUDIO', '产品研发\n效率先锋'])(
+    '图标与 %s 紧凑居中并留在圆内',
+    (text) => {
+      const result = layout(
+        {
+          text,
+          typography: { padding: 0.06 },
+          layout: { icon: { source: 'builtin', id: 'hexagon' } },
+        },
+        { width: 100, height: 100 },
+      )
+      const rects = [
+        result.graphic!,
+        ...result.lines.map((l) => ({
+          x: l.x,
+          y: l.y - l.ascent,
+          width: l.width,
+          height: l.ascent + l.descent,
+        })),
+      ]
+      expect(
+        (Math.min(...rects.map((r) => r.y)) + Math.max(...rects.map((r) => r.y + r.height))) / 2,
+      ).toBeCloseTo(500)
+      for (const r of rects)
+        for (const x of [r.x, r.x + r.width])
+          for (const y of [r.y, r.y + r.height])
+            expect(Math.hypot(x - 500, y - 500)).toBeLessThanOrEqual(440.01)
+      expect(result.overflow).toBe(false)
+    },
+  )
 })

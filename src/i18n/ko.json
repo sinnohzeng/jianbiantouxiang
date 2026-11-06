@@ -229,6 +229,7 @@
   "preview.grid": "격자",
   "preview.label": "미리보기",
   "preview.longPressSave": "이미지를 길게 누르면 JPG로 저장됩니다",
+  "preview.smallText": "48px에서 글자가 작습니다. 문구를 줄이거나 두 번째 줄을 제거하세요.",
   "preview.overflow": "문구가 안전 영역을 벗어났습니다",
   "preview.safeArea": "안전 영역 안내선",
   "preview.webgl.desc": "정적 근사 표시로 대체했습니다. 실제 결과와는 차이가 있습니다",

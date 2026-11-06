@@ -229,6 +229,7 @@
   "preview.grid": "グリッド",
   "preview.label": "プレビュー",
   "preview.longPressSave": "画像を長押しすると JPG で保存できます",
+  "preview.smallText": "48 px では文字が小さくなります。文言を短くするか、2行目を削除してください。",
   "preview.overflow": "テキストがセーフエリアからはみ出しています",
   "preview.safeArea": "セーフエリア表示",
   "preview.webgl.desc": "静的な近似表示に切り替えました。実際の書き出しとは差が出ます",

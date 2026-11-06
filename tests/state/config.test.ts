@@ -35,11 +35,11 @@ describe('normalizeConfig 补默认', () => {
     expect(config.typography).toEqual(DEFAULT_CONFIG.typography)
   })
 
-  it('默认是方形、白色文字、15% 边距、1.03 行高与两行示例', () => {
+  it('默认是方形、白色文字、6% 边距、1.03 行高与两行示例', () => {
     expect(DEFAULT_CONFIG.canvas.shape).toBe('square')
     expect(DEFAULT_CONFIG.text).toBe('飞书\n效率先锋')
     expect(DEFAULT_CONFIG.typography.color).toBe('#ffffff')
-    expect(DEFAULT_CONFIG.typography.padding).toBe(0.15)
+    expect(DEFAULT_CONFIG.typography.padding).toBe(0.06)
     expect(DEFAULT_CONFIG.typography.lineHeight).toBe(1.03)
     expect(DEFAULT_CONFIG.typography.line1).toEqual({
       font: { family: 'Noto Sans SC', source: 'google', weight: 700 },
@@ -458,4 +458,9 @@ describe('nearestWeight', () => {
   it('字重表为空时原样返回目标', () => {
     expect(nearestWeight([], 700)).toBe(700)
   })
+})
+
+it('保留显式旧边距，仅缺失值使用新默认', () => {
+  expect(normalizeConfig({ typography: { padding: 0.15 } }).typography.padding).toBe(0.15)
+  expect(normalizeConfig({ typography: {} }).typography.padding).toBe(0.06)
 })

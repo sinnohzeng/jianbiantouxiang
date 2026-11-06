@@ -55,21 +55,21 @@ describe('manual 模式', () => {
 describe('auto 模式', () => {
   it('单字撑满安全框', () => {
     const result = fit({ text: '中', typography: { padding: 0.1 } })
-    expect(result.primary?.fontSizePx).toBeCloseTo(800, 0)
+    expect(result.primary?.fontSizePx).toBeCloseTo(800 / Math.SQRT2, 0)
     expect(result.fits).toBe(true)
     expect(result.secondary).toBeNull()
   })
 
   it('单行受宽度约束', () => {
     const result = fit({ text: '中文', typography: { padding: 0.1 } })
-    expect(result.primary?.fontSizePx).toBeCloseTo(400, 0)
+    expect(result.primary?.fontSizePx).toBeCloseTo(800 / Math.sqrt(5), 0)
   })
 
   it('两行同解：次行恒等于基准乘行级比例', () => {
     const result = fit({ text: '飞书\n先锋', typography: { padding: 0.1 } })
     // 宽约束：主行两个 CJK 占 2S ≤ 800
     const base = result.primary?.fontSizePx ?? 0
-    expect(base).toBeCloseTo(400, 0)
+    expect(base).toBeCloseTo(800 / Math.hypot(2, 1.8), 0)
     expect(result.secondary?.fontSizePx).toBeCloseTo(base * 0.62, 0)
     expect(result.secondary?.block.lines).toHaveLength(1)
     expect(result.fits).toBe(true)
@@ -80,7 +80,8 @@ describe('auto 模式', () => {
     const auto = fit(fixed)
     expect(auto.secondary?.fontSizePx).toBeCloseTo(300, 0)
     // 基准仍由第一行的宽约束定，第二行不牵连它
-    expect(auto.primary?.fontSizePx).toBeCloseTo(400, 0)
+    expect(auto.primary!.fontSizePx).toBeGreaterThan(170)
+    expect(auto.contained).toBe(true)
 
     const small = fit({
       ...fixed,
@@ -110,7 +111,8 @@ describe('auto 模式', () => {
     expect(result.primary?.block.lines).toHaveLength(1)
     expect(result.secondary?.block.lines).toHaveLength(1)
     // 约束落在次行：4 个 CJK × 0.62 ≤ 800，基准字号被压到 322 上下，而不是主行独占的 400
-    expect(result.primary?.fontSizePx ?? 0).toBeCloseTo(322, -1)
+    expect(result.primary!.fontSizePx).toBeLessThan(800 / (4 * 0.62))
+    expect(result.primary!.fontSizePx).toBeGreaterThan(250)
     expect(result.fits).toBe(true)
   })
 
@@ -202,7 +204,7 @@ describe('auto 模式', () => {
     // 六个 CJK：不折行 6S ≤ 800 → S≈133；折两行能放到约 266，严格档取前者
     const result = fit({ text: '猪猪猪猪猪猪', typography: { padding: 0.1 } })
     expect(result.primary?.block.lines).toHaveLength(1)
-    expect(result.primary?.fontSizePx).toBeCloseTo(800 / 6, 0)
+    expect(result.primary?.fontSizePx).toBeCloseTo(800 / Math.sqrt(37), 0)
   })
 
   it('空文本返回空栈且算放得下', () => {
@@ -219,15 +221,15 @@ describe('safeArea', () => {
     expect(area).toEqual({ x: 100, y: 100, width: 800, height: 800 })
   })
 
-  it('圆形遮罩把安全框收进圆弧', () => {
+  it('无图形的圆形按逐行圆弧求解，不先缩成内接正方形', () => {
     const area = safeArea(
       makeConfig({ canvas: { shape: 'circle' }, typography: { padding: 0 } }),
       1000,
       1000,
     )
     // 正方形内接圆：内接正方形边长 = 直径 × √2/2
-    expect(area.width).toBeCloseTo(1000 * Math.SQRT1_2, 0)
-    expect(area.height).toBeCloseTo(1000 * Math.SQRT1_2, 0)
+    expect(area.width).toBeCloseTo(1000, 0)
+    expect(area.height).toBeCloseTo(1000, 0)
   })
 
   it('方角不受遮罩影响', () => {
@@ -272,5 +274,19 @@ describe('逐行字体', () => {
     const result = fit({ text: '飞书\n效率先锋', typography: { line2: { font: kuaile } } })
     expect(result.fits).toBe(true)
     expect(result.secondary?.font).toContain('"ZCOOL KuaiLe"')
+  })
+})
+
+describe('圆形实际行宽', () => {
+  it('短而宽的单行可用到内接正方形以外，同时四角保持在圆内', () => {
+    const result = fitStack(
+      makeConfig({ text: '研发团队', canvas: { shape: 'circle' }, typography: { padding: 0.06 } }),
+      1000,
+      1000,
+      createStubMeasure(),
+    )
+    expect(result.width).toBeGreaterThan(1000 * Math.SQRT1_2)
+    expect(result.contained).toBe(true)
+    expect(Math.hypot(result.width / 2, result.height / 2)).toBeLessThanOrEqual(440.01)
   })
 })

@@ -229,6 +229,7 @@
   "preview.grid": "网格参考线",
   "preview.label": "预览",
   "preview.longPressSave": "长按图片可直接保存为 JPG",
+  "preview.smallText": "48 像素小头像中文字偏小，建议缩短文字或移除第二行",
   "preview.overflow": "文字超出安全区",
   "preview.safeArea": "安全区参考线",
   "preview.webgl.desc": "已回落到静态近似渐变，构图与真实效果会有出入",

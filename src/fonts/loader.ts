@@ -24,7 +24,7 @@ import {
 import { getUploadedFont } from './upload'
 
 /** 实际走的通道：google 与 mirror 是网络加载成功，system 是系统字体或回落，upload 是本地注册表。 */
-export type FontLoadVia = 'google' | 'mirror' | 'system' | 'upload'
+export type FontLoadVia = 'bundled' | 'google' | 'mirror' | 'system' | 'upload'
 
 export interface FontLoadResult {
   /** 输入的那款字体，界面据它的 source 选提示文案。 */
@@ -233,6 +233,28 @@ async function loadGoogleFont(
 ): Promise<FontLoadResult> {
   const { id, weight, version } = resolveEntry(font)
   const face = { family: font.family, weight }
+
+  // 默认字体来自本站，首次排版不依赖 Google/CDN 的可达性。
+  if (font.family === 'Noto Sans SC' && weight === 700) {
+    const local = await withTimeout(
+      (async () => {
+        await import('@fontsource/noto-sans-sc/700.css')
+        const set = globalThis.document?.fonts
+        if (
+          !set ||
+          !Array.from(set).some(
+            (f) => f.family.replace(/["']/g, '') === font.family && f.weight === '700',
+          )
+        )
+          return false
+        const faces = await set.load(fontString(face, PROBE_PX), sample)
+        return faces.length > 0 && faces.every((f) => f.status === 'loaded')
+      })(),
+      timeoutMs,
+      false,
+    )
+    if (local) return { font, via: 'bundled', ok: true }
+  }
 
   if (await activate([buildCss2Url(font.family, [weight])], face, sample, timeoutMs)) {
     return { font, via: 'google', ok: true }

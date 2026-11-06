@@ -182,7 +182,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
       offsetY: 0,
     },
     line2: { font: null, size: null, offsetX: 0, offsetY: 0 },
-    padding: 0.15,
+    padding: 0.06,
     lineHeight: 1.03,
     letterSpacing: 0,
     // 默认投影：比发光收敛，深浅背景都稳；强度 0.4 是白字与深字适配后的折中

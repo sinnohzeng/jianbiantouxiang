@@ -275,3 +275,5 @@
 | `update.action`                   | 刷新                                                                             |
 | `update.body`                     | 刷新页面就能用上新版本。                                                         |
 | `update.title`                    | 有新版本                                                                         |
+
+| `preview.smallText` | 48 像素小头像中文字偏小，建议缩短文字或移除第二行 |

@@ -1,3 +1,4 @@
+import { insideCircle } from './circle'
 import type { AvatarConfig } from '@/state/config'
 import { fitStack, safeArea, type ParagraphFit } from './fit'
 import { createCanvasMeasure, type MeasureFn } from './measure'
@@ -137,7 +138,7 @@ function placeGraphic(
 
 /**
  * v4 唯一的版式：一个纵向栈，自顶向下「图标（可选）→ 第一行（可选）→ 第二行（可选）」，
- * 水平居中，整体在可用区域里垂直居中。图标在时文字用掉图标与留白剩下的高度，
+ * 水平居中，整体在可用区域里垂直居中。图标在时文字用掉图标与留白剩下的高度，再紧凑居中整栈，
  * 求解器把两行一起缩到放得下为止，即「合理地缩小之后整体展示出来」。
  *
  * 行级补偿是纯位移：第 i 行只动第 i 行，其余行的像素位置不受影响，水平垂直两向都是这条。
@@ -164,7 +165,10 @@ export function layoutText(
 
   const fit = fitStack(config, width, height, m, textArea)
   const centerX = textArea.x + textArea.width / 2
-  const originY = textArea.y + (textArea.height - fit.height) / 2
+  const slack = (textArea.height - fit.height) / 2
+  // 图形和文字组成紧凑整体；不把未用完的文字区高度变成图文之间的大缝。
+  if (graphicRect && hasText) graphicRect.y += Math.max(0, slack)
+  const originY = textArea.y + slack
 
   const paragraphs: { paragraph: ParagraphFit; top: number }[] = []
   let cursor = originY
@@ -177,11 +181,12 @@ export function layoutText(
   }
 
   const lines: LayoutLine[] = []
+  const positioned: { line: LayoutLine; offset: { x: number; y: number } }[] = []
   for (const { paragraph, top } of paragraphs) {
     const offsetPx = paragraph.offset * width
     const offsetYPx = paragraph.offsetY * height
     paragraph.block.lines.forEach((line, index) => {
-      lines.push({
+      const lineLayout: LayoutLine = {
         text: line.text,
         x: centerX - line.width / 2 + offsetPx,
         y: top + (paragraph.block.baselines[index] ?? 0) + offsetYPx,
@@ -191,9 +196,68 @@ export function layoutText(
         font: line.font,
         fontSizePx: line.fontSizePx,
         letterSpacingPx: line.letterSpacingPx,
-      })
+      }
+      lines.push(lineLayout)
+      positioned.push({ line: lineLayout, offset: { x: offsetPx, y: offsetYPx } })
     })
   }
+
+  // Automatic avatars are designed for a circular crop even when exported square.
+  // Fit the complete logo/text stack, then reapply manual nudges unchanged.
+  let contentScale = 1
+  const circleSafe = config.typography.line1.size === null || config.canvas.shape === 'circle'
+  const radius = Math.min(width, height) * (0.5 - config.typography.padding)
+  const gx = safeBox.width * config.layout.graphicOffsetX
+  const gy = safeBox.height * config.layout.graphicOffsetY
+  if (
+    graphicRect &&
+    config.typography.line1.size === null &&
+    config.typography.line2.size === null
+  ) {
+    const rects = [
+      { ...graphicRect, x: graphicRect.x - gx, y: graphicRect.y - gy },
+      ...positioned.map(({ line: l, offset }) => ({
+        x: l.x - offset.x,
+        y: l.y - l.ascent - offset.y,
+        width: l.width,
+        height: l.ascent + l.descent,
+      })),
+    ]
+    const extent = Math.max(
+      ...rects.map((r) =>
+        Math.hypot(
+          Math.max(Math.abs(r.x - width / 2), Math.abs(r.x + r.width - width / 2)),
+          Math.max(Math.abs(r.y - height / 2), Math.abs(r.y + r.height - height / 2)),
+        ),
+      ),
+    )
+    contentScale = Math.min(1, radius / Math.max(1, extent))
+    graphicRect.x = width / 2 + (graphicRect.x - gx - width / 2) * contentScale + gx
+    graphicRect.y = height / 2 + (graphicRect.y - gy - height / 2) * contentScale + gy
+    graphicRect.width *= contentScale
+    graphicRect.height *= contentScale
+    for (const { line: l, offset } of positioned) {
+      l.x = width / 2 + (l.x - offset.x - width / 2) * contentScale + offset.x
+      l.y = height / 2 + (l.y - offset.y - height / 2) * contentScale + offset.y
+      l.fontSizePx *= contentScale
+      l.font = l.font.replace(/[-\d.]+px/, `${l.fontSizePx}px`)
+      l.width *= contentScale
+      l.ascent *= contentScale
+      l.descent *= contentScale
+      l.letterSpacingPx *= contentScale
+    }
+  }
+  const cropOverflow =
+    circleSafe &&
+    [
+      ...lines.map((l) => ({
+        x: l.x,
+        y: l.y - l.ascent,
+        width: l.width,
+        height: l.ascent + l.descent,
+      })),
+      ...(graphicRect ? [graphicRect] : []),
+    ].some((r) => !insideCircle(r, width / 2, height / 2, radius))
 
   let box: Rect
   if (lines.length > 0) {
@@ -208,15 +272,15 @@ export function layoutText(
 
   return {
     lines,
-    fontSizePx: fit.primary?.fontSizePx ?? 0,
-    fontRatio: fit.ratio,
-    lineHeightPx: fit.primary?.lineHeightPx ?? 0,
-    letterSpacingPx: fit.primary?.letterSpacingPx ?? 0,
-    font: fit.primary?.font ?? '',
+    fontSizePx: (fit.primary?.fontSizePx ?? 0) * contentScale,
+    fontRatio: fit.ratio * contentScale,
+    lineHeightPx: (fit.primary?.lineHeightPx ?? 0) * contentScale,
+    letterSpacingPx: (fit.primary?.letterSpacingPx ?? 0) * contentScale,
+    font: lines[0]?.font ?? '',
     box,
     safeBox,
     pill: pillOf(config, box, fit.primary?.fontSizePx ?? 0),
-    overflow: !fit.fits,
+    overflow: (contentScale === 1 && !fit.fits) || cropOverflow,
     graphic: graphicRect,
   }
 }
