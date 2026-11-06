@@ -15,7 +15,7 @@ import { useT } from '@/i18n'
 import {
   DEFAULT_CONFIG,
   FONT_SIZE_STEP,
-  LINE2_FOLLOW_SCALE,
+  line2FollowScale,
   LINE2_SIZE_MIN,
   LINE_OFFSET_MAX,
   LINE_SIZE_MAX,
@@ -116,12 +116,12 @@ export function TextSection() {
   const [first, second] = useMemo(() => twoLinesOf(config.text), [config.text])
   const hasFirst = first.trim() !== ''
   const hasSecond = second.trim() !== ''
-  // 第一行的当前基准：自动态是预览回写的解，定值态是配置值；第二行跟随时取它的 62%。
+  // 第一行的当前基准：自动态是预览回写的解，定值态是配置值；第二行按与排版相同的跟随规则显示。
   // 滑杆显示的自动值向下对齐到步进：值在网格上，轻触滑杆不会被取整到比求解上限更大的一档；
   // 钉住第二行时用未取整的基准，钉完的那一帧一个像素都不动
   const baseFontSize = line1.size ?? autoFontSize ?? LINE_SIZE_MIN
   const shownFontSize = line1.size === null ? snapFontRatio(baseFontSize) : baseFontSize
-  const followSize = clamp(baseFontSize * LINE2_FOLLOW_SCALE, LINE2_SIZE_MIN, LINE_SIZE_MAX)
+  const followSize = clamp(baseFontSize * line2FollowScale(config), LINE2_SIZE_MIN, LINE_SIZE_MAX)
 
   const effectOptions = TEXT_EFFECTS.map((effect) => ({
     value: effect,

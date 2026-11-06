@@ -60,7 +60,7 @@ node service/cli.mjs batch --config service/examples/batch.json --out-dir ./avat
 | format | png / jpg / webp |
 | strict | 默认 true；渲染退化、缺字或越过安全区即失败。false 可接受近似渲染/字体回退并返回告警 |
 
-Logo 在上，文字两行作为一个紧凑组，整个图文栈居中。无 Logo 时文字组本身居中。主行目标上限为边长 60%，副行不超过主行的 62%；真实字体量测后按宽高与圆弧约束缩放，不再用固定小字号限制短标题。圆形安全区逐个校验图文包围框，不把整张画布缩成内接正方形。6% 为本产品默认留白，不是飞书官方规范。
+Logo 在上，文字两行作为一个紧凑组，整个图文栈居中。无 Logo 时两行以相同字号共同适配，文字组本身居中。有 Logo 时主行目标上限为边长 60%，副行不超过主行的 62%；真实字体量测后按宽高与圆弧约束缩放，不再用固定小字号限制短标题。圆形安全区逐个校验图文包围框，不把整张画布缩成内接正方形。6% 为本产品默认留白，不是飞书官方规范。
 
 `displayChecks` 返回 24、32、48、64 px 下各行的墨迹高度；48 px 时任一行不足 6 px 发出 `text-small-at-48px:shorten-text-or-remove-second-line`，这是产品评估阈值而非可读性认证。长文本保持单行并明确告警，不以无限缩小冒充可读。需要方形布局可显式设 `safeShape: square`。
 
@@ -74,7 +74,7 @@ Logo 在上，文字两行作为一个紧凑组，整个图文栈居中。无 Lo
 - `background: auto` 只有在整张图不透明、近乎灰度、且完整边框一致近白/近黑时才移除背景。其余不透明情况不猜，保留并返回 `opaque-logo-background-preserved` 告警。
 - `background: transparent` 禁止移除背景；`white` / `black` 为调用方明确指定的底色。这两种操作会将同色内部区域一并当作背景，适合单色剪影；多色或含底板的品牌图请用 transparent + original。
 - PNG 最大 4096×4096 且不超过 1600 万像素；拒绝 APNG、压缩文字/ICC 元数据和损坏块，建议从绘图工具导出静态 PNG。
-- SVG 必须是带有效 viewBox 或数值尺寸的轮廓图。最多 2000 个元素、32 层嵌套、50:1 长宽比；禁止实体/DTD、脚本、事件、外部引用、image、use、text、样式表、动画、filter、mask 等。文字转轮廓，复杂滤镜先转 PNG。白名单重建后以 Blob 图片解码，绝不注入页面 DOM。SVG 先栅格化到最长边 1024；最终头像 2048 时 Logo 可能放大。
+- SVG 必须是带有效 viewBox 或数值尺寸的轮廓图。最多 2000 个元素、32 层嵌套、50:1 长宽比；禁止实体/DTD、脚本、事件、外部引用、image、use、text、复杂样式表、动画、filter、mask 等。文字转轮廓，复杂滤镜先转 PNG。白名单重建后以 Blob 图片解码，绝不注入页面 DOM。SVG 先栅格化到最长边 1024；最终头像 2048 时 Logo 可能放大。
 
 元数据包含 `safeShape`、`safeCircle`、`displayChecks`、`safeArea`、`logoBounds`、`textBounds`、逐行 `bounds`/baseline/fontSize、实际墨色、warnings、overflow、renderMode、输出字节数与 MIME。所有坐标单位为最终图片像素。非常宽或高的 Logo 会有比例告警，程序不会把它拉伸成方形。
 
@@ -185,3 +185,5 @@ node service/review.mjs /tmp/gradient-avatar-review
 ```
 
 `review.mjs` 输出十二组实际 PNG、metadata.json、review.html 和 contact-sheet.png。集成测试覆盖四种 shader、三种编码、黑/白/透明与反色 PNG 等效、恶意 SVG、PNG 尺寸炸弹、批量部分失败、独占输出、官方客户端两种传输、队列限额和超时清理。
+
+简单 SVG 类规则（如 Illustrator 的 fill-rule）会转为绘制属性后移除样式表，只允许类选择器和有限上色声明，不允许 URL、@import、滤镜或任意 CSS。PNG 中的 iCCP/iTXt/zTXt 块会在解码前剥离，并返回 `png-compressed-metadata-removed`；不会解压元数据。移除色彩配置可能影响彩色 Logo 的色彩管理，黑白标识不受该色彩差异影响。

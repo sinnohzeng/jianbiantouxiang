@@ -162,8 +162,8 @@ describe('行级水平补偿互相独立', () => {
 
     it('排版结果带基准字号比例，与 line1.size 同一单位', () => {
       const result = layout(AUTO)
-      // 四个 CJK 填满 800 宽的安全区 → 基准 200 px，短边 1000 → 比例 0.2
-      expect(result.fontRatio).toBeCloseTo(0.8 / Math.hypot(4, 1.8), 3)
+      // 两行同字号，四字宽与两行整体高度同时受圆裁约束。
+      expect(result.fontRatio).toBeCloseTo(0.8 / Math.hypot(4, 2.18), 3)
       const manual = layout({
         ...AUTO,
         typography: { ...AUTO.typography, line1: { size: 0.3 } },

@@ -1,4 +1,5 @@
 import { sanitizeSvg } from '@/graphics/upload'
+import { inlineSafeClassStyles } from '@/graphics/svg-style'
 import { createCanvas, get2d, releaseCanvas } from '@/lib/canvas'
 import type { Graphic } from '@/graphics/types'
 import type { LogoInput } from './schema'
@@ -15,7 +16,7 @@ export function safeLogoSvg(raw: string): string {
     for (let p: Element | null = node; p; p = p.parentElement)
       if (++depth > 32) throw new Error('SVG nesting exceeds 32')
     if (
-      /^(script|foreignObject|image|use|filter|mask|style|animate.*|set|text|tspan)$/i.test(
+      /^(script|foreignObject|image|use|filter|mask|animate.*|set|text|tspan)$/i.test(
         node.localName,
       )
     )
@@ -31,7 +32,11 @@ export function safeLogoSvg(raw: string): string {
           throw new Error('SVG external paint reference')
     }
   }
-  const safe = new DOMParser().parseFromString(sanitizeSvg(raw), 'image/svg+xml')
+  inlineSafeClassStyles(doc)
+  const safe = new DOMParser().parseFromString(
+    sanitizeSvg(new XMLSerializer().serializeToString(doc)),
+    'image/svg+xml',
+  )
   const root = safe.documentElement
   let box = root
     .getAttribute('viewBox')
@@ -136,6 +141,7 @@ export async function prepareLogo(
   const bytes = Uint8Array.from(atob(input.data), (c) => c.charCodeAt(0))
   if (bytes.length > 512 * 1024) throw new Error('Logo exceeds 512 KiB')
   let blob: Blob
+  let strippedMetadata = false
   if (input.mimeType === 'image/svg+xml') {
     blob = new Blob([safeLogoSvg(new TextDecoder('utf-8', { fatal: true }).decode(bytes))], {
       type: input.mimeType,
@@ -152,16 +158,18 @@ export async function prepareLogo(
       h = view.getUint32(20)
     if (!w || !h || w > 4096 || h > 4096 || w * h > 16_000_000)
       throw new Error('PNG dimensions exceed limit')
+    const chunks: Uint8Array<ArrayBuffer>[] = [bytes.slice(0, 8)]
     let at = 8,
       ended = false
     while (at + 12 <= bytes.length) {
       const length = view.getUint32(at),
         name = new TextDecoder().decode(bytes.slice(at + 4, at + 8))
       if (length > bytes.length - at - 12) throw new Error('Invalid PNG chunk length')
-      if (['acTL', 'fcTL', 'fdAT', 'zTXt', 'iTXt', 'iCCP'].includes(name))
-        throw new Error(
-          'Animated PNG or compressed PNG metadata is unsupported; re-export a static PNG',
-        )
+      if (['acTL', 'fcTL', 'fdAT'].includes(name))
+        throw new Error('Animated PNG is unsupported; re-export a static PNG')
+      // 不解压色彩配置/文字元数据；删除这些非像素块后再交给浏览器解码。
+      if (['zTXt', 'iTXt', 'iCCP'].includes(name)) strippedMetadata = true
+      else chunks.push(bytes.slice(at, at + length + 12))
       at += length + 12
       if (name === 'IEND') {
         ended = true
@@ -169,7 +177,7 @@ export async function prepareLogo(
       }
     }
     if (!ended || at !== bytes.length) throw new Error('Invalid PNG chunk stream')
-    blob = new Blob([bytes], { type: input.mimeType })
+    blob = new Blob(chunks, { type: input.mimeType })
   }
   const url = URL.createObjectURL(blob)
   const canvas = createCanvas(1, 1)
@@ -199,6 +207,7 @@ export async function prepareLogo(
     return {
       graphic: { kind: 'image', image: output, width: output.width, height: output.height },
       warnings: [
+        ...(strippedMetadata ? ['png-compressed-metadata-removed'] : []),
         ...(crop.removed ? [`logo-background-removed:${crop.removed}`] : []),
         ...(crop.uncertainBackground
           ? ['opaque-logo-background-preserved:specify-background-if-needed']

@@ -327,7 +327,7 @@ describe('挑选栏 · 数值行', () => {
     expect(Number(ranges(row)[0]!.value)).toBeCloseTo(0.33)
   })
 
-  it('第二行字号紧跟在第二行输入之后：默认跟随第一行的 62%，一拖就是自己的短边比例', () => {
+  it('第二行字号紧跟在第二行输入之后：无 Logo 自动档与第一行等大，一拖就是自己的短边比例', () => {
     useAvatarStore.setState({ ui: { ...useAvatarStore.getState().ui, autoFontSize: 0.5 } })
     const { container } = mount(<PickColumn />)
     const row = group(container, 'text-line2-size')
@@ -336,7 +336,7 @@ describe('挑选栏 · 数值行', () => {
 
     const autoButton = row.querySelector<HTMLButtonElement>('[data-slot="slider-auto"]')
     expect(autoButton?.getAttribute('aria-pressed')).toBe('true')
-    expect(Number(ranges(row)[0]!.value)).toBeCloseTo(0.31)
+    expect(Number(ranges(row)[0]!.value)).toBeCloseTo(0.5)
 
     fireEvent.change(ranges(row)[0]!, { target: { value: '0.3' } })
     expect(config().typography.line2.size).toBeCloseTo(0.3)
@@ -355,11 +355,11 @@ describe('挑选栏 · 数值行', () => {
 
     fireEvent.change(ranges(group(container, 'text-font-size'))[0]!, { target: { value: '0.7' } })
     expect(config().typography.line1.size).toBeCloseTo(0.7)
-    // 拖之前第二行跟随 0.5 × 0.62，拖完仍是这个数
-    expect(config().typography.line2.size).toBeCloseTo(0.31)
+    // 拖之前第二行与第一行等大，为 0.5，拖完仍是这个数
+    expect(config().typography.line2.size).toBeCloseTo(0.5)
 
     fireEvent.change(ranges(group(container, 'text-font-size'))[0]!, { target: { value: '0.2' } })
-    expect(config().typography.line2.size).toBeCloseTo(0.31)
+    expect(config().typography.line2.size).toBeCloseTo(0.5)
   })
 
   it('位置微调组展开后是四行：两行各自的水平与垂直', () => {

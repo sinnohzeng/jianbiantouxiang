@@ -65,6 +65,7 @@ function paintMono(
   image: CanvasImageSource,
   rect: Rect,
   color: string,
+  sourceRect?: Rect,
 ): boolean {
   const width = Math.ceil(rect.width)
   const height = Math.ceil(rect.height)
@@ -73,7 +74,19 @@ function paintMono(
   try {
     const off = offscreen.getContext('2d')
     if (!off) return false
-    off.drawImage(image, 0, 0, width, height)
+    if (sourceRect)
+      off.drawImage(
+        image,
+        sourceRect.x,
+        sourceRect.y,
+        sourceRect.width,
+        sourceRect.height,
+        0,
+        0,
+        width,
+        height,
+      )
+    else off.drawImage(image, 0, 0, width, height)
     off.globalCompositeOperation = 'source-in'
     off.fillStyle = color
     off.fillRect(0, 0, width, height)
@@ -100,6 +113,24 @@ export function drawGraphic(
   // 单色只认品牌来源：界面上那个分段控件也只在品牌来源时出现，
   // 换到 emoji 或上传图片之后这一位仍留着旧值，不能拿它去压平用户自己的图
   const icon = config.layout.icon
-  if (icon.source === 'brand' && icon.mono && paintMono(ctx, graphic.image, rect, color)) return
-  ctx.drawImage(graphic.image, rect.x, rect.y, rect.width, rect.height)
+  if (
+    icon.source === 'brand' &&
+    icon.mono &&
+    paintMono(ctx, graphic.image, rect, color, graphic.sourceRect)
+  )
+    return
+  const source = graphic.sourceRect
+  if (source)
+    ctx.drawImage(
+      graphic.image,
+      source.x,
+      source.y,
+      source.width,
+      source.height,
+      rect.x,
+      rect.y,
+      rect.width,
+      rect.height,
+    )
+  else ctx.drawImage(graphic.image, rect.x, rect.y, rect.width, rect.height)
 }

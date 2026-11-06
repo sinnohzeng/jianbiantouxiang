@@ -76,7 +76,7 @@ describe('style 属性按声明过一层', () => {
     expect(clean).not.toContain('style=')
   })
 
-  it('style 元素仍然整支剥掉，类规则不生效', () => {
+  it('简单上色类先转属性，再删除 style 元素', () => {
     const clean = sanitizeSvg(
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
         <defs><style>.a{fill:#123456}</style></defs>
@@ -84,7 +84,7 @@ describe('style 属性按声明过一层', () => {
       </svg>`,
     )
     expect(clean).not.toContain('<style')
-    expect(clean).not.toContain('#123456')
+    expect(clean).toContain('fill="#123456"')
   })
 
   it('内部 url 引用的渐变填色留下', () => {

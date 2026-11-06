@@ -81,6 +81,34 @@ test(
         images.every((image) => image === images[0]),
         'black, white, transparent and opaque logos normalize identically',
       )
+      // 压缩元数据从 PNG 中剥离，不进入解码器；像素输出保持一致。
+      const plain = logoPng({ white: false, transparent: true })
+      const metadata = Buffer.alloc(16)
+      metadata.writeUInt32BE(4, 0)
+      metadata.write('iCCP', 4)
+      metadata.writeUInt32BE(0xffffffff, 8)
+      const withMetadata = Buffer.concat([plain.subarray(0, 33), metadata, plain.subarray(33)])
+      const normalized = await renderer.run({
+        ...request,
+        logo: {
+          mimeType: 'image/png',
+          data: withMetadata.toString('base64'),
+        },
+      })
+      assert.equal(normalized.data, images[2])
+      assert.ok(normalized.metadata.warnings.includes('png-compressed-metadata-removed'))
+      metadata.write('acTL', 4)
+      const animated = Buffer.concat([plain.subarray(0, 33), metadata, plain.subarray(33)])
+      await assert.rejects(
+        renderer.run({
+          ...request,
+          logo: {
+            mimeType: 'image/png',
+            data: animated.toString('base64'),
+          },
+        }),
+        /Animated PNG/,
+      )
       const bomb = logoPng()
       bomb.writeUInt32BE(100000, 16)
       await assert.rejects(

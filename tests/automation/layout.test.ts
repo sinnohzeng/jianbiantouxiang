@@ -50,12 +50,12 @@ describe('automation contract and layout', () => {
       }
     }
   })
-  it('shrinks a long line without wrapping and preserves title/subtitle hierarchy', () => {
+  it('shrinks text-only lines together without wrapping', () => {
     const short = badgeLayout(1024, 0.14, 0.38, ['A', 'Second'], null, measure)
     const long = badgeLayout(1024, 0.14, 0.38, ['W'.repeat(80), 'Second'], null, measure)
     expect(long.lines).toHaveLength(2)
     expect(long.lines[0]?.fontSizePx).toBeLessThan(short.lines[0]?.fontSizePx ?? 0)
-    expect(long.lines[1]?.fontSizePx).toBeLessThanOrEqual((long.lines[0]?.fontSizePx ?? 0) * 0.62)
+    expect(long.lines[1]?.fontSizePx).toBeCloseTo(long.lines[0]?.fontSizePx ?? 0)
     expect(long.overflow).toBe(false)
   })
   it('centers logo-only output and supports a second line alone', () => {
@@ -71,7 +71,7 @@ describe('圆裁与小头像版式', () => {
     (size) => {
       const l = badgeLayout(size, 0.06, 0.38, ['研发', 'STUDIO'], null, measure)
       expect(l.box.y + l.box.height / 2).toBeCloseTo(size / 2)
-      expect(l.lines[0]!.fontSizePx / size).toBeGreaterThan(0.2)
+      expect(l.lines[0]!.fontSizePx / size).toBeGreaterThan(0.17)
       expect(l.overflow).toBe(false)
     },
   )
@@ -120,4 +120,19 @@ it('单字无 Logo 能放大而不是停在标题固定小字号', () => {
   const l = badgeLayout(512, 0.06, 0.38, ['研', ''], null, measure)
   expect(l.lines[0]!.fontSizePx / 512).toBeGreaterThan(0.5)
   expect(l.overflow).toBe(false)
+})
+
+it('纯文字北区与连接器同字号，Logo 双行保留主副层级', () => {
+  const text = badgeLayout(512, 0.06, 0.38, ['北区', '连接器'], null, measure)
+  expect(text.lines[0]?.fontSizePx).toBeCloseTo(text.lines[1]?.fontSizePx ?? 0)
+  expect((text.lines[1]?.width ?? 0) / 512).toBeGreaterThan(0.6)
+  const logo = badgeLayout(
+    512,
+    0.06,
+    0.38,
+    ['飞书对接', '外部群'],
+    { width: 100, height: 20 },
+    measure,
+  )
+  expect(logo.lines[1]?.fontSizePx).toBeCloseTo((logo.lines[0]?.fontSizePx ?? 0) * 0.62)
 })
