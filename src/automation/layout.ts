@@ -9,7 +9,7 @@ export interface InkMetrics {
   ascent: number
   descent: number
 }
-export type InkMeasure = (text: string, size: number) => InkMetrics
+export type InkMeasure = (text: string, size: number, slot?: number) => InkMetrics
 
 /** Single physical line per field, predictable caps, centered visible ink (not advance width). */
 export function badgeLayout(
@@ -22,7 +22,12 @@ export function badgeLayout(
   safeShape: 'circle' | 'square' = 'circle',
   family = 'Noto Sans SC',
   weight = 700,
+  secondaryFamily = family,
+  secondaryWeight = weight,
 ): TextLayout {
+  const slots = new Map<LayoutLine, number>()
+  const fontFor = (slot: number, size: number) =>
+    `${slot === 1 ? secondaryWeight : weight} ${size}px "${slot === 1 ? secondaryFamily : family}"`
   const inset = size * padding
   const safeBox = { x: inset, y: inset, width: size - 2 * inset, height: size - 2 * inset }
   const logoGap = graphic ? brandGap(size, graphic.width / graphic.height) : 0
@@ -46,18 +51,18 @@ export function badgeLayout(
   texts.forEach((text, index) => {
     if (!text) return
     let fontSize = size * (index === 0 || !texts[0] || !graphic ? 0.6 : 0.6 * AUTO_LOGO_LINE2_SCALE)
-    let metrics = measure(text, fontSize)
+    let metrics = measure(text, fontSize, index)
     if (metrics.left + metrics.right > inkWidth) {
       let lo = 0,
         hi = fontSize
       for (let i = 0; i < 16; i++) {
         const mid = (lo + hi) / 2,
-          m = measure(text, mid)
+          m = measure(text, mid, index)
         if (m.left + m.right <= inkWidth) lo = mid
         else hi = mid
       }
       fontSize = lo
-      metrics = measure(text, fontSize)
+      metrics = measure(text, fontSize, index)
     }
     lines.push({
       text,
@@ -66,10 +71,12 @@ export function badgeLayout(
       width: metrics.left + metrics.right,
       ascent: metrics.ascent,
       descent: metrics.descent,
-      font: `${weight} ${fontSize}px "${family}"`,
+      font: fontFor(index, fontSize),
       fontSizePx: fontSize,
       letterSpacingPx: 0,
     })
+    const added = lines[lines.length - 1]
+    if (added) slots.set(added, index)
   })
   const first = lines[0],
     second = lines[1]
@@ -79,10 +86,10 @@ export function badgeLayout(
       const fontSize = graphic
         ? Math.min(second.fontSizePx, first.fontSizePx * AUTO_LOGO_LINE2_SCALE)
         : sharedSize
-      const m = measure(line.text, fontSize)
+      const m = measure(line.text, fontSize, slots.get(line))
       Object.assign(line, {
         fontSizePx: fontSize,
-        font: `${weight} ${fontSize}px "${family}"`,
+        font: fontFor(slots.get(line) ?? 0, fontSize),
         x: (size + m.left - m.right) / 2,
         width: m.left + m.right,
         ascent: m.ascent,
@@ -97,9 +104,9 @@ export function badgeLayout(
     const factor = ((safeBox.height - size * 0.02 - fixed) / (stackHeight() - fixed)) * 0.98
     for (const line of lines) {
       line.fontSizePx *= factor
-      const m = measure(line.text, line.fontSizePx)
+      const m = measure(line.text, line.fontSizePx, slots.get(line))
       Object.assign(line, {
-        font: `${weight} ${line.fontSizePx}px "${family}"`,
+        font: fontFor(slots.get(line) ?? 0, line.fontSizePx),
         x: (size + m.left - m.right) / 2,
         width: m.left + m.right,
         ascent: m.ascent,
@@ -122,7 +129,7 @@ export function badgeLayout(
   }
   const cropFits = () => {
     const rects = lines.map((l) => {
-      const m = measure(l.text, l.fontSizePx)
+      const m = measure(l.text, l.fontSizePx, slots.get(l))
       return { x: l.x - m.left, y: l.y - l.ascent, width: l.width, height: l.ascent + l.descent }
     })
     if (graphicRect) rects.push(graphicRect)
@@ -144,13 +151,13 @@ export function badgeLayout(
       }
       for (const { line: l, fontSize } of originals) {
         l.fontSizePx = fontSize * factor
-        const m = measure(l.text, l.fontSizePx)
+        const m = measure(l.text, l.fontSizePx, slots.get(l))
         Object.assign(l, {
           x: (size + m.left - m.right) / 2,
           width: m.left + m.right,
           ascent: m.ascent,
           descent: m.descent,
-          font: `${weight} ${l.fontSizePx}px "${family}"`,
+          font: fontFor(slots.get(l) ?? 0, l.fontSizePx),
         })
       }
       settle()
@@ -166,7 +173,7 @@ export function badgeLayout(
     scaleTo(low)
   }
   const boxes = lines.map((l) => {
-    const m = measure(l.text, l.fontSizePx)
+    const m = measure(l.text, l.fontSizePx, slots.get(l))
     return { x: l.x - m.left, y: l.y - l.ascent, width: l.width, height: l.ascent + l.descent }
   })
   const box = boxes.length ? union(boxes) : { x: size / 2, y: size / 2, width: 0, height: 0 }

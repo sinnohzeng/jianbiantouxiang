@@ -67,7 +67,13 @@ beforeAll(() => {
 })
 
 function mount(node: ReactElement) {
-  return render(<I18nProvider>{node}</I18nProvider>)
+  const result = render(<I18nProvider>{node}</I18nProvider>)
+  // Existing feature checks exercise the expanded details; collapsed defaults have a separate test.
+  const trigger = result.container.querySelector<HTMLButtonElement>(
+    '[data-slot="text-details"] [data-slot="collapsible-trigger"]',
+  )
+  if (trigger) fireEvent.click(trigger)
+  return result
 }
 
 function config(): AvatarConfig {
@@ -362,28 +368,32 @@ describe('挑选栏 · 数值行', () => {
     expect(config().typography.line2.size).toBeCloseTo(0.5)
   })
 
-  it('位置微调组展开后是四行：两行各自的水平与垂直', () => {
+  it('上下位置常显、左右位置展开，两行分别修改', () => {
     const { container } = mount(<PickColumn />)
     const offset = openGroup(container, 'text-group-offset')
     const list = ranges(offset)
-    expect(list).toHaveLength(4)
+    expect(list).toHaveLength(2)
 
     fireEvent.change(list[0]!, { target: { value: '0.02' } })
-    fireEvent.change(list[1]!, { target: { value: '0.01' } })
-    fireEvent.change(list[2]!, { target: { value: '-0.03' } })
-    fireEvent.change(list[3]!, { target: { value: '-0.02' } })
+    fireEvent.change(ranges(group(container, 'text-line1-offset-y'))[0]!, {
+      target: { value: '0.01' },
+    })
+    fireEvent.change(list[1]!, { target: { value: '-0.03' } })
+    fireEvent.change(ranges(group(container, 'text-line2-offset-y'))[0]!, {
+      target: { value: '-0.02' },
+    })
     const { line1, line2 } = config().typography
     expect([line1.offsetX, line1.offsetY]).toEqual([0.02, 0.01])
     expect([line2.offsetX, line2.offsetY]).toEqual([-0.03, -0.02])
   })
 
-  it('只有一行时：没有第二行字号，位置微调只剩第一行那两条', () => {
+  it('只有一行时：没有第二行字号，左右位置只剩第一行一条', () => {
     useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, text: '暴富' } })
     const { container } = mount(<PickColumn />)
     expect(container.querySelector('[data-slot="text-line2-size"]')).toBeNull()
 
     const offset = openGroup(container, 'text-group-offset')
-    expect(ranges(offset)).toHaveLength(2)
+    expect(ranges(offset)).toHaveLength(1)
     fireEvent.change(ranges(offset)[0]!, { target: { value: '0.05' } })
     expect(config().typography.line1.offsetX).toBeCloseTo(0.05)
   })
@@ -394,7 +404,7 @@ describe('挑选栏 · 数值行', () => {
     expect(ranges(params)).toHaveLength(6)
   })
 
-  it('图标大小常显，位置微调展开后再多两条；没有图标时一条都没有', () => {
+  it('图标大小和上下位置常显，左右位置展开；没有图标时不显示', () => {
     const { container: empty } = mount(<PickColumn />)
     const emptyCard = empty.querySelector('[data-slot="graphic-pick"]')!.closest('section')!
     expect(ranges(emptyCard)).toHaveLength(0)
@@ -412,8 +422,8 @@ describe('挑选栏 · 数值行', () => {
     })
     const { container } = mount(<PickColumn />)
     const card = container.querySelector('[data-slot="graphic-picker"]')!.closest('section')!
-    expect(ranges(card)).toHaveLength(1)
-    expect(ranges(openGroup(container, 'graphic-group-offset'))).toHaveLength(2)
+    expect(ranges(card)).toHaveLength(2)
+    expect(ranges(openGroup(container, 'graphic-group-offset'))).toHaveLength(1)
     expect(ranges(card)).toHaveLength(3)
   })
 
@@ -490,30 +500,32 @@ describe('挑选栏 · 逐行字体', () => {
     expect(single.container.querySelectorAll('[data-slot="font-trigger"]')).toHaveLength(1)
   })
 
-  it('字体排在自己那一行输入之后、字号之前', () => {
+  it('字体放在字号及上下位置之后', () => {
     const { container } = mount(<PickColumn />)
     const after = (a: Node, b: Node) =>
       (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
     expect(after(firstLine(container), fontField(container, 1))).toBe(true)
-    expect(after(fontField(container, 1), group(container, 'text-font-size'))).toBe(true)
+    expect(after(group(container, 'text-line1-offset-y'), fontField(container, 1))).toBe(true)
     expect(after(secondLine(container), fontField(container, 2))).toBe(true)
-    expect(after(fontField(container, 2), group(container, 'text-line2-size'))).toBe(true)
+    expect(after(group(container, 'text-line2-offset-y'), fontField(container, 2))).toBe(true)
   })
 
-  it('第二行默认跟随：跟随钮按下，按钮写第一行那款且用次要前景色', () => {
+  it('第二行显式跟随：跟随钮按下，按钮写第一行那款且用次要前景色', () => {
+    useAvatarStore.setState({ config: withLine2(null) })
     const { container } = mount(<PickColumn />)
     const follow = fontField(container, 2).querySelector('[data-slot="font-follow"]')!
     expect(follow.getAttribute('aria-pressed')).toBe('true')
 
-    const trigger = screen.getByRole('button', { name: 'Line 2 font Noto Sans SC' })
+    const trigger = screen.getByRole('button', { name: 'Line 2 font Noto Serif SC' })
     expect(trigger).toBe(fontTrigger(container, 2))
-    expect(trigger.getAttribute('title')).toBe('Noto Sans SC')
+    expect(trigger.getAttribute('title')).toBe('Noto Serif SC')
     const name = document.getElementById(trigger.getAttribute('aria-labelledby')!.split(' ')[1]!)!
     expect(name.className).toContain('text-muted-foreground')
-    expect(fontTrigger(container, 1).textContent).toContain('Noto Sans SC')
+    expect(fontTrigger(container, 1).textContent).toContain('Noto Serif SC')
   })
 
   it('第一行字重下拉写第一行，第二行仍跟随', async () => {
+    useAvatarStore.setState({ config: withLine2(null) })
     const { container } = mount(<PickColumn />)
     const options = await openWeights(container, 1)
     expect(options.map((option) => option.textContent)).toContain('Regular400')
@@ -527,7 +539,7 @@ describe('挑选栏 · 逐行字体', () => {
     await openWeights(container, 2)
     pickOption(/Regular/)
     expect(config().typography.line2.font).toEqual({
-      ...DEFAULT_CONFIG.typography.line1.font,
+      ...DEFAULT_CONFIG.typography.line2.font,
       weight: 400,
     })
     expect(config().typography.line1.font).toEqual(DEFAULT_CONFIG.typography.line1.font)
@@ -645,10 +657,11 @@ describe('FontPickerPanel', () => {
   })
 
   it('第二行跟随时点打勾那一项，只关弹层，第二行仍跟随，撤销栈不变', () => {
+    useAvatarStore.setState({ config: withLine2(null) })
     useAvatarStore.setState({ past: [] })
     const onDone = panel(2)
     const checked = document.querySelector<HTMLElement>('[cmdk-item][data-checked="true"]')!
-    expect(checked.textContent).toContain('Noto Sans SC')
+    expect(checked.textContent).toContain('Noto Serif SC')
     fireEvent.click(checked)
     expect(onDone).toHaveBeenCalledTimes(1)
     expect(config().typography.line2.font).toBeNull()
@@ -669,6 +682,7 @@ describe('FontPickerPanel', () => {
   })
 
   it('第一行的选择器写第一行，跟随中的第二行仍是 null', () => {
+    useAvatarStore.setState({ config: withLine2(null) })
     panel(1)
     fireEvent.click(screen.getAllByRole('option', { name: 'Inter' })[0]!)
     expect(config().typography.line1.font.family).toBe('Inter')
@@ -824,7 +838,7 @@ describe('字体名预览', () => {
     const trigger = fontTrigger(container, 1)
     const name = document.getElementById(trigger.getAttribute('aria-labelledby')!.split(' ')[1]!)!
     await waitFor(() => expect(name.getAttribute('data-preview')).toBe('ready'))
-    expect(name.style.fontFamily.startsWith('"fp-noto-sans-sc"')).toBe(true)
+    expect(name.style.fontFamily.startsWith('"fp-noto-serif-sc"')).toBe(true)
     expect(name.lang).toBe('en')
   })
 })
@@ -980,7 +994,7 @@ describe('PreviewStage 的字体加载', () => {
     // 第二行没有文字，钉住的字体不加载
     await waitFor(() => expect(loader.loadFontsForConfig).toHaveBeenCalledTimes(1))
     const first = loader.loadFontsForConfig.mock.calls[0]![0]
-    expect(fontJobs(first).map((job) => job.font.family)).toEqual(['Noto Sans SC'])
+    expect(fontJobs(first).map((job) => job.font.family)).toEqual(['Noto Serif SC'])
 
     act(() => {
       useAvatarStore.getState().setConfig({ text: '飞书\n先锋' })
@@ -989,5 +1003,32 @@ describe('PreviewStage 的字体加载', () => {
     const second = loader.loadFontsForConfig.mock.calls[1]![0]
     expect(fontJobs(second).map((job) => job.font)).toContainEqual(kuaile)
     getContext.mockRestore()
+  })
+})
+
+describe('常用排版优先', () => {
+  it('默认收起字体，大小与上下位置常显，恢复自动保留内容', () => {
+    const { container } = render(
+      <I18nProvider>
+        <PickColumn />
+      </I18nProvider>,
+    )
+    const details = container.querySelector(
+      '[data-slot="text-details"] [data-slot="collapsible-trigger"]',
+    )!
+    expect(details.getAttribute('aria-expanded')).toBe('false')
+    expect(container.querySelector('[data-slot="font-trigger"]')).toBeNull()
+    expect(ranges(group(container, 'text-line1-offset-y'))).toHaveLength(1)
+    expect(ranges(group(container, 'text-line2-offset-y'))).toHaveLength(1)
+    fireEvent.change(ranges(group(container, 'text-line1-offset-y'))[0]!, {
+      target: { value: '0.05' },
+    })
+    const before = config()
+    fireEvent.click(container.querySelector('[data-slot="restore-auto-layout"]')!)
+    expect(config().typography.line1.offsetY).toBe(0)
+    expect(config().typography.line1.size).toBeNull()
+    expect(config().text).toBe(before.text)
+    expect(config().typography.line1.font).toEqual(before.typography.line1.font)
+    expect(config().typography.line2.font).toEqual(before.typography.line2.font)
   })
 })

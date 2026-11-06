@@ -35,14 +35,16 @@ test(
         assert.equal(off.metadata.optical.mode, 'off')
         assert.equal(on.metadata.optical.mode, 'bounded')
         assert.ok(on.metadata.font.includes(font === 'serif' ? 'Serif' : 'Sans'))
-        assert.equal(on.metadata.lines[0].fontSize, off.metadata.lines[0].fontSize)
+        assert.ok(
+          Math.abs(on.metadata.lines[0].fontSize / off.metadata.lines[0].fontSize - 1) < 0.04,
+        )
         assert.ok(Math.abs(on.metadata.optical.groupShiftY) <= 512 * 0.015)
         for (const [i, shift] of on.metadata.optical.lineShifts.entries())
           assert.ok(Math.abs(shift) <= on.metadata.lines[i].fontSize * 0.02 + 0.001)
         for (const l of on.metadata.lines)
           for (const x of [l.bounds.x, l.bounds.x + l.bounds.width])
             for (const y of [l.bounds.y, l.bounds.y + l.bounds.height])
-              assert.ok(Math.hypot(x - 256, y - 256) <= 512 * 0.44 + 0.1)
+              assert.ok(Math.hypot(x - 256, y - 256) <= on.metadata.safeCircle.radius + 0.1)
       }
       const wideLogo = {
         mimeType: 'image/svg+xml',
@@ -82,7 +84,28 @@ test(
         for (const r of [on.logoBounds, ...on.lines.map((l) => l.bounds)])
           for (const x of [r.x, r.x + r.width])
             for (const y of [r.y, r.y + r.height])
-              assert.ok(Math.hypot(x - 256, y - 256) <= 512 * 0.44 + 0.1)
+              assert.ok(Math.hypot(x - 256, y - 256) <= on.safeCircle.radius + 0.1)
+      }
+      for (const title of ['飞', '大讲堂内部', '飞书大讲堂', '东黎羊绒项目协同']) {
+        const body = { line1: title, line2: '东黎羊绒', preset: 'dongli-symbol-white', size: 512 }
+        const old = (await renderer.run({ ...body, padding: 0.06 }, { validateOnly: true }))
+          .metadata
+        const next = (await renderer.run(body, { validateOnly: true })).metadata
+        assert.ok(next.fillScale >= 1 && next.fillScale <= 1.16)
+        assert.ok(next.lines[0].fontSize >= old.lines[0].fontSize)
+        assert.ok(next.lines[0].font.includes('Serif'))
+        assert.ok(next.lines[1].font.includes('Sans'))
+        assert.ok(
+          Math.abs(
+            next.lines[1].fontSize / next.lines[0].fontSize -
+              old.lines[1].fontSize / old.lines[0].fontSize,
+          ) < 0.001,
+        )
+        assert.equal(next.overflow, false)
+        for (const r of [next.logoBounds, ...next.lines.map((l) => l.bounds)])
+          for (const x of [r.x, r.x + r.width])
+            for (const y of [r.y, r.y + r.height])
+              assert.ok(Math.hypot(x - 256, y - 256) <= next.safeCircle.radius + 0.01)
       }
       for (const size of [128, 256, 512, 1024]) {
         const { metadata: m } = await renderer.run(
@@ -93,7 +116,7 @@ test(
           for (const x of [r.x, r.x + r.width])
             for (const y of [r.y, r.y + r.height])
               assert.ok(
-                Math.hypot(x - size / 2, y - size / 2) <= size * 0.44 + 0.01,
+                Math.hypot(x - size / 2, y - size / 2) <= m.safeCircle.radius + 0.01,
                 `hinted font boundary: ${JSON.stringify({ size, r, optical: m.optical })}`,
               )
       }
@@ -128,7 +151,7 @@ test(
       assert.equal(validation.metadata.overflow, false)
       assert.equal(validation.metadata.lines.length, 2)
       assert.equal(validation.metadata.safeShape, 'circle')
-      assert.equal(validation.metadata.safeCircle.radius, request.size * 0.44)
+      assert.equal(validation.metadata.safeCircle.radius, request.size * 0.47)
       assert.deepEqual(
         validation.metadata.displayChecks.map((x) => x.size),
         [24, 32, 48, 64],
@@ -140,7 +163,8 @@ test(
         for (const x of [r.x, r.x + r.width])
           for (const y of [r.y, r.y + r.height])
             assert.ok(
-              Math.hypot(x - request.size / 2, y - request.size / 2) <= request.size * 0.44 + 0.01,
+              Math.hypot(x - request.size / 2, y - request.size / 2) <=
+                validation.metadata.safeCircle.radius + 0.01,
             )
       assert.equal(validation.data, undefined)
       for (const [style, format] of [

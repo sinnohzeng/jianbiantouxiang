@@ -17,7 +17,7 @@ export function clientPresetConfig(id: ClientPresetId): PartialConfig {
     typography: {
       color: '#ffffff',
       effect: 'plain',
-      padding: 0.06,
+      padding: 0.03,
       optical: true,
       line1: { size: null, offsetX: 0, offsetY: 0 },
       line2: { size: null, offsetX: 0, offsetY: 0 },

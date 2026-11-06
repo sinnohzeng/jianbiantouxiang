@@ -17,6 +17,19 @@ import {
 } from '@/state/config'
 
 describe('normalizeConfig 补默认', () => {
+  it('显式旧黑体及副行 null 跟随不会被混合默认覆盖', () => {
+    const font = { family: 'Noto Sans SC', source: 'google' as const, weight: 700 as const }
+    const old = normalizeConfig({
+      typography: { line1: { font }, line2: { font: null }, padding: 0.06 },
+    })
+    expect(old.typography.line1.font).toEqual(font)
+    expect(old.typography.line2.font).toBeNull()
+    expect(old.typography.padding).toBe(0.06)
+    expect(normalizeConfig({ typography: { line2: {} } }).typography.line2.font).toEqual(
+      DEFAULT_CONFIG.typography.line2.font,
+    )
+  })
+
   it('空输入返回一份完整默认配置', () => {
     expect(normalizeConfig({})).toEqual(DEFAULT_CONFIG)
   })
@@ -35,20 +48,20 @@ describe('normalizeConfig 补默认', () => {
     expect(config.typography).toEqual(DEFAULT_CONFIG.typography)
   })
 
-  it('默认是方形、白色文字、6% 边距、1.03 行高与两行示例', () => {
+  it('默认是方形、白色文字、3% 边距、衬线主行与无衬线副行', () => {
     expect(DEFAULT_CONFIG.canvas.shape).toBe('square')
     expect(DEFAULT_CONFIG.text).toBe('飞书\n效率先锋')
     expect(DEFAULT_CONFIG.typography.color).toBe('#ffffff')
-    expect(DEFAULT_CONFIG.typography.padding).toBe(0.06)
+    expect(DEFAULT_CONFIG.typography.padding).toBe(0.03)
     expect(DEFAULT_CONFIG.typography.lineHeight).toBe(1.03)
     expect(DEFAULT_CONFIG.typography.line1).toEqual({
-      font: { family: 'Noto Sans SC', source: 'google', weight: 700 },
+      font: { family: 'Noto Serif SC', source: 'google', weight: 700 },
       size: null,
       offsetX: 0,
       offsetY: 0,
     })
     expect(DEFAULT_CONFIG.typography.line2).toEqual({
-      font: null,
+      font: { family: 'Noto Sans SC', source: 'google', weight: 700 },
       size: null,
       offsetX: 0,
       offsetY: 0,
@@ -332,7 +345,7 @@ describe('configHash', () => {
 describe('LOCALE_DEFAULT_FONT', () => {
   it('五种界面语言各有一套默认字体', () => {
     expect(LOCALE_DEFAULT_FONT).toEqual({
-      'zh-CN': 'Noto Sans SC',
+      'zh-CN': 'Noto Serif SC',
       'zh-HK': 'Noto Sans TC',
       en: 'Inter',
       ja: 'Noto Sans JP',
@@ -477,5 +490,5 @@ describe('nearestWeight', () => {
 
 it('保留显式旧边距，仅缺失值使用新默认', () => {
   expect(normalizeConfig({ typography: { padding: 0.15 } }).typography.padding).toBe(0.15)
-  expect(normalizeConfig({ typography: {} }).typography.padding).toBe(0.06)
+  expect(normalizeConfig({ typography: {} }).typography.padding).toBe(0.03)
 })

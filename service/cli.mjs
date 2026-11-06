@@ -17,7 +17,7 @@ const HELP = `Gradient Avatar (Node 24+)
   node service/cli.mjs mcp          # stdio
   node service/cli.mjs serve        # Streamable HTTP /mcp
 Options: --preset dongli-symbol-white|dongli-lockup-full-white|dongli-wordmark-bilingual-inline-white
-         --font sans|serif --no-optical --preset --line1 --line2 --logo --background auto|white|black|transparent
+         --font sans|serif --secondary-font sans|serif --no-optical --preset --line1 --line2 --logo --background auto|white|black|transparent
          --color auto|original --size --safe-shape circle|square --padding --logo-scale --style --palette --seed
          --format png|jpg|webp --config --out --out-dir --allow-fallback
 Outputs are created exclusively: existing files are never overwritten.
@@ -48,6 +48,7 @@ async function main() {
       ...[
         'preset',
         'font',
+        'secondary-font',
         'line1',
         'line2',
         'logo',
@@ -125,6 +126,7 @@ async function main() {
       : {}
     if (values.preset) raw.preset = values.preset
     if (values.font) raw.font = values.font
+    if (values['secondary-font']) raw.secondaryFont = values['secondary-font']
     if (values['no-optical']) raw.optical = false
     if (command === 'batch') {
       if (!values['out-dir']) throw new Error('batch requires --out-dir')

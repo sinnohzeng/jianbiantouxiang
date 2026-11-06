@@ -186,14 +186,19 @@ export const DEFAULT_CONFIG: AvatarConfig = {
   typography: {
     line1: {
       // 契约基线，也是 normalizeConfig 的兜底值。首次进入实际用哪套字体按界面语言定，见 LOCALE_DEFAULT_FONT
+      font: { family: 'Noto Serif SC', source: 'google', weight: 700 },
+      size: null,
+      offsetX: 0,
+      offsetY: 0,
+    },
+    line2: {
       font: { family: 'Noto Sans SC', source: 'google', weight: 700 },
       size: null,
       offsetX: 0,
       offsetY: 0,
     },
-    line2: { font: null, size: null, offsetX: 0, offsetY: 0 },
     optical: true,
-    padding: 0.06,
+    padding: 0.03,
     lineHeight: 1.03,
     letterSpacing: 0,
     // 深底白字依靠对比度；默认不以投影改变文字轮廓
@@ -226,11 +231,16 @@ export const DEFAULT_CONFIG: AvatarConfig = {
  * 本机存档是用户自己的配置，一个字段都不能按语言改，见 store 的 readInitialConfig。
  */
 export const LOCALE_DEFAULT_FONT: Record<Locale, string> = {
-  'zh-CN': 'Noto Sans SC',
+  'zh-CN': 'Noto Serif SC',
   'zh-HK': 'Noto Sans TC',
   en: 'Inter',
   ja: 'Noto Sans JP',
   ko: 'Noto Sans KR',
+}
+
+export const LOCALE_SECONDARY_FONT: Record<Locale, string> = {
+  ...LOCALE_DEFAULT_FONT,
+  'zh-CN': 'Noto Sans SC',
 }
 
 type DeepPartial<T> = T extends readonly unknown[]
@@ -456,7 +466,8 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
         offsetY: lineOffset(l1.offsetY),
       },
       line2: {
-        font: normalizeFont(l2.font),
+        font:
+          l2.font === undefined ? structuredClone(d.typography.line2.font) : normalizeFont(l2.font),
         size: lineSize(l2.size, LINE2_SIZE_MIN),
         offsetX: lineOffset(l2.offsetX),
         offsetY: lineOffset(l2.offsetY),

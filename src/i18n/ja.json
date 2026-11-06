@@ -137,7 +137,6 @@
   "panel.canvas.title": "キャンバス",
   "panel.canvas.width": "幅",
   "panel.common.edit": "{name}を編集",
-  "panel.common.group.offset": "位置調整",
   "panel.common.hex": "HEX 値",
   "panel.common.reset": "{name}を既定値に戻す",
   "panel.graphic.mono": "ブランド単色",
@@ -267,5 +266,8 @@
   "topbar.undo": "元に戻す",
   "update.action": "再読み込み",
   "update.body": "ページを再読み込みすると反映されます。",
-  "update.title": "新しいバージョンがあります"
+  "update.title": "新しいバージョンがあります",
+  "panel.text.details": "フォントとスタイル",
+  "panel.text.restoreLayout": "自動配置に戻す",
+  "panel.common.group.horizontal": "左右位置"
 }

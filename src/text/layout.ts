@@ -1,3 +1,4 @@
+import { compositionConfig, fillCircleLayout } from './fill'
 import { brandGap, titleGap } from './spacing'
 import { applyOpticalLayout, type OpticalReport } from './optical'
 import type { Graphic } from '@/graphics/types'
@@ -38,6 +39,7 @@ export interface GraphicSize {
 }
 
 export interface TextLayout {
+  fillScale?: number
   optical?: OpticalReport
   lines: LayoutLine[]
   fontSizePx: number
@@ -358,14 +360,20 @@ export function layoutText(
   measure?: MeasureFn,
   graphic?: GraphicSize | null,
 ): TextLayout {
-  const layout = geometricLayoutText(config, width, height, measure, graphic)
+  const base = compositionConfig(config)
+  const layout = geometricLayoutText(base, width, height, measure, graphic)
   if (measure) return layout
-  return applyOpticalLayout(
-    layout,
+  return fillCircleLayout(
+    applyOpticalLayout(
+      layout,
+      base,
+      width,
+      height,
+      graphic && 'kind' in graphic ? (graphic as Graphic) : null,
+      config.typography.line1.size === null || config.canvas.shape === 'circle',
+    ),
     config,
     width,
     height,
-    graphic && 'kind' in graphic ? (graphic as Graphic) : null,
-    config.typography.line1.size === null || config.canvas.shape === 'circle',
   )
 }

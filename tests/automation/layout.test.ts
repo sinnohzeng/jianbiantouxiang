@@ -110,7 +110,7 @@ describe('圆裁与小头像版式', () => {
       }
   })
   it('方形安全区是显式选项；旧边距仍可指定', () => {
-    expect(renderSchema.parse({}).padding).toBe(0.06)
+    expect(renderSchema.parse({}).padding).toBe(0.03)
     expect(renderSchema.parse({ padding: 0.14, safeShape: 'square' }).padding).toBe(0.14)
     const circle = badgeLayout(512, 0.06, 0.38, ['ABCD', ''], null, measure)
     const square = badgeLayout(512, 0.06, 0.38, ['ABCD', ''], null, measure, 'square')

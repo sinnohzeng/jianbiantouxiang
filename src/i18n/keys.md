@@ -146,7 +146,6 @@
 | `panel.canvas.title`              | 画布                                                                             |
 | `panel.canvas.width`              | 宽                                                                               |
 | `panel.common.edit`               | 编辑{name}                                                                       |
-| `panel.common.group.offset`       | 位置微调                                                                         |
 | `panel.common.hex`                | 十六进制色值                                                                     |
 | `panel.common.reset`              | 把{name}重置为默认                                                               |
 | `panel.graphic.mono`              | 品牌单色                                                                         |
@@ -278,3 +277,7 @@
 | `update.title`                    | 有新版本                                                                         |
 
 | `preview.smallText` | 48 像素小头像中文字偏小，建议缩短文字或移除第二行 |
+
+| `panel.common.group.horizontal` | 左右位置 |
+| `panel.text.details` | 字体与样式 |
+| `panel.text.restoreLayout` | 恢复自动排版 |

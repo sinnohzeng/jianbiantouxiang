@@ -249,7 +249,7 @@ describe('逐行字体', () => {
     const result = fit({ text: '飞书\n先锋', typography: { line2: { font: kuaile } } })
     expect(result.secondary?.font).toContain('"ZCOOL KuaiLe"')
     expect(result.secondary?.font.startsWith('400 ')).toBe(true)
-    expect(result.primary?.font).toContain('"Noto Sans SC"')
+    expect(result.primary?.font).toContain('"Noto Serif SC"')
   })
 
   it('第一行为空时晋升的那一行用第二行的生效字体', () => {

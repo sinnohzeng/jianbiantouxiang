@@ -41,8 +41,12 @@ export interface ProbeConfig {
   style: string
   palette: string
   typography: {
-    line1: { offsetY: number }
-    line2: { font: { family: string; source: string; weight: number } | null }
+    line1: {
+      offsetY: number
+      size: number | null
+      font: { family: string; source: string; weight: number }
+    }
+    line2: { size: number | null; font: { family: string; source: string; weight: number } | null }
   }
   layout: { icon: { source: string; id: string; mono: boolean } }
 }
@@ -108,7 +112,9 @@ export async function waitReady(page: Page): Promise<void> {
  * 折叠组收起时整块不挂，不点开就一条滑杆都点不到。
  */
 export async function openGroup(page: Page, slot: string): Promise<void> {
-  const trigger = page.locator(`[data-slot="${slot}"] [data-slot="collapsible-trigger"]`)
+  if (slot === 'text-group-layout' || slot === 'text-group-offset')
+    await openGroup(page, 'text-details')
+  const trigger = page.locator(`[data-slot="${slot}"] [data-slot="collapsible-trigger"]`).first()
   if ((await trigger.getAttribute('aria-expanded')) !== 'true') await trigger.click()
   await expect(trigger).toHaveAttribute('aria-expanded', 'true')
 }

@@ -208,23 +208,22 @@ test('版面组：改过的边距出现重置钮，点一下回默认', async ({
   await openGroup(page, 'text-group-layout')
 
   const padding = page.getByRole('slider', { name: '边距' })
-  await expect(padding).toHaveValue('0.06')
+  await expect(padding).toHaveValue('0.03')
   await padding.focus()
   await page.keyboard.press('ArrowRight')
-  await expect(padding).toHaveValue('0.065')
+  await expect(padding).toHaveValue('0.035')
 
   const reset = page.locator('[data-slot="text-group-layout"] [data-slot="slider-reset"]')
   await expect(reset).toHaveCount(1)
   await reset.click()
-  await expect(padding).toHaveValue('0.06')
+  await expect(padding).toHaveValue('0.03')
   await expect(
     page.locator('[data-slot="text-group-layout"] [data-slot="slider-reset"]'),
   ).toHaveCount(0)
 })
 
-test('位置微调组能拖垂直补偿，配置里落第一行的 offsetY', async ({ page }) => {
+test('常显上下位置能拖垂直补偿，配置里落第一行的 offsetY', async ({ page }) => {
   await openApp(page)
-  await openGroup(page, 'text-group-offset')
 
   const vertical = page.getByRole('slider', { name: '第 1 行垂直' })
   await expect(vertical).toHaveValue('0')
@@ -235,10 +234,11 @@ test('位置微调组能拖垂直补偿，配置里落第一行的 offsetY', asy
   expect((await probeConfig(page)).typography.line1.offsetY).not.toBe(0)
 })
 
-test('第二行字体：选择器贴在按钮下方且不盖遮罩，字重下拉改第二行，跟随钮回到第一行', async ({
+test('第二行字体：选择器邻接按钮且不盖遮罩，字重下拉改第二行，跟随钮回到第一行', async ({
   page,
 }) => {
   await openApp(page)
+  await openGroup(page, 'text-details')
   const field = page.locator('[data-slot="text-line2-font"]')
   const trigger = field.locator('[data-slot="font-trigger"]')
 
@@ -248,7 +248,12 @@ test('第二行字体：选择器贴在按钮下方且不盖遮罩，字重下�
   // 进场带缩放与位移，等动画放完再量
   await popover.evaluate((node) => Promise.all(node.getAnimations().map((a) => a.finished)))
   const [anchor, panel] = await Promise.all([trigger.boundingBox(), popover.boundingBox()])
-  expect(panel!.y).toBeGreaterThanOrEqual(anchor!.y + anchor!.height - 0.5)
+  // 字体收进低频区后按钮可位于视口下部，弹层按可用空间向上或向下展开。
+  expect(
+    panel!.y >= anchor!.y + anchor!.height - 0.5 || panel!.y + panel!.height <= anchor!.y + 0.5,
+  ).toBe(true)
+  expect(panel!.y).toBeGreaterThanOrEqual(0)
+  expect(panel!.y + panel!.height).toBeLessThanOrEqual(page.viewportSize()!.height)
   expect(Math.abs(panel!.x - anchor!.x)).toBeLessThanOrEqual(1)
   await expect(
     page.locator('[data-slot$="-overlay"], div[role="presentation"][data-base-ui-inert]'),
@@ -302,6 +307,7 @@ test.describe('字体名预览', () => {
     await openApp(page)
 
     // 卡片上的按钮一直可见，挂载即换
+    await openGroup(page, 'text-details')
     const trigger = page.locator('[data-slot="text-line1-font"] [data-slot="font-trigger"]')
     await expect(trigger.locator('[data-preview="ready"]')).toHaveCount(1, {
       timeout: SETTLE_TIMEOUT_MS,
@@ -719,6 +725,17 @@ test('光学补偿可关闭并在刷新后保持选择', async ({ page }) => {
 test('新选宋体使用 600 并从本站加载，手动字重存档保持', async ({ page }) => {
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
+  await openGroup(page, 'text-details')
+  // 先让主行与待测副行不同，避免相同字体/字重按既有契约合并为跟随。
+  await page.locator('[data-slot="text-line1-font"] [data-slot="font-trigger"]').click()
+  await page
+    .locator('[data-slot="popover-content"] [data-slot="command-input"]')
+    .fill('Noto Sans SC')
+  await page
+    .getByRole('option', { name: /Noto Sans SC/ })
+    .first()
+    .click()
+  await expect(page.locator('[data-slot="popover-content"]')).toHaveCount(0)
   await page.locator('[data-slot="text-line2-font"] [data-slot="font-trigger"]').click()
   const popover = page.locator('[data-slot="popover-content"]')
   await popover.locator('[data-slot="command-input"]').fill('Noto Serif SC')

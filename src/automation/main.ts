@@ -1,3 +1,4 @@
+import { compositionConfig, fillCircleLayout } from '@/text/fill'
 import { CLIENT_PRESET_IDS } from '@/graphics/client-presets'
 import { presetLogo } from './presets'
 import { applyOpticalLayout } from '@/text/optical'
@@ -23,9 +24,12 @@ async function render(raw: unknown, validateOnly = false) {
     if (input.logo) throw new Error('Use preset or logo, not both')
     input.logo = presetLogo(input.preset)
   }
-  const weight = input.font === 'serif' ? 600 : 700
+  const weight = 700
+  const secondaryWeight = 700
+  const secondaryFamily = input.secondaryFont === 'serif' ? 'Noto Serif SC' : 'Noto Sans SC'
   const family = input.font === 'serif' ? 'Noto Serif SC' : 'Noto Sans SC'
-  if (input.font === 'serif') await import('@fontsource/noto-serif-sc/600.css')
+  if (input.font === 'serif' || input.secondaryFont === 'serif')
+    await import('@fontsource/noto-serif-sc/700.css')
   const palette = PALETTES.find((p) => p.id === input.palette)
   if (!palette) throw new Error(`Unknown palette: ${input.palette}`)
   if (input.preset && palette.tone !== 'dark')
@@ -35,12 +39,16 @@ async function render(raw: unknown, validateOnly = false) {
   const warnings: string[] = []
   if (input.preset && input.preset !== 'dongli-symbol-white')
     warnings.push('dense-brand-lockup:prefer-dongli-symbol-white-for-small-avatars')
-  const missing = unsupportedCharacters(input.line1 + input.line2, input.font)
+  const missing = [
+    ...unsupportedCharacters(input.line1, input.font),
+    ...unsupportedCharacters(input.line2, input.secondaryFont),
+  ]
   if (missing.length) {
     const warning = `font-missing-glyphs:${missing.map((c) => 'U+' + c.codePointAt(0)?.toString(16).toUpperCase()).join(',')}`
     if (input.strict) throw new Error(warning)
     warnings.push(warning)
   }
+  await document.fonts.load(`${secondaryWeight} 32px "${secondaryFamily}"`, input.line2 || 'Aa中')
   const fontFaces = await document.fonts.load(
     `${weight} 32px "${family}"`,
     input.line1 + input.line2 || 'Aa中',
@@ -64,12 +72,12 @@ async function render(raw: unknown, validateOnly = false) {
     if (logo) warnings.push(...logo.warnings)
     let layout = badgeLayout(
       input.size,
-      input.padding,
+      input.safeShape === 'circle' ? Math.max(input.padding, 0.06) : input.padding,
       input.logoScale,
       [input.line1, input.line2],
       logo?.graphic ?? null,
-      (text, size) => {
-        ctx.font = `${weight} ${size}px "${family}"`
+      (text, size, slot) => {
+        ctx.font = `${slot === 1 ? secondaryWeight : weight} ${size}px "${slot === 1 ? secondaryFamily : family}"`
         const m = ctx.measureText(text)
         return {
           left: m.actualBoundingBoxLeft,
@@ -81,15 +89,19 @@ async function render(raw: unknown, validateOnly = false) {
       input.safeShape,
       family,
       weight,
+      secondaryFamily,
+      secondaryWeight,
     )
     layout = applyOpticalLayout(
       layout,
-      config,
+      input.safeShape === 'circle' ? compositionConfig(config) : config,
       input.size,
       input.size,
       logo?.graphic ?? null,
       input.safeShape === 'circle',
     )
+    if (input.safeShape === 'circle')
+      layout = fillCircleLayout(layout, config, input.size, input.size)
     if (layout.overflow) warnings.push('content-outside-safe-area')
     if (!logo && layout.lines.every((line) => line.width <= 0))
       throw new Error('Text has no visible glyphs')
@@ -114,6 +126,7 @@ async function render(raw: unknown, validateOnly = false) {
       sampledMinContrast,
       font: family + ' ' + weight,
       optical: layout.optical,
+      fillScale: layout.fillScale ?? 1,
       preset: input.preset ?? null,
       safeArea: layout.safeBox,
       safeShape: input.safeShape,
@@ -126,6 +139,7 @@ async function render(raw: unknown, validateOnly = false) {
       lines: layout.lines.map((l) => ({
         text: l.text,
         fontSize: l.fontSizePx,
+        font: l.font,
         baseline: l.y,
         width: l.width,
         bounds: (() => {

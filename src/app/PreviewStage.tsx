@@ -62,6 +62,8 @@ export function PreviewStage() {
   const mountHostRef = useRef<HTMLDivElement | null>(null)
   const highlightRef = useRef<HTMLCanvasElement | null>(null)
   const textRef = useRef<HTMLCanvasElement | null>(null)
+  const hintsRef = useRef<HTMLDivElement | null>(null)
+  const [hintsHeight, setHintsHeight] = useState(20)
   const gradientRef = useRef<GradientMount | null>(null)
   const initialConfigRef = useRef(config)
   const toastedRef = useRef(new Set<string>())
@@ -280,6 +282,16 @@ export function PreviewStage() {
     return () => cancelAnimationFrame(frame)
   }, [preview, box, ink, fontTick, graphic, setUi])
 
+  useEffect(() => {
+    const hints = hintsRef.current
+    if (!hints) return
+    const observer = new ResizeObserver(() => {
+      setHintsHeight(Math.ceil(hints.getBoundingClientRect().height))
+    })
+    observer.observe(hints)
+    return () => observer.disconnect()
+  }, [])
+
   const frameStyle = useMemo(() => {
     const { width, height, shape, radius } = preview.canvas
     // 长边贴住上限，短边按比例收窄，正方形与非正方形共用一套算法
@@ -288,7 +300,7 @@ export function PreviewStage() {
     // 它是这一列留给预览的净空。画框另有一个 640 的硬上限：预览不是越大越好，
     // 640 已足够判断渐变与文字细节，再大只会把左边的控制面板压出首屏
     const edge = isMobile
-      ? 'min(calc(100vw - 32px), calc(var(--preview-h) - 40px))'
+      ? `min(calc(100vw - 32px), max(1px, calc(var(--preview-h) - ${hintsHeight + 20}px)))`
       : 'min(var(--preview-max, 70vh), 640px)'
     const shortSide = Math.min(box.width, box.height)
     const corner =
@@ -299,7 +311,7 @@ export function PreviewStage() {
       borderRadius: corner,
       background: cssFallbackBackground(preview, resolveColors(preview)),
     }
-  }, [preview, box.width, box.height, isMobile])
+  }, [preview, box.width, box.height, isMobile, hintsHeight])
 
   /**
    * 网格：正方形格子，边长取画布短边的 1/12，从画框中心铺开，所以横竖各有一条格线正好过中心；
@@ -460,7 +472,11 @@ export function PreviewStage() {
         </PreviewFrame>
       </div>
 
-      <div className="flex min-h-5 w-full max-w-full flex-col items-center gap-1 text-center">
+      <div
+        ref={hintsRef}
+        data-slot="preview-hints"
+        className="flex min-h-5 w-full max-w-full flex-col items-center gap-1 text-center"
+      >
         {canLongPress ? (
           <p className="text-muted-foreground text-xs">{t('preview.longPressSave')}</p>
         ) : null}

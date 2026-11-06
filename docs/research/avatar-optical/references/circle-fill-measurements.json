@@ -1,0 +1,307 @@
+{
+  "method": "All RGB channels >230; diagnostic visible ink bounds, not perceptual score. Rounded glyphs vary by browser.",
+  "originals": {
+    "612": {
+      "width": 2048,
+      "height": 2048,
+      "inkBounds": [
+        345,
+        494,
+        1696,
+        1554
+      ],
+      "inkWidthFraction": 0.65966796875,
+      "inkHeightFraction": 0.517578125,
+      "maxInkRadiusFraction": 0.3705126579583165,
+      "pixelsOutsideCircle": 0
+    },
+    "613": {
+      "width": 2048,
+      "height": 2048,
+      "inkBounds": [
+        347,
+        489,
+        1696,
+        1544
+      ],
+      "inkWidthFraction": 0.65869140625,
+      "inkHeightFraction": 0.51513671875,
+      "maxInkRadiusFraction": 0.3715151351885052,
+      "pixelsOutsideCircle": 0
+    }
+  },
+  "cases": [
+    {
+      "name": "internal",
+      "scale": 1.0681787109375,
+      "before": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          87,
+          124,
+          424,
+          388
+        ],
+        "inkWidthFraction": 0.658203125,
+        "inkHeightFraction": 0.515625,
+        "maxInkRadiusFraction": 0.3673874331015918,
+        "pixelsOutsideCircle": 0
+      },
+      "after": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          74,
+          115,
+          435,
+          397
+        ],
+        "inkWidthFraction": 0.705078125,
+        "inkHeightFraction": 0.55078125,
+        "maxInkRadiusFraction": 0.3936431255316423,
+        "pixelsOutsideCircle": 0
+      },
+      "titleWidthBefore": 0.6666269302368164,
+      "titleWidthAfter": 0.7109379768371582
+    },
+    {
+      "name": "coordination",
+      "scale": 1.0681787109375,
+      "before": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          87,
+          125,
+          424,
+          390
+        ],
+        "inkWidthFraction": 0.658203125,
+        "inkHeightFraction": 0.517578125,
+        "maxInkRadiusFraction": 0.3674289639904584,
+        "pixelsOutsideCircle": 0
+      },
+      "after": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          75,
+          116,
+          435,
+          399
+        ],
+        "inkWidthFraction": 0.703125,
+        "inkHeightFraction": 0.552734375,
+        "maxInkRadiusFraction": 0.39228407442049607,
+        "pixelsOutsideCircle": 0
+      },
+      "titleWidthBefore": 0.6630865335464478,
+      "titleWidthAfter": 0.7095947265625
+    },
+    {
+      "name": "short",
+      "scale": 1.0681787109375,
+      "before": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          134,
+          108,
+          379,
+          401
+        ],
+        "inkWidthFraction": 0.478515625,
+        "inkHeightFraction": 0.572265625,
+        "maxInkRadiusFraction": 0.37323855922817856,
+        "pixelsOutsideCircle": 0
+      },
+      "after": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          124,
+          97,
+          388,
+          412
+        ],
+        "inkWidthFraction": 0.515625,
+        "inkHeightFraction": 0.615234375,
+        "maxInkRadiusFraction": 0.4022418143018594,
+        "pixelsOutsideCircle": 0
+      },
+      "titleWidthBefore": 0.3589171767234802,
+      "titleWidthAfter": 0.38339224457740784
+    },
+    {
+      "name": "long",
+      "scale": 1.0681787109375,
+      "before": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          74,
+          138,
+          434,
+          377
+        ],
+        "inkWidthFraction": 0.703125,
+        "inkHeightFraction": 0.466796875,
+        "maxInkRadiusFraction": 0.38100708273564493,
+        "pixelsOutsideCircle": 0
+      },
+      "after": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          62,
+          130,
+          447,
+          385
+        ],
+        "inkWidthFraction": 0.751953125,
+        "inkHeightFraction": 0.498046875,
+        "maxInkRadiusFraction": 0.40639317263778135,
+        "pixelsOutsideCircle": 0
+      },
+      "titleWidthBefore": 0.7094714045524597,
+      "titleWidthAfter": 0.7561047673225403
+    },
+    {
+      "name": "one",
+      "scale": 1.0681787109375,
+      "before": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          77,
+          136,
+          433,
+          370
+        ],
+        "inkWidthFraction": 0.6953125,
+        "inkHeightFraction": 0.45703125,
+        "maxInkRadiusFraction": 0.3984686147471047,
+        "pixelsOutsideCircle": 0
+      },
+      "after": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          65,
+          128,
+          445,
+          379
+        ],
+        "inkWidthFraction": 0.7421875,
+        "inkHeightFraction": 0.490234375,
+        "maxInkRadiusFraction": 0.4266337688002018,
+        "pixelsOutsideCircle": 0
+      },
+      "titleWidthBefore": 0.6983027458190918,
+      "titleWidthAfter": 0.7463682889938354
+    },
+    {
+      "name": "full",
+      "scale": 1.0681787109375,
+      "before": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          87,
+          85,
+          424,
+          418
+        ],
+        "inkWidthFraction": 0.658203125,
+        "inkHeightFraction": 0.650390625,
+        "maxInkRadiusFraction": 0.3816873012334201,
+        "pixelsOutsideCircle": 0
+      },
+      "after": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          75,
+          73,
+          436,
+          429
+        ],
+        "inkWidthFraction": 0.705078125,
+        "inkHeightFraction": 0.6953125,
+        "maxInkRadiusFraction": 0.40881710329950155,
+        "pixelsOutsideCircle": 0
+      },
+      "titleWidthBefore": 0.6610724925994873,
+      "titleWidthAfter": 0.7071235179901123
+    },
+    {
+      "name": "inline",
+      "scale": 1.0681787109375,
+      "before": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          88,
+          136,
+          422,
+          369
+        ],
+        "inkWidthFraction": 0.65234375,
+        "inkHeightFraction": 0.455078125,
+        "maxInkRadiusFraction": 0.36224282448600903,
+        "pixelsOutsideCircle": 0
+      },
+      "after": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          77,
+          128,
+          434,
+          377
+        ],
+        "inkWidthFraction": 0.697265625,
+        "inkHeightFraction": 0.486328125,
+        "maxInkRadiusFraction": 0.3872535167753584,
+        "pixelsOutsideCircle": 0
+      },
+      "titleWidthBefore": 0.6565853357315063,
+      "titleWidthAfter": 0.7005002498626709
+    },
+    {
+      "name": "text",
+      "scale": 1.0938623046875002,
+      "before": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          73,
+          121,
+          438,
+          374
+        ],
+        "inkWidthFraction": 0.712890625,
+        "inkHeightFraction": 0.494140625,
+        "maxInkRadiusFraction": 0.41171810142856885,
+        "pixelsOutsideCircle": 0
+      },
+      "after": {
+        "width": 512,
+        "height": 512,
+        "inkBounds": [
+          56,
+          108,
+          456,
+          386
+        ],
+        "inkWidthFraction": 0.78125,
+        "inkHeightFraction": 0.54296875,
+        "maxInkRadiusFraction": 0.45122048912873,
+        "pixelsOutsideCircle": 0
+      },
+      "titleWidthBefore": 0.48217737674713135,
+      "titleWidthAfter": 0.5137026309967041
+    }
+  ]
+}

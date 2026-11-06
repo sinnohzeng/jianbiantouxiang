@@ -137,7 +137,6 @@
   "panel.canvas.title": "캔버스",
   "panel.canvas.width": "너비",
   "panel.common.edit": "{name} 편집",
-  "panel.common.group.offset": "위치 조정",
   "panel.common.hex": "HEX 값",
   "panel.common.reset": "{name} 기본값으로 되돌리기",
   "panel.graphic.mono": "브랜드 단색",
@@ -267,5 +266,8 @@
   "topbar.undo": "실행 취소",
   "update.action": "새로 고침",
   "update.body": "페이지를 새로 고치면 적용됩니다.",
-  "update.title": "새 버전이 있습니다"
+  "update.title": "새 버전이 있습니다",
+  "panel.text.details": "글꼴 및 스타일",
+  "panel.text.restoreLayout": "자동 배치 복원",
+  "panel.common.group.horizontal": "좌우 위치"
 }

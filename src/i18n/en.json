@@ -137,7 +137,6 @@
   "panel.canvas.title": "Canvas",
   "panel.canvas.width": "Width",
   "panel.common.edit": "Edit {name}",
-  "panel.common.group.offset": "Position",
   "panel.common.hex": "Hex value",
   "panel.common.reset": "Reset {name} to default",
   "panel.graphic.mono": "Brand monochrome",
@@ -267,5 +266,8 @@
   "topbar.undo": "Undo",
   "update.action": "Reload",
   "update.body": "Reload the page to pick it up.",
-  "update.title": "New version available"
+  "update.title": "New version available",
+  "panel.text.details": "Fonts & appearance",
+  "panel.text.restoreLayout": "Restore auto layout",
+  "panel.common.group.horizontal": "Horizontal position"
 }

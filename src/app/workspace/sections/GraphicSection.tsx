@@ -120,7 +120,7 @@ export function GraphicSection() {
             </div>
           ) : null}
 
-          {/* 大小常显，挪位置收进折叠组：换过图标的人多半要调大小，挪位置是少数 */}
+          {/* 大小和上下位置常显，左右位置放在折叠组 */}
           <Row
             label={t('panel.graphic.scale')}
             value={config.layout.graphic}
@@ -133,9 +133,20 @@ export function GraphicSection() {
             onChange={(graphic) => setLayout({ graphic })}
           />
 
+          <div data-slot="graphic-offset-y">
+            {' '}
+            <Row
+              label={t('panel.graphic.offsetY')}
+              value={config.layout.graphicOffsetY}
+              defaultValue={DEFAULT_CONFIG.layout.graphicOffsetY}
+              {...OFFSET_RANGE}
+              onChange={(graphicOffsetY) => setLayout({ graphicOffsetY })}
+            />
+          </div>
+
           <PanelSection
             data-slot="graphic-group-offset"
-            title={t('panel.common.group.offset')}
+            title={t('panel.common.group.horizontal')}
             defaultOpen={false}
           >
             <Row
@@ -144,13 +155,6 @@ export function GraphicSection() {
               defaultValue={DEFAULT_CONFIG.layout.graphicOffsetX}
               {...OFFSET_RANGE}
               onChange={(graphicOffsetX) => setLayout({ graphicOffsetX })}
-            />
-            <Row
-              label={t('panel.graphic.offsetY')}
-              value={config.layout.graphicOffsetY}
-              defaultValue={DEFAULT_CONFIG.layout.graphicOffsetY}
-              {...OFFSET_RANGE}
-              onChange={(graphicOffsetY) => setLayout({ graphicOffsetY })}
             />
           </PanelSection>
         </>

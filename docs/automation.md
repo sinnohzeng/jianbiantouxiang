@@ -29,7 +29,7 @@ node service/cli.mjs batch --config service/examples/batch.json --out-dir ./avat
   "line1": "产品研发",
   "line2": "Product Studio",
   "size": 1024,
-  "padding": 0.06,
+  "padding": 0.03,
   "safeShape": "circle",
   "logoScale": 0.38,
   "palette": "steel-slate",
@@ -51,7 +51,7 @@ node service/cli.mjs batch --config service/examples/batch.json --out-dir ./avat
 | 参数 | 默认与边界 |
 | --- | --- |
 | size | 1024；128–2048 整数，方形 |
-| padding | 每边 6%；范围 2%–25%，圆形模式下同时为径向留白 |
+| padding | 每边 3%；范围 2%–25%，圆形模式下同时为径向留白 |
 | safeShape | circle / square，默认 circle；输出仍是方形图片，圆裁安全形状可配置。CLI 为 --safe-shape |
 | logoScale | 有文字时目标 Logo 高度为安全框的 38%；范围 20%–55%，宽度另有限制，始终等比 |
 | style | mesh / flow / silk / grain |
@@ -60,13 +60,13 @@ node service/cli.mjs batch --config service/examples/batch.json --out-dir ./avat
 | format | png / jpg / webp |
 | strict | 默认 true；渲染退化、缺字或越过安全区即失败。false 可接受近似渲染/字体回退并返回告警 |
 
-Logo 在上，文字两行作为一个紧凑组，整个图文栈居中。无 Logo 时两行以相同字号共同适配，文字组本身居中。有 Logo 时主行目标上限为边长 60%，副行不超过主行的 62%；真实字体量测后按宽高与圆弧约束缩放，不再用固定小字号限制短标题。圆形安全区逐个校验图文包围框，不把整张画布缩成内接正方形。6% 为本产品默认留白，不是飞书官方规范。
+Logo 在上，文字两行作为一个紧凑组，整个图文栈居中。无 Logo 时两行以相同字号共同适配，文字组本身居中。有 Logo 时主行目标上限为边长 60%，副行不超过主行的 62%；真实字体量测后按宽高与圆弧约束缩放，不再用固定小字号限制短标题。圆形安全区逐个校验图文包围框，不把整张画布缩成内接正方形。3% 为本产品默认留白，不是飞书官方规范。
 
 `displayChecks` 返回 24、32、48、64 px 下各行的墨迹高度；48 px 时任一行不足 6 px 发出 `text-small-at-48px:shorten-text-or-remove-second-line`，这是产品评估阈值而非可读性认证。长文本保持单行并明确告警，不以无限缩小冒充可读。需要方形布局可显式设 `safeShape: square`。
 
 文字与单色 Logo 的深浅取自最终渐变底图的抽样对比度，采样更好的黑/白方案生效。`sampledMinContrast` 是内容矩形内的采样指标，**不是逐像素可读性或 WCAG 合规保证**；低于 4.5 返回告警，可换配色/种子。`logo.color: original` 保留图形色彩，不保证原色 Logo 的对比度。
 
-提供随包 Noto Sans SC 700 与 Noto Serif SC 600（包含拉丁与大量中日韩字符）。按字体包 Unicode 范围检测缺字，严格模式拒绝；远程字体、本地字体上传及表情目录未开放；品牌预设限明确列出的东黎三款。系统回退字体在不同机器可能不同。相同输入在固定浏览器和渲染环境中可复现；不同 GPU/浏览器版本不承诺字节相同。
+提供随包 Noto Sans SC 700 与 Noto Serif SC 700（包含拉丁与大量中日韩字符）。按字体包 Unicode 范围检测缺字，严格模式拒绝；远程字体、本地字体上传及表情目录未开放；品牌预设限明确列出的东黎三款。系统回退字体在不同机器可能不同。相同输入在固定浏览器和渲染环境中可复现；不同 GPU/浏览器版本不承诺字节相同。
 
 ## Logo 处理
 
@@ -191,7 +191,7 @@ node service/review.mjs /tmp/gradient-avatar-review
 
 ## 字体、光学校正与客户预设
 
-`font` 可选 `sans`（默认）或 `serif`，分别使用随包 Noto Sans SC 700 / Noto Serif SC 600；`optical` 默认 true，关闭后获得几何基线。CLI 使用 `--font serif` 与 `--no-optical`。返回 `optical` 的建议位移、实际位移、`groupScale` 和边界限制；自动 Logo 图文组纵移最多短边 3.5%，为圆裁最多统一缩小 6%，不足则减小位移。纯文字不缩放并保持原有位移上限；不得用这些值冒充视觉质量评分。
+`font` 可选 `sans` 或 `serif`（默认），分别使用随包 Noto Sans SC 700 / Noto Serif SC 700；`optical` 默认 true，关闭后获得几何基线。CLI 使用 `--font serif` 与 `--no-optical`。返回 `optical` 的建议位移、实际位移、`groupScale` 和边界限制；自动 Logo 图文组纵移最多短边 3.5%，为圆裁最多统一缩小 6%，不足则减小位移。纯文字不缩放并保持原有位移上限；不得用这些值冒充视觉质量评分。
 
 `preset` / CLI `--preset` 可选 `dongli-symbol-white`、`dongli-lockup-full-white`、`dongli-wordmark-bilingual-inline-white`，与自带 `logo` 互斥，要求深色配色。群聊优先图形标，完整/横版在小尺寸有密集细节警告。原始白色与约 9% 长边留白保留，不能重新染色。自带素材可设 `logo.preservePadding: true` 保留文件画布；默认裁掉透明留白。
 
@@ -206,3 +206,7 @@ node scripts/optical-review.mjs /tmp/optical-review /path/to/private/harmay-logo
 图文间距与主副行间距分别求解：宽字标到标题目标为短边 6%，其他标识为 4.5%；有 Logo 的两行间距取短边 3.5% 与 0.18em 的较大值，光学圆裁微缩时按比例缩放。Logo 内置品牌留白额外保留，因此其可见轮廓之间可能更宽。间距改善不等于保证所有内容好看，应按 `scripts/optical-review.mjs` 生成真实小图验收。
 
 光学微缩的每个候选字号使用实际 TextMetrics 重新量测，最终行框与元数据同步，避免字体取整被线性缩放假设掩盖。
+
+主行 `font` 默认 `serif`，副行 `secondaryFont` 默认 `sans`，均为随包 700 字重；CLI 对应 `--font` 与 `--secondary-font`。整组最后按实际圆裁边界统一放大不超过 16%，响应 `fillScale` 报告本次倍率，各行 `font` 报告实际字体。显式较大 padding 保持，关闭 optical 仍可执行整体安全放大。
+
+`optical` 位移报告描述最终放大之前的光学校正阶段；`fillScale` 是随后施加于整组的统一倍率。

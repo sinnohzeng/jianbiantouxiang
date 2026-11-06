@@ -54,7 +54,10 @@ describe('createSaveImageScheduler', () => {
     await vi.waitFor(() => expect(onImage).toHaveBeenCalledTimes(1))
 
     expect(render).toHaveBeenCalledTimes(1)
-    expect(onImage).toHaveBeenCalledWith('data:image/jpeg;base64,C')
+    expect(onImage).toHaveBeenCalledWith('data:image/jpeg;base64,C', {
+      ...DEFAULT_CONFIG,
+      text: 'C',
+    })
   })
 
   it('在途结果被新请求顶掉后不再回调', async () => {
@@ -84,7 +87,10 @@ describe('createSaveImageScheduler', () => {
     release('data:image/jpeg;base64,old')
     await vi.waitFor(() => expect(onImage).toHaveBeenCalledTimes(1))
 
-    expect(onImage).toHaveBeenCalledWith('data:image/jpeg;base64,new')
+    expect(onImage).toHaveBeenCalledWith('data:image/jpeg;base64,new', {
+      ...DEFAULT_CONFIG,
+      text: '新的',
+    })
   })
 
   it('页面在后台时到点也不合成', () => {

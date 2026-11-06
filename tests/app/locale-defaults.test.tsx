@@ -74,7 +74,7 @@ describe('默认字体跟随界面语言', () => {
     expect(config().typography.line1.font.weight).toBe(700)
   })
 
-  it('简体中文界面维持默认的 Noto Sans SC，一次都不写 store', () => {
+  it('简体中文界面维持衬线主行与无衬线副行，一次都不写 store', () => {
     localStorage.setItem(LOCALE_STORAGE_KEY, 'zh-CN')
     const writes: AvatarConfig[] = []
     const stop = useAvatarStore.subscribe((state, prev) => {
@@ -85,7 +85,7 @@ describe('默认字体跟随界面语言', () => {
     stop()
 
     expect(config().text).toBe(DEFAULT_CONFIG.text)
-    expect(config().typography.line1.font.family).toBe('Noto Sans SC')
+    expect(config().typography.line1.font.family).toBe('Noto Serif SC')
     expect(writes).toHaveLength(0)
   })
 
@@ -145,7 +145,7 @@ describe('默认字体跟随界面语言', () => {
     mount()
 
     expect(config().text).toBe(DEFAULT_CONFIG.text)
-    expect(config().typography.line1.font.family).toBe('Noto Sans SC')
+    expect(config().typography.line1.font.family).toBe('Noto Serif SC')
   })
 })
 

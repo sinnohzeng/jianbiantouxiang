@@ -21,7 +21,7 @@ export interface SaveImageSchedulerOptions {
   /** 把配置合成成 data URL。真实实现是导出管线，测试里换成桩。 */
   render: (config: AvatarConfig) => Promise<string>
   /** 出图后回调；只有最后一次请求的结果会送到这里。 */
-  onImage: (dataUrl: string) => void
+  onImage: (dataUrl: string, config: AvatarConfig) => void
   /** 页面在后台就不排任务，回到前台由调用方重新 request。 */
   isHidden?: () => boolean
   delayMs?: number
@@ -62,10 +62,10 @@ export function createSaveImageScheduler(options: SaveImageSchedulerOptions): Sa
       if (disposed || mine !== ticket || isHidden()) return
       void render(config)
         .then((dataUrl) => {
-          if (!disposed && mine === ticket) onImage(dataUrl)
+          if (!disposed && mine === ticket) onImage(dataUrl, config)
         })
         .catch(() => {
-          // 合成失败就保持上一张，长按存到旧图也比按不出菜单强
+          // 合成失败时继续显示实时画布，不能让旧图片遮住新配置。
         })
     }, delayMs)
   }
@@ -86,7 +86,7 @@ export function createSaveImageScheduler(options: SaveImageSchedulerOptions): Sa
  * 配置每变一次就重新排一张；页面切到后台不排，回到前台补一张。
  */
 export function usePreviewSaveImage(config: AvatarConfig, enabled: boolean): string | null {
-  const [dataUrl, setDataUrl] = useState<string | null>(null)
+  const [image, setImage] = useState<{ dataUrl: string; config: AvatarConfig } | null>(null)
   const schedulerRef = useRef<SaveImageScheduler | null>(null)
 
   useEffect(() => {
@@ -104,14 +104,14 @@ export function usePreviewSaveImage(config: AvatarConfig, enabled: boolean): str
           releaseCanvas(artifact.canvas)
         }
       },
-      onImage: setDataUrl,
+      onImage: (dataUrl, renderedConfig) => setImage({ dataUrl, config: renderedConfig }),
     })
     schedulerRef.current = scheduler
     return () => {
       schedulerRef.current = null
       scheduler.dispose()
       // 关掉时把上一张丢掉：桌面窗口下不该留着一张盖住实时预览的静态图
-      setDataUrl(null)
+      setImage(null)
     }
   }, [enabled])
 
@@ -129,5 +129,6 @@ export function usePreviewSaveImage(config: AvatarConfig, enabled: boolean): str
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [config, enabled])
 
-  return dataUrl
+  // 配置改变的同一次渲染即移除旧覆盖图，不等去抖或后台编码完成。
+  return enabled && image?.config === config ? image.dataUrl : null
 }

@@ -137,7 +137,6 @@
   "panel.canvas.title": "畫布",
   "panel.canvas.width": "寬",
   "panel.common.edit": "編輯{name}",
-  "panel.common.group.offset": "位置微調",
   "panel.common.hex": "十六進位色值",
   "panel.common.reset": "把{name}重設為預設值",
   "panel.graphic.mono": "品牌單色",
@@ -267,5 +266,8 @@
   "topbar.undo": "撤銷",
   "update.action": "重新整理",
   "update.body": "重新整理頁面就能用上新版本。",
-  "update.title": "有新版本"
+  "update.title": "有新版本",
+  "panel.text.details": "字體與樣式",
+  "panel.text.restoreLayout": "恢復自動排版",
+  "panel.common.group.horizontal": "左右位置"
 }

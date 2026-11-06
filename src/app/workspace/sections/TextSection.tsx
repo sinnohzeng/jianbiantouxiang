@@ -1,9 +1,9 @@
 /**
  * 文字节：两行输入、逐行字体与字重、样式、文字色，以及跟着它们的数值滑杆。
  *
- * 参数跟着它所修饰的东西走：字体紧跟自己那一行输入，字号在字体之下，强度紧跟文字样式。
+ * 输入、字号和上下位置常显；字体与样式折叠，低频版面和左右位置放在其中。
  * 低频的两组收在末尾的折叠组里，默认收起：“版面”是边距行高字距，
- * “位置微调”是逐行的水平与垂直补偿。
+ * “左右位置”是逐行的水平补偿。
  */
 
 import { useId, useMemo } from 'react'
@@ -26,7 +26,7 @@ import {
   twoLinesOf,
 } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
-import { joinLines, stripBreaks } from '@/app/workspace/shared'
+import { joinLines, stripBreaks, automaticLayoutPatch } from '@/app/workspace/shared'
 import { clamp } from '@/engine/math'
 import { SectionCard } from './card'
 import { LineFontField } from './line-font-field'
@@ -130,7 +130,19 @@ export function TextSection() {
   }))
 
   return (
-    <SectionCard title={t('panel.text.title')}>
+    <SectionCard
+      title={t('panel.text.title')}
+      action={
+        <Button
+          variant="ghost"
+          className="min-h-11 px-2 text-xs"
+          data-slot="restore-auto-layout"
+          onClick={() => setConfig(automaticLayoutPatch(config))}
+        >
+          {t('panel.text.restoreLayout')}
+        </Button>
+      }
+    >
       <div className="flex flex-col gap-1">
         <Label htmlFor="avatar-text-first" className="text-muted-foreground text-[11px]">
           {t('panel.text.line1')}
@@ -146,8 +158,6 @@ export function TextSection() {
           }
         />
       </div>
-
-      <LineFontField line={1} />
 
       {/* 字号：默认自动。滑杆在自动态显示引擎刚算出的值，一拖就以它为起点切到手动，
           不会从上一次的手动值跳过去。这一行不给默认值：回默认这件事由“自动”按钮承担，
@@ -183,6 +193,18 @@ export function TextSection() {
         />
       </div>
 
+      {hasFirst ? (
+        <div data-slot="text-line1-offset-y">
+          <Row
+            label={t('panel.text.lineOffsetY', { index: 1 })}
+            value={line1.offsetY}
+            defaultValue={defaults.line1.offsetY}
+            {...OFFSET_RANGE}
+            onChange={(offsetY) => setTypography({ line1: { offsetY } })}
+          />
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-1">
         <Label htmlFor="avatar-text-second" className="text-muted-foreground text-[11px]">
           {t('panel.text.line2')}
@@ -199,8 +221,7 @@ export function TextSection() {
         />
       </div>
 
-      {/* 第二行字体默认跟随第一行，第二行有内容才有这一行 */}
-      {hasSecond ? <LineFontField line={2} /> : null}
+      {/* 第二行有内容才显示其字体设置 */}
 
       {/* 第二行字号与第一行同一单位，按当前自动/手动规则跟随，一拖就钉成自己的值，
           点“跟随”回到跟随。两行都有内容才有这一行 */}
@@ -226,180 +247,182 @@ export function TextSection() {
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-1">
-        <Label className="text-muted-foreground text-[11px]">{t('panel.text.effect')}</Label>
-        <ChipGroup
-          name="text-effect"
-          label={t('panel.text.effect')}
-          value={type.effect}
-          options={effectOptions}
-          onChange={(effect) => setTypography({ effect })}
-        />
-      </div>
-
-      {/* 纯色没有强度可言，禁用而不是抽掉：抽掉会让下面那几行在切样式时上下跳 */}
-      <div data-slot="text-effect-strength">
-        <Row
-          label={t('panel.text.effectStrength')}
-          value={type.effectStrength}
-          defaultValue={defaults.effectStrength}
-          min={0}
-          max={1}
-          step={0.01}
-          scale={100}
-          unit="%"
-          disabled={type.effect === 'plain'}
-          onChange={(effectStrength) => setTypography({ effectStrength })}
-        />
-      </div>
-
-      {type.effect === 'pill' ? (
-        <>
+      {hasSecond ? (
+        <div data-slot="text-line2-offset-y">
           <Row
-            label={t('panel.text.pill.radius')}
-            value={type.pill.radius}
-            defaultValue={defaults.pill.radius}
-            min={0}
-            max={0.5}
-            step={0.01}
-            scale={100}
-            unit="%"
-            onChange={(radius) => setTypography({ pill: { radius } })}
+            label={t('panel.text.lineOffsetY', { index: 2 })}
+            value={line2.offsetY}
+            defaultValue={defaults.line2.offsetY}
+            {...OFFSET_RANGE}
+            onChange={(offsetY) => setTypography({ line2: { offsetY } })}
           />
-          <Row
-            label={t('panel.text.pill.padding')}
-            value={type.pill.padding}
-            defaultValue={defaults.pill.padding}
-            min={0}
-            max={1}
-            step={0.01}
-            scale={100}
-            unit="%"
-            onChange={(padding) => setTypography({ pill: { padding } })}
-          />
-          <Row
-            label={t('panel.text.pill.opacity')}
-            value={type.pill.opacity}
-            defaultValue={defaults.pill.opacity}
-            min={0}
-            max={1}
-            step={0.01}
-            scale={100}
-            unit="%"
-            onChange={(opacity) => setTypography({ pill: { opacity } })}
-          />
-        </>
+        </div>
       ) : null}
 
-      {/* v5 起没有「自动」：文字色就是这里挑的那一个，预览与导出读同一个字段。
+      <PanelSection data-slot="text-details" title={t('panel.text.details')} defaultOpen={false}>
+        <LineFontField line={1} />
+        {hasSecond ? <LineFontField line={2} /> : null}
+        <div className="flex flex-col gap-1">
+          <Label className="text-muted-foreground text-[11px]">{t('panel.text.effect')}</Label>
+          <ChipGroup
+            name="text-effect"
+            label={t('panel.text.effect')}
+            value={type.effect}
+            options={effectOptions}
+            onChange={(effect) => setTypography({ effect })}
+          />
+        </div>
+
+        {/* 纯色没有强度可言，禁用而不是抽掉：抽掉会让下面那几行在切样式时上下跳 */}
+        <div data-slot="text-effect-strength">
+          <Row
+            label={t('panel.text.effectStrength')}
+            value={type.effectStrength}
+            defaultValue={defaults.effectStrength}
+            min={0}
+            max={1}
+            step={0.01}
+            scale={100}
+            unit="%"
+            disabled={type.effect === 'plain'}
+            onChange={(effectStrength) => setTypography({ effectStrength })}
+          />
+        </div>
+
+        {type.effect === 'pill' ? (
+          <>
+            <Row
+              label={t('panel.text.pill.radius')}
+              value={type.pill.radius}
+              defaultValue={defaults.pill.radius}
+              min={0}
+              max={0.5}
+              step={0.01}
+              scale={100}
+              unit="%"
+              onChange={(radius) => setTypography({ pill: { radius } })}
+            />
+            <Row
+              label={t('panel.text.pill.padding')}
+              value={type.pill.padding}
+              defaultValue={defaults.pill.padding}
+              min={0}
+              max={1}
+              step={0.01}
+              scale={100}
+              unit="%"
+              onChange={(padding) => setTypography({ pill: { padding } })}
+            />
+            <Row
+              label={t('panel.text.pill.opacity')}
+              value={type.pill.opacity}
+              defaultValue={defaults.pill.opacity}
+              min={0}
+              max={1}
+              step={0.01}
+              scale={100}
+              unit="%"
+              onChange={(opacity) => setTypography({ pill: { opacity } })}
+            />
+          </>
+        ) : null}
+
+        {/* v5 起没有「自动」：文字色就是这里挑的那一个，预览与导出读同一个字段。
           自动取色要另起一次离屏渲染去采样，结果还会随高光与种子飘，
           用户看到的是「我没动它，颜色自己变了」 */}
-      <div data-slot="text-color-row">
-        <ColorField
-          inline
-          rowLabel={t('panel.text.color')}
-          label={t('panel.text.color')}
-          value={type.color}
-          presets={COLOR_PRESETS.map((preset) => ({
-            hex: preset.hex,
-            label: t(`panel.text.color.preset.${preset.key}`),
-          }))}
-          onChange={(color) => setTypography({ color })}
-        />
-      </div>
+        <div data-slot="text-color-row">
+          <ColorField
+            inline
+            rowLabel={t('panel.text.color')}
+            label={t('panel.text.color')}
+            value={type.color}
+            presets={COLOR_PRESETS.map((preset) => ({
+              hex: preset.hex,
+              label: t(`panel.text.color.preset.${preset.key}`),
+            }))}
+            onChange={(color) => setTypography({ color })}
+          />
+        </div>
 
-      <PanelSection
-        data-slot="text-group-layout"
-        title={t('panel.text.group.layout')}
-        defaultOpen={false}
-      >
-        <Button
-          variant={type.optical ? 'default' : 'outline'}
-          className="min-h-11 w-full"
-          aria-pressed={type.optical}
-          onClick={() => setTypography({ optical: !type.optical })}
-        >
-          {t('panel.text.optical')}
-        </Button>
-        <Row
-          label={t('panel.text.padding')}
-          value={type.padding}
-          defaultValue={defaults.padding}
-          min={0}
-          max={0.3}
-          step={0.005}
-          scale={100}
-          unit="%"
-          onChange={(padding) => setTypography({ padding })}
-        />
-        <Row
-          label={t('panel.text.lineHeight')}
-          value={type.lineHeight}
-          defaultValue={defaults.lineHeight}
-          min={0.85}
-          max={2}
-          step={0.01}
-          precision={2}
-          onChange={(lineHeight) => setTypography({ lineHeight })}
-        />
-        <Row
-          label={t('panel.text.letterSpacing')}
-          value={type.letterSpacing}
-          defaultValue={defaults.letterSpacing}
-          min={-0.1}
-          max={0.5}
-          step={0.01}
-          precision={2}
-          unit="em"
-          onChange={(letterSpacing) => setTypography({ letterSpacing })}
-        />
-      </PanelSection>
-
-      {/* 补偿是纯位移，不参与字号求解；哪一行有内容才给哪一行的两条 */}
-      {hasFirst || hasSecond ? (
         <PanelSection
-          data-slot="text-group-offset"
-          title={t('panel.common.group.offset')}
+          data-slot="text-group-layout"
+          title={t('panel.text.group.layout')}
           defaultOpen={false}
         >
-          {hasFirst ? (
-            <>
-              <Row
-                label={t('panel.text.lineOffsetX', { index: 1 })}
-                value={line1.offsetX}
-                defaultValue={defaults.line1.offsetX}
-                {...OFFSET_RANGE}
-                onChange={(offsetX) => setTypography({ line1: { offsetX } })}
-              />
-              <Row
-                label={t('panel.text.lineOffsetY', { index: 1 })}
-                value={line1.offsetY}
-                defaultValue={defaults.line1.offsetY}
-                {...OFFSET_RANGE}
-                onChange={(offsetY) => setTypography({ line1: { offsetY } })}
-              />
-            </>
-          ) : null}
-          {hasSecond ? (
-            <>
-              <Row
-                label={t('panel.text.lineOffsetX', { index: 2 })}
-                value={line2.offsetX}
-                defaultValue={defaults.line2.offsetX}
-                {...OFFSET_RANGE}
-                onChange={(offsetX) => setTypography({ line2: { offsetX } })}
-              />
-              <Row
-                label={t('panel.text.lineOffsetY', { index: 2 })}
-                value={line2.offsetY}
-                defaultValue={defaults.line2.offsetY}
-                {...OFFSET_RANGE}
-                onChange={(offsetY) => setTypography({ line2: { offsetY } })}
-              />
-            </>
-          ) : null}
+          <Button
+            variant={type.optical ? 'default' : 'outline'}
+            className="min-h-11 w-full"
+            aria-pressed={type.optical}
+            onClick={() => setTypography({ optical: !type.optical })}
+          >
+            {t('panel.text.optical')}
+          </Button>
+          <Row
+            label={t('panel.text.padding')}
+            value={type.padding}
+            defaultValue={defaults.padding}
+            min={0}
+            max={0.3}
+            step={0.005}
+            scale={100}
+            unit="%"
+            onChange={(padding) => setTypography({ padding })}
+          />
+          <Row
+            label={t('panel.text.lineHeight')}
+            value={type.lineHeight}
+            defaultValue={defaults.lineHeight}
+            min={0.85}
+            max={2}
+            step={0.01}
+            precision={2}
+            onChange={(lineHeight) => setTypography({ lineHeight })}
+          />
+          <Row
+            label={t('panel.text.letterSpacing')}
+            value={type.letterSpacing}
+            defaultValue={defaults.letterSpacing}
+            min={-0.1}
+            max={0.5}
+            step={0.01}
+            precision={2}
+            unit="em"
+            onChange={(letterSpacing) => setTypography({ letterSpacing })}
+          />
         </PanelSection>
-      ) : null}
+
+        {/* 补偿是纯位移，不参与字号求解；哪一行有内容才给哪一行的两条 */}
+        {hasFirst || hasSecond ? (
+          <PanelSection
+            data-slot="text-group-offset"
+            title={t('panel.common.group.horizontal')}
+            defaultOpen={false}
+          >
+            {hasFirst ? (
+              <>
+                <Row
+                  label={t('panel.text.lineOffsetX', { index: 1 })}
+                  value={line1.offsetX}
+                  defaultValue={defaults.line1.offsetX}
+                  {...OFFSET_RANGE}
+                  onChange={(offsetX) => setTypography({ line1: { offsetX } })}
+                />
+              </>
+            ) : null}
+            {hasSecond ? (
+              <>
+                <Row
+                  label={t('panel.text.lineOffsetX', { index: 2 })}
+                  value={line2.offsetX}
+                  defaultValue={defaults.line2.offsetX}
+                  {...OFFSET_RANGE}
+                  onChange={(offsetX) => setTypography({ line2: { offsetX } })}
+                />
+              </>
+            ) : null}
+          </PanelSection>
+        ) : null}
+      </PanelSection>
     </SectionCard>
   )
 }

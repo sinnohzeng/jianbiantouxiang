@@ -9,8 +9,9 @@ import { I18nProvider, dictOf, useLocale, useT } from '@/i18n'
 import {
   DEFAULT_CONFIG,
   LOCALE_DEFAULT_FONT,
+  LOCALE_SECONDARY_FONT,
+  fontKey,
   nearestWeight,
-  withLine1Font,
   type PartialConfig,
 } from '@/state/config'
 import { initialConfigSource, useAvatarStore } from '@/state/store'
@@ -18,6 +19,9 @@ import { initialConfigSource, useAvatarStore } from '@/state/store'
 const OWNED_DEFAULTS = {
   text: DEFAULT_CONFIG.text,
   family: DEFAULT_CONFIG.typography.line1.font.family,
+  secondary: DEFAULT_CONFIG.typography.line2.font
+    ? fontKey(DEFAULT_CONFIG.typography.line2.font)
+    : '',
 } as const
 
 /**
@@ -36,7 +40,7 @@ const OWNED_DEFAULTS = {
  * 否则示例文字先被写成 Hello 再改成目标语言，白闪一次也白写一次 store。
  * 文字与字体一起写，字体探测的样本才始终和文字同一种语言。
  *
- * 字体只接管跟随态：第一行经 `withLine1Font` 写入，第二行跟着第一行走。
+ * 字体只接管当前默认组合；主行与副行按语言分别选择。
  * 第二行字体被动过就放手，只改了字重也算，两行字体都保持用户的选择。
  */
 export function LocaleDefaults() {
@@ -61,7 +65,8 @@ export function LocaleDefaults() {
     const line1Font = typography.line1.font
     if (fromUser || line1Font.source !== 'google') released.current.font = true
     if (line1Font.family !== owned.current.family) released.current.font = true
-    if (typography.line2.font !== null) released.current.font = true
+    if (!typography.line2.font || fontKey(typography.line2.font) !== owned.current.secondary)
+      released.current.font = true
     if (released.current.text && released.current.font) return
 
     // 字典还在路上，等它到货再一次写完
@@ -82,11 +87,18 @@ export function LocaleDefaults() {
       if (family !== line1Font.family) {
         const weights = weightsOf(family)
         owned.current.family = family
-        patch.typography = withLine1Font(
-          typography,
-          { family, source: 'google', weight: nearestWeight(weights, line1Font.weight) },
-          weights,
-        )
+        const secondary = {
+          family: LOCALE_SECONDARY_FONT[locale],
+          source: 'google' as const,
+          weight: 700 as const,
+        }
+        owned.current.secondary = fontKey(secondary)
+        patch.typography = {
+          line1: {
+            font: { family, source: 'google', weight: nearestWeight(weights, line1Font.weight) },
+          },
+          line2: { font: secondary },
+        }
       }
     }
 
