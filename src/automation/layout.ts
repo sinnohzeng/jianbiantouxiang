@@ -1,3 +1,4 @@
+import { AUTO_LOGO_LINE2_SCALE } from '@/state/config'
 import { insideCircle } from '@/text/circle'
 import type { Rect, TextLayout, LayoutLine } from '@/text/layout'
 
@@ -37,7 +38,7 @@ export function badgeLayout(
   }
   texts.forEach((text, index) => {
     if (!text) return
-    let fontSize = size * (index === 0 || !texts[0] || !graphic ? 0.6 : 0.6 * 0.62)
+    let fontSize = size * (index === 0 || !texts[0] || !graphic ? 0.6 : 0.6 * AUTO_LOGO_LINE2_SCALE)
     let metrics = measure(text, fontSize)
     if (metrics.left + metrics.right > inkWidth) {
       let lo = 0,
@@ -68,7 +69,9 @@ export function badgeLayout(
   if (first && second) {
     const sharedSize = Math.min(first.fontSizePx, second.fontSizePx)
     for (const line of graphic ? [second] : [first, second]) {
-      const fontSize = graphic ? Math.min(second.fontSizePx, first.fontSizePx * 0.62) : sharedSize
+      const fontSize = graphic
+        ? Math.min(second.fontSizePx, first.fontSizePx * AUTO_LOGO_LINE2_SCALE)
+        : sharedSize
       const m = measure(line.text, fontSize)
       Object.assign(line, {
         fontSizePx: fontSize,

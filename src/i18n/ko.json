@@ -210,7 +210,7 @@
   "panel.text.line2Font.follow": "2행 글꼴을 1행에 연동",
   "panel.text.line2Font.followHint": "1행과 같은 글꼴과 굵기. 1행 글꼴을 바꾸면 함께 바뀝니다. 이 행에서 글꼴이나 굵기를 바꾸면 독립으로 바뀝니다",
   "panel.text.line2Size": "2행 글자 크기",
-  "panel.text.line2Size.autoHint": "아이콘 없는 자동 배치는 두 행의 크기가 같습니다. 아이콘이 있거나 1행이 수동이면 62%를 따릅니다. 슬라이더로 개별 설정합니다.",
+  "panel.text.line2Size.autoHint": "자동 배치: 텍스트만 있으면 같은 크기, 로고가 있으면 2행은 80%. 1행이 수동이면 62%. 슬라이더로 개별 설정합니다.",
   "panel.text.line2Size.follow": "2행 글자 크기를 1행에 연동",
   "panel.text.line2Weight": "2행 굵기",
   "panel.text.lineHeight": "행간",

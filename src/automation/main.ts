@@ -39,7 +39,7 @@ async function render(raw: unknown, validateOnly = false) {
     style: input.style,
     palette: input.palette,
     canvas: { width: input.size, height: input.size, shape: 'square' },
-    typography: { color: palette.text, effect: 'shadow', effectStrength: 0.35 },
+    typography: { color: palette.text },
     exportOptions: { format: input.format, sizeTarget: 'none', bgColor: palette.bg },
   })
   const logo = input.logo ? await prepareLogo(input.logo, palette.text) : null

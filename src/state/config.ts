@@ -136,14 +136,16 @@ export const LINE_SIZE_MAX = 0.92
 /** 逐行补偿的量程：水平按画布宽、垂直按画布高的比例，正负对称。 */
 export const LINE_OFFSET_MAX = 0.25
 
-/** 有 Logo 或手动主行时，副行跟随的字号比例。 */
+/** 手动主行时副行沿用的跟随字号比例。 */
 export const LINE2_FOLLOW_SCALE = 0.62
+
+/** 自动图文副行：保持层级，同时避免缩成小头像里的细小标签。 */
+export const AUTO_LOGO_LINE2_SCALE = 0.8
 
 /** 自动纯文字标识两行等大；有 Logo 时保留标题/副标题层级。 */
 export function line2FollowScale(config: AvatarConfig): number {
-  return config.layout.icon.source === 'none' && config.typography.line1.size === null
-    ? 1
-    : LINE2_FOLLOW_SCALE
+  if (config.typography.line1.size !== null) return LINE2_FOLLOW_SCALE
+  return config.layout.icon.source === 'none' ? 1 : AUTO_LOGO_LINE2_SCALE
 }
 
 /** 两行之间的留白比例，按两行里较大的那个字号算。 */
@@ -176,8 +178,8 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     scale: 1,
     rotation: 0,
   },
-  highlight: 0.25,
-  palette: 'aurora',
+  highlight: 0.08,
+  palette: 'steel-slate',
   customColors: [],
   canvas: { width: 2048, height: 2048, shape: 'square', radius: 0.2 },
   typography: {
@@ -192,8 +194,8 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     padding: 0.06,
     lineHeight: 1.03,
     letterSpacing: 0,
-    // 默认投影：比发光收敛，深浅背景都稳；强度 0.4 是白字与深字适配后的折中
-    effect: 'shadow',
+    // 深底白字依靠对比度；默认不以投影改变文字轮廓
+    effect: 'plain',
     effectStrength: 0.4,
     color: '#ffffff',
     pill: { radius: 0.5, padding: 0.3, opacity: 0.55 },

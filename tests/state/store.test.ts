@@ -132,6 +132,7 @@ describe('randomize', () => {
 
 describe('randomizePalette', () => {
   it('换成同 tone 的另一套配色，种子与质感不动', () => {
+    useAvatarStore.setState({ config: { ...DEFAULT_CONFIG, palette: 'aurora' } })
     store().randomizePalette()
     expect(store().config.palette).toBe('frost')
     expect(store().config.style).toBe(DEFAULT_CONFIG.style)

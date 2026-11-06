@@ -61,6 +61,21 @@ describe('normalizeConfig 补默认', () => {
     expect(config.typography.padding).toBe(0.1)
     expect(config.typography.lineHeight).toBe(1.15)
   })
+
+  it('深底白字只作为缺省值，显式浅底与投影仍保留', () => {
+    const fresh = normalizeConfig({})
+    expect(fresh.palette).toBe('steel-slate')
+    expect(fresh.highlight).toBe(0.08)
+    expect(fresh.typography.effect).toBe('plain')
+    const old = normalizeConfig({
+      palette: 'aurora',
+      highlight: 0.25,
+      typography: { effect: 'shadow' },
+    })
+    expect(old.palette).toBe('aurora')
+    expect(old.highlight).toBe(0.25)
+    expect(old.typography.effect).toBe('shadow')
+  })
 })
 
 describe('normalizeConfig 夹值与校验', () => {
@@ -120,7 +135,7 @@ describe('normalizeConfig 夹值与校验', () => {
     })
     expect(config.style).toBe('mesh')
     expect(config.canvas.shape).toBe('square')
-    expect(config.typography.effect).toBe('shadow')
+    expect(config.typography.effect).toBe('plain')
     expect(config.exportOptions.format).toBe('jpg')
     expect(config.exportOptions.sizeTarget).toBe('2mb')
   })

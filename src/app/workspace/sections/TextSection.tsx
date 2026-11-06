@@ -201,7 +201,7 @@ export function TextSection() {
       {/* 第二行字体默认跟随第一行，第二行有内容才有这一行 */}
       {hasSecond ? <LineFontField line={2} /> : null}
 
-      {/* 第二行字号与第一行同一单位。默认跟随第一行取 62%，一拖就钉成自己的值，
+      {/* 第二行字号与第一行同一单位，按当前自动/手动规则跟随，一拖就钉成自己的值，
           点“跟随”回到跟随。两行都有内容才有这一行 */}
       {hasFirst && hasSecond ? (
         <div data-slot="text-line2-size">

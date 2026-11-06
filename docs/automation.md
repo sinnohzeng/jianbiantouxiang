@@ -32,7 +32,7 @@ node service/cli.mjs batch --config service/examples/batch.json --out-dir ./avat
   "padding": 0.06,
   "safeShape": "circle",
   "logoScale": 0.38,
-  "palette": "aurora",
+  "palette": "steel-slate",
   "style": "mesh",
   "seed": "team-design-2026",
   "format": "png",
@@ -55,12 +55,12 @@ node service/cli.mjs batch --config service/examples/batch.json --out-dir ./avat
 | safeShape | circle / square，默认 circle；输出仍是方形图片，圆裁安全形状可配置。CLI 为 --safe-shape |
 | logoScale | 有文字时目标 Logo 高度为安全框的 38%；范围 20%–55%，宽度另有限制，始终等比 |
 | style | mesh / flow / silk / grain |
-| palette | 37 套内置配色之一，通过 options / list_avatar_options 获取 |
+| palette | 默认 steel-slate 深色白字；37 套内置配色之一，通过 options / list_avatar_options 获取 |
 | seed | 固定字符串，最多 128 字；显式换 seed 得到另一版构图 |
 | format | png / jpg / webp |
 | strict | 默认 true；渲染退化、缺字或越过安全区即失败。false 可接受近似渲染/字体回退并返回告警 |
 
-Logo 在上，文字两行作为一个紧凑组，整个图文栈居中。无 Logo 时两行以相同字号共同适配，文字组本身居中。有 Logo 时主行目标上限为边长 60%，副行不超过主行的 62%；真实字体量测后按宽高与圆弧约束缩放，不再用固定小字号限制短标题。圆形安全区逐个校验图文包围框，不把整张画布缩成内接正方形。6% 为本产品默认留白，不是飞书官方规范。
+Logo 在上，文字两行作为一个紧凑组，整个图文栈居中。无 Logo 时两行以相同字号共同适配，文字组本身居中。有 Logo 时主行目标上限为边长 60%，副行不超过主行的 80%；真实字体量测后按宽高与圆弧约束缩放，不再用固定小字号限制短标题。圆形安全区逐个校验图文包围框，不把整张画布缩成内接正方形。6% 为本产品默认留白，不是飞书官方规范。
 
 `displayChecks` 返回 24、32、48、64 px 下各行的墨迹高度；48 px 时任一行不足 6 px 发出 `text-small-at-48px:shorten-text-or-remove-second-line`，这是产品评估阈值而非可读性认证。长文本保持单行并明确告警，不以无限缩小冒充可读。需要方形布局可显式设 `safeShape: square`。
 
@@ -73,7 +73,7 @@ Logo 在上，文字两行作为一个紧凑组，整个图文栈居中。无 Lo
 - PNG / SVG 只接受最多 512 KiB 的字节。透明图保持原有 alpha，裁掉几乎透明的空边，默认转成与文字相同的单色；`color: original` 保留原色。
 - `background: auto` 只有在整张图不透明、近乎灰度、且完整边框一致近白/近黑时才移除背景。其余不透明情况不猜，保留并返回 `opaque-logo-background-preserved` 告警。
 - `background: transparent` 禁止移除背景；`white` / `black` 为调用方明确指定的底色。这两种操作会将同色内部区域一并当作背景，适合单色剪影；多色或含底板的品牌图请用 transparent + original。
-- PNG 最大 4096×4096 且不超过 1600 万像素；拒绝 APNG、压缩文字/ICC 元数据和损坏块，建议从绘图工具导出静态 PNG。
+- PNG 最大 4096×4096 且不超过 1600 万像素；拒绝 APNG 和损坏块；压缩文字/ICC 元数据直接剥离，不解压，建议从绘图工具导出静态 PNG。
 - SVG 必须是带有效 viewBox 或数值尺寸的轮廓图。最多 2000 个元素、32 层嵌套、50:1 长宽比；禁止实体/DTD、脚本、事件、外部引用、image、use、text、复杂样式表、动画、filter、mask 等。文字转轮廓，复杂滤镜先转 PNG。白名单重建后以 Blob 图片解码，绝不注入页面 DOM。SVG 先栅格化到最长边 1024；最终头像 2048 时 Logo 可能放大。
 
 元数据包含 `safeShape`、`safeCircle`、`displayChecks`、`safeArea`、`logoBounds`、`textBounds`、逐行 `bounds`/baseline/fontSize、实际墨色、warnings、overflow、renderMode、输出字节数与 MIME。所有坐标单位为最终图片像素。非常宽或高的 Logo 会有比例告警，程序不会把它拉伸成方形。

@@ -210,7 +210,7 @@
   "panel.text.line2Font.follow": "2 行目フォントを 1 行目に連動",
   "panel.text.line2Font.followHint": "1 行目と同じフォントとウェイト。1 行目のフォントを変えると一緒に変わります。この行でフォントかウェイトを変えると独立します",
   "panel.text.line2Size": "2 行目サイズ",
-  "panel.text.line2Size.autoHint": "文字のみの自動配置は2行を同じサイズに。アイコンあり、または1行目が手動なら62%。スライダーで個別設定。",
+  "panel.text.line2Size.autoHint": "自動配置：文字のみは同サイズ、ロゴ付きの2行目は80%。1行目が手動なら62%。スライダーで個別設定。",
   "panel.text.line2Size.follow": "2 行目サイズを 1 行目に連動",
   "panel.text.line2Weight": "2 行目ウェイト",
   "panel.text.lineHeight": "行間",

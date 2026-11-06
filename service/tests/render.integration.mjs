@@ -55,6 +55,11 @@ test(
       ]) {
         const result = await renderer.run({ ...request, logo, style, format })
         assert.equal(result.metadata.renderMode, 'webgl2')
+        if (style === 'mesh') {
+          assert.equal(result.metadata.palette, 'steel-slate')
+          assert.equal(result.metadata.color, '#ffffff')
+          assert.ok(result.metadata.sampledMinContrast >= 4.5)
+        }
         assert.equal(result.metadata.overflow, false)
         assert.ok(result.metadata.logoBounds.width > result.metadata.logoBounds.height)
         assert.ok(Buffer.from(result.data, 'base64').length > 1000)

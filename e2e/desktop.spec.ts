@@ -5,6 +5,7 @@
 
 import { expect, test, type Page } from '@playwright/test'
 import {
+  RENDER_TIMEOUT_MS,
   APP_URL,
   POLL_TIMEOUT_MS,
   PREVIEW_SUBSET_FIXTURE,
@@ -496,6 +497,10 @@ test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" onload="alert(1)"><script>alert(2)</script><defs><style>.mark { fill:#3730c3;fill-rule:evenodd; }</style></defs><path class="mark" d="M20 20h60v60h-60z"/></svg>',
     ),
   })
+  // 上传包含解码和透明边界扫描；等处理结果，不把通用 5 秒 DOM 超时当成渲染预算。
+  await expect
+    .poll(async () => (await readIcon(page)).source, { timeout: RENDER_TIMEOUT_MS })
+    .toBe('upload')
   await expect(page.locator('[data-slot="graphic-picker"]')).toContainText('upload-')
   await page.locator('#avatar-text-first').fill('产品设计部')
 
@@ -623,6 +628,8 @@ test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ pa
     )
     .toBe(true)
   const before = Number(await slider.inputValue())
+  const line2 = page.getByRole('slider', { name: '第二行字号' })
+  const secondBefore = Number(await line2.inputValue())
   expect(before).toBeGreaterThan(0.04)
 
   await slider.focus()
@@ -631,10 +638,9 @@ test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ pa
   const after = Number(await slider.inputValue())
   expect(after).toBeCloseTo(before + 0.005, 3)
 
-  // 拖第一行时第二行钉在此刻的大小：它的“自动”钮熄灭，值仍是拖之前的自动基准
+  // 第一行显示向下对齐步进，第二行保留求解值；比较第二行自己的拖动前读数。
   await expect(auto2).toHaveAttribute('aria-pressed', 'false')
-  const line2 = page.getByRole('slider', { name: '第二行字号' })
-  expect(Number(await line2.inputValue())).toBeCloseTo(before, 2)
+  expect(Number(await line2.inputValue())).toBe(secondBefore)
 
   await auto.click()
   await expect(auto).toHaveAttribute('aria-pressed', 'true')

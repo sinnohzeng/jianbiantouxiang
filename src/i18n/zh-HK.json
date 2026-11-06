@@ -210,7 +210,7 @@
   "panel.text.line2Font.follow": "第二行字型跟隨第一行",
   "panel.text.line2Font.followHint": "與第一行同一款字型與字重，第一行換字型時一起換；在這一行換字型或字重即改為獨立",
   "panel.text.line2Size": "第二行字級",
-  "panel.text.line2Size.autoHint": "無圖示的自動排版兩行等大；有圖示或首行手動時取首行的 62%；拖動滑桿改為獨立",
+  "panel.text.line2Size.autoHint": "自動排版：無圖示兩行等大，有圖示副行為 80%；首行手動時跟隨 62%；拖動滑桿改為獨立",
   "panel.text.line2Size.follow": "第二行字級跟隨第一行",
   "panel.text.line2Weight": "第二行字重",
   "panel.text.lineHeight": "行高",

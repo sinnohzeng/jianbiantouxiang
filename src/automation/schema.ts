@@ -39,7 +39,7 @@ export const renderSchema = z
       .min(1)
       .max(64)
       .regex(/^[a-z0-9-]+$/)
-      .default('aurora'),
+      .default('steel-slate'),
     seed: z.string().max(128).default('gradient-avatar-v1'),
     format: z.enum(['png', 'jpg', 'webp']).default('png'),
     strict: z.boolean().default(true),

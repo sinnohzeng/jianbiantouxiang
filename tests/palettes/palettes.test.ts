@@ -122,7 +122,7 @@ describe('getPalette 与 paletteColors', () => {
     // DEFAULT_PALETTE_ID 是 id 查不到时的兜底，DEFAULT_CONFIG.palette 是首屏出的那套，两者不必同一个
     expect(getPalette(DEFAULT_PALETTE_ID)).toBeDefined()
     expect(getPalette(DEFAULT_CONFIG.palette)).toBeDefined()
-    expect(DEFAULT_CONFIG.palette).toBe('aurora')
+    expect(DEFAULT_CONFIG.palette).toBe('steel-slate')
   })
 
   it('查不到的 id 返回 undefined', () => {

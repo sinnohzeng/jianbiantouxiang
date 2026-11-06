@@ -12,6 +12,8 @@ const measure = (text: string, size: number) => ({
 
 describe('automation contract and layout', () => {
   it('rejects typo fields, URLs, control characters and excessive dimensions', () => {
+    expect(renderSchema.parse({}).palette).toBe('steel-slate')
+    expect(renderSchema.parse({ palette: 'aurora' }).palette).toBe('aurora')
     for (const input of [
       { siz: 1024 },
       { size: 8192 },
@@ -134,5 +136,5 @@ it('纯文字北区与连接器同字号，Logo 双行保留主副层级', () =>
     { width: 100, height: 20 },
     measure,
   )
-  expect(logo.lines[1]?.fontSizePx).toBeCloseTo((logo.lines[0]?.fontSizePx ?? 0) * 0.62)
+  expect(logo.lines[1]?.fontSizePx).toBeCloseTo((logo.lines[0]?.fontSizePx ?? 0) * 0.8)
 })

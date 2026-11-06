@@ -219,7 +219,7 @@
 | `panel.text.line2Font.follow`     | 第二行字体跟随第一行                                                             |
 | `panel.text.line2Font.followHint` | 与第一行同一款字体与字重，第一行换字体时一起换；在这一行换字体或字重即改为独立   |
 | `panel.text.line2Size`            | 第二行字号                                                                       |
-| `panel.text.line2Size.autoHint`   | 无图标的自动排版两行等大；有图标或首行手动时取首行的 62%；拖动滑杆改为独立       |
+| `panel.text.line2Size.autoHint`   | 自动排版：无图标两行等大，有图标副行为 80%；首行手动时跟随 62%；拖动滑杆改为独立 |
 | `panel.text.line2Size.follow`     | 第二行字号跟随第一行                                                             |
 | `panel.text.line2Weight`          | 第二行字重                                                                       |
 | `panel.text.lineHeight`           | 行高                                                                             |

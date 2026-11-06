@@ -210,7 +210,7 @@
   "panel.text.line2Font.follow": "Match line 2 font to line 1",
   "panel.text.line2Font.followHint": "Same font and weight as line 1, and changes along with it when line 1 changes font; picking a font or weight on this line makes it independent",
   "panel.text.line2Size": "Line 2 size",
-  "panel.text.line2Size.autoHint": "Automatic text-only lines use equal sizes; with an icon or manual first line, follows at 62%. Drag to set independently.",
+  "panel.text.line2Size.autoHint": "Automatic: equal text-only lines, 80% secondary text with a logo. A manual first line uses 62%. Drag to set independently.",
   "panel.text.line2Size.follow": "Match line 2 size to line 1",
   "panel.text.line2Weight": "Line 2 weight",
   "panel.text.lineHeight": "Line height",

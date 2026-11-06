@@ -153,7 +153,7 @@ localStorage `gradient-avatar:preview-height`，模块 `src/app/preview-height.t
 
 同一模块另外导出三个函数。`DEFAULT_CONFIG` 是默认值的唯一定义处；`normalizeConfig` 把任意局部输入补成完整配置，数值按区间夹值、枚举做合法性校验，任何输入都不抛错；`configHash` 对键排序后做 FNV-1a，用作历史去重与渲染去重的标记。
 
-字体整份成立或整份作废：family 去掉首尾空白后非空、来源是 google、system、upload 之一才成立，字重取整到 100 到 900 九档。第一行字体作废回默认字体，第二行字体作废即跟随。字号与补偿的区间是导出常量：`LINE_SIZE_MIN` 0.04、`LINE2_SIZE_MIN` 0.02、`LINE_SIZE_MAX` 0.92、`LINE_OFFSET_MAX` 0.25，无图标自动双行由 `line2FollowScale` 返回 1，其余跟随比例 `LINE2_FOLLOW_SCALE` 为 0.62，两行之间的留白比例 `LINE_GAP_RATIO` 0.18。
+字体整份成立或整份作废：family 去掉首尾空白后非空、来源是 google、system、upload 之一才成立，字重取整到 100 到 900 九档。第一行字体作废回默认字体，第二行字体作废即跟随。字号与补偿的区间是导出常量：`LINE_SIZE_MIN` 0.04、`LINE2_SIZE_MIN` 0.02、`LINE_SIZE_MAX` 0.92、`LINE_OFFSET_MAX` 0.25，无图标自动双行由 `line2FollowScale` 返回 1，有图标自动排版 `AUTO_LOGO_LINE2_SCALE` 为 0.8，首行手动时 `LINE2_FOLLOW_SCALE` 为 0.62，两行之间的留白比例 `LINE_GAP_RATIO` 0.18。
 
 逐行字体的读写也收在这里。`lineFont(t, line)` 取某一行的生效字体，第二行为 `null` 时就是第一行那款；`fontKey` 是一款字体的身份键，来源、family、字重任一不同就是另一款。写字体只走三个函数：`withLine1Font` 写第一行，第二行只改过字重时随第一行换款并吸附字重；`withLine2Font` 写第二行，与第一行全相同时写 `null` 回到跟随；`FOLLOW_LINE1` 把第二行写回跟随。`nearestWeight` 把字重吸附到字体真有的一档，`twoLinesOf` 是两行模型对换行的唯一解释，归一、排版、字体加载与界面共用。
 
@@ -400,3 +400,5 @@ service worker 默认只在页面加载时查一次更新，标签页开着不�
 ### 上传图形的可见边界
 
 上传图形由 `graphics/trim.ts` 有界扫描 alpha 边界，布局使用可见宽高，`Graphic.sourceRect` 保留原图中的源矩形，绘制不把透明画布再次拉回来。原始 SVG 继续参与最终绘制。`graphics/svg-style.ts` 只把简单类选择器的有限绘制声明转成属性，再删除样式表；不执行 CSS 或保留网络引用。
+
+默认视觉：`steel-slate` 深色渐变、白色纯色字、光感 0.08；显式旧配色、光感与文字效果不会被默认值覆盖。CLI/MCP 使用同样默认配色与视觉配置。

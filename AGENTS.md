@@ -22,7 +22,7 @@ npm run lint && npm run format:check && npm run typecheck && npm test && npm run
 
 ## 边界
 
-- main 分支 push 即上线：阿里云 ESA Pages 与 Cloudflare Pages 都接着 main，接入与核对步骤见 `docs/deploy.md`。在沙箱或流水线里执行的任务只推功能分支并开 PR，不直接 push main，合并交给验收步骤。本地交互式开发按 `docs/contributing.md` 的“定版与标签”收尾。
+- main 分支 push 即上线：阿里云 ESA Pages 与 Cloudflare Pages 都接着 main，接入与核对步骤见 `docs/deploy.md`。本单人项目按用户要求直接在 main 工作，门禁全绿后提交并推送 main，不开 PR。定版与标签按 `docs/contributing.md` 的“定版与标签”收尾。
 - 不手改 `src/components/ui/`，那是 shadcn 生成件。`docs/`、`specs/` 与根目录长文档在 `.prettierignore` 里，不对它们跑格式化。
 - 密钥只在 `.env.local`，不写进任何文件、命令行历史或提交。
 - 界面文案一律走 i18n key，五份字典同步改；配色名例外，它在 `src/palettes/palettes.ts` 里自带五语。
