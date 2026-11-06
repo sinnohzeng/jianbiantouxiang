@@ -31,3 +31,11 @@ SDD 先写规范和计划，再实现候选。自动副行从 80% 回到 62%，�
 
 - 含用户原始参照的前后拼图：`libfile_a80782073ac4819199e9b76310d1c4ad`。
 - 16 张 MCP 原图、网页上传样张、测量和圆裁对照：`libfile_e8bcabfada9481919c0166500638d690`。
+
+## 发布后 CI 反证与 v8.2.3 修正
+
+v8.2.2 的 main CI automation 失败，不能称为云端全绿。失败在严格圆裁断言；系统 Chromium 与 CI Chromium 156 的字号取整不同，同版复现确认约 0.29 px 半径越界。以每个候选字号重新量测修正，而非放宽断言。新增 SDD `specs/v8.2.3-render-metrics/`；失败及修复原始数据保存在研究 references。最终验证、提交、附件和 CI 状态以交付回复为准；v8.2.2 样张保留为候选历史，最终 v8.2.3 附件另行交付。
+
+补丁验证：837 单测、3 HTTP 组、构建门禁通过；Chromium 156（CI 同版）和系统 Chromium 分别运行 7 组真实渲染/MCP/CLI 集成，全部通过。最终 16 张 MCP 原图及真实白色 PNG 网页样张重新生成并目检，参照图 `libfile_52b90e5fc1a08191b034475b1e4b8924`，原图包 `libfile_94300ddb510c81919e09573431a7fb72`。设备界面和默认样张的完整复核属于同轮 v8.2.2；v8.2.3 只修正字体量测，实际输出另行验证，没有将旧附件称为新产物。
+
+最终补丁 E2E 使用与 CI 相同的 Chromium 156：50 项全部通过（10.0 分钟），没有重试掩盖失败。补充文档：specs/v8.2.3-render-metrics/spec.md、plan.md，以及 references/ci-font-metrics.json、final-v823-measurements.json。

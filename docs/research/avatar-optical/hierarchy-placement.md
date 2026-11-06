@@ -11,6 +11,10 @@ sources:
     resource: brand-spacing.md
   - id: metrics
     resource: references/hierarchy-comparison.json
+  - id: final-metrics
+    resource: references/final-v823-measurements.json
+  - id: ci-metrics
+    resource: references/ci-font-metrics.json
   - id: optical
     resource: optical-centering.md
 ---
@@ -48,3 +52,13 @@ v8.2.1 以包围盒上下留白近似相等支持改善判断，仍被用户否�
 [^prior]: 上一轮间距测量保留为历史证据，本轮记录其验收不足。
 [^metrics]: 仓库保存具体测量及实际光学位移、字号和缩放比例。
 [^optical]: 保留整行字距与形状，质心只作有限诊断。
+
+# CI 反证与后续修正
+
+v8.2.2 云端真实渲染发现微缩后字体边界越圆；系统 Chromium 未复现，CI 同版 Chromium 156 可复现。v8.2.3 在缩放候选与最终输出都重新量测实际字体，保持严格圆裁断言。上表保留 v8.2.2 候选测量，最终修正样张另附，不能把旧数值冒充最终字形测量。[^ci-metrics]
+
+[^ci-metrics]: 同版浏览器的关闭光学基线、失败输出与修复后元数据，256 px。
+
+最终 v8.2.3 已重新运行相同客户输入、字体和种子的 MCP 出图，并单独保存实际白色像素测量与位移。[^final-metrics]
+
+[^final-metrics]: 最终补丁版本的原始测量；不覆盖上一版历史值。

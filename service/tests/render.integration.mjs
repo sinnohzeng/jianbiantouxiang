@@ -84,6 +84,19 @@ test(
             for (const y of [r.y, r.y + r.height])
               assert.ok(Math.hypot(x - 256, y - 256) <= 512 * 0.44 + 0.1)
       }
+      for (const size of [128, 256, 512, 1024]) {
+        const { metadata: m } = await renderer.run(
+          { ...request, size, logo },
+          { validateOnly: true },
+        )
+        for (const r of [m.logoBounds, ...m.lines.map((l) => l.bounds)])
+          for (const x of [r.x, r.x + r.width])
+            for (const y of [r.y, r.y + r.height])
+              assert.ok(
+                Math.hypot(x - size / 2, y - size / 2) <= size * 0.44 + 0.01,
+                `hinted font boundary: ${JSON.stringify({ size, r, optical: m.optical })}`,
+              )
+      }
       const preset = await renderer.run({
         line1: '飞书对接',
         preset: 'dongli-symbol-white',

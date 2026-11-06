@@ -112,3 +112,5 @@ MIT，见 `LICENSE`。
 Noto Serif SC 600/700 按需加载，新选宋体默认 600，已有字重保留，许可见 `public/FONT-NOTO-SERIF-SC-LICENSE.txt`。东黎品牌案例保留原白色和素材内置留白，品牌权利见 `src/graphics/client-assets/README.md`，不属于项目 MIT 授权。自动化参数和样张复现见 [自动化说明](docs/automation.md)。
 
 品牌与标题之间按标识宽高比分配间距：宽字标取短边 6%，其他图形取 4.5%；带 Logo 的主副行间距取短边 3.5% 与主字号 18% 中的较大值。自动圆裁求解保留间距，再重新居中整组。
+
+光学微缩的每个候选字号使用实际 TextMetrics 重新量测，最终行框与元数据同步，避免字体取整被线性缩放假设掩盖。

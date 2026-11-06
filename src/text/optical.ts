@@ -164,6 +164,19 @@ export function applyOpticalLayout(
     width: m.bounds.width / scale,
     height: m.bounds.height / scale,
   })
+  const measuredRect = (line: TextLayout['lines'][number]): Rect => {
+    ctx.font = line.font
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'alphabetic'
+    if ('letterSpacing' in ctx) ctx.letterSpacing = `${line.letterSpacingPx}px`
+    const m = ctx.measureText(line.text)
+    return {
+      x: line.x - m.actualBoundingBoxLeft,
+      y: line.y - m.actualBoundingBoxAscent,
+      width: m.actualBoundingBoxLeft + m.actualBoundingBoxRight,
+      height: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent,
+    }
+  }
   const rows: Rect[] = []
   try {
     report.mode = 'bounded'
@@ -174,9 +187,11 @@ export function applyOpticalLayout(
       // Preserve the font's spacing and glyph outlines: translate the entire line only.
       const rawShift = opticalShift(width / 2 - m.x / scale, short)
       const proposed = Math.max(-line.fontSizePx * 0.02, Math.min(line.fontSizePx * 0.02, rawShift))
+      const metric = measuredRect(line)
+      const fitsShift = (dx: number) => [rect, metric].every((r) => fits({ ...r, x: r.x + dx }))
       let shift = proposed
-      for (let n = 0; n < 12 && !fits({ ...rect, x: rect.x + shift }); n++) shift *= 0.5
-      if (!fits({ ...rect, x: rect.x + shift }) || Math.abs(shift) < short * 0.0005) shift = 0
+      for (let n = 0; n < 12 && !fitsShift(shift); n++) shift *= 0.5
+      if (!fitsShift(shift) || Math.abs(shift) < short * 0.0005) shift = 0
       report.limited ||= Math.abs(shift - proposed) > short * 0.0005
       report.lineShifts[i] = shift
       line.x += shift
@@ -198,7 +213,6 @@ export function applyOpticalLayout(
           )
         : opticalShift(height / 2 - group.y / scale, short)
       report.proposedGroupShiftY = proposed
-      const boxes = [...rows, ...(result.graphic ? [result.graphic] : [])]
       let shift = proposed
       // Tight circle fits previously vetoed useful translation. Reserve at most 6% size.
       const transformed = (r: Rect, factor: number, dy: number): Rect => ({
@@ -207,34 +221,52 @@ export function applyOpticalLayout(
         width: r.width * factor,
         height: r.height * factor,
       })
-      if (automaticBrand && shift && !boxes.every((r) => fits(transformed(r, 1, shift)))) {
-        for (let n = 0; n < 12 && !boxes.every((r) => fits(transformed(r, 0.94, shift))); n++)
-          shift *= 0.5
+      // Font hinting/rounding is not linear in font size. Measure each candidate.
+      const candidateBoxes = (factor: number, dy: number) => [
+        ...rows.map((r) => transformed(r, factor, dy)),
+        ...result.lines.map((l) =>
+          measuredRect({
+            ...l,
+            x: width / 2 + (l.x - width / 2) * factor,
+            y: height / 2 + (l.y + dy - height / 2) * factor,
+            font: l.font.replace(/[-\d.]+px/, `${l.fontSizePx * factor}px`),
+            letterSpacingPx: l.letterSpacingPx * factor,
+          }),
+        ),
+        ...(result.graphic ? [transformed(result.graphic, factor, dy)] : []),
+      ]
+      if (automaticBrand && shift && !candidateBoxes(1, shift).every(fits)) {
+        for (let n = 0; n < 12 && !candidateBoxes(0.94, shift).every(fits); n++) shift *= 0.5
         let lo = 0.94,
           hi = 1
-        if (boxes.every((r) => fits(transformed(r, lo, shift)))) {
+        if (candidateBoxes(lo, shift).every(fits)) {
           for (let n = 0; n < 16; n++) {
             const mid = (lo + hi) / 2
-            if (boxes.every((r) => fits(transformed(r, mid, shift)))) lo = mid
+            if (candidateBoxes(mid, shift).every(fits)) lo = mid
             else hi = mid
           }
           report.groupScale = lo
           for (const l of result.lines) {
             l.x = width / 2 + (l.x - width / 2) * lo
             l.y = height / 2 + (l.y - height / 2) * lo
-            l.width *= lo
-            l.ascent *= lo
-            l.descent *= lo
             l.fontSizePx *= lo
             l.letterSpacingPx *= lo
             l.font = l.font.replace(/[-\d.]+px/, `${l.fontSizePx}px`)
+            const rect = measuredRect(l)
+            l.width = rect.width
+            l.ascent = l.y - rect.y
+            l.descent = rect.y + rect.height - l.y
           }
           for (const r of rows) Object.assign(r, transformed(r, lo, 0))
           if (result.graphic) Object.assign(result.graphic, transformed(result.graphic, lo, 0))
           shift *= lo
         }
       }
-      const fittedBoxes = [...rows, ...(result.graphic ? [result.graphic] : [])]
+      const fittedBoxes = [
+        ...rows,
+        ...result.lines.map(measuredRect),
+        ...(result.graphic ? [result.graphic] : []),
+      ]
       for (let n = 0; n < 12 && !fittedBoxes.every((r) => fits({ ...r, y: r.y + shift })); n++)
         shift *= 0.5
       if (
@@ -256,6 +288,7 @@ export function applyOpticalLayout(
       result.font = result.lines[0]?.font ?? result.font
     }
     if (rows.length) {
+      rows.splice(0, rows.length, ...result.lines.map(measuredRect))
       const x = Math.min(...rows.map((r) => r.x)),
         y = Math.min(...rows.map((r) => r.y))
       result.box = {

@@ -1,0 +1,114 @@
+[
+  {
+    "case": "dongli-one-optical",
+    "visibleTop": 136,
+    "visibleBottom": 364,
+    "thresholdMassCenterY": 270.43,
+    "primaryFontSize": 94.14854049682617,
+    "secondaryFontSize": null,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        0
+      ],
+      "groupShiftY": -17.352329226293648,
+      "proposedGroupShiftY": -17.352329226293648,
+      "limited": true,
+      "groupScale": 1
+    }
+  },
+  {
+    "case": "dongli-two-optical",
+    "visibleTop": 111,
+    "visibleBottom": 396,
+    "thresholdMassCenterY": 260.59,
+    "primaryFontSize": 87.62730830727376,
+    "secondaryFontSize": 54.32893115050973,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -1.8352113246917725,
+        -1.137831021308899
+      ],
+      "groupShiftY": -13.871642145891489,
+      "proposedGroupShiftY": -14.525948160442681,
+      "limited": true,
+      "groupScale": 0.9549560546874999
+    }
+  },
+  {
+    "case": "dongli-full-optical",
+    "visibleTop": 77,
+    "visibleBottom": 417,
+    "thresholdMassCenterY": 279.4,
+    "primaryFontSize": 103.12828302383423,
+    "secondaryFontSize": 63.939535474777216,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        0,
+        -1.2787907094955444
+      ],
+      "groupShiftY": -16.555525337163203,
+      "proposedGroupShiftY": -16.555525337163203,
+      "limited": true,
+      "groupScale": 1
+    }
+  },
+  {
+    "case": "dongli-inline-optical",
+    "visibleTop": 134,
+    "visibleBottom": 369,
+    "thresholdMassCenterY": 265.53,
+    "primaryFontSize": 88.01293041470161,
+    "secondaryFontSize": 54.568016857115,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -1.8492924928665162,
+        -1.1465613455772399
+      ],
+      "groupShiftY": -17.057244531250003,
+      "proposedGroupShiftY": -17.92,
+      "limited": true,
+      "groupScale": 0.9518551635742187
+    }
+  },
+  {
+    "case": "harmay-one-optical",
+    "visibleTop": 170,
+    "visibleBottom": 341,
+    "thresholdMassCenterY": 261.92,
+    "primaryFontSize": 106.26830856800076,
+    "secondaryFontSize": null,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        0
+      ],
+      "groupShiftY": 0,
+      "proposedGroupShiftY": 0,
+      "limited": true,
+      "groupScale": 1
+    }
+  },
+  {
+    "case": "harmay-two-optical",
+    "visibleTop": 137,
+    "visibleBottom": 374,
+    "thresholdMassCenterY": 246.85,
+    "primaryFontSize": 99.18993215560911,
+    "secondaryFontSize": 61.49775793647765,
+    "optical": {
+      "mode": "bounded",
+      "lineShifts": [
+        -1.9837986431121823,
+        -1.1301476492104143
+      ],
+      "groupShiftY": 0,
+      "proposedGroupShiftY": 0,
+      "limited": false,
+      "groupScale": 1
+    }
+  }
+]
