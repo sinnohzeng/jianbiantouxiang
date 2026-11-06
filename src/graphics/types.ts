@@ -18,6 +18,8 @@ export type Graphic =
   | {
       kind: 'image'
       image: CanvasImageSource
+      /** 原图中的可见区域；布局 width/height 与该区域一致。 */
+      sourceRect?: Rect
       width: number
       height: number
     }

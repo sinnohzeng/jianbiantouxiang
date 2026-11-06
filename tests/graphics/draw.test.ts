@@ -36,6 +36,25 @@ describe('drawGraphic 消费端', () => {
     expect(calls).toContain('drawImage:10,20,100,80')
   })
 
+  it('透明裁边后以原图源矩形绘制，不拉伸回原始留白画布', () => {
+    const graphic: Graphic = {
+      kind: 'image',
+      image: {} as CanvasImageSource,
+      width: 183,
+      height: 19,
+      sourceRect: { x: 0, y: 29, width: 183, height: 19 },
+    }
+    const { ctx, calls } = context()
+    drawGraphic(
+      ctx,
+      graphic,
+      { x: 40, y: 100, width: 366, height: 38 },
+      normalizeConfig({}),
+      '#000',
+    )
+    expect(calls).toContain('drawImage:0,29,183,19,40,100,366,38')
+  })
+
   it('内置图形必须调用 stroke 落笔，颜色与文字一致', () => {
     const path = { marker: 'path' } as unknown as Path2D
     const graphic: Graphic = { kind: 'lucide', path, width: 24, height: 24 }

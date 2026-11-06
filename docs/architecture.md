@@ -153,7 +153,7 @@ localStorage `gradient-avatar:preview-height`，模块 `src/app/preview-height.t
 
 同一模块另外导出三个函数。`DEFAULT_CONFIG` 是默认值的唯一定义处；`normalizeConfig` 把任意局部输入补成完整配置，数值按区间夹值、枚举做合法性校验，任何输入都不抛错；`configHash` 对键排序后做 FNV-1a，用作历史去重与渲染去重的标记。
 
-字体整份成立或整份作废：family 去掉首尾空白后非空、来源是 google、system、upload 之一才成立，字重取整到 100 到 900 九档。第一行字体作废回默认字体，第二行字体作废即跟随。字号与补偿的区间是导出常量：`LINE_SIZE_MIN` 0.04、`LINE2_SIZE_MIN` 0.02、`LINE_SIZE_MAX` 0.92、`LINE_OFFSET_MAX` 0.25，第二行跟随时的比例 `LINE2_FOLLOW_SCALE` 0.62，两行之间的留白比例 `LINE_GAP_RATIO` 0.18。
+字体整份成立或整份作废：family 去掉首尾空白后非空、来源是 google、system、upload 之一才成立，字重取整到 100 到 900 九档。第一行字体作废回默认字体，第二行字体作废即跟随。字号与补偿的区间是导出常量：`LINE_SIZE_MIN` 0.04、`LINE2_SIZE_MIN` 0.02、`LINE_SIZE_MAX` 0.92、`LINE_OFFSET_MAX` 0.25，无图标自动双行由 `line2FollowScale` 返回 1，其余跟随比例 `LINE2_FOLLOW_SCALE` 为 0.62，两行之间的留白比例 `LINE_GAP_RATIO` 0.18。
 
 逐行字体的读写也收在这里。`lineFont(t, line)` 取某一行的生效字体，第二行为 `null` 时就是第一行那款；`fontKey` 是一款字体的身份键，来源、family、字重任一不同就是另一款。写字体只走三个函数：`withLine1Font` 写第一行，第二行只改过字重时随第一行换款并吸附字重；`withLine2Font` 写第二行，与第一行全相同时写 `null` 回到跟随；`FOLLOW_LINE1` 把第二行写回跟随。`nearestWeight` 把字重吸附到字体真有的一档，`twoLinesOf` 是两行模型对换行的唯一解释，归一、排版、字体加载与界面共用。
 
@@ -396,3 +396,7 @@ service worker 默认只在页面加载时查一次更新，标签页开着不�
 网页预览和导出共用 layoutText；CLI/MCP 的单行字段契约复用圆形几何判定，但保留独立的固定字体排版入口。无需数据库、额外队列系统或布局服务。scripts/review-layout.mjs 使用本地打包字体与实际合成管线生成圆裁和 24/32/48/64 px 样张；这些是测试尺寸，不是飞书官方标准。
 
 默认 Noto Sans SC 700 通过动态 CSS 从本站打包资源加载，按 unicode-range 加载字形分片；其余字体仍走 Google / jsDelivr。OFL 许可证位于 public/fonts/OFL-NotoSansSC.txt。默认字体先从本站解析并验证 FontFace loaded 状态，避免外部字体不可达时影响初始排版。
+
+### 上传图形的可见边界
+
+上传图形由 `graphics/trim.ts` 有界扫描 alpha 边界，布局使用可见宽高，`Graphic.sourceRect` 保留原图中的源矩形，绘制不把透明画布再次拉回来。原始 SVG 继续参与最终绘制。`graphics/svg-style.ts` 只把简单类选择器的有限绘制声明转成属性，再删除样式表；不执行 CSS 或保留网络引用。

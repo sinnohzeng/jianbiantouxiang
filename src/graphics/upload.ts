@@ -1,4 +1,6 @@
 import type { Graphic } from './types'
+import { visibleImageRect } from './trim'
+import { inlineSafeClassStyles } from './svg-style'
 
 export const MAX_GRAPHIC_UPLOAD_BYTES = 5 * 1024 * 1024
 const SVG_NS = 'http://www.w3.org/2000/svg'
@@ -233,6 +235,7 @@ export function sanitizeSvg(source: string): string {
     throw new GraphicUploadError('SVG 解析失败', 'invalid-svg')
   }
 
+  inlineSafeClassStyles(document)
   const cloned = cloneSafe(root, document, true)
   if (!cloned.drawing) throw new GraphicUploadError('SVG 里没有安全绘图元素', 'empty-graphic')
   const clean = cloned.node
@@ -270,7 +273,9 @@ async function graphicOfUrl(url: string): Promise<Graphic> {
   const image = await loadImage(url)
   const width = image.naturalWidth || 512
   const height = image.naturalHeight || 512
-  return { kind: 'image', image, width, height }
+  const sourceRect = visibleImageRect(image, width, height)
+  if (!sourceRect) throw new GraphicUploadError('图形没有可见像素', 'empty-graphic')
+  return { kind: 'image', image, width: sourceRect.width, height: sourceRect.height, sourceRect }
 }
 
 /** 注册本次会话的上传图形，不进 URL、存档或历史。 */

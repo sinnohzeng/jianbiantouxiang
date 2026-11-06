@@ -37,7 +37,7 @@ export function badgeLayout(
   }
   texts.forEach((text, index) => {
     if (!text) return
-    let fontSize = size * (index === 0 || !texts[0] ? 0.6 : 0.6 * 0.62)
+    let fontSize = size * (index === 0 || !texts[0] || !graphic ? 0.6 : 0.6 * 0.62)
     let metrics = measure(text, fontSize)
     if (metrics.left + metrics.right > inkWidth) {
       let lo = 0,
@@ -65,16 +65,20 @@ export function badgeLayout(
   })
   const first = lines[0],
     second = lines[1]
-  if (first && second && second.fontSizePx > first.fontSizePx * 0.62) {
-    second.fontSizePx = first.fontSizePx * 0.62
-    const m = measure(second.text, second.fontSizePx)
-    Object.assign(second, {
-      font: `700 ${second.fontSizePx}px "Noto Sans SC"`,
-      x: (size + m.left - m.right) / 2,
-      width: m.left + m.right,
-      ascent: m.ascent,
-      descent: m.descent,
-    })
+  if (first && second) {
+    const sharedSize = Math.min(first.fontSizePx, second.fontSizePx)
+    for (const line of graphic ? [second] : [first, second]) {
+      const fontSize = graphic ? Math.min(second.fontSizePx, first.fontSizePx * 0.62) : sharedSize
+      const m = measure(line.text, fontSize)
+      Object.assign(line, {
+        fontSizePx: fontSize,
+        font: `700 ${fontSize}px "Noto Sans SC"`,
+        x: (size + m.left - m.right) / 2,
+        width: m.left + m.right,
+        ascent: m.ascent,
+        descent: m.descent,
+      })
+    }
   }
   const stackHeight = () =>
     (graphicRect?.height ?? 0) +

@@ -12,6 +12,10 @@ describe('remote SVG safety', () => {
     '<path onload="alert(1)" d="M0 0h1"/>',
     '<path fill="url(https://example.com/a)" d="M0 0h1"/>',
     '<style>@import "https://example.com";</style>',
+    '<style>.a {fill:url(https://example.com/x)}</style>',
+    '<style>.a {filter:blur(5px)}</style>',
+    '<style>path {fill:red}</style>',
+    '<style>.a {fill: red; background: url(file:///x)}</style>',
     '<filter/>',
     '<text>convert to paths first</text>',
   ])('rejects unsafe or unsupported content: %s', (body) =>
@@ -75,4 +79,14 @@ describe('black / white logo adaptation', () => {
     })
     expect(() => trimLogoPixels(new Uint8ClampedArray(16), 2, 2, 'auto')).toThrow('no visible')
   })
+})
+
+it('Illustrator 简单类填充规则转为安全属性，保留路径孔洞规则', () => {
+  const safe = safeLogoSvg(
+    svg(
+      '<defs><style>.st0 { fill-rule: evenodd; fill: #000; }</style></defs><path class="st0" d="M0 0h40v40z"/>',
+    ),
+  )
+  expect(safe).toContain('fill-rule="evenodd"')
+  expect(safe).not.toContain('<style')
 })

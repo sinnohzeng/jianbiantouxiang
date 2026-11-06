@@ -493,7 +493,7 @@ test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
     name: 'team.svg',
     mimeType: 'image/svg+xml',
     buffer: Buffer.from(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" onload="alert(1)"><script>alert(2)</script><path d="M20 20h60v60h-60z" fill="#3730c3"/></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" onload="alert(1)"><script>alert(2)</script><defs><style>.mark { fill:#3730c3;fill-rule:evenodd; }</style></defs><path class="mark" d="M20 20h60v60h-60z"/></svg>',
     ),
   })
   await expect(page.locator('[data-slot="graphic-picker"]')).toContainText('upload-')
@@ -631,10 +631,10 @@ test('字号滑杆默认自动，拖动后切手动且数值连续', async ({ pa
   const after = Number(await slider.inputValue())
   expect(after).toBeCloseTo(before + 0.005, 3)
 
-  // 拖第一行时第二行钉在此刻的大小：它的“自动”钮熄灭，值仍是拖之前基准的 62%
+  // 拖第一行时第二行钉在此刻的大小：它的“自动”钮熄灭，值仍是拖之前的自动基准
   await expect(auto2).toHaveAttribute('aria-pressed', 'false')
   const line2 = page.getByRole('slider', { name: '第二行字号' })
-  expect(Number(await line2.inputValue())).toBeCloseTo(before * 0.62, 2)
+  expect(Number(await line2.inputValue())).toBeCloseTo(before, 2)
 
   await auto.click()
   await expect(auto).toHaveAttribute('aria-pressed', 'true')

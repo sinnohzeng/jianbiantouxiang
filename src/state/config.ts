@@ -52,7 +52,7 @@ export interface Line1Style {
 export interface Line2Style {
   /** null 跟随第一行，生效字体经 `lineFont` 读。 */
   font: FontChoice | null
-  /** 画布短边比例 LINE2_SIZE_MIN..LINE_SIZE_MAX；null 跟随第一行，取其基准字号的 LINE2_FOLLOW_SCALE。 */
+  /** 画布短边比例 LINE2_SIZE_MIN..LINE_SIZE_MAX；null 跟随第一行，由 line2FollowScale 决定同字号或主副层级。 */
   size: number | null
   offsetX: number
   offsetY: number
@@ -136,8 +136,15 @@ export const LINE_SIZE_MAX = 0.92
 /** 逐行补偿的量程：水平按画布宽、垂直按画布高的比例，正负对称。 */
 export const LINE_OFFSET_MAX = 0.25
 
-/** 第二行跟随时取第一行基准字号的比例。 */
+/** 有 Logo 或手动主行时，副行跟随的字号比例。 */
 export const LINE2_FOLLOW_SCALE = 0.62
+
+/** 自动纯文字标识两行等大；有 Logo 时保留标题/副标题层级。 */
+export function line2FollowScale(config: AvatarConfig): number {
+  return config.layout.icon.source === 'none' && config.typography.line1.size === null
+    ? 1
+    : LINE2_FOLLOW_SCALE
+}
 
 /** 两行之间的留白比例，按两行里较大的那个字号算。 */
 export const LINE_GAP_RATIO = 0.18

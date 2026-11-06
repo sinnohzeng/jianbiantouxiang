@@ -2,7 +2,7 @@ import { insideCircle } from './circle'
 import { clamp } from '@/engine/math'
 import { fontString } from '@/fonts/family'
 import {
-  LINE2_FOLLOW_SCALE,
+  line2FollowScale,
   LINE_GAP_RATIO,
   LINE_SIZE_MAX,
   LINE_SIZE_MIN,
@@ -226,7 +226,7 @@ interface Slot {
 /**
  * 栈模型的排版求解。
  *
- * 第一行是基准字号，二分只搜基准。第二行跟随时等于基准乘 LINE2_FOLLOW_SCALE，
+ * 第一行是基准字号，二分只搜基准。第二行跟随时使用 line2FollowScale 的同一规则，
  * 手动定了短边比例就按定值排，两种情况都只有基准一个自由度：两个都放开会有无穷多组解落在安全框里。
  * 第一行为空、第二行有内容时第二行晋升主行，按满比例渲染，用自己的生效字体与补偿。
  * 每一段按自己的生效字体量宽与绘制，第二行字体跟随时就是第一行那款。
@@ -271,7 +271,7 @@ export function fitStack(
         text: line2,
         font: lineFont(typography, 2),
         ...(second.size === null
-          ? { scale: LINE2_FOLLOW_SCALE }
+          ? { scale: line2FollowScale(config) }
           : { scale: 1, ratio: second.size }),
         offset: second.offsetX,
         offsetY: second.offsetY,

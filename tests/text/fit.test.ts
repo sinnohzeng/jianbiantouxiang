@@ -65,12 +65,12 @@ describe('auto 模式', () => {
     expect(result.primary?.fontSizePx).toBeCloseTo(800 / Math.sqrt(5), 0)
   })
 
-  it('两行同解：次行恒等于基准乘行级比例', () => {
+  it('纯文字两行同解：自动档使用相同字号', () => {
     const result = fit({ text: '飞书\n先锋', typography: { padding: 0.1 } })
     // 宽约束：主行两个 CJK 占 2S ≤ 800
     const base = result.primary?.fontSizePx ?? 0
-    expect(base).toBeCloseTo(800 / Math.hypot(2, 1.8), 0)
-    expect(result.secondary?.fontSizePx).toBeCloseTo(base * 0.62, 0)
+    expect(base).toBeCloseTo(800 / Math.hypot(2, 2.18), 0)
+    expect(result.secondary?.fontSizePx).toBeCloseTo(base, 0)
     expect(result.secondary?.block.lines).toHaveLength(1)
     expect(result.fits).toBe(true)
   })
@@ -110,9 +110,9 @@ describe('auto 模式', () => {
     const result = fit({ text: '飞书\n效率先锋', typography: { padding: 0.1 } })
     expect(result.primary?.block.lines).toHaveLength(1)
     expect(result.secondary?.block.lines).toHaveLength(1)
-    // 约束落在次行：4 个 CJK × 0.62 ≤ 800，基准字号被压到 322 上下，而不是主行独占的 400
-    expect(result.primary!.fontSizePx).toBeLessThan(800 / (4 * 0.62))
-    expect(result.primary!.fontSizePx).toBeGreaterThan(250)
+    // 两行等大，四字次行和整体高度共同约束圆裁。
+    expect(result.primary!.fontSizePx).toBeLessThan(800 / 4)
+    expect(result.primary!.fontSizePx).toBeCloseTo(800 / Math.hypot(4, 2.18), 0)
     expect(result.fits).toBe(true)
   })
 
@@ -289,4 +289,12 @@ describe('圆形实际行宽', () => {
     expect(result.contained).toBe(true)
     expect(Math.hypot(result.width / 2, result.height / 2)).toBeLessThanOrEqual(440.01)
   })
+})
+
+it('有 Logo 的自动副行仍保持 62% 层级', () => {
+  const result = fit({
+    text: '飞书对接\n外部群',
+    layout: { icon: { source: 'builtin', id: 'star', mono: true } },
+  })
+  expect(result.secondary?.fontSizePx).toBeCloseTo((result.primary?.fontSizePx ?? 0) * 0.62)
 })
