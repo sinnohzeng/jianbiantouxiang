@@ -77,6 +77,7 @@ export interface AvatarConfig {
   typography: {
     line1: Line1Style
     line2: Line2Style
+    optical: boolean
     padding: number // 每边安全边距比例 0..0.3
     lineHeight: number // 0.85..2
     letterSpacing: number // em，-0.1..0.5
@@ -191,6 +192,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
       offsetY: 0,
     },
     line2: { font: null, size: null, offsetX: 0, offsetY: 0 },
+    optical: true,
     padding: 0.06,
     lineHeight: 1.03,
     letterSpacing: 0,
@@ -459,6 +461,7 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
         offsetX: lineOffset(l2.offsetX),
         offsetY: lineOffset(l2.offsetY),
       },
+      optical: typeof tp.optical === 'boolean' ? tp.optical : d.typography.optical,
       padding: num(tp.padding, d.typography.padding, 0, 0.3),
       lineHeight: num(tp.lineHeight, d.typography.lineHeight, 0.85, 2),
       letterSpacing: num(tp.letterSpacing, d.typography.letterSpacing, -0.1, 0.5),

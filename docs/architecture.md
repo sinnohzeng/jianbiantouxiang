@@ -402,3 +402,10 @@ service worker 默认只在页面加载时查一次更新，标签页开着不�
 上传图形由 `graphics/trim.ts` 有界扫描 alpha 边界，布局使用可见宽高，`Graphic.sourceRect` 保留原图中的源矩形，绘制不把透明画布再次拉回来。原始 SVG 继续参与最终绘制。`graphics/svg-style.ts` 只把简单类选择器的有限绘制声明转成属性，再删除样式表；不执行 CSS 或保留网络引用。
 
 默认视觉：`steel-slate` 深色渐变、白色纯色字、光感 0.08；显式旧配色、光感与文字效果不会被默认值覆盖。CLI/MCP 使用同样默认配色与视觉配置。
+
+
+### 光学补偿与客户案例
+
+默认启用有界整行光学补偿，不调整单个字的字距；显式手动位置优先，可在文字排版中关闭。文字横移不超过 0.02em，Logo 与文字整组纵移不超过画布短边 1.5%，圆裁边界优先且不缩字号。掩膜质心仅为诊断代理，不是审美评分。预览、导出和自动化复用 `src/text/optical.ts`。
+
+Noto Serif SC 700 按需加载，许可见 `public/FONT-NOTO-SERIF-SC-LICENSE.txt`。东黎品牌案例保留原白色和素材内置留白，品牌权利见 `src/graphics/client-assets/README.md`，不属于项目 MIT 授权。自动化参数和样张复现见 [自动化说明](automation.md)。

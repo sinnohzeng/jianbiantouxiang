@@ -187,3 +187,18 @@ node service/review.mjs /tmp/gradient-avatar-review
 `review.mjs` 输出十二组实际 PNG、metadata.json、review.html 和 contact-sheet.png。集成测试覆盖四种 shader、三种编码、黑/白/透明与反色 PNG 等效、恶意 SVG、PNG 尺寸炸弹、批量部分失败、独占输出、官方客户端两种传输、队列限额和超时清理。
 
 简单 SVG 类规则（如 Illustrator 的 fill-rule）会转为绘制属性后移除样式表，只允许类选择器和有限上色声明，不允许 URL、@import、滤镜或任意 CSS。PNG 中的 iCCP/iTXt/zTXt 块会在解码前剥离，并返回 `png-compressed-metadata-removed`；不会解压元数据。移除色彩配置可能影响彩色 Logo 的色彩管理，黑白标识不受该色彩差异影响。
+
+
+## 字体、光学校正与客户预设
+
+`font` 可选 `sans`（默认）或 `serif`，分别使用随包 Noto Sans/Serif SC 700；`optical` 默认 true，关闭后获得几何基线。CLI 使用 `--font serif` 与 `--no-optical`。返回 `optical` 的建议位移、实际位移和边界限制；不得用这些值冒充视觉质量评分。
+
+`preset` / CLI `--preset` 可选 `dongli-symbol-white`、`dongli-lockup-full-white`、`dongli-wordmark-bilingual-inline-white`，与自带 `logo` 互斥，要求深色配色。群聊优先图形标，完整/横版在小尺寸有密集细节警告。原始白色与约 9% 长边留白保留，不能重新染色。自带素材可设 `logo.preservePadding: true` 保留文件画布；默认裁掉透明留白。
+
+```bash
+npm run build:service
+node service/cli.mjs render --line1 飞书对接 --line2 外部群 --preset dongli-symbol-white --out /tmp/dongli.png
+node scripts/optical-review.mjs /tmp/optical-review /path/to/private/harmay-logo.svg
+```
+
+第二个参数可省略；脚本用官方 MCP SDK 实际生成几何/光学成对原图、JSON 元数据和 24/32/48/64 px 圆裁网页。HARMAY 原稿自行提供，不进入开源仓库。运行沿用服务的 Chromium 配置，不自动关闭沙箱。32 px 极细衬线或扁宽品牌字标仍可能无法辨字；这不是光学移动能解决的。应同时检查原图、1:1 小图、实际客户端，不以截图放大替代可读性。

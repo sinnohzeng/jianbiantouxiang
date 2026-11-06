@@ -216,6 +216,7 @@
   "panel.text.lineHeight": "행간",
   "panel.text.lineOffsetX": "{index}행 가로",
   "panel.text.lineOffsetY": "{index}행 세로",
+  "panel.text.optical": "시각적 중앙 정렬 (제한된 보정)",
   "panel.text.padding": "여백",
   "panel.text.pill.opacity": "알약 투명도",
   "panel.text.pill.padding": "알약 안쪽 여백",

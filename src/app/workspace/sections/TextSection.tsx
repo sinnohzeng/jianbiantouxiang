@@ -10,6 +10,7 @@ import { useId, useMemo } from 'react'
 import { ColorField } from '@/components/blocks/color-field'
 import { PanelSection } from '@/components/blocks/panel-section'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { useT } from '@/i18n'
 import {
@@ -312,6 +313,14 @@ export function TextSection() {
         title={t('panel.text.group.layout')}
         defaultOpen={false}
       >
+        <Button
+          variant={type.optical ? 'default' : 'outline'}
+          className="min-h-11 w-full"
+          aria-pressed={type.optical}
+          onClick={() => setTypography({ optical: !type.optical })}
+        >
+          {t('panel.text.optical')}
+        </Button>
         <Row
           label={t('panel.text.padding')}
           value={type.padding}

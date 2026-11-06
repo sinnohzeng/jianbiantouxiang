@@ -85,4 +85,7 @@ export const BRAND_INDEX: readonly BrandEntry[] = [
   { id: "huawei", zh: "华为", en: "Huawei", aliases: [], category: "brand", ext: "svg" },
   { id: "xiaomi-global", zh: "小米", en: "Xiaomi", aliases: ["mi"], category: "brand", ext: "svg" },
   { id: "nvidia", zh: "英伟达", en: "NVIDIA", aliases: [], category: "brand", ext: "svg" },
+  { id: "dongli-symbol-white", zh: "东黎羊绒 · 图形标", en: "DONGLI · symbol", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
+  { id: "dongli-lockup-full-white", zh: "东黎羊绒 · 完整组合", en: "DONGLI · lockup-full", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
+  { id: "dongli-wordmark-bilingual-inline-white", zh: "东黎羊绒 · 横版字标", en: "DONGLI · wordmark-bilingual-inline", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
 ]

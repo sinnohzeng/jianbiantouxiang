@@ -1,3 +1,4 @@
+import { isClientPreset, clientPresetConfig } from '@/graphics/client-presets'
 import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { UploadIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -241,7 +242,9 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
   }, [brandIndex, query])
 
   const choose = (source: IconSource, id: string): void => {
-    setLayout({ icon: { source, id } })
+    if (source === 'brand' && isClientPreset(id))
+      useAvatarStore.getState().setConfig(clientPresetConfig(id))
+    else setLayout({ icon: { source, id } })
     onOpenChange(false)
   }
 
@@ -414,7 +417,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
         value={query}
         onValueChange={setQuery}
       />
-      {mode === 'brand' ? (
+      {mode === 'brand' && !isClientPreset(config.layout.icon.id) ? (
         <div data-slot="brand-variant" className="p-2 pb-0">
           <SegmentedControl
             name="brand-variant"

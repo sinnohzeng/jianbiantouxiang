@@ -11,7 +11,7 @@ export const batchSchema = z
   )
 
 export function createAvatarMcp(renderer) {
-  const server = new McpServer({ name: 'gradient-avatar', version: '8.1.2' })
+  const server = new McpServer({ name: 'gradient-avatar', version: '8.2.0' })
   const annotations = {
     readOnlyHint: true,
     destructiveHint: false,

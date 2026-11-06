@@ -701,3 +701,17 @@ test('默认中文粗体在第三方网络不可用时仍从本站加载', async
     .toBe(true)
   await expect(page.getByText(/Noto Sans SC没加载成功/)).toHaveCount(0)
 })
+
+test('光学补偿可关闭并在刷新后保持选择', async ({ page }) => {
+  await openApp(page)
+  await openGroup(page, 'text-group-layout')
+  const control = page.getByRole('button', { name: '光学居中（有限补偿）' })
+  await expect(control).toHaveAttribute('aria-pressed', 'true')
+  await control.click()
+  await expect(control).toHaveAttribute('aria-pressed', 'false')
+  await probeFlush(page)
+  await page.reload()
+  await waitReady(page)
+  await openGroup(page, 'text-group-layout')
+  await expect(control).toHaveAttribute('aria-pressed', 'false')
+})

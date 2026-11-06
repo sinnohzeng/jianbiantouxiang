@@ -11,6 +11,14 @@ export default defineConfig({
       generateBundle() {
         this.emitFile({
           type: 'asset',
+          fileName: 'FONT-SERIF-LICENSE.txt',
+          source: readFileSync(
+            path.resolve(import.meta.dirname, '../node_modules/@fontsource/noto-serif-sc/LICENSE'),
+            'utf8',
+          ),
+        })
+        this.emitFile({
+          type: 'asset',
           fileName: 'FONT-LICENSE.txt',
           source: readFileSync(
             path.resolve(import.meta.dirname, '../node_modules/@fontsource/noto-sans-sc/LICENSE'),

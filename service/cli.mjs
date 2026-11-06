@@ -16,7 +16,8 @@ const HELP = `Gradient Avatar (Node 24+)
   node service/cli.mjs options
   node service/cli.mjs mcp          # stdio
   node service/cli.mjs serve        # Streamable HTTP /mcp
-Options: --line1 --line2 --logo --background auto|white|black|transparent
+Options: --preset dongli-symbol-white|dongli-lockup-full-white|dongli-wordmark-bilingual-inline-white
+         --font sans|serif --no-optical --preset --line1 --line2 --logo --background auto|white|black|transparent
          --color auto|original --size --safe-shape circle|square --padding --logo-scale --style --palette --seed
          --format png|jpg|webp --config --out --out-dir --allow-fallback
 Outputs are created exclusively: existing files are never overwritten.
@@ -45,6 +46,8 @@ async function main() {
     allowPositionals: true,
     options: Object.fromEntries([
       ...[
+        'preset',
+        'font',
         'line1',
         'line2',
         'logo',
@@ -64,6 +67,7 @@ async function main() {
       ].map((k) => [k, { type: 'string' }]),
       ['help', { type: 'boolean' }],
       ['allow-fallback', { type: 'boolean' }],
+      ['no-optical', { type: 'boolean' }],
     ]),
   })
   const command = positionals[0]
@@ -119,6 +123,9 @@ async function main() {
     const raw = values.config
       ? JSON.parse((await boundedFile(values.config, 6 * 1024 ** 2)).toString('utf8'))
       : {}
+    if (values.preset) raw.preset = values.preset
+    if (values.font) raw.font = values.font
+    if (values['no-optical']) raw.optical = false
     if (command === 'batch') {
       if (!values['out-dir']) throw new Error('batch requires --out-dir')
       const { items } = batchSchema.parse(raw)

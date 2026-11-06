@@ -216,6 +216,7 @@
   "panel.text.lineHeight": "行高",
   "panel.text.lineOffsetX": "第 {index} 行水平",
   "panel.text.lineOffsetY": "第 {index} 行垂直",
+  "panel.text.optical": "光学居中（有限补偿）",
   "panel.text.padding": "边距",
   "panel.text.pill.opacity": "胶囊透明度",
   "panel.text.pill.padding": "胶囊内边距",

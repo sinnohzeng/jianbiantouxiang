@@ -216,6 +216,7 @@
   "panel.text.lineHeight": "行間",
   "panel.text.lineOffsetX": "{index} 行目の水平",
   "panel.text.lineOffsetY": "{index} 行目の垂直",
+  "panel.text.optical": "視覚的な中央配置（補正を制限）",
   "panel.text.padding": "余白",
   "panel.text.pill.opacity": "ピルの不透明度",
   "panel.text.pill.padding": "ピルの内側余白",

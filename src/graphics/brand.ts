@@ -1,3 +1,4 @@
+import { isClientPreset } from './client-presets'
 import { BRAND_INDEX } from './generated/brand-index'
 import type { Graphic } from './types'
 import { sanitizeSvg } from './upload'
@@ -70,7 +71,10 @@ async function loadSvg(url: string): Promise<Graphic> {
 async function load(file: BrandFile): Promise<Graphic | null> {
   const url = `${import.meta.env.BASE_URL}brand/${file.id}.${file.ext}`
   try {
-    return file.ext === 'svg' ? await loadSvg(url) : graphicOf(await loadImage(url))
+    const graphic = file.ext === 'svg' ? await loadSvg(url) : graphicOf(await loadImage(url))
+    return isClientPreset(file.id) && graphic.kind === 'image'
+      ? { ...graphic, preserveColor: true }
+      : graphic
   } catch {
     console.warn(`品牌图形读不出来：${url}`)
     return null

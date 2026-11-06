@@ -114,6 +114,7 @@ export function drawGraphic(
   // 换到 emoji 或上传图片之后这一位仍留着旧值，不能拿它去压平用户自己的图
   const icon = config.layout.icon
   if (
+    !graphic.preserveColor &&
     icon.source === 'brand' &&
     icon.mono &&
     paintMono(ctx, graphic.image, rect, color, graphic.sourceRect)

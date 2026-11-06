@@ -1,6 +1,6 @@
 {
   "name": "gradient-avatar",
-  "version": "8.1.2",
+  "version": "8.2.0",
   "private": true,
   "type": "module",
   "description": "输入几个字，秒出一张柔光质感的渐变头像",
@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
+    "@fontsource/noto-serif-sc": "^5.3.1",
     "@modelcontextprotocol/sdk": "1.32.2",
     "@paper-design/shaders": "0.0.82",
     "@react-three/fiber": "^9.8.2",

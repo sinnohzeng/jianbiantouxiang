@@ -76,7 +76,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // 收款码只在关于页出现，没必要让每个装 PWA 的人先下 200 KB
-        globIgnores: ['support/**'],
+        globIgnores: ['support/**', '**/noto-serif-sc-*.woff2'],
         // 站点是两个真实页面，不是单页应用。留着导航兜底会让装过 PWA 的人
         // 打开 /about 拿到缓存里的 index.html
         navigateFallback: null,

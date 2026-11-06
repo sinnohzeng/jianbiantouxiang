@@ -23,6 +23,49 @@ const logo = {
 }
 
 test(
+  'serif optical layout and customer presets preserve bounds, original artwork and manual opt-out',
+  { timeout: 120_000 },
+  async () => {
+    const renderer = new Renderer()
+    try {
+      for (const font of ['sans', 'serif']) {
+        const base = { line1: '飞书', line2: '效率先锋', font, size: 512, seed: 'optical-test' }
+        const off = await renderer.run({ ...base, optical: false })
+        const on = await renderer.run(base)
+        assert.equal(off.metadata.optical.mode, 'off')
+        assert.equal(on.metadata.optical.mode, 'bounded')
+        assert.ok(on.metadata.font.includes(font === 'serif' ? 'Serif' : 'Sans'))
+        assert.equal(on.metadata.lines[0].fontSize, off.metadata.lines[0].fontSize)
+        assert.ok(Math.abs(on.metadata.optical.groupShiftY) <= 512 * 0.015)
+        for (const [i, shift] of on.metadata.optical.lineShifts.entries())
+          assert.ok(Math.abs(shift) <= on.metadata.lines[i].fontSize * 0.02 + 0.001)
+        for (const l of on.metadata.lines)
+          for (const x of [l.bounds.x, l.bounds.x + l.bounds.width])
+            for (const y of [l.bounds.y, l.bounds.y + l.bounds.height])
+              assert.ok(Math.hypot(x - 256, y - 256) <= 512 * 0.44 + 0.1)
+      }
+      const preset = await renderer.run({
+        line1: '飞书对接',
+        preset: 'dongli-symbol-white',
+        size: 256,
+      })
+      assert.equal(preset.metadata.preset, 'dongli-symbol-white')
+      assert.equal(preset.metadata.overflow, false)
+      await assert.rejects(
+        renderer.run({ line1: '测试', preset: 'dongli-symbol-white', palette: 'glacier' }),
+        /dark palette/,
+      )
+      await assert.rejects(
+        renderer.run({ line1: '测试', preset: 'dongli-symbol-white', logo }),
+        /preset or logo/,
+      )
+    } finally {
+      await renderer.close()
+    }
+  },
+)
+
+test(
   'real render: all shaders, formats, logo, validation, failure isolation and determinism',
   { timeout: 120_000 },
   async () => {

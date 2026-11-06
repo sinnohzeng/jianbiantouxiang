@@ -1,3 +1,6 @@
+import { CLIENT_PRESET_IDS } from '@/graphics/client-presets'
+import { presetLogo } from './presets'
+import { applyOpticalLayout } from '@/text/optical'
 import '@fontsource/noto-sans-sc/700.css'
 import { renderGradient } from '@/engine/render'
 import { drawHighlight } from '@/engine/highlight'
@@ -16,19 +19,29 @@ import { selectInk } from './contrast'
 
 async function render(raw: unknown, validateOnly = false) {
   const input = renderSchema.parse(raw)
+  if (input.preset) {
+    if (input.logo) throw new Error('Use preset or logo, not both')
+    input.logo = presetLogo(input.preset)
+  }
+  const family = input.font === 'serif' ? 'Noto Serif SC' : 'Noto Sans SC'
+  if (input.font === 'serif') await import('@fontsource/noto-serif-sc/700.css')
   const palette = PALETTES.find((p) => p.id === input.palette)
   if (!palette) throw new Error(`Unknown palette: ${input.palette}`)
+  if (input.preset && palette.tone !== 'dark')
+    throw new Error('White customer preset requires a dark palette')
   if (!input.line1 && !input.line2 && !input.logo)
     throw new Error('Provide a logo or at least one text line')
   const warnings: string[] = []
-  const missing = unsupportedCharacters(input.line1 + input.line2)
+  if (input.preset && input.preset !== 'dongli-symbol-white')
+    warnings.push('dense-brand-lockup:prefer-dongli-symbol-white-for-small-avatars')
+  const missing = unsupportedCharacters(input.line1 + input.line2, input.font)
   if (missing.length) {
     const warning = `font-missing-glyphs:${missing.map((c) => 'U+' + c.codePointAt(0)?.toString(16).toUpperCase()).join(',')}`
     if (input.strict) throw new Error(warning)
     warnings.push(warning)
   }
   const fontFaces = await document.fonts.load(
-    '700 32px "Noto Sans SC"',
+    `700 32px "${family}"`,
     input.line1 + input.line2 || 'Aa中',
   )
   if (!fontFaces.length || fontFaces.some((font) => font.status !== 'loaded'))
@@ -39,7 +52,7 @@ async function render(raw: unknown, validateOnly = false) {
     style: input.style,
     palette: input.palette,
     canvas: { width: input.size, height: input.size, shape: 'square' },
-    typography: { color: palette.text },
+    typography: { color: palette.text, optical: input.optical, padding: input.padding },
     exportOptions: { format: input.format, sizeTarget: 'none', bgColor: palette.bg },
   })
   const logo = input.logo ? await prepareLogo(input.logo, palette.text) : null
@@ -48,14 +61,14 @@ async function render(raw: unknown, validateOnly = false) {
   let output: HTMLCanvasElement | undefined
   try {
     if (logo) warnings.push(...logo.warnings)
-    const layout = badgeLayout(
+    let layout = badgeLayout(
       input.size,
       input.padding,
       input.logoScale,
       [input.line1, input.line2],
       logo?.graphic ?? null,
       (text, size) => {
-        ctx.font = `700 ${size}px "Noto Sans SC"`
+        ctx.font = `700 ${size}px "${family}"`
         const m = ctx.measureText(text)
         return {
           left: m.actualBoundingBoxLeft,
@@ -65,6 +78,15 @@ async function render(raw: unknown, validateOnly = false) {
         }
       },
       input.safeShape,
+      family,
+    )
+    layout = applyOpticalLayout(
+      layout,
+      config,
+      input.size,
+      input.size,
+      logo?.graphic ?? null,
+      input.safeShape === 'circle',
     )
     if (layout.overflow) warnings.push('content-outside-safe-area')
     if (!logo && layout.lines.every((line) => line.width <= 0))
@@ -88,7 +110,9 @@ async function render(raw: unknown, validateOnly = false) {
       seed: input.seed,
       color: config.typography.color,
       sampledMinContrast,
-      font: 'Noto Sans SC 700',
+      font: family + ' 700',
+      optical: layout.optical,
+      preset: input.preset ?? null,
       safeArea: layout.safeBox,
       safeShape: input.safeShape,
       safeCircle:
@@ -173,8 +197,21 @@ declare global {
   interface Window {
     gradientAvatar: {
       render: typeof render
-      catalog: () => { palettes: typeof PALETTES; styles: typeof STYLE_IDS }
+      catalog: () => {
+        palettes: typeof PALETTES
+        styles: typeof STYLE_IDS
+        fonts: string[]
+        presets: typeof CLIENT_PRESET_IDS
+      }
     }
   }
 }
-window.gradientAvatar = { render, catalog: () => ({ palettes: PALETTES, styles: STYLE_IDS }) }
+window.gradientAvatar = {
+  render,
+  catalog: () => ({
+    palettes: PALETTES,
+    styles: STYLE_IDS,
+    fonts: ['sans', 'serif'],
+    presets: CLIENT_PRESET_IDS,
+  }),
+}

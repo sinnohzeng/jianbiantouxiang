@@ -194,6 +194,8 @@ export async function prepareLogo(
         return ctx.getImageData(0, 0, canvas.width, canvas.height)
       })()
     const crop = trimLogoPixels(pixels.data, canvas.width, canvas.height, input.background)
+    if (input.preservePadding)
+      Object.assign(crop, { x: 0, y: 0, width: canvas.width, height: canvas.height })
     ctx.putImageData(pixels, 0, 0)
     const output = createCanvas(crop.width, crop.height),
       out = get2d(output)

@@ -1,3 +1,4 @@
+import { CLIENT_PRESET_IDS } from '../graphics/client-presets.ts'
 import { z } from 'zod'
 
 export const LOGO_BYTES = 512 * 1024
@@ -19,6 +20,7 @@ export const logoSchema = z
       .regex(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/),
     background: z.enum(['auto', 'transparent', 'white', 'black']).default('auto'),
     color: z.enum(['auto', 'original']).default('auto'),
+    preservePadding: z.boolean().default(false),
   })
   .strict()
 
@@ -29,6 +31,9 @@ export const renderSchema = z
     line1: line.default(''),
     line2: line.default(''),
     logo: logoSchema.optional(),
+    preset: z.enum(CLIENT_PRESET_IDS).optional(),
+    font: z.enum(['sans', 'serif']).default('sans'),
+    optical: z.boolean().default(true),
     size: z.number().int().min(128).max(2048).default(1024),
     safeShape: z.enum(['circle', 'square']).default('circle'),
     padding: z.number().min(0.02).max(0.25).default(0.06),

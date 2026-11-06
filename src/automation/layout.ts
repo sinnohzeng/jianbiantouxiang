@@ -19,6 +19,7 @@ export function badgeLayout(
   graphic: { width: number; height: number } | null,
   measure: InkMeasure,
   safeShape: 'circle' | 'square' = 'circle',
+  family = 'Noto Sans SC',
 ): TextLayout {
   const inset = size * padding
   const safeBox = { x: inset, y: inset, width: size - 2 * inset, height: size - 2 * inset }
@@ -59,7 +60,7 @@ export function badgeLayout(
       width: metrics.left + metrics.right,
       ascent: metrics.ascent,
       descent: metrics.descent,
-      font: `700 ${fontSize}px "Noto Sans SC"`,
+      font: `700 ${fontSize}px "${family}"`,
       fontSizePx: fontSize,
       letterSpacingPx: 0,
     })
@@ -75,7 +76,7 @@ export function badgeLayout(
       const m = measure(line.text, fontSize)
       Object.assign(line, {
         fontSizePx: fontSize,
-        font: `700 ${fontSize}px "Noto Sans SC"`,
+        font: `700 ${fontSize}px "${family}"`,
         x: (size + m.left - m.right) / 2,
         width: m.left + m.right,
         ascent: m.ascent,
@@ -95,7 +96,7 @@ export function badgeLayout(
       line.fontSizePx *= factor
       const m = measure(line.text, line.fontSizePx)
       Object.assign(line, {
-        font: `700 ${line.fontSizePx}px "Noto Sans SC"`,
+        font: `700 ${line.fontSizePx}px "${family}"`,
         x: (size + m.left - m.right) / 2,
         width: m.left + m.right,
         ascent: m.ascent,
@@ -146,7 +147,7 @@ export function badgeLayout(
           width: m.left + m.right,
           ascent: m.ascent,
           descent: m.descent,
-          font: `700 ${l.fontSizePx}px "Noto Sans SC"`,
+          font: `700 ${l.fontSizePx}px "${family}"`,
         })
       }
       settle()

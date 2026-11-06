@@ -1,3 +1,5 @@
+import { applyOpticalLayout, type OpticalReport } from './optical'
+import type { Graphic } from '@/graphics/types'
 import { insideCircle } from './circle'
 import type { AvatarConfig } from '@/state/config'
 import { fitStack, safeArea, type ParagraphFit } from './fit'
@@ -35,6 +37,7 @@ export interface GraphicSize {
 }
 
 export interface TextLayout {
+  optical?: OpticalReport
   lines: LayoutLine[]
   fontSizePx: number
   /** 基准字号按画布短边的比例，自动档求解出来的值；界面用它做「拖一下就切手动」的起点。 */
@@ -144,7 +147,7 @@ function placeGraphic(
  * 行级补偿是纯位移：第 i 行只动第 i 行，其余行的像素位置不受影响，水平垂直两向都是这条。
  * 图形补偿同理，挪图形不挤压文字可用区，`textArea` 一律按无补偿算。
  */
-export function layoutText(
+function geometricLayoutText(
   config: AvatarConfig,
   width: number,
   height: number,
@@ -283,4 +286,23 @@ export function layoutText(
     overflow: (contentScale === 1 && !fit.fits) || cropOverflow,
     graphic: graphicRect,
   }
+}
+
+export function layoutText(
+  config: AvatarConfig,
+  width: number,
+  height: number,
+  measure?: MeasureFn,
+  graphic?: GraphicSize | null,
+): TextLayout {
+  const layout = geometricLayoutText(config, width, height, measure, graphic)
+  if (measure) return layout
+  return applyOpticalLayout(
+    layout,
+    config,
+    width,
+    height,
+    graphic && 'kind' in graphic ? (graphic as Graphic) : null,
+    config.typography.line1.size === null || config.canvas.shape === 'circle',
+  )
 }
