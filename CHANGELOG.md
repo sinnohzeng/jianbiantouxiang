@@ -5,6 +5,10 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## 8.5.1 — 2026-11-07
+
+- 隐私说明区分浏览器本地合成与站点加速、安全服务的必要 Cookie。
+
 ## 8.5.0 — 2026-11-07
 
 - 手机预览可点按调节高度与恢复，滚动避开固定预览和底栏。

@@ -58,3 +58,7 @@ lint、format:check、typecheck、build 通过；869 项单测（76 文件）、
 - [桌面编辑页](../assets/reviews/v8.5.0/desktop-editor.png)：文字、配色与预览同时可见。
 - [修复前手机滚动检查](../assets/reviews/v8.5.0/mobile-before.png)：原分隔条只有拖动/键盘操作；它与首屏截图不是同一滚动位置。
 - [图标网络故障](../assets/reviews/v8.5.0/icon-network-error.png)：失败提示只出现一次，说明刷新会丢失会话上传素材；实际解除请求拦截后，文字恢复且品牌列表重新加载。
+
+## 发布后核查
+
+主站已返回本轮构建资源；[390×844 线上截图](../assets/reviews/v8.5.0/live-mobile.png)对应浏览器实测点按预览高度 28→32、编辑文字刷新恢复、无横向溢出。云环境的独立 Chromium 不信任代理证书，页面操作仅在隔离测试上下文忽略证书错误；HTTPS 内容另由使用环境 CA 的 urllib 核对，这不是站点证书审计。线上边缘服务设置安全 Cookie，简介与 README 据此区分本地合成和托管层行为。
