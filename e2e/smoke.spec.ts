@@ -57,7 +57,7 @@ for (const offsetY of [-0.1, 0.3]) {
         if (!input) throw new Error('负位移数值未显示')
         const style = getComputedStyle(input)
         const ctx = document.createElement('canvas').getContext('2d')!
-        ctx.font = style.font
+        ctx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
         return (
           input.clientWidth -
           parseFloat(style.paddingLeft) -
