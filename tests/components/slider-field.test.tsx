@@ -118,7 +118,7 @@ describe('对齐', () => {
       auto: { active: true, label: '自动', onReset: () => {} },
     })
     const row = container.querySelector('.grid')
-    expect(row?.className).toContain('lg:grid-cols-[minmax(0,1fr)_1.25rem_3.5rem]')
+    expect(row?.className).toContain('lg:grid-cols-[minmax(0,1fr)_1.25rem_4rem]')
     const labelCell = container.querySelector('[data-slot="slider-auto"]')?.parentElement
     expect(labelCell?.children).toHaveLength(2)
     expect(labelCell?.contains(container.querySelector('[data-slot="slider-number"]'))).toBe(false)

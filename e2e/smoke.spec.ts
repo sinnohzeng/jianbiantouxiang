@@ -48,8 +48,25 @@ for (const offsetY of [-0.1, 0.3]) {
     await openApp(page)
     await probeEncode(page, 192)
     const warning = page.getByText('内容超出安全区', { exact: true })
-    if (offsetY < 0) await expect(warning).toHaveCount(0)
-    else await expect(warning).toBeVisible()
+    if (offsetY < 0) {
+      await expect(warning).toHaveCount(0)
+      const spare = await page.locator('[data-slot="slider-number"]').evaluateAll((inputs) => {
+        const input = inputs.find(
+          (el) => (el as HTMLInputElement).value === '-10.00%',
+        ) as HTMLInputElement
+        if (!input) throw new Error('负位移数值未显示')
+        const style = getComputedStyle(input)
+        const ctx = document.createElement('canvas').getContext('2d')!
+        ctx.font = style.font
+        return (
+          input.clientWidth -
+          parseFloat(style.paddingLeft) -
+          parseFloat(style.paddingRight) -
+          ctx.measureText(input.value).width
+        )
+      })
+      expect(spare).toBeGreaterThanOrEqual(0)
+    } else await expect(warning).toBeVisible()
   })
 }
 

@@ -141,7 +141,7 @@ export function SliderField({
         // Input 基类带 lg:text-sm，tailwind-merge 视二者为同组变体，这里才压得住；
         // 基值留在 16 px 是 iOS 聚焦不缩放的口径
         'lg:h-5 lg:px-1 lg:text-[11px]',
-        mobileStepper && 'w-0 min-w-0 flex-1 lg:w-full',
+        mobileStepper && 'w-0 min-w-0 flex-1 px-1 lg:w-full',
       )}
       inputMode="decimal"
       value={draft ?? `${display}${unit}`}
@@ -212,9 +212,9 @@ export function SliderField({
         className={cn(
           'grid min-h-11 items-center gap-2',
           mobileStepper
-            ? 'grid-cols-[minmax(0,1fr)_2rem_10.5rem]'
+            ? 'grid-cols-[minmax(0,1fr)_2rem_11rem]'
             : 'grid-cols-[minmax(0,1fr)_2rem_5rem]',
-          'lg:min-h-5 lg:grid-cols-[minmax(0,1fr)_1.25rem_3.5rem] lg:gap-1.5',
+          'lg:min-h-5 lg:grid-cols-[minmax(0,1fr)_1.25rem_4rem] lg:gap-1.5',
         )}
       >
         <span className="flex min-w-0 flex-wrap items-center gap-1.5">
