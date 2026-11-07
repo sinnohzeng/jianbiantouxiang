@@ -1,0 +1,782 @@
+[
+  {
+    "id": "warm-graphite",
+    "name": "暖石墨",
+    "samples": [
+      {
+        "style": "mesh",
+        "seed": "palette-0",
+        "worstWhiteContrast": 7.350447721148887,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-1",
+        "worstWhiteContrast": 7.824737397173029,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-2",
+        "worstWhiteContrast": 7.611698927898231,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-0",
+        "worstWhiteContrast": 9.028914416022548,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-1",
+        "worstWhiteContrast": 9.500200956335181,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-2",
+        "worstWhiteContrast": 7.547548978980937,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-0",
+        "worstWhiteContrast": 10.575146681597063,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-1",
+        "worstWhiteContrast": 9.393314593027675,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-2",
+        "worstWhiteContrast": 8.985511794923367,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-0",
+        "worstWhiteContrast": 7.824737397173029,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-1",
+        "worstWhiteContrast": 8.074112813150142,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-2",
+        "worstWhiteContrast": 7.583571070931091,
+        "fallback": null
+      }
+    ]
+  },
+  {
+    "id": "ink-olive",
+    "name": "墨橄榄",
+    "samples": [
+      {
+        "style": "mesh",
+        "seed": "palette-0",
+        "worstWhiteContrast": 5.739617488605591,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.101512789157113,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.99994802655628,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-0",
+        "worstWhiteContrast": 7.20115232614282,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-1",
+        "worstWhiteContrast": 7.657979072438756,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.8264700142285015,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-0",
+        "worstWhiteContrast": 8.432406803763351,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-1",
+        "worstWhiteContrast": 7.241621727975126,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-2",
+        "worstWhiteContrast": 7.030235327019511,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-0",
+        "worstWhiteContrast": 6.096546232604403,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.2847940217346645,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.914891365335787,
+        "fallback": null
+      }
+    ]
+  },
+  {
+    "id": "juniper-stone",
+    "name": "杜松青石",
+    "samples": [
+      {
+        "style": "mesh",
+        "seed": "palette-0",
+        "worstWhiteContrast": 5.382612074958646,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-1",
+        "worstWhiteContrast": 5.777774005613863,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.627877274736815,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-0",
+        "worstWhiteContrast": 6.635085037451778,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-1",
+        "worstWhiteContrast": 7.049940039495352,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.524584831277001,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-0",
+        "worstWhiteContrast": 7.541067065248209,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.659367929029367,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.42841357105359,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-0",
+        "worstWhiteContrast": 5.6973716938464065,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-1",
+        "worstWhiteContrast": 5.886668133534612,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.5446536999162435,
+        "fallback": null
+      }
+    ]
+  },
+  {
+    "id": "petrol-plum",
+    "name": "墨蓝灰紫",
+    "samples": [
+      {
+        "style": "mesh",
+        "seed": "palette-0",
+        "worstWhiteContrast": 7.577309699944605,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-1",
+        "worstWhiteContrast": 8.183243816628814,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-2",
+        "worstWhiteContrast": 7.930661245591011,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-0",
+        "worstWhiteContrast": 8.887536416948095,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-1",
+        "worstWhiteContrast": 9.223491505899325,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-2",
+        "worstWhiteContrast": 7.807468639475247,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-0",
+        "worstWhiteContrast": 9.533525624123197,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-1",
+        "worstWhiteContrast": 8.977393937779055,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-2",
+        "worstWhiteContrast": 8.4675725431962,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-0",
+        "worstWhiteContrast": 8.152447445403537,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-1",
+        "worstWhiteContrast": 8.444202207011427,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-2",
+        "worstWhiteContrast": 7.911555018861936,
+        "fallback": null
+      }
+    ]
+  },
+  {
+    "id": "smoked-lavender",
+    "name": "烟熏薰衣草",
+    "samples": [
+      {
+        "style": "mesh",
+        "seed": "palette-0",
+        "worstWhiteContrast": 5.983580245753685,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.381175435202164,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.27051140650907,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-0",
+        "worstWhiteContrast": 7.474059127720956,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-1",
+        "worstWhiteContrast": 7.9563183867702625,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.0962971523507505,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-0",
+        "worstWhiteContrast": 8.867402791953499,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-1",
+        "worstWhiteContrast": 7.553384427990052,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-2",
+        "worstWhiteContrast": 7.3585027717325495,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-0",
+        "worstWhiteContrast": 6.349940648940076,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.547258144004591,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.167685783288182,
+        "fallback": null
+      }
+    ]
+  },
+  {
+    "id": "mulberry-clay",
+    "name": "桑葚陶泥",
+    "samples": [
+      {
+        "style": "mesh",
+        "seed": "palette-0",
+        "worstWhiteContrast": 6.244376844669361,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.711718009073458,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.52982282866994,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-0",
+        "worstWhiteContrast": 7.755440810765282,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-1",
+        "worstWhiteContrast": 8.23768730172996,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.411022896572315,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-0",
+        "worstWhiteContrast": 9.04086181366149,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-1",
+        "worstWhiteContrast": 7.890669629320382,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-2",
+        "worstWhiteContrast": 7.673983803772965,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-0",
+        "worstWhiteContrast": 6.609731540613935,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.885369930826566,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.437237531714787,
+        "fallback": null
+      }
+    ]
+  },
+  {
+    "id": "cacao-linen",
+    "name": "可可亚麻",
+    "samples": [
+      {
+        "style": "mesh",
+        "seed": "palette-0",
+        "worstWhiteContrast": 6.350670087640732,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.777980330611762,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.643280908923975,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-0",
+        "worstWhiteContrast": 7.8482238966900795,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-1",
+        "worstWhiteContrast": 8.316671191148584,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.454181858060965,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-0",
+        "worstWhiteContrast": 9.384163715023782,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-1",
+        "worstWhiteContrast": 8.043154938486898,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-2",
+        "worstWhiteContrast": 7.788258624316965,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-0",
+        "worstWhiteContrast": 6.752357559034251,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.964017435317507,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.547977010100187,
+        "fallback": null
+      }
+    ]
+  },
+  {
+    "id": "redwood-smoke",
+    "name": "红木烟色",
+    "samples": [
+      {
+        "style": "mesh",
+        "seed": "palette-0",
+        "worstWhiteContrast": 5.73150448276725,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.064572041445401,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.964496429026476,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-0",
+        "worstWhiteContrast": 7.02636941408956,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-1",
+        "worstWhiteContrast": 7.46725958905775,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.822330074906358,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-0",
+        "worstWhiteContrast": 8.24282382299548,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-1",
+        "worstWhiteContrast": 7.163463472590994,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.89537936526259,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-0",
+        "worstWhiteContrast": 6.059665417292415,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.21843536405757,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.885468233641356,
+        "fallback": null
+      }
+    ]
+  },
+  {
+    "id": "rainy-blue",
+    "name": "雨幕蓝灰",
+    "samples": [
+      {
+        "style": "mesh",
+        "seed": "palette-0",
+        "worstWhiteContrast": 5.212659234741755,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-1",
+        "worstWhiteContrast": 5.58274099021137,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.448496987194689,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-0",
+        "worstWhiteContrast": 6.447207565972011,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.836889208892821,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.354092721889498,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-0",
+        "worstWhiteContrast": 7.456816935395705,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.519796803854515,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.332537321039106,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-0",
+        "worstWhiteContrast": 5.522571147822981,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-1",
+        "worstWhiteContrast": 5.681906662740838,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.368471882866064,
+        "fallback": null
+      }
+    ]
+  },
+  {
+    "id": "smoked-jade",
+    "name": "烟玉青",
+    "samples": [
+      {
+        "style": "mesh",
+        "seed": "palette-0",
+        "worstWhiteContrast": 5.196798901140696,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-1",
+        "worstWhiteContrast": 5.52270226003767,
+        "fallback": null
+      },
+      {
+        "style": "mesh",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.418545413426819,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-0",
+        "worstWhiteContrast": 6.454808029301422,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.84593328524418,
+        "fallback": null
+      },
+      {
+        "style": "flow",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.284552044437521,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-0",
+        "worstWhiteContrast": 7.396159896353348,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-1",
+        "worstWhiteContrast": 6.411578597525247,
+        "fallback": null
+      },
+      {
+        "style": "silk",
+        "seed": "palette-2",
+        "worstWhiteContrast": 6.28142393819748,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-0",
+        "worstWhiteContrast": 5.441911009803725,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-1",
+        "worstWhiteContrast": 5.604933643970188,
+        "fallback": null
+      },
+      {
+        "style": "grain",
+        "seed": "palette-2",
+        "worstWhiteContrast": 5.351079154750406,
+        "fallback": null
+      }
+    ]
+  }
+]

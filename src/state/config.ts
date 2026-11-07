@@ -12,7 +12,6 @@
  */
 
 import { clamp } from '@/engine/math'
-import type { Locale } from '@/i18n'
 
 export type StyleId = 'mesh' | 'flow' | 'silk' | 'grain'
 export type Shape = 'square' | 'rounded' | 'circle'
@@ -169,7 +168,7 @@ export const CANVAS_MIN = 64
 export const CANVAS_MAX = 8192
 
 export const DEFAULT_CONFIG: AvatarConfig = {
-  text: '飞书\n效率先锋',
+  text: '工作新习惯\n你说豆包干',
   seed: '',
   style: 'mesh',
   styleParams: {
@@ -185,7 +184,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
   canvas: { width: 2048, height: 2048, shape: 'square', radius: 0.2 },
   typography: {
     line1: {
-      // 契约基线，也是 normalizeConfig 的兜底值。首次进入实际用哪套字体按界面语言定，见 LOCALE_DEFAULT_FONT
+      // 共享中文默认字体，也是 normalizeConfig 的兜底值。
       font: { family: 'Noto Serif SC', source: 'google', weight: 700 },
       size: null,
       offsetX: 0,
@@ -211,36 +210,13 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     graphic: 0.52,
     graphicOffsetX: 0,
     graphicOffsetY: 0,
-    icon: { source: 'none', id: '', mono: false },
+    icon: { source: 'brand', id: 'doubao-work', mono: false },
   },
   exportOptions: {
     format: 'jpg',
     sizeTarget: '2mb',
     bgColor: '#ffffff',
   },
-}
-
-/**
- * 界面语言对应的默认字体，对齐 spec §54：默认配置只有字体跟着语言变，其余字段一视同仁。
- *
- * 五个 family 都在 CURATED_FONTS 里，且都覆盖 DEFAULT_CONFIG 的 700 字重。
- * 不能一律用 Noto Sans SC：它的 subset 只有 chinese-simplified 与拉丁系，谚文不在切片里，
- * 韩文界面拿它渲染会被判成加载失败，整块掉回系统字体，字体按钮上写的名字与画面对不上。
- *
- * 谁来用它：src/App.tsx 的 LocaleDefaults，只在配置来自默认值这一档接管。
- * 本机存档是用户自己的配置，一个字段都不能按语言改，见 store 的 readInitialConfig。
- */
-export const LOCALE_DEFAULT_FONT: Record<Locale, string> = {
-  'zh-CN': 'Noto Serif SC',
-  'zh-HK': 'Noto Sans TC',
-  en: 'Inter',
-  ja: 'Noto Sans JP',
-  ko: 'Noto Sans KR',
-}
-
-export const LOCALE_SECONDARY_FONT: Record<Locale, string> = {
-  ...LOCALE_DEFAULT_FONT,
-  'zh-CN': 'Noto Sans SC',
 }
 
 type DeepPartial<T> = T extends readonly unknown[]
@@ -486,8 +462,9 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
       },
     },
     layout: (() => {
-      const source = pick(icon.source, ICON_SOURCES, d.layout.icon.source)
-      const rawId = str(icon.id, d.layout.icon.id).trim()
+      const source =
+        icon.source === undefined ? d.layout.icon.source : pick(icon.source, ICON_SOURCES, 'none')
+      const rawId = str(icon.id, source === d.layout.icon.source ? d.layout.icon.id : '').trim()
       const id = source === 'none' || rawId.length > ICON_ID_MAX ? '' : rawId
       return {
         graphic: num(lay.graphic, d.layout.graphic, 0.3, 0.8),

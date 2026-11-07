@@ -14,11 +14,11 @@
  *
  * 底色由 ShowcaseBackground 决定：能跑就是极光着色器，跑不了退回 CSS 光晕。
  *
- * 整棵树外面套一层错误边界，两个懒加载岛各自再套一层：chunk 拉不到时
+ * 整棵树外面套错误边界，懒加载内容另有局部边界：chunk 拉不到时
  * React 会在 render 阶段重新抛出，没有边界接住就整页白屏，连刷新的入口都没有。
  */
 
-import { Suspense, useEffect, type CSSProperties } from 'react'
+import { useEffect, type CSSProperties } from 'react'
 import { BottomBar } from '@/app/BottomBar'
 import {
   ErrorBoundary,
@@ -32,16 +32,13 @@ import { usePreviewHeight } from '@/app/preview-height'
 import { useServiceWorkerUpdate } from '@/app/sw-update'
 import { MobileDivider } from '@/app/workspace/MobileDivider'
 import { PickColumn } from '@/app/workspace/PickColumn'
-// 导出抽屉走懒加载入口，见 panels/lazy
-import { ExportDrawerLazy } from '@/app/panels/lazy'
+import { ExportDrawer } from '@/app/panels/ExportDrawer'
 import { useT } from '@/i18n'
 import { useAvatarStore } from '@/state/store'
 
 function AppShellBody() {
   const t = useT()
   const exportOpen = useAvatarStore((state) => state.ui.exportOpen)
-  // 打开过一次就一直为真，抽屉从此留在树里；没打开过就不拉那份 chunk
-  const exportMounted = useAvatarStore((state) => state.ui.exportMounted)
   const setUi = useAvatarStore((state) => state.setUi)
   const { height } = usePreviewHeight()
   useEffect(() => {
@@ -109,16 +106,7 @@ function AppShellBody() {
         <BottomBar />
       </main>
 
-      {exportMounted ? (
-        <ErrorBoundary>
-          <Suspense fallback={null}>
-            <ExportDrawerLazy
-              open={exportOpen}
-              onOpenChange={(open) => setUi({ exportOpen: open })}
-            />
-          </Suspense>
-        </ErrorBoundary>
-      ) : null}
+      <ExportDrawer open={exportOpen} onOpenChange={(open) => setUi({ exportOpen: open })} />
     </div>
   )
 }

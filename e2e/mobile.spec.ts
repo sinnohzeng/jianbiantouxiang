@@ -82,7 +82,7 @@ test('切换语言后 html[lang] 与标题都跟着变', async ({ page }) => {
 
 test('手机上图形选择器走底部抽屉且无横向滚动', async ({ page }) => {
   await openApp(page)
-  const iconPick = page.locator('[data-slot="graphic-pick"]')
+  const iconPick = page.locator('[data-slot="graphic-picker"], [data-slot="graphic-pick"]')
   await centreBetweenBars(page, iconPick)
   await iconPick.click()
 
@@ -292,7 +292,7 @@ test('手机字号可点按微调并恢复自动，客户品牌无需切页签',
   await expect(input).toHaveValue('25.0%')
   await page.locator('[data-slot="restore-auto-layout"]').tap()
   await expect(size.locator('[data-slot="slider-auto"]')).toHaveAttribute('aria-pressed', 'true')
-  await page.locator('[data-slot="graphic-pick"]').tap()
+  await page.locator('[data-slot="graphic-picker"], [data-slot="graphic-pick"]').tap()
   await expect(page.locator('input[data-group="icon-source"][value="brand"]')).toBeChecked()
   // 品牌索引按需加载，等待数据到达而不是假定抽屉出现即加载完成。
   await expect(page.getByRole('option').first()).toContainText('东黎', { timeout: 15_000 })

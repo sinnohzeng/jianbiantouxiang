@@ -211,7 +211,6 @@ describe('history 动作', () => {
     store().setConfig({ text: '改过的' })
     store().reset()
     expect(store().config).toEqual(DEFAULT_CONFIG)
-    // 引用相等是对外契约：App 的 LocaleDefaults 据此认出“回到默认档”，重新按语言下发文字与字体
     expect(store().config).toBe(DEFAULT_CONFIG)
   })
 })
@@ -312,7 +311,6 @@ describe('初始化优先级', () => {
   })
 
   it('默认档给的是 DEFAULT_CONFIG 本身', () => {
-    // App 的 LocaleDefaults 靠这份引用判断“配置还是默认档”，决定要不要按语言下发字体
     expect(readInitialConfig()).toBe(DEFAULT_CONFIG)
   })
 

@@ -223,8 +223,8 @@ function viewBoxSize(root: Element): { width: number; height: number } {
     ?.trim()
     .split(/[\s,]+/)
     .map(Number)
-  if (raw?.length === 4 && raw.slice(1).every((value) => Number.isFinite(value) && value > 0)) {
-    return { width: raw[1] ?? 512, height: raw[3] ?? 512 }
+  if (raw?.length === 4 && raw.every(Number.isFinite) && (raw[2] ?? 0) > 0 && (raw[3] ?? 0) > 0) {
+    return { width: raw[2] ?? 512, height: raw[3] ?? 512 }
   }
   const width = Number(root.getAttribute('width'))
   const height = Number(root.getAttribute('height'))
@@ -247,10 +247,13 @@ export function sanitizeSvg(source: string): string {
   const cloned = cloneSafe(root, document, true)
   if (!cloned.drawing) throw new GraphicUploadError('SVG 里没有安全绘图元素', 'empty-graphic')
   const clean = cloned.node
-  if (!clean.getAttribute('viewBox') && !clean.getAttribute('width')) {
+  // Canvas 的九参数 drawImage 使用固有尺寸作为裁切坐标；viewBox 本身只提供比例。
+  // 明确尺寸使同一 SVG 在预览和大尺寸导出中使用同一坐标系。
+  if (!clean.hasAttribute('width') && !clean.hasAttribute('height')) {
     const size = viewBoxSize(root)
-    clean.setAttribute('width', String(size.width))
-    clean.setAttribute('height', String(size.height))
+    const scale = Math.min(1, 2048 / Math.max(size.width, size.height))
+    clean.setAttribute('width', String(size.width * scale))
+    clean.setAttribute('height', String(size.height * scale))
   }
   if (!clean.getAttribute('xmlns')) {
     clean.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns', SVG_NS)

@@ -12,7 +12,6 @@
 | `about.resetDone`                 | 已恢复默认设置，可用撤销退回                                                     |
 | `app.description`                 | 纯前端的渐变头像生成器。选配色与质感，导出可直接用作群聊、账号与部门标识的图片。 |
 | `app.name`                        | 渐变头像                                                                         |
-| `app.sampleText`                  | 飞书\n效率先锋                                                                   |
 | `app.shortName`                   | 渐变头像                                                                         |
 | `app.title`                       | 渐变头像 · Gradient Avatar                                                       |
 | `bottombar.actions`               | 主要操作                                                                         |
@@ -20,8 +19,8 @@
 | `bottombar.exportOptions`         | 导出选项                                                                         |
 | `bottombar.randomPalette`         | 随机配色                                                                         |
 | `bottombar.randomPalette.hint`    | 只换配色，种子与质感不变                                                         |
-| `bottombar.reroll`                | 换一版                                                                           |
-| `bottombar.reroll.hint`           | 配色与质感不变，换一版构图                                                       |
+| `bottombar.reroll`                | 变换底纹                                                                         |
+| `bottombar.reroll.hint`           | 只改变背景纹理分布，保留配色、质感、文字与图标                                   |
 | `common.copyFailed`               | 复制失败                                                                         |
 | `export.bg`                       | 底色                                                                             |
 | `export.bg.hint`                  | JPG 与圆角外的区域用这个颜色填充                                                 |
@@ -297,3 +296,6 @@
 | `icon.loadFailed` | 图标列表加载失败，请联网后刷新。上传素材需重新上传。 |
 | `icon.reload` | 保存编辑并刷新 |
 | `icon.upload.resourceLimit` | 图形像素或会话素材总量超限。请缩小图片，或保存导出后刷新再上传。 |
+
+| `export.loading` | 正在加载导出选项… |
+| `export.loadFailed` | 导出选项加载失败，请联网后刷新。 |

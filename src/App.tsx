@@ -1,112 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { AppShell } from '@/app/AppShell'
 import { ShowcaseMotionProvider } from '@/app/showcase/motion'
 import { ShowcasePreloader } from '@/app/showcase/Preloader'
 import { useTheme } from '@/app/theme'
-import { weightsOf } from '@/fonts/catalog'
-import { I18nProvider, dictOf, useLocale, useT } from '@/i18n'
-import {
-  DEFAULT_CONFIG,
-  LOCALE_DEFAULT_FONT,
-  LOCALE_SECONDARY_FONT,
-  fontKey,
-  nearestWeight,
-  type PartialConfig,
-} from '@/state/config'
-import { initialConfigSource, useAvatarStore } from '@/state/store'
-
-const OWNED_DEFAULTS = {
-  text: DEFAULT_CONFIG.text,
-  family: DEFAULT_CONFIG.typography.line1.font.family,
-  secondary: DEFAULT_CONFIG.typography.line2.font
-    ? fontKey(DEFAULT_CONFIG.typography.line2.font)
-    : '',
-} as const
-
-/**
- * 示例文字与默认字体随界面语言走。
- *
- * 接管有三条边界。
- *
- * 一、只在配置来自默认值时接管，本机存档是用户自己的内容，一个字都不能改。
- *
- * 二、用 ref 记住自己写进去的那份，当前值一旦不是自己写的就说明用户动过手，本次会话不再接管。
- * 不能拿“当前文字是不是某种语言的示例”当判据：`initialConfigSource()` 整场都是 `default`，
- * 用户手打 Hello 会被立刻顶回本语言的示例，这个词根本打不进去。
- * `reset()` 把整份配置换回 `DEFAULT_CONFIG` 本身，按引用能认出来，那一档重新开始跟随。
- *
- * 三、懒加载语言的字典没到货时 `t` 落到英文，这一轮整个跳过，
- * 否则示例文字先被写成 Hello 再改成目标语言，白闪一次也白写一次 store。
- * 文字与字体一起写，字体探测的样本才始终和文字同一种语言。
- *
- * 字体只接管当前默认组合；主行与副行按语言分别选择。
- * 第二行字体被动过就放手，只改了字重也算，两行字体都保持用户的选择。
- */
-export function LocaleDefaults() {
-  const t = useT()
-  const { locale } = useLocale()
-  const config = useAvatarStore((state) => state.config)
-  const setConfig = useAvatarStore((state) => state.setConfig)
-  const owned = useRef({ ...OWNED_DEFAULTS })
-  const released = useRef({ text: false, font: false })
-
-  useEffect(() => {
-    const { text, typography } = config
-
-    if (config === DEFAULT_CONFIG) {
-      // reset() 回到默认档，之前的“用户动过手”作废
-      owned.current = { ...OWNED_DEFAULTS }
-      released.current = { text: false, font: false }
-    }
-
-    const fromUser = initialConfigSource() !== 'default'
-    if (fromUser || text !== owned.current.text) released.current.text = true
-    const line1Font = typography.line1.font
-    if (fromUser || line1Font.source !== 'google') released.current.font = true
-    if (line1Font.family !== owned.current.family) released.current.font = true
-    if (!typography.line2.font || fontKey(typography.line2.font) !== owned.current.secondary)
-      released.current.font = true
-    if (released.current.text && released.current.font) return
-
-    // 字典还在路上，等它到货再一次写完
-    if (dictOf(locale) === null) return
-
-    const patch: PartialConfig = {}
-
-    if (!released.current.text) {
-      const sample = t('app.sampleText')
-      if (sample !== text) {
-        owned.current.text = sample
-        patch.text = sample
-      }
-    }
-
-    if (!released.current.font) {
-      const family = LOCALE_DEFAULT_FONT[locale]
-      if (family !== line1Font.family) {
-        const weights = weightsOf(family)
-        owned.current.family = family
-        const secondary = {
-          family: LOCALE_SECONDARY_FONT[locale],
-          source: 'google' as const,
-          weight: 700 as const,
-        }
-        owned.current.secondary = fontKey(secondary)
-        patch.typography = {
-          line1: {
-            font: { family, source: 'google', weight: nearestWeight(weights, line1Font.weight) },
-          },
-          line2: { font: secondary },
-        }
-      }
-    }
-
-    if (patch.text !== undefined || patch.typography !== undefined) setConfig(patch)
-  }, [config, locale, t, setConfig])
-
-  return null
-}
+import { I18nProvider, useT } from '@/i18n'
+import { useAvatarStore } from '@/state/store'
 
 /**
  * 标题与描述随界面语言走。SEO 不是这个站的重点，
@@ -136,7 +35,6 @@ function Shell() {
     // motion 的特性从这一处注入，炫技层关掉时它连提供者一起不挂
     <ShowcaseMotionProvider>
       <DocumentMeta />
-      <LocaleDefaults />
       <AppShell />
       {/* 首屏加载动画盖在最上层，会话内只播一次 */}
       <ShowcasePreloader />

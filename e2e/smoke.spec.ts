@@ -7,6 +7,8 @@ test('首页可以打开并渲染标题', async ({ page }) => {
   await page.goto('/?lang=zh-CN')
   await expect(page).toHaveTitle(/渐变头像/)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.locator('#avatar-text-first')).toHaveValue('工作新习惯')
+  await expect(page.locator('#avatar-text-second')).toHaveValue('你说豆包干')
 })
 
 test.describe('禁用 JavaScript', () => {
@@ -104,4 +106,58 @@ test('英文单行可见笔画边界不把绘制起点当作左边界', async ({
   await openApp(page)
   await probeEncode(page, 192)
   await expect(page.getByText('内容超出安全区', { exact: true })).toHaveCount(0)
+})
+
+test('冷启动导出外壳立即入场，内容慢加载不阻断动画', async ({ page }) => {
+  let release!: () => void
+  const pending = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  await page.route('**/ExportControls-*.js', async (route) => {
+    await pending
+    await route.continue()
+  })
+  await openApp(page)
+  await page.evaluate(() => {
+    const observer = new MutationObserver(() => {
+      const popup = document.querySelector('[data-slot="drawer-popup"]')
+      if (popup?.hasAttribute('data-starting-style')) {
+        document.documentElement.dataset.drawerStarted = 'true'
+        observer.disconnect()
+      }
+    })
+    observer.observe(document.body, { subtree: true, childList: true, attributes: true })
+  })
+  try {
+    await page.locator('[data-slot="export-options"]').click()
+    const popup = page.locator('[data-slot="drawer-popup"]')
+    await expect(popup).toBeVisible()
+    await expect(page.locator('html')).toHaveAttribute('data-drawer-started', 'true')
+    await expect(popup.getByRole('status')).toBeVisible()
+    await expect
+      .poll(() => popup.evaluate((el) => getComputedStyle(el).transform))
+      .toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/)
+    release()
+    await expect(popup.getByRole('button', { name: '4096', exact: true })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(popup).toBeHidden()
+    await page.locator('[data-slot="export-options"]').click()
+    await expect(popup.getByRole('button', { name: '4096', exact: true })).toBeVisible()
+  } finally {
+    release()
+  }
+})
+
+test('减少动态效果时导出设置仍可首次打开和关闭', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await openApp(page)
+  await page.locator('[data-slot="export-options"]').click()
+  const popup = page.locator('[data-slot="drawer-popup"]')
+  await expect(popup.getByRole('button', { name: '4096', exact: true })).toBeVisible()
+  const duration = await popup.evaluate((el) =>
+    Math.max(...getComputedStyle(el).transitionDuration.split(',').map(parseFloat)),
+  )
+  expect(duration).toBeLessThanOrEqual(0.001)
+  await page.keyboard.press('Escape')
+  await expect(popup).toBeHidden()
 })

@@ -81,6 +81,38 @@ describe('PALETTES 结构', () => {
   })
 })
 
+describe('低彩度深色拓展', () => {
+  const ids = [
+    'warm-graphite',
+    'ink-olive',
+    'juniper-stone',
+    'petrol-plum',
+    'smoked-lavender',
+    'mulberry-clay',
+    'cacao-linen',
+    'redwood-smoke',
+    'rainy-blue',
+    'smoked-jade',
+  ]
+
+  it('在既有 37 套之后追加十套，原默认保持', () => {
+    expect(PALETTES.slice(37).map((p) => p.id)).toEqual(ids)
+    expect(PALETTES.filter((p) => p.tone === 'light')).toHaveLength(21)
+    expect(DEFAULT_CONFIG.palette).toBe('steel-slate')
+    expect(DEFAULT_PALETTE_ID).toBe('glacier')
+  })
+
+  it.each(ids)('%s 每个停靠点对白字至少 4.5:1，并可由配置选用', (id) => {
+    const palette = getPalette(id)!
+    expect(palette.tone).toBe('dark')
+    expect(palette.text).toBe('#FFFFFF')
+    for (const color of palette.colors) {
+      expect(wcagContrast('#FFFFFF', color), color).toBeGreaterThanOrEqual(4.5)
+    }
+    expect(paletteColors(normalizeConfig({ palette: id }))).toEqual(palette.colors)
+  })
+})
+
 describe('附录 A 的 17 套色值原样入库', () => {
   const APPENDIX: Record<string, [colors: string, bg: string]> = {
     'coral-dawn': ['#D97757 #F0A07A #F7C4A5 #FBD9C9 #FFF1E8', '#FBEFE6'],

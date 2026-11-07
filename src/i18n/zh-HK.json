@@ -3,7 +3,6 @@
   "about.resetDone": "已恢復預設設定，可用還原退回",
   "app.description": "純前端的漸變頭像產生器。選配色與質感，匯出可直接用作群聊、帳號與部門標識的圖片。",
   "app.name": "漸變頭像",
-  "app.sampleText": "飛書\n效率先鋒",
   "app.shortName": "漸變頭像",
   "app.title": "漸變頭像 · Gradient Avatar",
   "bottombar.actions": "主要操作",
@@ -11,8 +10,8 @@
   "bottombar.exportOptions": "匯出選項",
   "bottombar.randomPalette": "隨機配色",
   "bottombar.randomPalette.hint": "只換配色，種子與質感不變",
-  "bottombar.reroll": "換一版",
-  "bottombar.reroll.hint": "配色與質感不變，換一版構圖",
+  "bottombar.reroll": "變換底紋",
+  "bottombar.reroll.hint": "只改變背景紋理分佈，保留配色、質感、文字與圖示",
   "common.copyFailed": "複製失敗",
   "export.bg": "底色",
   "export.bg.hint": "JPG 與圓角外的區域用這個顏色填滿",
@@ -283,5 +282,7 @@
   "preview.height.reset": "恢復預覽高度",
   "icon.loadFailed": "圖示列表載入失敗，請連線後重新整理。上傳素材需重新上傳。",
   "icon.reload": "儲存編輯並重新整理",
-  "icon.upload.resourceLimit": "圖形像素或工作階段素材總量超限。請縮小圖片，或匯出儲存後重新整理再上傳。"
+  "icon.upload.resourceLimit": "圖形像素或工作階段素材總量超限。請縮小圖片，或匯出儲存後重新整理再上傳。",
+  "export.loading": "正在載入匯出選項…",
+  "export.loadFailed": "匯出選項載入失敗，請連線後重新整理。"
 }

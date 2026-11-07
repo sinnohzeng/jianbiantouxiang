@@ -4,6 +4,10 @@ okf_version: "0.2"
 
 # 渐变头像研究知识包
 
+- [抽屉首次反馈与 SVG 固有坐标](rendering-feedback.md) — 组件生命周期、绘制坐标与实际验证。
+
+- [深色头像渐变](dark-palettes.md) — 一手色彩研究、十组选择与 120 张实际背景采样。
+
 - [编辑精调、异步反馈与可访问性](editor-reliability.md) — 证据强度、适用边界与 SDD 验收。
 
 - [手机精调与编辑空间](mobile-editor.md) — 官方指南、成熟 APP 与实验边界。

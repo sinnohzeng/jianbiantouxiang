@@ -23,7 +23,10 @@ export function fontSizeOf(font: string): number {
 }
 
 export function makeConfig(overrides: PartialConfig = {}): AvatarConfig {
-  return normalizeConfig(overrides)
+  return normalizeConfig({
+    ...overrides,
+    layout: { icon: { source: 'none', id: '', mono: false }, ...overrides.layout },
+  })
 }
 
 /** 每次落笔时的画笔状态，用来断言底板色与光晕色。 */

@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { CURATED_FONTS } from '@/fonts/curated'
-import { LOCALES } from '@/i18n'
 import {
   DEFAULT_CONFIG,
   FOLLOW_LINE1,
-  LOCALE_DEFAULT_FONT,
   configHash,
   fontKey,
   lineFont,
@@ -30,6 +28,22 @@ describe('normalizeConfig 补默认', () => {
     )
   })
 
+  it('显式旧内容、字体及无图标不被新默认覆盖', () => {
+    const old = normalizeConfig({
+      text: '飞书\n效率先锋',
+      layout: { icon: { source: 'none', id: '', mono: false } },
+      typography: { line1: { font: { family: 'Inter', source: 'google', weight: 400 } } },
+    })
+    expect(old.text).toBe('飞书\n效率先锋')
+    expect(old.layout.icon).toEqual({ source: 'none', id: '', mono: false })
+    expect(old.typography.line1.font.family).toBe('Inter')
+    expect(normalizeConfig({}).layout.icon).toEqual({
+      source: 'brand',
+      id: 'doubao-work',
+      mono: false,
+    })
+  })
+
   it('空输入返回一份完整默认配置', () => {
     expect(normalizeConfig({})).toEqual(DEFAULT_CONFIG)
   })
@@ -50,7 +64,7 @@ describe('normalizeConfig 补默认', () => {
 
   it('默认是方形、白色文字、3% 边距、衬线主行与无衬线副行', () => {
     expect(DEFAULT_CONFIG.canvas.shape).toBe('square')
-    expect(DEFAULT_CONFIG.text).toBe('飞书\n效率先锋')
+    expect(DEFAULT_CONFIG.text).toBe('工作新习惯\n你说豆包干')
     expect(DEFAULT_CONFIG.typography.color).toBe('#ffffff')
     expect(DEFAULT_CONFIG.typography.padding).toBe(0.03)
     expect(DEFAULT_CONFIG.typography.lineHeight).toBe(1.03)
@@ -225,7 +239,7 @@ describe('normalizeConfig 的 layout 子树', () => {
       graphic: DEFAULT_CONFIG.layout.graphic,
       graphicOffsetX: DEFAULT_CONFIG.layout.graphicOffsetX,
       graphicOffsetY: DEFAULT_CONFIG.layout.graphicOffsetY,
-      icon: { source: 'none', id: '', mono: false },
+      icon: DEFAULT_CONFIG.layout.icon,
     })
 
     // 两向补偿超界都要夹回来，老存档没有这两个字段就落到 0
@@ -342,39 +356,16 @@ describe('configHash', () => {
   })
 })
 
-describe('LOCALE_DEFAULT_FONT', () => {
-  it('五种界面语言各有一套默认字体', () => {
-    expect(LOCALE_DEFAULT_FONT).toEqual({
-      'zh-CN': 'Noto Serif SC',
-      'zh-HK': 'Noto Sans TC',
-      en: 'Inter',
-      ja: 'Noto Sans JP',
-      ko: 'Noto Sans KR',
-    })
-    for (const locale of LOCALES) {
-      expect(LOCALE_DEFAULT_FONT[locale], locale).toBeTruthy()
+describe('默认中文字体', () => {
+  it('主副行字体都提供简体中文字形和指定字重', () => {
+    for (const font of [
+      DEFAULT_CONFIG.typography.line1.font,
+      DEFAULT_CONFIG.typography.line2.font!,
+    ]) {
+      const entry = CURATED_FONTS.find((item) => item.family === font.family)
+      expect(entry?.cjk).toBe('sc')
+      expect(entry?.weights).toContain(font.weight)
     }
-  })
-
-  it('默认字体都在精选清单里，且带默认字重', () => {
-    for (const family of Object.values(LOCALE_DEFAULT_FONT)) {
-      const entry = CURATED_FONTS.find((item) => item.family === family)
-      expect(entry, family).toBeDefined()
-      expect(entry?.weights, family).toContain(DEFAULT_CONFIG.typography.line1.font.weight)
-    }
-  })
-
-  it('每种语言的默认字体覆盖对应文字，字形不会掉回系统字体', () => {
-    const cjkOf = (family: string) => CURATED_FONTS.find((item) => item.family === family)?.cjk
-    expect(cjkOf(LOCALE_DEFAULT_FONT.ko)).toBe('kr')
-    expect(cjkOf(LOCALE_DEFAULT_FONT.ja)).toBe('jp')
-    expect(cjkOf(LOCALE_DEFAULT_FONT['zh-HK'])).toBe('tc')
-    expect(cjkOf(LOCALE_DEFAULT_FONT['zh-CN'])).toBe('sc')
-    expect(cjkOf(LOCALE_DEFAULT_FONT.en)).toBeUndefined()
-  })
-
-  it('简体中文那份与 DEFAULT_CONFIG 一致，默认档不必额外写一次 store', () => {
-    expect(LOCALE_DEFAULT_FONT['zh-CN']).toBe(DEFAULT_CONFIG.typography.line1.font.family)
   })
 })
 

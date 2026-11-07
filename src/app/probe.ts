@@ -27,6 +27,8 @@ export interface ProbePixelStats {
   height: number
   /** alpha 大于 0 的像素数。形状遮罩之外是透明的，所以它小于总像素数属正常。 */
   opaque: number
+  /** 不透明且 RGB 三通道均小于 8 的墨迹像素。 */
+  dark: number
   /** 采样后的去重颜色数。1 表示一整张平色，说明 shader 没画出来。 */
   colors: number
 }
@@ -65,13 +67,17 @@ async function stats(size = STATS_SIZE): Promise<ProbePixelStats> {
     const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height)
 
     let opaque = 0
+    let dark = 0
     const seen = new Set<number>()
     for (let i = 0; i < data.length; i += 4) {
-      if ((data[i + 3] ?? 0) > 0) opaque += 1
+      if ((data[i + 3] ?? 0) > 0) {
+        opaque += 1
+        if ((data[i] ?? 255) < 8 && (data[i + 1] ?? 255) < 8 && (data[i + 2] ?? 255) < 8) dark += 1
+      }
       if ((i / 4) % SAMPLE_STEP !== 0) continue
       seen.add(((data[i] ?? 0) << 16) | ((data[i + 1] ?? 0) << 8) | (data[i + 2] ?? 0))
     }
-    return { width: canvas.width, height: canvas.height, opaque, colors: seen.size }
+    return { width: canvas.width, height: canvas.height, opaque, dark, colors: seen.size }
   } finally {
     releaseCanvas(canvas)
   }

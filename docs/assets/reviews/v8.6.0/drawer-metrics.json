@@ -1,0 +1,30 @@
+{
+  "before": [
+    {
+      "firstPopupMs": 442,
+      "uniqueTransforms": 1,
+      "sawStartingStyle": false,
+      "sawRunningAnimation": false
+    },
+    {
+      "firstPopupMs": 98,
+      "uniqueTransforms": 28,
+      "sawStartingStyle": true,
+      "sawRunningAnimation": true
+    }
+  ],
+  "after": [
+    {
+      "firstPopupMs": 342,
+      "uniqueTransforms": 24,
+      "sawStartingStyle": true,
+      "sawRunningAnimation": true
+    },
+    {
+      "firstPopupMs": 234,
+      "uniqueTransforms": 29,
+      "sawStartingStyle": true,
+      "sawRunningAnimation": true
+    }
+  ]
+}

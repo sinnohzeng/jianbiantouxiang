@@ -3,7 +3,6 @@
   "about.resetDone": "기본값을 복원했습니다. 실행 취소로 되돌릴 수 있습니다",
   "app.description": "브라우저에서만 동작하는 그라데이션 아바타 생성기입니다. 색과 질감을 고르고 단체 채팅이나 프로필용 이미지를 내보내세요.",
   "app.name": "그라데이션 아바타",
-  "app.sampleText": "안녕",
   "app.shortName": "그라데 아바타",
   "app.title": "그라데이션 아바타 · Gradient Avatar",
   "bottombar.actions": "주요 작업",
@@ -11,8 +10,8 @@
   "bottombar.exportOptions": "내보내기 옵션",
   "bottombar.randomPalette": "배색 섞기",
   "bottombar.randomPalette.hint": "배색만 바꾸고 시드와 질감은 유지",
-  "bottombar.reroll": "새 구성",
-  "bottombar.reroll.hint": "색상과 질감은 그대로, 구성만 바꿉니다",
+  "bottombar.reroll": "배경 패턴 변경",
+  "bottombar.reroll.hint": "배경 패턴만 바꾸고 색상, 질감, 텍스트와 로고는 유지",
   "common.copyFailed": "복사에 실패했습니다",
   "export.bg": "배경색",
   "export.bg.hint": "JPG 배경과 둥근 모서리 바깥을 이 색으로 채웁니다",
@@ -283,5 +282,7 @@
   "preview.height.reset": "미리보기 높이 초기화",
   "icon.loadFailed": "아이콘을 불러오지 못했습니다. 연결 후 새로고침하세요. 업로드 자료는 다시 등록해야 합니다.",
   "icon.reload": "편집 저장 후 새로고침",
-  "icon.upload.resourceLimit": "이미지 픽셀 또는 세션 자료 한도를 초과했습니다. 이미지를 줄이거나 작업을 내보낸 뒤 새로고침하세요."
+  "icon.upload.resourceLimit": "이미지 픽셀 또는 세션 자료 한도를 초과했습니다. 이미지를 줄이거나 작업을 내보낸 뒤 새로고침하세요.",
+  "export.loading": "내보내기 옵션 로딩 중…",
+  "export.loadFailed": "내보내기 옵션을 불러오지 못했습니다. 연결 후 새로고침하세요."
 }

@@ -40,6 +40,35 @@ describe('上传 SVG 白名单消毒', () => {
     expect(clean).toContain('clipPath')
   })
 
+  it.each(['0 0 727 87', '-10 -20 727 87'])('缺少尺寸时由 viewBox %s 固定固有宽高', (viewBox) => {
+    const clean = sanitizeSvg(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}"><path d="M0 0h10v10H0z"/></svg>`,
+    )
+    const root = new DOMParser().parseFromString(clean, 'image/svg+xml').documentElement
+    expect(root.getAttribute('width')).toBe('727')
+    expect(root.getAttribute('height')).toBe('87')
+    expect(root.getAttribute('viewBox')).toBe(viewBox)
+  })
+
+  it('从大 viewBox 推导固有尺寸时有界缩放，矢量坐标保持', () => {
+    const clean = sanitizeSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6000 3000"><path d="M0 0h10v10H0z"/></svg>',
+    )
+    const root = new DOMParser().parseFromString(clean, 'image/svg+xml').documentElement
+    expect(root.getAttribute('width')).toBe('2048')
+    expect(root.getAttribute('height')).toBe('1024')
+    expect(root.getAttribute('viewBox')).toBe('0 0 6000 3000')
+  })
+
+  it('保留素材声明的固有尺寸，不改写 viewport 与 viewBox 的映射', () => {
+    const clean = sanitizeSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1454" height="174" viewBox="0 0 727 87"><path d="M0 0h10v10H0z"/></svg>',
+    )
+    const root = new DOMParser().parseFromString(clean, 'image/svg+xml').documentElement
+    expect(root.getAttribute('width')).toBe('1454')
+    expect(root.getAttribute('height')).toBe('174')
+  })
+
   it('没有安全绘图元素时拒绝，不猜出一个空图', () => {
     expect(() => sanitizeSvg('<svg xmlns="http://www.w3.org/2000/svg"></svg>')).toThrow(
       GraphicUploadError,

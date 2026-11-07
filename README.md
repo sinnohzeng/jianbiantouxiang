@@ -11,7 +11,7 @@
 ## 它做什么
 
 - **四种质感**：柔光（mesh）、流动（flow）、丝绸（silk）、颗粒（grain），由 WebGL2 片元着色器实时渲染。同一配置在同一设备上每次输出一致，换个种子就是一张新图。不支持 WebGL2 的浏览器会回落到静态近似渐变，导出得到的也是这张近似图。
-- **37 套配色**：浅色 21 套、深色 16 套；也可以自定义 2 到 6 个颜色，或给一两个种子色，由 OKLCH 算法生成整套。
+- **47 套配色**：浅色 21 套、深色 26 套；也可以自定义 2 到 6 个颜色，或给一两个种子色，由 OKLCH 算法生成整套。
 - **文字排版**：最多两行（第一行、第二行），第二行为空只渲染第一行；字号默认自动填满，一拖滑杆就以当前值切成手动，点“自动”回去；默认简体中文主行 Noto Serif SC 700、副行 Noto Sans SC 700 从本站加载；默认安全边距 3%、行高 1.03；自动字号按圆形头像裁切优化，即使导出方图也保留圆裁主体；小字提示建议缩短文案；无图标自动排版的两行同字号，有图标自动排版的副行取 62%，首行手动时第二行跟随 62%，也能单独定，两行字号互不牵连；逐行水平、垂直补偿只动自己那一行，其余行字号与位置一个像素都不变；五种文字效果（投影、纯色、描边、发光、胶囊底），默认纯色白字配钢灰深色渐变，光感 8%，不叠投影；五档从白到黑的预设色加自选，文字色就是选的那一个，没有自动挡。
 - **图标**：图标节提供选择、替换与移除，图标置顶、文字两行自动缩小适配；可搜 lucide 内置图标、按中文搜 emoji，或上传 SVG / PNG / WebP。内置图标跟随文字颜色与效果，emoji 跨平台取同一份 Noto SVG，上传 SVG 会先做白名单消毒且只在本次会话有效。
 - **字体**：Google Fonts 全库按需加载，中文字体按 unicode-range 切片只拉用到的字，默认简体字体从本站分片加载，其他字体按需请求网络资源；也能上传本地 TTF、OTF、WOFF、WOFF2。第一行与第二行可以分别选字体与字重，简体中文默认主行 Noto Serif SC 700、副行 Noto Sans SC 700。选择器里每个字体名都用这款字体自己写出来，中日韩字体显示原生名，比如站酷快乐体、しっぽり明朝，字体名预览只请求显示名的字形子集。
@@ -28,11 +28,13 @@
 
 ## 怎么用
 
+首次进入及恢复默认使用「工作新习惯 / 你说豆包干」和原色豆包工作图标，主行宋体、副行黑体。界面语言不改变画布内容；已有存档的明确内容、图标与字体保留。
+
 1. 打开网址，输入文字。主流聊天应用的列表头像大多在 40 像素上下，两到四个字优先；黑体 700、宋体 600 需按实际小图复核。桌面上文字与图标一列、配色与质感一列，一屏摊开，不用先切页签。
-2. 在“配色”和“质感”两节里挑，或者点“换一版”换一版构图（只换种子）、“随机配色”只换一套配色（种子与质感不动）。
+2. 在“配色”和“质感”两节里挑，或者点“变换底纹”改变背景纹理分布（保留文字、图标、配色与质感）、“随机配色”只换一套配色（种子与质感不动）。
 3. 点“导出”立即下载；需要粘贴到聊天窗口时，点导出按钮右侧的设置图标，再选“复制图片”。
 4. 要做部门或产品标识，在“图标”节点“选图标”挑一个内置图标、品牌图形或 emoji，也可以上传自家 logo；不想要了点旁边的叉移除，再填名称并导出。
-5. 数值参数就在它管的那张卡片里：第一行字号在第一行输入下面，强度在文字样式下面，图标大小在图标磁贴下面；边距、行高、字间距收在文字卡片的“版面”里，每行与图标的水平、垂直位置收在“位置微调”里，质感的参数收在质感卡片的“参数”里，需要时展开。每行都能拖滑杆、敲数字，改过的行会出现一个回默认的小按钮。
+5. 第一、二行及 Logo 的大小和上下位置常显，字体与样式、左右位置按需展开。手机用减加和数值输入精调，桌面滑杆保留数字框；“恢复自动排版”保留内容、字体、Logo 和配色。
 6. 主题、参考线与恢复默认在顶栏右上角的设置菜单里。
 
 ## 本地开发
@@ -94,7 +96,7 @@ v3 是整体重写。v2 的 SVG 多层径向渐变、SVG 导出与旧命令行�
 
 Gradient Avatar turns a few characters into a soft, luminous gradient avatar, entirely in the browser. Try it at <https://jianbiantouxiang.com>.
 
-What it does: four WebGL2 textures (mesh, flow, silk, and grain without circular ripple seeds); 37 palettes plus OKLCH palette generation from one or two seed colors; any Google Font, with CJK fonts loaded as unicode-range slices, a separate font and weight for each line, and a picker that renders every font name in its own typeface; auto-fit typography with 3% padding, 1.03 line height, and per-line size and nudge controls; one-click browser download and PNG clipboard copy; JPG, PNG, and WebP export with a file-size target; safe-area and grid overlays for the preview only; settings persist locally; five UI languages; installable as a PWA.
+What it does: four WebGL2 textures (mesh, flow, silk, and grain without circular ripple seeds); 47 palettes plus OKLCH palette generation from one or two seed colors; any Google Font, with CJK fonts loaded as unicode-range slices, a separate font and weight for each line, and a picker that renders every font name in its own typeface; auto-fit typography with 3% padding, 1.03 line height, and per-line size and nudge controls; one-click browser download and PNG clipboard copy; JPG, PNG, and WebP export with a file-size target; safe-area and grid overlays for the preview only; settings persist locally; five UI languages; installable as a PWA.
 
 Assets: brand graphics come from [dashboard-icons](https://github.com/homarr-labs/dashboard-icons) (Apache-2.0); every brand name and logo remains the trademark of its owner, and their inclusion implies no affiliation or endorsement.
 

@@ -23,17 +23,17 @@
 | 路径 | 职责 |
 | --- | --- |
 | `src/main.tsx` | 挂 React 根，接上系统主题监听，按条件装端到端探针 |
-| `src/App.tsx` | 套 i18n Provider，让文档标题与默认示例文字跟随界面语言 |
+| `src/App.tsx` | 套 i18n Provider，让文档标题跟随界面语言 |
 | `src/app/` | 应用外壳、顶栏、底部操作条、实时预览与参考层开关、预览高度、氛围背景、主题状态 |
 | `src/app/workspace/` | 挑选栏两列（文字、图标 / 配色、质感），按设备呈现精调控件与折叠组，手机分隔条 |
-| `src/app/panels/` | 导出抽屉、字体选择器、图形选择器、历史条四个重件 |
+| `src/app/panels/` | 导出抽屉外壳及按需加载的导出控件、字体选择器、图形选择器、历史条 |
 | `src/about/` | 关于页那一小段脚本与赞赏配置。正文在根目录的 `about.html` 里 |
 | `src/components/ui/` | shadcn 生成的原语，本仓不改写、不格式化 |
 | `src/components/blocks/` | 界面复用件：分段控件、radio card、带数值框与重置钮的滑杆、“自动”与“跟随”共用的开关钮、颜色格、可折叠分组 |
 | `src/engine/` | 质感定义与参数映射、种子、预览挂载、离屏渲染、设备能力探测、无 WebGL2 兜底 |
 | `src/engine/shaders/` | 四段 fragment shader 源码，一种质感一份 chunk |
 | `src/text/` | 文字量测、换行、自动填满、排版、绘制、明暗判定 |
-| `src/palettes/` | 37 套内置配色、OKLCH 色彩工具、种子色和谐生成 |
+| `src/palettes/` | 47 套内置配色、OKLCH 色彩工具、种子色和谐生成 |
 | `src/fonts/` | 精选清单与原生名表、fontsource 目录缓存与条目查找、默认字体的本站分片、按行加载的 css2 与镜像加载链、字体名预览、本地上传注册 |
 | `src/fonts/family.ts` | font-family 与 canvas font 简写的字符串工具。`src/text` 引用它，`src/fonts` 不引用 `src/text` |
 | `src/graphics/` | 图形来源分派、lucide Path2D、Noto Emoji、上传消毒、五语 emoji 索引、图形绘制 |
@@ -60,7 +60,7 @@
 
 图形选择器默认品牌，客户成品置顶，再到其他品牌、内置图标及 emoji。索引失败显示网络错误和保存编辑后刷新入口；上传素材只在当前会话有效。原色/程序染色及授权边界见“图形来源”。
 
-底栏提供换种子、随机配色、导出和导出选项。顶栏提供撤销重做、历史、语言和设置；简介在设置内以新标签打开（noopener noreferrer）。字体、图形、历史和导出面板按需加载。关于页是独立静态入口。
+底栏提供「变换底纹」（只换种子）、随机配色、导出和导出选项。顶栏提供撤销重做、历史、语言和设置；简介在设置内以新标签打开（noopener noreferrer）。字体、图形、历史和导出控件按需加载；ExportDrawer 外壳常驻，首次打开经过关闭到打开状态，内容下载期间显示加载状态。关于页是独立静态入口。
 
 ## 共享契约
 
@@ -148,7 +148,7 @@ flowchart LR
 
 索引与加载器都只在图形选择器或 `loadGraphic` 命中 brand 时才 `import()`，不进首屏预算。SVG 与上传路径同过一遍 `sanitizeSvg`，取不到或解析失败只 `console.warn` 并让图形位留空。
 
-上传 SVG 只保留常见绘图元素、渐变、裁剪与安全展示属性；未知元素整支丢弃，未知属性删除，`url()` 只允许内部引用。上传上限为 5 MiB，图片解码后在扫描前限制 16 Mi 像素，会话最多 24 份及 64 Mi 像素；达到上限明确提示，不淘汰历史仍引用的素材。浏览器最初解码的峰值仍由浏览器管理。文件字节只在模块级会话注册表里，不写盘；配置里留的是 `source: 'upload'` 加会话 id，会随存档与历史落盘，刷新后注册表已空，图形位留空、图形节仍显示上传来源，用户重新上传即可。加载失败同样只让图形位留空，渐变、文字与导出继续可用。
+缺少固有宽高的 SVG 从合法 viewBox 推导等比尺寸，推导最大边 2048，已有尺寸保留，透明裁切使用明确的固有坐标。上传 SVG 只保留常见绘图元素、渐变、裁剪与安全展示属性；未知元素整支丢弃，未知属性删除，`url()` 只允许内部引用。上传上限为 5 MiB，图片解码后在扫描前限制 16 Mi 像素，会话最多 24 份及 64 Mi 像素；达到上限明确提示，不淘汰历史仍引用的素材。浏览器最初解码的峰值仍由浏览器管理。文件字节只在模块级会话注册表里，不写盘；配置里留的是 `source: 'upload'` 加会话 id，会随存档与历史落盘，刷新后注册表已空，图形位留空、图形节仍显示上传来源，用户重新上传即可。加载失败同样只让图形位留空，渐变、文字与导出继续可用。
 
 ## 字体
 
@@ -188,7 +188,7 @@ flowchart LR
 
 ## 配色
 
-`src/palettes/palettes.ts` 用一张元组表定义 37 套配色，浅色 21 套、深色 16 套。每套的字段是 id、明暗、2 到 6 个停靠色、推荐文字色、留白底色，以及五种语言的名字。v5 起没有家族分组：那个下拉只筛不选，与磁贴列表功能重叠。配色名不进 i18n 字典，直接按 `useLocale()` 从 `PALETTES[i].name[locale]` 取。`PLATE_HINT_IDS` 列出推荐文字色对最差停靠点低于 WCAG 4.5 的配色，界面据此默认开启胶囊底。
+`src/palettes/palettes.ts` 用一张元组表定义 47 套配色，浅色 21 套、深色 26 套。每套的字段是 id、明暗、2 到 6 个停靠色、推荐文字色、留白底色，以及五种语言的名字。v5 起没有家族分组：那个下拉只筛不选，与磁贴列表功能重叠。配色名不进 i18n 字典，直接按 `useLocale()` 从 `PALETTES[i].name[locale]` 取。`PLATE_HINT_IDS` 列出推荐文字色对最差停靠点低于 WCAG 4.5 的配色，界面据此默认开启胶囊底。
 
 种子色生成在 `harmony.ts`：给一个主色，按类比、分裂互补、同色相三种方案在 OKLCH 里排出 5 档明度阶梯加 1 个光感点；给两个主色则沿短弧在两个色相之间取档。明度阶梯与 chroma 系数都是定值，同一种子色永远得到同一套。
 
@@ -200,7 +200,7 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 单个 zustand store 持有 `config`、历史、撤销重做栈与 `ui`。界面只调 `setConfig` 一类的动作，动作内部逐层深合并再过一遍 `normalizeConfig`。
 
-初始配置只有两档：localStorage 存档、默认值。配置不进 URL；地址栏上只有三个与配置无关的查询参数：`?lang=` 首屏消费后摘掉，`?probe=1` 装端到端探针，`?samples=1` 打开样张页。`initialConfigSource()` 记下它来自哪一档，默认示例文字只在 `default` 这一档才跟随界面语言。存档缺字段时由 `normalizeConfig` 补当前默认值。
+初始配置只有两档：localStorage 存档、默认值。配置不进 URL；地址栏上只有三个与配置无关的查询参数：`?lang=` 首屏消费后摘掉，`?probe=1` 装端到端探针，`?samples=1` 打开样张页。首次与重置使用共享 DEFAULT_CONFIG，已有存档的明确设置保留。存档缺字段时由 `normalizeConfig` 补当前默认值。
 
 存档是 `PERSIST_KEY`（`gradient-avatar:v4`）下的一份 `{ config, history }`，读档只要求 `config` 是对象，其余交给 `normalizeConfig`。配置或历史变更后攒 300 ms 将两者写入 localStorage；页面隐藏或离开时同步待写状态。导出前调 `flushConfigSync()` 立刻落盘，导出与存档才是同一份配置。端到端用例读配置走探针：`config()` 取 store 里的当前值，`flush()` 立刻落盘，不读 localStorage。要给截图脚本喂配置，用 `page.addInitScript` 往 `PERSIST_KEY` 写一份 `{ config }` 再打开页面。
 
@@ -216,7 +216,7 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 `t()` 的 key 类型是 `I18nKey | (string & {})`，引擎给的 `labelKey` 这类动态 key 在类型上就是 string，卡死成联合类型会逼调用方到处断言。放宽之后由 `tests/i18n/keys.test.ts` 扫源码补上这一层校验。
 
-`app.sampleText` 是每种语言的默认示例文字。判据是当前文字仍等于某种语言的示例，所以用户一旦自己打过字就再也不会被顶掉。
+所有界面语言的首次与重置内容均为「工作新习惯 / 你说豆包干」与原色豆包工作图标（`doubao-work`），主行 Noto Serif SC 700、副行 Noto Sans SC 700。界面语言只影响控件，不改画布内容或字体。自动化 API 的 line1/line2/logo 仍由调用者传入，空输入会拒绝。
 
 ## 手机端的长按直存
 
@@ -245,7 +245,7 @@ staggered-text、preloader），随它们进来的 three、@react-three/fiber、
 
 - 要拆的包，主 chunk 里一个符号都不能静态引用。`@paper-design/shaders` 只从 `shader-mount.ts`、`shader-noise.ts` 与 `shaders/*.ts` 三个薄模块进来，全部走 `import()`。
 - 不用 `const { X } = await import('包名')` 从包入口取符号，命名空间访问挡住 tree-shaking。要拆就先写一个只 `export { X } from '包名'` 的本地模块，再动态 import 它。
-- 懒组件一挂进树就立刻拉 chunk。导出抽屉与历史条走 `panels/lazy.ts`，并且只在真要显示时才挂上，之后一直留着；导出抽屉的挂载闩是 store 的 `ui.exportMounted`，由 `setUi` 从 `exportOpen` 派生。字体选择器的面板与手机抽屉同在 `FontPickerPanel.tsx`，`lazy.ts` 给它两个出口 `FontPickerPanelLazy` 与 `FontPickerDrawerLazy`，共用一份 chunk：桌面弹层的外壳常驻，面板在弹层里经 Suspense 懒加载，第一次打开才拉 chunk，占位与列表同高，弹层关闭即卸载；手机抽屉连同面板整块懒加载，点过一次才挂上，之后常驻。cmdk、选择器面板与抽屉都不进首屏。图形选择器同走 `lazy.ts`，没点开前不拉 cmdk 与索引；内置全库、emoji 标签与品牌索引也只在对应搜索模式需要时加载。
+- 懒组件一挂进树就立刻拉 chunk。历史条走 `panels/lazy.ts`，只在显示后挂载。导出抽屉的 Drawer 外壳常驻，ExportControls 首次打开按需加载，`ui.exportMounted` 记录已打开状态；首次动画不依赖控件 chunk 到达。字体选择器的面板与手机抽屉同在 `FontPickerPanel.tsx`，`lazy.ts` 给它两个出口 `FontPickerPanelLazy` 与 `FontPickerDrawerLazy`，共用一份 chunk：桌面弹层的外壳常驻，面板在弹层里经 Suspense 懒加载，第一次打开才拉 chunk，占位与列表同高，弹层关闭即卸载；手机抽屉连同面板整块懒加载，点过一次才挂上，之后常驻。cmdk、选择器面板与抽屉都不进首屏。图形选择器同走 `lazy.ts`，没点开前不拉 cmdk 与索引；内置全库、emoji 标签与品牌索引也只在对应搜索模式需要时加载。
 
 详细口径见 `docs/engineering-lessons.md`。
 

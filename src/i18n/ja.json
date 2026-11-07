@@ -3,7 +3,6 @@
   "about.resetDone": "初期設定に戻しました。取り消しで戻れます",
   "app.description": "ブラウザだけで動くグラデーションアバター生成ツール。配色と質感を選び、グループチャットやプロフィール用の画像を書き出せます。",
   "app.name": "グラデーションアバター",
-  "app.sampleText": "こんにちは",
   "app.shortName": "グラデアバター",
   "app.title": "グラデーションアバター · Gradient Avatar",
   "bottombar.actions": "主な操作",
@@ -11,8 +10,8 @@
   "bottombar.exportOptions": "書き出しオプション",
   "bottombar.randomPalette": "別の配色",
   "bottombar.randomPalette.hint": "配色だけ変更、シードと質感はそのまま",
-  "bottombar.reroll": "別パターン",
-  "bottombar.reroll.hint": "配色と質感はそのままに、構成だけ変えます",
+  "bottombar.reroll": "模様を変更",
+  "bottombar.reroll.hint": "背景の模様だけを変更し、配色・質感・文字・ロゴを保持",
   "common.copyFailed": "コピーに失敗しました",
   "export.bg": "背景色",
   "export.bg.hint": "JPG の背景と角丸の外側をこの色で塗ります",
@@ -283,5 +282,7 @@
   "preview.height.reset": "プレビューの高さをリセット",
   "icon.loadFailed": "アイコンを読み込めません。接続後に再読み込みしてください。アップロード素材は再登録が必要です。",
   "icon.reload": "編集を保存して再読み込み",
-  "icon.upload.resourceLimit": "画像の画素数またはセッションの素材量が上限を超えました。画像を縮小するか、作品を書き出してから再読み込みしてください。"
+  "icon.upload.resourceLimit": "画像の画素数またはセッションの素材量が上限を超えました。画像を縮小するか、作品を書き出してから再読み込みしてください。",
+  "export.loading": "書き出し設定を読み込み中…",
+  "export.loadFailed": "書き出し設定を読み込めません。接続して再読み込みしてください。"
 }

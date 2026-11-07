@@ -104,8 +104,13 @@ test('改文字后可以用键盘撤销与重做', async ({ page }) => {
   await firstLine.fill('撤销往返')
   await page.getByRole('heading', { level: 1 }).click()
   await page.keyboard.press('ControlOrMeta+z')
-  await expect(firstLine).toHaveValue('飞书')
-  await expect(page.locator('#avatar-text-second')).toHaveValue('效率先锋')
+  await expect(firstLine).toHaveValue('工作新习惯')
+  await expect(page.locator('#avatar-text-second')).toHaveValue('你说豆包干')
+  expect((await probeConfig(page)).layout.icon).toEqual({
+    source: 'brand',
+    id: 'doubao-work',
+    mono: false,
+  })
 
   await page.keyboard.press('ControlOrMeta+Shift+z')
   await expect(firstLine).toHaveValue('撤销往返')
@@ -337,23 +342,25 @@ test.describe('字体名预览', () => {
   })
 })
 
-test('常驻操作条：换一版、随机配色、导出三格', async ({ page }) => {
+test('常驻操作条：变换底纹、随机配色、导出三格', async ({ page }) => {
   await openApp(page)
 
   // 随机只在这一处，配色节里不再重复摆一遍；每个按钮都带可见文案
   await expect(page.locator('[data-slot="shuffle-color"]')).toBeVisible()
-  await expect(page.locator('[data-slot="shuffle-color"]')).toContainText('换一版')
+  await expect(page.locator('[data-slot="shuffle-color"]')).toContainText('变换底纹')
   await expect(page.locator('[data-slot="shuffle-palette"]')).toBeVisible()
   await expect(page.locator('[data-slot="shuffle-palette"]')).toContainText('随机配色')
   await expect(page.locator('[data-slot="export-action"]')).toContainText('导出')
   await expect(page.locator('[data-slot="export-options"]')).toHaveCount(1)
 
-  // 换一版只换种子：点完读 store 里的配置，种子非空且不同于点前
-  const seedBefore = (await probeConfig(page)).seed
+  // 变换底纹只换种子：点完读 store 里的配置，种子非空且不同于点前
+  const before = await probeConfig(page)
+  const seedBefore = before.seed
   await page.locator('[data-slot="shuffle-color"]').click()
   const seedAfter = (await probeConfig(page)).seed
   expect(seedAfter).toBeTruthy()
   expect(seedAfter).not.toBe(seedBefore)
+  expect({ ...(await probeConfig(page)), seed: seedBefore }).toEqual(before)
 })
 
 test('随机配色只换配色，种子与质感不动', async ({ page }) => {
@@ -371,7 +378,7 @@ test('图标徽章能选内置棕榈图标并导出', async ({ page }) => {
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('[data-slot="graphic-pick"]').click()
+  await page.locator('[data-slot="graphic-picker"], [data-slot="graphic-pick"]').click()
   await page.locator('label:has(input[data-group="icon-source"][value="builtin"])').click()
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
@@ -391,7 +398,7 @@ test('图标徽章能用中文搜到棕榈 emoji 并导出', async ({ page }) =>
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('[data-slot="graphic-pick"]').click()
+  await page.locator('[data-slot="graphic-picker"], [data-slot="graphic-pick"]').click()
   await page.locator('label:has(input[data-group="icon-source"][value="emoji"])').click()
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
@@ -416,7 +423,7 @@ test('图标徽章能在品牌页搜到 GitHub 并导出', async ({ page }) => {
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('[data-slot="graphic-pick"]').click()
+  await page.locator('[data-slot="graphic-picker"], [data-slot="graphic-pick"]').click()
   await page.locator('label:has(input[data-group="icon-source"][value="brand"])').click()
   await page.locator('[data-slot="command-input"]').fill('GitHub')
   // 名字精确匹配，免得选中同样命中的 GitHub Copilot
@@ -441,7 +448,7 @@ test('挑选栏能把没有官方单色稿的品牌切成单色并导出', async
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('[data-slot="graphic-pick"]').click()
+  await page.locator('[data-slot="graphic-picker"], [data-slot="graphic-pick"]').click()
   await page.locator('label:has(input[data-group="icon-source"][value="brand"])').click()
   await page.locator('[data-slot="command-input"]').fill('飞书')
   await page.getByRole('option', { name: /飞书|Lark/ }).click()
@@ -469,10 +476,12 @@ test('单色那一档只跟着品牌来源出现', async ({ page }) => {
   await openApp(page)
 
   const monoControl = page.locator('[data-slot="brand-mono"]')
+  await expect(monoControl).toBeVisible()
+  await page.locator('[data-slot="icon-clear"]').click()
   await expect(monoControl).toHaveCount(0)
 
   // 内置图标没有单色一说，挑完这一档仍不该冒出来
-  await page.locator('[data-slot="graphic-pick"]').click()
+  await page.locator('[data-slot="graphic-picker"], [data-slot="graphic-pick"]').click()
   await page.locator('label:has(input[data-group="icon-source"][value="builtin"])').click()
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
@@ -497,7 +506,7 @@ test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   await openApp(page)
 
-  await page.locator('[data-slot="graphic-pick"]').click()
+  await page.locator('[data-slot="graphic-picker"], [data-slot="graphic-pick"]').click()
   await page.locator('input[type="file"]').setInputFiles({
     name: 'team.svg',
     mimeType: 'image/svg+xml',
@@ -549,9 +558,14 @@ test('顶栏设置菜单里恢复默认，确认后回到默认档', async ({ pa
   await page.locator('[data-slot="reset-confirm"]').click()
   await expect(dialog).toBeHidden()
 
-  // 重置回到默认档，示例文字重新跟随界面语言
-  await expect(page.locator('#avatar-text-first')).toHaveValue('飞书')
-  await expect(page.locator('#avatar-text-second')).toHaveValue('效率先锋')
+  // 重置回到共享默认档，画布内容不随界面语言改变
+  await expect(page.locator('#avatar-text-first')).toHaveValue('工作新习惯')
+  await expect(page.locator('#avatar-text-second')).toHaveValue('你说豆包干')
+  expect((await probeConfig(page)).layout.icon).toEqual({
+    source: 'brand',
+    id: 'doubao-work',
+    mono: false,
+  })
 })
 
 test('顶栏有备案号，链到工信部', async ({ page }) => {
@@ -763,4 +777,27 @@ test('图标索引网络故障有明确恢复入口，刷新保留文字', async
   await page.getByRole('button', { name: '选图标', exact: true }).click()
   await page.locator('[data-slot="command-input"]').fill('HARMAY')
   await expect(page.getByRole('option', { name: /HARMAY/ }).first()).toBeVisible()
+})
+
+test('HARMAY 黑色矢量在 2048 导出仍有可见墨迹', async ({ page }) => {
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'gradient-avatar:v4',
+      JSON.stringify({
+        config: {
+          text: '',
+          palette: 'custom',
+          customColors: ['#ffffff', '#ffffff'],
+          highlight: 0,
+          params: { grain: 0 },
+          layout: { icon: { source: 'brand', id: 'harmay-wordmark-black', mono: false } },
+        },
+      }),
+    ),
+  )
+  await openApp(page)
+  const result = await probeStats(page, 2048)
+  expect(result.width).toBe(2048)
+  expect(result.dark).toBeGreaterThan(1000)
 })

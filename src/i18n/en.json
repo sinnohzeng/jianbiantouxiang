@@ -3,7 +3,6 @@
   "about.resetDone": "Defaults restored. Undo takes you back.",
   "app.description": "A browser-only gradient avatar generator. Pick colors and texture, export an image ready for group chats, profiles and team badges.",
   "app.name": "Gradient Avatar",
-  "app.sampleText": "Hello",
   "app.shortName": "Gradient Avatar",
   "app.title": "Gradient Avatar · 渐变头像",
   "bottombar.actions": "Main actions",
@@ -11,8 +10,8 @@
   "bottombar.exportOptions": "Export options",
   "bottombar.randomPalette": "New palette",
   "bottombar.randomPalette.hint": "Palette only; seed and texture stay",
-  "bottombar.reroll": "Reroll",
-  "bottombar.reroll.hint": "Same colors and texture, a new composition",
+  "bottombar.reroll": "Shuffle pattern",
+  "bottombar.reroll.hint": "Change the background pattern; keep colors, texture style, text and logo",
   "common.copyFailed": "Copy failed",
   "export.bg": "Background",
   "export.bg.hint": "Fills JPG backgrounds and anything outside the rounded shape",
@@ -283,5 +282,7 @@
   "preview.height.reset": "Reset preview height",
   "icon.loadFailed": "Icons could not load. Reconnect and reload. Session uploads will need to be uploaded again.",
   "icon.reload": "Save edits and reload",
-  "icon.upload.resourceLimit": "Image pixels or session assets exceed the limit. Use a smaller image, or export your work and reload before uploading."
+  "icon.upload.resourceLimit": "Image pixels or session assets exceed the limit. Use a smaller image, or export your work and reload before uploading.",
+  "export.loading": "Loading export options…",
+  "export.loadFailed": "Export options could not load. Reconnect and refresh."
 }

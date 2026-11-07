@@ -24,6 +24,8 @@ export interface ProbePixelStats {
   width: number
   height: number
   opaque: number
+  /** 不透明且 RGB 三通道均小于 8 的墨迹像素。 */
+  dark: number
   colors: number
 }
 

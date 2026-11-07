@@ -124,26 +124,12 @@ function commitConfig(
   set({ config: next, past: [...past, config].slice(-UNDO_MAX), future: [] })
 }
 
-/** 本次会话的初始配置是从哪来的。 */
-export type ConfigSource = 'storage' | 'default'
-
-let configSource: ConfigSource = 'default'
-
-/**
- * 初始配置来自哪一档。'default' 表示没有本机存档，
- * 这时示例文字才由界面语言决定；'storage' 是用户自己的配置，不能覆盖。
- */
-export function initialConfigSource(): ConfigSource {
-  return configSource
-}
-
 /**
  * 初始配置：本机存档优先，没有就用默认。
  * 配置不进 URL；要给截图脚本喂配置，往 `PERSIST_KEY` 写一份 `{ config }` 再打开页面。
  */
 export function readInitialConfig(): AvatarConfig {
   const stored = loadPersisted()
-  configSource = stored ? 'storage' : 'default'
   return stored ?? DEFAULT_CONFIG
 }
 
@@ -211,7 +197,7 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
 
   randomizePalette: () => {
     const config = get().config
-    // 只换配色：种子与质感留在原处，操作条上「换一版」与「随机配色」各管一件事
+    // 只换配色：种子与质感留在原处，操作条上「变换底纹」与「随机配色」各管一件事
     commitConfig(set, get, { ...config, palette: nextPaletteId(config.palette) })
   },
 
@@ -230,8 +216,6 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
   },
 
   reset: () => {
-    // 必须是 DEFAULT_CONFIG 本身，不能换成等值的新对象：
-    // src/App.tsx 的 LocaleDefaults 靠这份引用认出“回到默认档”，好让示例文字与默认字体重新跟随语言
     commitConfig(set, get, DEFAULT_CONFIG)
   },
 

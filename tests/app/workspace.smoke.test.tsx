@@ -80,6 +80,15 @@ function config(): AvatarConfig {
   return useAvatarStore.getState().config
 }
 
+function withoutIcon() {
+  useAvatarStore.setState({
+    config: {
+      ...config(),
+      layout: { ...config().layout, icon: { source: 'none', id: '', mono: false } },
+    },
+  })
+}
+
 beforeEach(() => {
   useAvatarStore.setState({ config: DEFAULT_CONFIG, history: [], ui: { ...DEFAULT_UI } })
   // 卡片上的字体按钮挂载即请求字体名预览，这里不让它出网，预览记为失败，名字留在界面字体
@@ -190,6 +199,7 @@ describe('挑选栏 · 图形节', () => {
   })
 
   it('没有图形时是空态按钮，没有磁贴也没有清除按钮', () => {
+    withoutIcon()
     const { container } = mount(<PickColumn />)
     expect(container.querySelector('[data-slot="graphic-pick"]')).not.toBeNull()
     expect(container.querySelector('[data-slot="graphic-picker"]')).toBeNull()
@@ -265,10 +275,11 @@ describe('挑选栏 · 质感节', () => {
 
 describe('导出抽屉 · 画布', () => {
   // 画布本质上是导出参数，v5 起长在导出抽屉里，不在微调面板
-  it('尺寸预设与形状写回 store', () => {
+  it('尺寸预设与形状写回 store', async () => {
     mount(<ExportDrawer open onOpenChange={() => {}} />)
+    await screen.findByRole('button', { name: '4096' })
 
-    fireEvent.click(screen.getByRole('button', { name: '4096' }))
+    fireEvent.click(await screen.findByRole('button', { name: '4096' }))
     expect(config().canvas.width).toBe(4096)
     expect(config().canvas.height).toBe(4096)
 
@@ -279,8 +290,9 @@ describe('导出抽屉 · 画布', () => {
     expect(config().canvas.shape).toBe('circle')
   })
 
-  it('自定义宽高会夹到合法区间', () => {
+  it('自定义宽高会夹到合法区间', async () => {
     mount(<ExportDrawer open onOpenChange={() => {}} />)
+    await screen.findByRole('button', { name: '4096' })
     const inputs = document.querySelectorAll<HTMLInputElement>('input[type="number"]')
     expect(inputs).toHaveLength(2)
     fireEvent.change(inputs[0]!, { target: { value: '99999' } })
@@ -334,6 +346,7 @@ describe('挑选栏 · 数值行', () => {
   })
 
   it('第二行字号紧跟在第二行输入之后：无 Logo 自动档与第一行等大，一拖就是自己的短边比例', () => {
+    withoutIcon()
     useAvatarStore.setState({ ui: { ...useAvatarStore.getState().ui, autoFontSize: 0.5 } })
     const { container } = mount(<PickColumn />)
     const row = group(container, 'text-line2-size')
@@ -355,6 +368,7 @@ describe('挑选栏 · 数值行', () => {
   })
 
   it('拖第一行字号时第二行钉在此刻的大小', () => {
+    withoutIcon()
     useAvatarStore.setState({ ui: { ...useAvatarStore.getState().ui, autoFontSize: 0.5 } })
     const { container } = mount(<PickColumn />)
     expect(config().typography.line2.size).toBeNull()
@@ -405,6 +419,7 @@ describe('挑选栏 · 数值行', () => {
   })
 
   it('图标大小和上下位置常显，左右位置展开；没有图标时不显示', () => {
+    withoutIcon()
     const { container: empty } = mount(<PickColumn />)
     const emptyCard = empty.querySelector('[data-slot="graphic-pick"]')!.closest('section')!
     expect(ranges(emptyCard)).toHaveLength(0)
@@ -844,8 +859,9 @@ describe('字体名预览', () => {
 })
 
 describe('ExportDrawer', () => {
-  it('打开后能切格式与体积档', () => {
+  it('打开后能切格式与体积档', async () => {
     mount(<ExportDrawer open onOpenChange={() => {}} />)
+    await screen.findByRole('button', { name: '4096' })
     const png = document.querySelector<HTMLInputElement>(
       'input[data-group="export-format"][value="png"]',
     )
@@ -918,6 +934,7 @@ describe('挑选栏 · 品牌单色', () => {
   }
 
   it('只有品牌来源才出现原色 / 单色这一档', () => {
+    withoutIcon()
     const { container, rerender } = mount(<PickColumn />)
     expect(monoTiles(container)).toHaveLength(0)
 
