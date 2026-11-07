@@ -10,6 +10,8 @@ import {
   registerUploadedFont,
   removeUploadedFont,
   uploadFamilyName,
+  getUploadedFontRevision,
+  subscribeUploadedFonts,
 } from '@/fonts/upload'
 
 class FakeFontFace {
@@ -192,4 +194,15 @@ describe('注册表上限', () => {
     expect(removed).toHaveLength(1)
     expect(getUploadedFont('C-upload')?.bytes).toBe(4096)
   })
+})
+
+it('同名替换通知预览订阅并更新版本', async () => {
+  await registerUploadedFont(fontFile('same.woff2'))
+  const before = getUploadedFontRevision()
+  const listener = vi.fn()
+  const unsubscribe = subscribeUploadedFonts(listener)
+  await registerUploadedFont(fontFile('same.woff2'))
+  expect(getUploadedFontRevision()).toBeGreaterThan(before)
+  expect(listener).toHaveBeenCalledTimes(1)
+  unsubscribe()
 })

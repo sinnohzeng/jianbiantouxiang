@@ -9,6 +9,7 @@
  * 点「刷新」才 skipWaiting 加重载；不点也不影响使用，下次进来自然是新版。
  */
 
+import { flushConfigSync } from '@/state/store'
 import { useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import { registerSW } from 'virtual:pwa-register'
@@ -39,7 +40,10 @@ export function useServiceWorkerUpdate(): void {
           duration: Number.POSITIVE_INFINITY,
           action: {
             label: translate.current('update.action'),
-            onClick: () => void updateSW(true),
+            onClick: () => {
+              flushConfigSync()
+              void updateSW(true)
+            },
           },
         })
       },

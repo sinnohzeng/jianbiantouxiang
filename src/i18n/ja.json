@@ -277,5 +277,11 @@
   "icon.brand.primary": "濃茶",
   "icon.brand.dongliNote": "暗い背景は白、明るい背景は茶。黒は白黒印刷用。",
   "icon.brand.softwareNote": "原図の配色を保持。ソフト着色は公式素材ではなく、内部の形状が失われる場合があります。",
-  "icon.brand.category.client": "顧客ブランド"
+  "icon.brand.category.client": "顧客ブランド",
+  "preview.height.decrease": "プレビューを縮小",
+  "preview.height.increase": "プレビューを拡大",
+  "preview.height.reset": "プレビューの高さをリセット",
+  "icon.loadFailed": "アイコンを読み込めません。接続後に再読み込みしてください。アップロード素材は再登録が必要です。",
+  "icon.reload": "編集を保存して再読み込み",
+  "icon.upload.resourceLimit": "画像の画素数またはセッションの素材量が上限を超えました。画像を縮小するか、作品を書き出してから再読み込みしてください。"
 }

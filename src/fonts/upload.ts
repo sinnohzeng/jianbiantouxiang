@@ -34,6 +34,19 @@ export interface UploadedFont {
 }
 
 const registry = new Map<string, UploadedFont>()
+let revision = 0
+const listeners = new Set<() => void>()
+export const getUploadedFontRevision = (): number => revision
+export function subscribeUploadedFonts(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+function changed(): void {
+  revision += 1
+  for (const listener of listeners) listener()
+}
 
 function extensionOf(fileName: string): string {
   const dot = fileName.lastIndexOf('.')
@@ -93,6 +106,7 @@ export function removeUploadedFont(family: string): boolean {
   if (!found) return false
   detach(found)
   registry.delete(family)
+  changed()
   return true
 }
 
@@ -100,6 +114,7 @@ export function removeUploadedFont(family: string): boolean {
 export function clearUploadedFonts(): void {
   for (const item of registry.values()) detach(item)
   registry.clear()
+  changed()
 }
 
 /**
@@ -143,5 +158,6 @@ export async function registerUploadedFont(file: File): Promise<{ family: string
   set.add(face)
   registry.set(family, { family, fileName: file.name, bytes: file.size, face })
   evictOverflow(family)
+  changed()
   return { family }
 }

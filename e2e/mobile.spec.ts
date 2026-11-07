@@ -303,3 +303,30 @@ test('手机字号可点按微调并恢复自动，客户品牌无需切页签',
   await variants.getByText('黑色', { exact: true }).tap()
   await expect(variants.getByRole('radio', { name: '黑色' })).toBeChecked()
 })
+
+test('预览高度可点按调节与恢复，窄屏焦点不被固定层盖住', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 })
+  await openApp(page)
+  const divider = page.locator('[data-slot="preview-divider"]')
+  await page.getByRole('button', { name: '放大预览', exact: true }).click()
+  await expect(divider).toHaveAttribute('aria-valuenow', '32')
+  await page.getByRole('button', { name: '缩小预览', exact: true }).click()
+  await expect(divider).toHaveAttribute('aria-valuenow', '28')
+  await page.getByRole('button', { name: '恢复预览高度', exact: true }).click()
+  await page.locator('body').click({ position: { x: 1, y: 1 } })
+  for (let i = 0; i < 45; i++) {
+    await page.keyboard.press('Tab')
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const e = document.activeElement
+          if (!e || e === document.body) return true
+          const r = e.getBoundingClientRect()
+          if (r.width < 4 || r.height < 4) return true
+          const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+          return !!hit && (e.contains(hit) || hit.contains(e))
+        }),
+      )
+      .toBe(true)
+  }
+})

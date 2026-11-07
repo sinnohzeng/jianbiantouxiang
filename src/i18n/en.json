@@ -277,5 +277,11 @@
   "icon.brand.primary": "Dark brown",
   "icon.brand.dongliNote": "White on dark; brown on light. Black is for monochrome print.",
   "icon.brand.softwareNote": "Original keeps the source colors. Software tint is not official artwork and may lose internal detail.",
-  "icon.brand.category.client": "Client brands"
+  "icon.brand.category.client": "Client brands",
+  "preview.height.decrease": "Reduce preview height",
+  "preview.height.increase": "Increase preview height",
+  "preview.height.reset": "Reset preview height",
+  "icon.loadFailed": "Icons could not load. Reconnect and reload. Session uploads will need to be uploaded again.",
+  "icon.reload": "Save edits and reload",
+  "icon.upload.resourceLimit": "Image pixels or session assets exceed the limit. Use a smaller image, or export your work and reload before uploading."
 }

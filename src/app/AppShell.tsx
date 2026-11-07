@@ -44,6 +44,12 @@ function AppShellBody() {
   const exportMounted = useAvatarStore((state) => state.ui.exportMounted)
   const setUi = useAvatarStore((state) => state.setUi)
   const { height } = usePreviewHeight()
+  useEffect(() => {
+    document.documentElement.style.setProperty('--editor-preview-h', `${height}svh`)
+    return () => {
+      document.documentElement.style.removeProperty('--editor-preview-h')
+    }
+  }, [height])
   // 部署完不必等用户主动刷新：定时问一次有没有新版本，有就弹一条带刷新按钮的提示
   useServiceWorkerUpdate()
 
@@ -88,15 +94,17 @@ function AppShellBody() {
 
         {/* 备案号在手机上落在页面末尾。这一行还兼着给固定操作条让位的底部内距，
             桌面它整个不占位，挑选栏本来就自己滚 */}
-        <a
-          data-slot="icp-beian-mobile"
-          href="https://beian.miit.gov.cn/"
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-muted-foreground/70 block px-4 pt-3 pb-[calc(3.5rem_+_env(safe-area-inset-bottom)_+_1rem)] text-center text-[11px] sm:hidden"
-        >
-          {t('footer.icp')}
-        </a>
+        <div className="px-4 pb-[calc(3.5rem_+_env(safe-area-inset-bottom)_+_1rem)] sm:hidden">
+          <a
+            data-slot="icp-beian-mobile"
+            href="https://beian.miit.gov.cn/"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-muted-foreground/70 flex min-h-11 items-center justify-center text-center text-[11px]"
+          >
+            {t('footer.icp')}
+          </a>
+        </div>
 
         <BottomBar />
       </main>

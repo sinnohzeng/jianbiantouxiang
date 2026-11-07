@@ -419,3 +419,11 @@
     --radius: 0.375rem;
   }
 }
+
+/* 浏览器滚动焦点时避开手机预览、分隔条和固定操作条。 */
+@media (width < 1024px) {
+  html {
+    scroll-padding-top: calc(3.5rem + var(--editor-preview-h, 28svh) + 3.25rem);
+    scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
+}

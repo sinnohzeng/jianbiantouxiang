@@ -409,3 +409,21 @@ describe('导出抽屉的挂载闩', () => {
     expect(store().ui.exportMounted).toBe(true)
   })
 })
+
+it('导出结束时历史仍保存开始时快照', () => {
+  store().setConfig({ text: '导出 A' })
+  const snapshot = store().config
+  store().setConfig({ text: '继续编辑 B' })
+  store().pushHistory(snapshot)
+  expect(store().history[0]?.config.text).toBe('导出 A')
+  expect(store().config.text).toBe('继续编辑 B')
+})
+
+it('离开页面时立即落盘待同步的修改', () => {
+  vi.useFakeTimers()
+  startConfigSync()
+  store().setConfig({ text: '最后一次修改' })
+  window.dispatchEvent(new Event('pagehide'))
+  expect(JSON.parse(storage.getItem(PERSIST_KEY) ?? '{}').config.text).toBe('最后一次修改')
+  expect(vi.getTimerCount()).toBe(0)
+})

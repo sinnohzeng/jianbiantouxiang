@@ -98,13 +98,14 @@ export function BottomBar() {
 
     busyRef.current = true
     setExportPhase('working')
+    const snapshot = useAvatarStore.getState().config
     const startedAt = Date.now()
     flushConfigSync()
     let artifact: Awaited<ReturnType<typeof createExportArtifact>> | null = null
     try {
-      artifact = await createExportArtifact(useAvatarStore.getState().config)
+      artifact = await createExportArtifact(snapshot)
       downloadBlob(artifact.blob, artifact.filename)
-      pushHistory()
+      pushHistory(snapshot)
       queueHistoryThumbnail()
       toast.success(t('export.downloaded'))
       // 行业惯例：太快完成的操作用最短 loading 时长兜住，状态看得见，

@@ -132,3 +132,30 @@ describe('createSaveImageScheduler', () => {
     expect(timer.size).toBe(0)
   })
 })
+
+it('慢合成始终单在途，仅保留最后一份待办', async () => {
+  const timer = fakeTimer()
+  const releases: Array<(value: string) => void> = []
+  const render = vi.fn(
+    (_config: typeof DEFAULT_CONFIG) => new Promise<string>((resolve) => releases.push(resolve)),
+  )
+  const onImage = vi.fn()
+  const scheduler = createSaveImageScheduler({
+    render,
+    onImage,
+    isHidden: () => false,
+    setTimer: timer.setTimer,
+    clearTimer: timer.clearTimer,
+  })
+  for (const text of ['A', 'B', 'C', 'D']) {
+    scheduler.request({ ...DEFAULT_CONFIG, text })
+    timer.tick()
+  }
+  expect(render).toHaveBeenCalledTimes(1)
+  releases[0]?.('A')
+  await vi.waitFor(() => expect(render).toHaveBeenCalledTimes(2))
+  expect(render.mock.calls[1]?.[0]).toMatchObject({ text: 'D' })
+  releases[1]?.('D')
+  await vi.waitFor(() => expect(onImage).toHaveBeenCalledTimes(1))
+  expect(onImage).toHaveBeenCalledWith('D', expect.objectContaining({ text: 'D' }))
+})

@@ -71,7 +71,7 @@ curl -sI http://jianbiantouxiang.com/ | grep -iE "^(http|location)"
 
 ### 国内可用性
 
-- 默认 Noto Sans SC 700 随站点分发；其他字体在运行时先走 Google Fonts css2，失败回落 jsDelivr 上的 fontsource 镜像；emoji 走 jsDelivr 上的 Noto Emoji。两条加载路径见 `docs/architecture.md`，ESA 上不需要改。
+- 默认主行 Noto Serif SC 700、副行 Noto Sans SC 700 随站点分发；其他字体在运行时先走 Google Fonts css2，失败回落 jsDelivr 上的 fontsource 镜像；emoji 走 jsDelivr 上的 Noto Emoji。两条加载路径见 `docs/architecture.md`，ESA 上不需要改。
 - 构建机拉 npm 超时时，在仓库加 `.npmrc` 写 `registry=https://registry.npmmirror.com`。lockfile 里 `resolved` 字段写的是 `registry.npmjs.org`，npm 的 `replace-registry-host` 配置默认值 `npmjs` 会在安装时把这个主机换成配置的 registry，不必重生成 lockfile；本地验证方法是 `npm ci --loglevel http 2>&1 | grep -m3 fetch`，看到的主机应是 npmmirror。Cloudflare 那边同样走这份 `.npmrc`，npmmirror 在境外也能访问。这是备选，没有超时就不加。
 
 ## Cloudflare Pages

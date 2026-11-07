@@ -4,12 +4,12 @@
 
 ## 环境
 
-Node.js 24 以上，npm 随 Node 安装。克隆后 `npm install` 即可，构建与测试都不需要任何密钥。
+Node.js 24 以上，npm 随 Node 安装。克隆后 `npm ci` 即可，构建与测试都不需要任何密钥。
 
 ```bash
 git clone https://github.com/sinnohzeng/jianbiantouxiang.git
 cd jianbiantouxiang
-npm install
+npm ci
 npm run dev
 ```
 
@@ -72,7 +72,7 @@ docs: 补齐字体加载链的说明
 
 每轮改动收尾时自动定版、自动打标签并推送，不需要人来手动打。
 
-站点托管在 Cloudflare Pages，main 分支 **Push 即部署**：推送一到远端，线上同步更新。
+主站托管在阿里云 ESA Pages，旧域名由 Cloudflare Pages 重定向；main 分支 **Push 即部署**：推送一到远端，线上同步更新。
 所以改完必须 commit 加 push 一条龙；只 commit 不 push 等于没上线，不算收尾。
 代理或智能体代改时同样适用：本轮最后一个动作是把提交与标签推到 origin。
 

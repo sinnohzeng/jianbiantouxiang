@@ -18,7 +18,10 @@ export async function createExportArtifact(config: AvatarConfig): Promise<Export
     return {
       ...encoded,
       canvas,
-      filename: buildFilename(config, config.exportOptions.format),
+      filename: buildFilename(
+        config,
+        encoded.blob.type === 'image/png' ? 'png' : config.exportOptions.format,
+      ),
     }
   } catch (error) {
     releaseCanvas(canvas)

@@ -244,9 +244,10 @@
       <section class="mt-14 flex flex-col gap-4">
         <h2 class="text-xl font-semibold tracking-tight">隐私</h2>
         <p class="text-foreground/85 leading-8">
-          没有后端，没有数据库，没有埋点，也没有 cookie。所有配置存在你浏览器的 localStorage 里，
-          清掉浏览器数据就没了。上传的字体与 SVG 只在当前这次会话里有效，关掉页面就不在了。 装成 PWA
-          之后断网也能用；部署了新版本，开着的标签页会自己发现并提示刷新。
+          网页在浏览器中合成图片，不上传你的文字和素材，没有账号、埋点或 cookie。配置存在
+          localStorage，清除浏览器数据后会丢失。上传的字体与图形只在当前会话有效。其他字体、
+          字体目录和 emoji 可能请求外部服务；离线仅能使用已缓存资源。可选远程 MCP 由部署方
+          服务器处理输入。新版本可用时，页面会提示刷新。
         </p>
       </section>
 
@@ -326,9 +327,10 @@
           Gradient Avatar turns a line or two of text into a soft-light gradient image you can use
           as a chat avatar, profile mark or team badge. Four shader textures run on WebGL2, the font
           size is solved by binary search rather than guessed, Google Fonts are sliced by
-          unicode-range, and the export path binary-searches JPEG quality to hit a size target.
-          Everything runs in your browser: no account, no upload, no analytics. Source is on GitHub
-          under the MIT license.
+          unicode-range, and the export path binary-searches JPEG quality to hit a size target. The
+          web editor renders locally without uploading your text or assets. Fonts and emoji may use
+          external services; offline use requires cached resources. Optional remote MCP processes
+          inputs on its deployment server. Source is on GitHub under the MIT license.
         </p>
       </section>
     </main>

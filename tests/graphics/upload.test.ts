@@ -1,5 +1,11 @@
-import { describe, expect, it } from 'vitest'
-import { GraphicUploadError, sanitizeSvg } from '@/graphics/upload'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  GraphicUploadError,
+  sanitizeSvg,
+  registerUploadedGraphic,
+  clearUploadedGraphics,
+  getUploadedGraphic,
+} from '@/graphics/upload'
 
 const DIRTY = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" onload="alert(1)">
   <script>alert('xss')</script>
@@ -95,4 +101,63 @@ describe('style 属性按声明过一层', () => {
     )
     expect(clean).toContain('fill:url(#g)')
   })
+})
+
+it.each(['linearGradient', 'radialGradient'])('保留 %s 的 stop 及内部引用', (tag) => {
+  const clean = sanitizeSvg(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><${tag} id="g"><stop offset="0" stop-color="#ff0000"/><stop offset="1" style="stop-color:#0000ff;stop-opacity:0.8"/></${tag}></defs><rect width="10" height="10" fill="url(#g)"/></svg>`,
+  )
+  const doc = new DOMParser().parseFromString(clean, 'image/svg+xml')
+  expect(doc.querySelectorAll(`${tag} > stop`)).toHaveLength(2)
+  expect(doc.querySelector('rect')?.getAttribute('fill')).toBe('url(#g)')
+  expect(clean).toContain('stop-color:#0000ff')
+})
+
+afterEach(() => {
+  clearUploadedGraphics()
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
+it('像素超过上限时在透明边界扫描前拒绝，并释放 URL', async () => {
+  vi.stubGlobal(
+    'Image',
+    class {
+      naturalWidth = 10000
+      naturalHeight = 10000
+      onload: (() => void) | null = null
+      set src(_value: string) {
+        queueMicrotask(() => this.onload?.())
+      }
+    },
+  )
+  const revoke = vi.fn()
+  vi.stubGlobal('URL', { createObjectURL: () => 'blob:test', revokeObjectURL: revoke })
+  await expect(
+    registerUploadedGraphic(new File(['x'], 'large.png', { type: 'image/png' })),
+  ).rejects.toMatchObject({ code: 'resource-limit' })
+  expect(revoke).toHaveBeenCalledWith('blob:test')
+})
+
+it('会话容量到上限时拒绝新素材，保留历史仍可引用的旧素材', async () => {
+  vi.stubGlobal(
+    'Image',
+    class {
+      naturalWidth = 1
+      naturalHeight = 1
+      onload: (() => void) | null = null
+      set src(_value: string) {
+        queueMicrotask(() => this.onload?.())
+      }
+    },
+  )
+  vi.stubGlobal('URL', { createObjectURL: () => 'blob:test', revokeObjectURL: vi.fn() })
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+    drawImage: vi.fn(),
+    getImageData: () => ({ data: new Uint8ClampedArray([0, 0, 0, 255]) }),
+  } as unknown as CanvasRenderingContext2D)
+  const file = new File(['x'], 'logo.png', { type: 'image/png' })
+  const first = await registerUploadedGraphic(file)
+  for (let i = 1; i < 24; i++) await registerUploadedGraphic(file)
+  await expect(registerUploadedGraphic(file)).rejects.toMatchObject({ code: 'resource-limit' })
+  expect(getUploadedGraphic(first.id)).not.toBeNull()
 })

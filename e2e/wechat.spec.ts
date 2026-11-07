@@ -29,3 +29,33 @@ test('微信里导出画成 data URL 的 JPG 图片供长按保存', async ({ pa
   expect((src ?? '').length).toBeGreaterThan(10_000)
   await expect(drawer.locator('[data-slot="export-notice"]')).toContainText('长按')
 })
+
+test('微信 PNG 存档按 JPG 显示体积控件，修改内容后隐藏旧图', async ({ page }) => {
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'gradient-avatar:v4',
+      JSON.stringify({
+        config: {
+          text: '原图',
+          canvas: { width: 512, height: 512 },
+          exportOptions: { format: 'png' },
+        },
+      }),
+    ),
+  )
+  await openApp(page)
+  await page.locator('[data-slot="export-action"]').click()
+  const drawer = page.locator('[data-slot="drawer-popup"]')
+  await expect(drawer.locator('input[data-group="export-size-target"]').first()).toBeEnabled()
+  await drawer.locator('[data-slot="export-run"]').click()
+  await expect(drawer.locator('[data-slot="export-image"]')).toHaveAttribute(
+    'src',
+    /^data:image\/jpeg/,
+    { timeout: RENDER_TIMEOUT_MS },
+  )
+  await page.keyboard.press('Escape')
+  await page.locator('[data-slot="text-line1"]').fill('全新文字')
+  await page.locator('[data-slot="export-action"]').click()
+  await expect(drawer.locator('[data-slot="export-image"]')).toHaveCount(0)
+})

@@ -25,7 +25,7 @@
 | `src/main.tsx` | 挂 React 根，接上系统主题监听，按条件装端到端探针 |
 | `src/App.tsx` | 套 i18n Provider，让文档标题与默认示例文字跟随界面语言 |
 | `src/app/` | 应用外壳、顶栏、底部操作条、实时预览与参考层开关、预览高度、氛围背景、主题状态 |
-| `src/app/workspace/` | 挑选栏两列（文字、图标 / 配色、质感），四张卡片各带自己的数值滑杆与折叠组，手机分隔条 |
+| `src/app/workspace/` | 挑选栏两列（文字、图标 / 配色、质感），按设备呈现精调控件与折叠组，手机分隔条 |
 | `src/app/panels/` | 导出抽屉、字体选择器、图形选择器、历史条四个重件 |
 | `src/about/` | 关于页那一小段脚本与赞赏配置。正文在根目录的 `about.html` 里 |
 | `src/components/ui/` | shadcn 生成的原语，本仓不改写、不格式化 |
@@ -50,89 +50,17 @@
 
 ## 界面结构
 
-顶栏之下是一棵组件树，用断点切三种形态，不按视口宽度分支渲染：两套树会让状态与焦点在断点处丢失。
-视觉顺序由 CSS grid 的行列指定，DOM 顺序按手机排，预览、分隔条、挑选栏两列、操作条。
+一棵组件树按 CSS 断点重排，DOM 顺序为预览、分隔条、挑选栏和操作条。≥1120 px 是文字/图标、配色/质感、预览三列；1024–1119 px 控件并入一列，和预览并排；小于 1024 px 为纵向页面。桌面工作台最大宽 1520 px，列模板在 `index.css`。
 
-预览列不再是 `1fr` 捡漏，而是夹在 400 到 640 之间的定宽轨道，富余全给挑选栏：
-捡漏时 1920 上画框吃到 890 px，三列控制面板被压到 400，配色与质感整组滚出首屏。
-工作台外壳 `lg:max-w-[1520px]` 居中封顶；96rem 以上把两条 clamp 冻成字面值，
-因为 `vw` 永远对真实视口取值而容器已被封顶钉死，1647 px 以上不冻就会溢出被裁。
+手机预览 sticky，分隔条支持拖动、键盘、44 px 点按缩放与恢复。预览高度单独持久化，不属于头像配置。根滚动区按预览高度、分隔条和底栏设置焦点避让。手机编辑节平铺，桌面保留分组容器。
 
-| 断点 | 形态 |
-| --- | --- |
-| ≥1120 | 挑选栏拆两列（文字图标 / 配色质感），右边是预览 |
-| 1024 到 1120 | 挑选栏并回一列，壳内自己拆两列 |
-| <1024 | 纵向栈：预览 sticky 在顶栏下，下面一条可拖的分隔条，再往下是挑选栏四节，末尾一行备案号 |
+文字节按行展示内容、字号和上下位置，第二行为空时隐藏其尺寸位置。字体、字重、颜色、效果及左右位置收在“字体与样式”。Logo 大小和上下位置常显。手机精调为加减与数值输入，桌面保留滑块；质感参数用于连续探索，仍配数值输入。输入支持中间状态，提交时对齐步进与范围。
 
-列模板与落位全在 `src/index.css` 的 `[data-slot='workspace']` 一段，三套断点；
-`display` 也归那里管，工具层排在组件层之后，class 里留一个 `flex` 就会压掉 `display: contents`。
-壳内拆两列用有界 media 查询而不是容器查询：壳在拆列档是 `display: contents`，不生成盒，
-承担不了 `container-type`；壳宽又完全由视口断点决定，容器查询量不到新信息。
+“恢复自动排版”清除尺寸位置手调并恢复客户 Logo 比例，保留文字、字体、Logo 和配色。字体选择器桌面为锚定弹层、手机为抽屉，按行选择；第二行可显式跟随第一行。字体加载失败在该行显示提示。
 
-只有画框那一列分上下两行，左边几列一律跨满两行。操作条只占画框那一列，
-左边如果也停在第一行末尾，底下就空出一条与操作条等高的带子，挑选栏白白少掉五六十像素可视高度。
+图形选择器默认品牌，客户成品置顶，再到其他品牌、内置图标及 emoji。索引失败显示网络错误和保存编辑后刷新入口；上传素材只在当前会话有效。原色/程序染色及授权边界见“图形来源”。
 
-操作条只占画框那一列，不横跨整个工作台：挑选栏底下压一条通栏的操作条，
-会让人以为它管的是左边那两列，而它管的其实是画面。
-桌面上它是一行三列 grid：换一版、随机配色、导出，导出那格右侧带一颗导出选项齿轮。
-每颗按钮的名字就是它改动的东西：换一版只换种子，随机配色只换配色，种子与质感不动；
-三格文案都短到一格放得下，手机与桌面同一套文案。
-手机上它固定在屏幕底并让出 safe-area，图标在上、短文案在下的三格加齿轮。
-
-挑选栏分列的依据是使用频率：改文字与换配色是最常用的两件事，让它们同屏并排，不用先切页签也不用滚一屏。
-左列是文字与图标，右列是配色与质感。没有页签，折叠只给低频参数：自定义配色、种子色生成、文字卡片的“字体与样式”（内含版面与左右位置）、图标卡片的左右位置、质感卡片的参数。
-四节都按桌面一屏放得下致密化：配色是六列无名磁贴，渐变本身就是名字，
-选中配色的五语名显示在节头，全名挂在磁贴的 title 与 sr-only 上；质感是单行四格加一行常显的选中描述；
-图标是单控件两态——空态一颗整宽虚线按钮，填充态是缩略图磁贴（点它换）加名字加移除钮；
-文字样式是可换行的 chips：分段控件在 250–300 px 的列里会把选项截成“Shad…”，chips 按内容自适应。
-
-数值滑杆没有单独的面板，按归属散在四张卡片里，参数跟着它修饰的东西走。
-文字卡片按行排列输入、字号、垂直位置；第二行字号和垂直位置仅有第二行文字时出现。字体、字重、文字效果与颜色收在默认折叠的“字体与样式”，其中版面与左右位置再按需展开。节头“恢复自动排版”清除字号和位置手调，并恢复当前客户的 Logo 默认比例，保留文字、字体、Logo 与配色。
-图标卡片填充态在磁贴下面常显图标大小与垂直位置，仅水平位置折叠；空态没有滑杆。
-质感卡片在种子行之后是折叠的“参数”（当前质感的五个参数加光感）。折叠组默认收起，用不上的行不出现。
-每行 38 px 两段：第一段是「标签、自动档、重置占位、数值框」的固定列 grid，第二段滑杆独占一行。
-重置占位与数值框各占定宽列，位置与兄弟元素有无无关；数值框放最右一列，右缘与滑杆右端齐平，
-占位排在它右边时每一行的数字都比滑杆末端缩进 26 px，整列看起来像没有右对齐。
-致密尺寸一律 `lg:` 前缀：手机渲染同一棵树，基值要保持 44 px 触控与 16 px 输入字号的口径。
-折叠组用 Base UI 的 Collapsible，收起时面板整块卸载而不是 `display:none`：Base UI 的滑杆在挂载那一刻量控件宽度，
-在 `display:none` 里挂上就量到 0，之后即使显示出来滑块也一直是 `visibility: hidden`；卸载再挂载量到的是真实宽度。
-每行的数字框常驻，回车或失焦按步进对齐并夹回区间；给了默认值的行在偏离默认时多出一个重置钮，
-桌面悬停或聚焦才显形，触控设备常显。字号那一行不给默认值：回默认由“自动”按钮承担。
-画布尺寸与形状不在卡片里，它们跟格式与体积是同一件事，收在导出抽屉里。
-
-每行的字体是一行标签加一行控件，模块 `src/app/workspace/sections/line-font-field.tsx`。左边字体按钮占满剩余宽度，写 `displayName` 给出的显示名，
-右侧是与下拉同款的下箭头；可访问名同时引用行标签与字体名，`title` 写西文 family。右边字重下拉定宽，
-收起态只写字重名，选项是名字加右侧等宽数值，名字按该档字重渲染；字体只有一档时下拉禁用，占位不变。
-字重用 shadcn 的 Select（Base UI），不用原生 select：原生 select 收起后只能显示选项全文，生成的 native-select 又把手机高度写死在 32 px。
-下拉触发器的高度写成 `data-[size=default]:h-11`，才压得过生成件同前缀的默认高度。
-简体中文默认主行 Noto Serif SC 700、副行 Noto Sans SC 700；第二行字号默认跟随第一行，标签后的“跟随”钮与第一行字号的“自动”钮是同一个块 `AutoToggle`：
-按下态表示这个值由系统派生，带 `aria-disabled`，再点不做事；可见尺寸致密，热区用伪元素上下各扩 11 px，手机上凑满 44 px。
-字体设置位于默认收起的“字体与样式”。第二行显式跟随时按钮文字用次要前景色。`ui.fontFallbacks` 含某一行生效字体的 `fontKey` 时，那一行按钮的名字前多一个琥珀色告警图标，
-读屏读“没加载成功，正用系统字体显示”。
-
-字体选择器按行打开，勾选态与写入都对着那一行，写入只经 `withLine1Font`、`withLine2Font`。桌面是锚在字体按钮下方的弹层，
-不带遮罩，画布照常可见；弹层只在按钮上下两侧翻转，不翻到左右，列表高度随所在一侧的可用高度收放。
-这是 Base UI 给自家下拉与菜单用的口径（`collisionAvoidance.fallbackAxisSide: 'none'`）：允许翻到侧面时，
-第一帧的全长列表会把弹层推到右侧并停在那里。生成的 `PopoverContent` 不转发这个参数，所以字体行直接组 Base UI 的 Positioner 与 Popup，外观照抄 `ui/popover`。
-手机是底部抽屉，抽屉头写“第一行字体”或“第二行字体”。
-分组自上而下：已上传（本会话注册过的上传字体，至多三款）、最近使用（只记 Google 字体，至多 8 条，存在 `gradient-avatar:recent-fonts`）、
-精选若干组、全部（至多 200 条，靠搜索收窄）、系统，最后是上传按钮。精选按界面语言排组：简体界面简、繁、日、韩、拉丁，
-繁体界面繁、简、日、韩、拉丁，日文界面日、拉丁、简、繁、韩，韩文界面韩、拉丁、简、繁、日，英文界面拉丁、简、繁、日、韩；
-繁体组同收台湾与香港两类，组内保持 `curated.ts` 的手工顺序，搜索时才按命中强度排。
-打开时高亮该行当前字体在列表里第一次出现的那一项，勾选项带一段只给读屏的“当前”；点中该行当前那款只关弹层，不写配置。
-搜索词与上传报错随面板挂载初始化，关掉再开是干净的。选择器的行与卡片上的字体按钮都用字体自身写名字，见“字体”一节的字体名预览。
-
-顶栏自左向右：品牌、备案号、撤销重做、最近生成、语言、设置、关于。备案号是浅色小字，链到工信部备案系统，
-手机顶栏放不下，改在挑选栏末尾居中一行。最近生成收在顶栏右上角的浮层里，与撤销重做同一处落点：三个都是“回到刚才那一版”。
-设置菜单收主题三档、网格与安全区参考线、恢复默认：这四样都是跨会话的偏好而不是对画面的动作，
-一个功能面很窄的单画布工具，拆两处放使用者记不住哪个在哪。恢复默认带一次确认；它走撤销栈，确认之后还能撤销回去。
-
-预览尺寸两条路。手机上由 `--preview-h`（默认 28svh，范围 20 到 60）决定预览区高度，画布边长取
-`min(100vw - 32px, var(--preview-h) - 40px)`；分隔条拖动改这个变量，双击回默认，上下键每次 4svh，值存
-localStorage `gradient-avatar:preview-height`，模块 `src/app/preview-height.ts` 与参考层开关同构。
-桌面上由外壳给出 `--preview-max`（`100svh - 200px`），也就是这一列留给预览的净空，
-画框取 `min(var(--preview-max), 640px)`：640 已足够判断渐变与文字细节，再大只会把控制面板压出首屏。
-预览这一格是 `overflow-hidden` 而不是可滚：画框已经按净空夹过一次，再挂一条滚动条只会出现在没人需要它的地方。
+底栏提供换种子、随机配色、导出和导出选项。顶栏提供撤销重做、历史、语言和设置；简介在设置内以新标签打开（noopener noreferrer）。字体、图形、历史和导出面板按需加载。关于页是独立静态入口。
 
 ## 共享契约
 
@@ -160,40 +88,14 @@ localStorage `gradient-avatar:preview-height`，模块 `src/app/preview-height.t
 预览与导出走两条独立的路径，共用引擎、文字与图形三个模块，因此参数改动只需落在一处。
 
 ```mermaid
-flowchart TD
-  store["useAvatarStore · AvatarConfig"]
-
-  subgraph previewPath["预览路径"]
-    direction TB
-    stage["PreviewStage"]
-    mount["createGradientMount · ShaderMount 画布"]
-    hl["高光图层 · CSS mix-blend-mode screen"]
-    txt["图形与文字图层 · loadGraphic + layoutText + drawGraphic + drawText"]
-    ink["取色探针 · renderGradient 128 px"]
-    stage --> mount
-    stage --> hl
-    stage --> ink
-    ink --> txt
-    stage --> txt
-  end
-
-  subgraph exportPath["导出路径"]
-    direction TB
-    compose["composeAvatar"]
-    grad["renderGradient · 离屏 ShaderMount"]
-    high["drawHighlight · globalCompositeOperation screen"]
-    loadg["loadGraphic"]
-    layout["layoutText + 图形落位"]
-    pick["needsPlate + pickTextColor + effectiveConfig"]
-    draw["drawGraphic + drawText"]
-    mask["形状遮罩 · destination-in"]
-    enc["encodeCanvas · 质量二分"]
-    out["downloadBlob / copyImageToClipboard"]
-    compose --> loadg --> grad --> high --> layout --> pick --> draw --> mask --> enc --> out
-  end
-
-  store --> stage
-  store --> compose
+flowchart LR
+  config[AvatarConfig] --> preview[PreviewStage]
+  config --> compose[composeAvatar]
+  preview --> shared[字体 / 渐变 / layoutText / 图形文字绘制]
+  compose --> shared
+  compose --> mask[形状遮罩]
+  mask --> encode[encodeCanvas]
+  encode --> output[下载 / 图片剪贴板]
 ```
 
 预览把三层叠在一个定长方框里：底下是 `ShaderMount` 的 WebGL 画布，中间一张 2D 画布画高光，上面一张 2D 画布按“先图形后文字”绘制，形状裁切交给 CSS。配置停 80 ms 才推给 shader；图形只按来源与 id 变化重新加载。
@@ -217,13 +119,13 @@ flowchart TD
 
 ## 文字排版
 
-只有一种版式：图标（可选）→ 第一行 → 第二行的纵向栈，水平居中，整体在可用区域里垂直居中。`fitStack` 在 `LINE_SIZE_MIN` 到 `LINE_SIZE_MAX` 之间二分 12 轮找基准字号，第二行的 `line2.size` 为 `null` 时等于基准乘 `LINE2_FOLLOW_SCALE`，定了短边比例就按定值排，两种情况都只搜基准一个自由度，两档都放开会有无穷多组解落在安全框里。每一段带自己的字体：第一行取 `line1.font`，第二行取 `lineFont(t, 2)`，量宽与绘制都用 `src/fonts/family.ts` 的 `fontString` 拼出这一段的 canvas font。严格档要求不劈开拉丁词且主行不折行，放不下才落宽松档。
+只有一种版式：图标（可选）→ 第一行 → 第二行的纵向栈，水平居中，整体在可用区域里垂直居中。`fitStack` 在 `LINE_SIZE_MIN` 到 `LINE_SIZE_MAX` 之间二分 12 轮找基准字号，第二行的 `line2.size` 为 `null` 时按 `line2FollowScale` 派生（纯文字自动双行同级，带 Logo 或手动主行取 0.62），定了短边比例就按定值排，两种情况都只搜基准一个自由度，两档都放开会有无穷多组解落在安全框里。每一段带自己的字体：第一行取 `line1.font`，第二行取 `lineFont(t, 2)`，量宽与绘制都用 `src/fonts/family.ts` 的 `fontString` 拼出这一段的 canvas font。严格档要求不劈开拉丁词且主行不折行，放不下才落宽松档。
 
 每一行可以按自己那组的 `offsetX`（画布宽比例）与 `offsetY`（画布高比例）做视觉补偿，图标按 `graphicOffsetX`、`graphicOffsetY`（安全框宽高比例）补偿。补偿不参与求解：换行与二分都按完整安全区算，落位时做纯位移，改第 i 行只动第 i 行，其余行的字号与坐标一个像素都不变；图标补偿也不挤压文字可用区。位移后越出安全区只反映在 `overflow` 提示里，不缩字号。绘制层按段设置 `ctx.font`，字号与字体都按段走，描边、投影、发光的尺度也随之按段走。第一行为空、第二行有内容是合法槽位（图标加说明文字），空槽位留住，第二行晋升为主行时整组取 `line2` 的字体、字号与补偿。
 
 第一行字号 `line1.size` 为 `null` 时自动，由 `fitStack` 求解，`TextLayout.fontRatio` 带出求得的基准比例，预览每次排版后把它写进 store 的 `ui.autoFontSize`。这是派生值，不进配置与存档。字号滑杆常驻可用：自动态显示这个回写值，一拖就以它为起点写成定值，旁边的“自动”按钮把 `line1.size` 写回 `null`，滑杆停在刚才的定值上直到新解回写，画面全程不跳。
 
-安全框由 `typography.padding` 从画布四边扣出，默认值 0.06；`typography.lineHeight` 默认 1.03。量宽一律走 canvas `measureText`，CJK 逐字换行、拉丁按词换行。
+安全框由 `typography.padding` 从画布四边扣出，默认值 0.03；`typography.lineHeight` 默认 1.03。量宽一律走 canvas `measureText`，CJK 逐字换行、拉丁按词换行。
 
 文字色就是用户挑的那一个，预览与导出读同一个字段，没有第二条判定路径。`src/text/ink.ts` 只留纯色彩数学，供配色表与选择器判明暗。
 
@@ -246,13 +148,13 @@ flowchart TD
 
 索引与加载器都只在图形选择器或 `loadGraphic` 命中 brand 时才 `import()`，不进首屏预算。SVG 与上传路径同过一遍 `sanitizeSvg`，取不到或解析失败只 `console.warn` 并让图形位留空。
 
-上传 SVG 只保留常见绘图元素、渐变、裁剪与安全展示属性；未知元素整支丢弃，未知属性删除，`url()` 只允许内部引用。文件字节只在模块级会话注册表里，不写盘；配置里留的是 `source: 'upload'` 加会话 id，会随存档与历史落盘，刷新后注册表已空，图形位留空、图形节仍显示上传来源，用户重新上传即可。加载失败同样只让图形位留空，渐变、文字与导出继续可用。
+上传 SVG 只保留常见绘图元素、渐变、裁剪与安全展示属性；未知元素整支丢弃，未知属性删除，`url()` 只允许内部引用。上传上限为 5 MiB，图片解码后在扫描前限制 16 Mi 像素，会话最多 24 份及 64 Mi 像素；达到上限明确提示，不淘汰历史仍引用的素材。浏览器最初解码的峰值仍由浏览器管理。文件字节只在模块级会话注册表里，不写盘；配置里留的是 `source: 'upload'` 加会话 id，会随存档与历史落盘，刷新后注册表已空，图形位留空、图形节仍显示上传来源，用户重新上传即可。加载失败同样只让图形位留空，渐变、文字与导出继续可用。
 
 ## 字体
 
 加载器 `src/fonts/loader.ts` 对外三个函数。绘制前必须等 `document.fonts.load` 就绪，否则画布会用回退字形出图。
 
-- `fontJobs(config)` 给出哪款字体要画哪些字：有文字的行按 `lineFont` 取生效字体，同一款字体的两行文字合并成一条；两行都空时给第一行字体，用拉丁与 CJK 各一个字的样本探测。第二行钉了别款字体但还没有文字时不加载它。预览的字体 effect 以这组字体的 `fontKey` 串为依赖，填上第二行文字后依赖变化，effect 重跑，把第二行的字体加载进来。
+- `fontJobs(config)` 给出哪款字体要画哪些字：有文字的行按 `lineFont` 取生效字体，同一款字体的两行文字合并成一条；两行都空时给第一行字体，用拉丁与 CJK 各一个字的样本探测。第二行钉了别款字体但还没有文字时不加载它。预览的字体 effect 以这组字体的 `fontKey` 串和上传字体注册版本为依赖，填上第二行文字后依赖变化，effect 重跑，把第二行的字体加载进来。
 - `loadFontsForConfig(config)` 对每条并行加载，每款返回 `{ font, via, ok }`：`font` 是输入的那款，界面据它的来源选提示文案；`via` 是实际走的通道（google、mirror、system、upload）。预览、导出、长按图与历史缩略图都走它。加载状态以 `fontKey` 为键，同一款字体只请求一次。
 - `topUpGlyphs(config)` 给已就绪的网络字体补上新出现的字，确实补到时返回 true，预览据此重绘一次。css2 按 `unicode-range` 切片下发，新字所在的切片要再 `load` 一次才会去拉；没就绪或加载失败的字体不补。
 
@@ -296,11 +198,11 @@ culori 只从 `src/palettes/culori.ts` 进来，其余文件一律不直接 `imp
 
 ## 状态与持久化
 
-单个 zustand store 持有 `config`、`history` 与 `ui` 三段。界面只调 `setConfig` 一类的动作，动作内部逐层深合并再过一遍 `normalizeConfig`。
+单个 zustand store 持有 `config`、历史、撤销重做栈与 `ui`。界面只调 `setConfig` 一类的动作，动作内部逐层深合并再过一遍 `normalizeConfig`。
 
 初始配置只有两档：localStorage 存档、默认值。配置不进 URL；地址栏上只有三个与配置无关的查询参数：`?lang=` 首屏消费后摘掉，`?probe=1` 装端到端探针，`?samples=1` 打开样张页。`initialConfigSource()` 记下它来自哪一档，默认示例文字只在 `default` 这一档才跟随界面语言。存档缺字段时由 `normalizeConfig` 补当前默认值。
 
-存档是 `PERSIST_KEY`（`gradient-avatar:v4`）下的一份 `{ config, history }`，读档只要求 `config` 是对象，其余交给 `normalizeConfig`。状态变更后攒 300 ms 写一次 localStorage，不碰 `history`。导出前调 `flushConfigSync()` 立刻落盘，导出与存档才是同一份配置。端到端用例读配置走探针：`config()` 取 store 里的当前值，`flush()` 立刻落盘，不读 localStorage。要给截图脚本喂配置，用 `page.addInitScript` 往 `PERSIST_KEY` 写一份 `{ config }` 再打开页面。
+存档是 `PERSIST_KEY`（`gradient-avatar:v4`）下的一份 `{ config, history }`，读档只要求 `config` 是对象，其余交给 `normalizeConfig`。配置或历史变更后攒 300 ms 将两者写入 localStorage；页面隐藏或离开时同步待写状态。导出前调 `flushConfigSync()` 立刻落盘，导出与存档才是同一份配置。端到端用例读配置走探针：`config()` 取 store 里的当前值，`flush()` 立刻落盘，不读 localStorage。要给截图脚本喂配置，用 `page.addInitScript` 往 `PERSIST_KEY` 写一份 `{ config }` 再打开页面。
 
 预览参考层（安全区、网格）的开关与手机预览高度一样是“怎么看”而不是“出什么图”：各自是模块级状态加 localStorage（`gradient-avatar:overlays`、`gradient-avatar:preview-height`），不进 `AvatarConfig`，导出永远不画。两个参考层的开关收在顶栏的设置菜单里，带文案与勾选态，不摆在画框角上挡住要看的那一块。网格是 CSS 渐变画的 DOM 图层，放在着色器宿主之外，格子边长取画框短边的 1/12，从中心铺开，中心十字加粗，白色低透明度加 `mix-blend-mode: difference`，深浅底都可辨。
 
@@ -337,9 +239,9 @@ staggered-text、preloader），随它们进来的 three、@react-three/fiber、
 
 ## 代码分割与体积
 
-首屏 JS 不设上限，当前实测 274.49 KB gzip，250 KB 只是脚本里的参考线。`npm run budget` 只是报一次数，不再是门禁：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
+首屏 JS 体积由 `npm run budget` 按当前构建量测，250 KB 是参考线。`npm run budget` 只是报一次数，不再是门禁：这个站不是搜索首页，视觉效果排在体积前面，慢就上加载动画。量法按 `dist/index.html` 里的 entry script 加全部 `modulepreload` 求 gzip 之和：打包器会把入口与懒加载的共同依赖提成独立 chunk，Vite 给它们发 `modulepreload`，它们同样在首屏下载，只看 index chunk 会低估。
 
-三条规则守住这个上限。
+代码分割遵循以下规则。
 
 - 要拆的包，主 chunk 里一个符号都不能静态引用。`@paper-design/shaders` 只从 `shader-mount.ts`、`shader-noise.ts` 与 `shaders/*.ts` 三个薄模块进来，全部走 `import()`。
 - 不用 `const { X } = await import('包名')` 从包入口取符号，命名空间访问挡住 tree-shaking。要拆就先写一个只 `export { X } from '包名'` 的本地模块，再动态 import 它。
@@ -361,7 +263,7 @@ headless chromium 默认没有 GPU，WebGL2 靠 `--use-angle=swiftshader` 等启
 
 ## 构建与部署
 
-`npm run build` 先 `tsc -b` 再 `vite build`，产物在 `dist/`。CI 在每次 push 与 pull request 上跑 lint、typecheck、单测、构建四步，Node 24。
+`npm run build` 先 `tsc -b` 再 `vite build`，产物在 `dist/`。CI 在每次 push 与 pull request 上跑 lint、格式、typecheck、单测、构建五步，Node 24。
 
 站点是两个入口，不是单页应用：`index.html` 是工具本体，`about.html` 是关于页。
 `appType` 必须是 mpa，spa 那一档会把 `/about` 也兜回 `index.html`，开发与 `vite preview` 上就永远看不到关于页。
@@ -373,7 +275,7 @@ PWA 由 `vite-plugin-pwa` 生成 manifest 与 service worker，预缓存覆盖 j
 注册不走插件注入的那段脚本，改在 `src/app/sw-update.ts` 自己注册：只有拿到 registration 才能主动轮询新版本。
 service worker 默认只在页面加载时查一次更新，标签页开着不关就一直停在旧版本；这里每 15 分钟问一次，
 回到前台与窗口重新聚焦时再各问一次。发现新版本不闷声重载，弹一条不自动消失的提示，
-点“刷新”才 skipWaiting 加重载：当场重载会把正在敲的字打断。不点也不影响使用，下次进来自然是新版。
+点“刷新”先同步当前配置，再 skipWaiting 加重载：当场重载会把正在敲的字打断。不点也不影响使用，下次进来自然是新版。
 
 ## 能力边界
 
@@ -416,7 +318,7 @@ Noto Serif SC 600/700 按需加载，新选宋体默认 600，已有字重保留
 
 手机与桌面共用一棵控件树：文字输入后是字号及上下位置；“字体与样式”内含两行字体、文字效果、颜色、版面与左右位置。Logo 大小及上下位置常显，左右位置折叠。`automaticLayoutPatch` 只恢复两行自动字号、图文位移及品牌对应图形比例，保留内容和视觉选择；预览继续 sticky，恢复入口位于文字节标题旁。
 
-手机长按保存用的 JPG 只在其配置与当前配置相同时覆盖实时画布。调整时立即撤下旧图，后台去抖编码完成才显示新图；编码失败继续显示实时预览，不能长按保存旧状态。
+手机长按保存用的 JPG 只在其配置与当前配置相同时覆盖实时画布。调整时立即撤下旧图，后台单在途编码、只保留最新待办，完成才显示新图；编码失败继续显示实时预览，不能长按保存旧状态。
 
 移动预览按 ResizeObserver 量测提示区高度，扣除提示与间隔后计算头像长边；小字号或溢出提示增加时不会把头像上沿裁掉。
 
@@ -428,3 +330,11 @@ Noto Serif SC 600/700 按需加载，新选宋体默认 600，已有字重保留
 图形选择器优先品牌，客户成组置顶。HARMAY 黑色 SVG、白色 PNG 与东黎深咖/黑/白成品直接取各自源文件，源颜色保留；HARMAY 的透明画布按可见范围量测，东黎按品牌要求保留内置留白。其他历史品牌的“程序染色”是兼容选项，UI 明确标识其会丢失细节及非官方性质；TikTok 保留源色。来源与缺失版本见 [逐项素材审计](audits/2026-11-07-brand-assets.md)。
 
 安全区提示根据布局最终的逐行框与图形框验证，与界面参考线使用同一矩形/圆形条件；求解阶段的文字预留区域用于字号计算。提示包含图形，48px 可读性提示单独计算。
+
+## 异步结果与存档一致性
+
+下载和复制记录开始时的配置快照，历史缩略图按配置哈希回填。微信固定 JPG，体积控件依据有效格式；抽屉结果绑定配置身份，继续编辑后隐藏旧图片。公共导出依据实际 Blob MIME 命名，浏览器回退 PNG 时按无损结果处理。
+
+配置平时去抖 300 ms 写 localStorage，pagehide、页面隐藏及明确刷新动作同步待写状态。存储可能因权限、配额或浏览器清理失效，不保证进程强杀时保存。上传字体和图形字节不持久化。
+
+网页合成在浏览器完成；默认字体来自本站，其他字体、目录、emoji 可请求外部服务。正文字体请求不带用户文字的 text 参数；字体名预览的 text 参数是目录显示名。可选远程 MCP 的输入在部署方服务器处理，边界见 automation.md。

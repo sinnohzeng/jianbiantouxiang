@@ -221,3 +221,13 @@ describe('supportsWebP', () => {
     expect(await supportsWebP()).toBe(false)
   })
 })
+
+it('编码器回退 PNG 时停止压缩并报告无损质量', async () => {
+  const blob = new Blob([new Uint8Array(2 * ONE_MB)], { type: 'image/png' })
+  const encode = vi
+    .spyOn(HTMLCanvasElement.prototype, 'toBlob')
+    .mockImplementation((callback) => callback(blob))
+  const result = await encodeCanvas(sourceCanvas(), options({ format: 'webp' }))
+  expect(result).toEqual({ blob, quality: 1, hitTarget: true })
+  expect(encode).toHaveBeenCalledTimes(1)
+})

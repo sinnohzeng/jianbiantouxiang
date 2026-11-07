@@ -72,7 +72,7 @@ export interface AvatarStore {
   setExportOptions: (partial: ExportPatch) => void
   randomize: () => void
   randomizePalette: () => void
-  pushHistory: () => void
+  pushHistory: (config?: AvatarConfig) => void
   attachThumb: (hash: string, thumb: string) => void
   restore: (index: number) => void
   reset: () => void
@@ -215,8 +215,8 @@ export const useAvatarStore = create<AvatarStore>()((set, get) => ({
     commitConfig(set, get, { ...config, palette: nextPaletteId(config.palette) })
   },
 
-  pushHistory: () => {
-    set({ history: pushHistoryEntry(get().history, get().config, HISTORY_MAX) })
+  pushHistory: (config = get().config) => {
+    set({ history: pushHistoryEntry(get().history, config, HISTORY_MAX) })
   },
 
   attachThumb: (hash, thumb) => {
@@ -261,7 +261,17 @@ export function flushConfigSync(): void {
   writeSync(config, history)
 }
 
+function flushPendingSync(): void {
+  if (syncTimer !== null) flushConfigSync()
+}
+
+function flushHiddenSync(): void {
+  if (document.hidden) flushPendingSync()
+}
+
 export function stopConfigSync(): void {
+  window.removeEventListener('pagehide', flushPendingSync)
+  document.removeEventListener('visibilitychange', flushHiddenSync)
   if (syncTimer !== null) {
     clearTimeout(syncTimer)
     syncTimer = null
@@ -272,6 +282,8 @@ export function stopConfigSync(): void {
 
 export function startConfigSync(): () => void {
   stopConfigSync()
+  window.addEventListener('pagehide', flushPendingSync)
+  document.addEventListener('visibilitychange', flushHiddenSync)
   unsubscribe = useAvatarStore.subscribe((state, prev) => {
     if (state.config === prev.config && state.history === prev.history) return
     if (syncTimer !== null) clearTimeout(syncTimer)

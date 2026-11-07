@@ -23,7 +23,7 @@ const MIME: Record<EncodeOptions['format'], string> = {
   webp: 'image/webp',
 }
 
-/** 起编质量：JPG 0.85 与 WebP 0.9 在 1024 尺寸下肉眼无损。 */
+/** 起编质量：JPG 0.85，WebP 0.9。 */
 const DEFAULT_QUALITY: Record<'jpg' | 'webp', number> = { jpg: 0.85, webp: 0.9 }
 
 /**
@@ -108,6 +108,8 @@ async function encodeLossy(
   target: number,
 ): Promise<EncodeResult> {
   const first = await canvasToBlob(canvas, mime, defaultQuality)
+  if (first.type === MIME.png) return { blob: first, quality: 1, hitTarget: true }
+  if (first.type !== mime) throw new Error('Unexpected image encoding')
   if (first.size <= target) return { blob: first, quality: defaultQuality, hitTarget: true }
 
   let lo = QUALITY_MIN

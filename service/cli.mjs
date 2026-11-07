@@ -16,8 +16,8 @@ const HELP = `Gradient Avatar (Node 24+)
   node service/cli.mjs options
   node service/cli.mjs mcp          # stdio
   node service/cli.mjs serve        # Streamable HTTP /mcp
-Options: --preset dongli-symbol-white|dongli-lockup-full-white|dongli-wordmark-bilingual-inline-white
-         --font sans|serif --secondary-font sans|serif --no-optical --preset --line1 --line2 --logo --background auto|white|black|transparent
+Options: --preset harmay-wordmark-white|dongli-symbol-white|dongli-lockup-full-white|dongli-wordmark-bilingual-inline-white
+         --font sans|serif --secondary-font sans|serif --no-optical --line1 --line2 --logo --background auto|white|black|transparent
          --color auto|original --size --safe-shape circle|square --padding --logo-scale --style --palette --seed
          --format png|jpg|webp --config --out --out-dir --allow-fallback
 Outputs are created exclusively: existing files are never overwritten.

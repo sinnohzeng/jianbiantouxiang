@@ -13,7 +13,7 @@
  * 出图成功时在结果区放一次粒子，预览框同时弹一下，与底栏两个随机同一套。
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { ClipboardCopyIcon, DownloadIcon, Loader2Icon } from 'lucide-react'
 import { SegmentedControl, type SegmentedOption } from '@/components/blocks/segmented-control'
 import { Button } from '@/components/ui/button'
@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/drawer'
 import { Label } from '@/components/ui/label'
 import { CanvasFields } from '@/app/panels/CanvasFields'
+import { getUploadedFontRevision, subscribeUploadedFonts } from '@/fonts/upload'
 import { getRenderCaps } from '@/engine/caps'
 import { createClipboardBlob, createExportArtifact } from '@/export/action'
 import { releaseCanvas } from '@/lib/canvas'
@@ -49,6 +50,8 @@ type Format = AvatarConfig['exportOptions']['format']
 type SizeTarget = AvatarConfig['exportOptions']['sizeTarget']
 
 interface Done {
+  config: AvatarConfig
+  fontRevision: number
   filename: string
   bytes: number
   quality: number
@@ -105,7 +108,9 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
   const { width, height } = config.canvas
   const caps = getRenderCaps()
   const overCaps = caps.maxSize > 0 && caps.maxSize < Math.max(width, height)
-  const isPng = config.exportOptions.format === 'png'
+  const fontRevision = useSyncExternalStore(subscribeUploadedFonts, getUploadedFontRevision)
+  const currentDone = done?.config === config && done.fontRevision === fontRevision ? done : null
+  const isPng = !wechat && config.exportOptions.format === 'png'
 
   const formatOptions: SegmentedOption<Format>[] = [
     { value: 'jpg', label: t('export.format.jpg') },
@@ -142,13 +147,15 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
       }
 
       setDone({
+        config,
+        fontRevision,
         filename: artifact.filename,
         bytes: artifact.blob.size,
         quality: artifact.quality,
         hitTarget: artifact.hitTarget,
         previewUrl,
       })
-      pushHistory()
+      pushHistory(config)
       queueHistoryThumbnail()
       fireBurst()
     } catch {
@@ -157,7 +164,7 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
       if (artifact) releaseCanvas(artifact.canvas)
       setBusy(false)
     }
-  }, [busy, config, fireBurst, pushHistory, wechat])
+  }, [busy, config, fireBurst, fontRevision, pushHistory, wechat])
 
   const copyImage = useCallback(async () => {
     if (busy) return
@@ -175,7 +182,7 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
       const copied = await copyImageToClipboard(createClipboardBlob(config))
       setNotice(copied ? 'export.copySuccess' : 'export.copyFailed')
       if (copied) {
-        pushHistory()
+        pushHistory(config)
         queueHistoryThumbnail()
       }
     } catch {
@@ -230,22 +237,22 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
             </p>
           ) : null}
 
-          {done ? (
+          {currentDone ? (
             <div data-slot="export-result" className="relative flex flex-col gap-2">
               <Ripple token={burst.token} className="rounded-xl" />
-              <p className="text-sm">{t('export.done', { name: done.filename })}</p>
+              <p className="text-sm">{t('export.done', { name: currentDone.filename })}</p>
               <p className="text-muted-foreground text-xs">
                 {t('export.result', {
-                  size: formatBytes(done.bytes),
-                  quality: done.quality.toFixed(2),
+                  size: formatBytes(currentDone.bytes),
+                  quality: currentDone.quality.toFixed(2),
                 })}
               </p>
-              {done.hitTarget ? null : (
+              {currentDone.hitTarget ? null : (
                 <p className="text-muted-foreground text-xs">{t('export.tooLarge')}</p>
               )}
-              {done.previewUrl ? (
+              {currentDone.previewUrl ? (
                 <img
-                  src={done.previewUrl}
+                  src={currentDone.previewUrl}
                   alt={t('export.preview')}
                   data-slot="export-image"
                   className="border-border w-full rounded-xl border select-auto"
@@ -256,7 +263,7 @@ export function ExportDrawer({ open, onOpenChange }: ExportDrawerProps) {
             </div>
           ) : null}
 
-          {notice ? (
+          {notice && (!done || currentDone) ? (
             <p role="status" data-slot="export-notice" className="text-muted-foreground text-xs">
               {t(notice)}
             </p>

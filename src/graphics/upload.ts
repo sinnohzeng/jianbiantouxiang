@@ -3,6 +3,9 @@ import { visibleImageRect } from './trim'
 import { inlineSafeClassStyles } from './svg-style'
 
 export const MAX_GRAPHIC_UPLOAD_BYTES = 5 * 1024 * 1024
+export const MAX_GRAPHIC_PIXELS = 16 * 1024 * 1024
+export const MAX_SESSION_GRAPHIC_PIXELS = 64 * 1024 * 1024
+export const MAX_SESSION_GRAPHICS = 24
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
 const ELEMENTS = new Set([
@@ -127,7 +130,12 @@ const DRAWINGS = new Set([
 ])
 
 export type GraphicUploadErrorCode =
-  'too-large' | 'unsupported-extension' | 'invalid-svg' | 'empty-graphic' | 'failed'
+  | 'resource-limit'
+  | 'too-large'
+  | 'unsupported-extension'
+  | 'invalid-svg'
+  | 'empty-graphic'
+  | 'failed'
 
 export class GraphicUploadError extends Error {
   readonly code: GraphicUploadErrorCode
@@ -201,7 +209,7 @@ function cloneSafe(
     if (child.nodeType !== 1) continue
     const result = cloneSafe(child as Element, document, false)
     childDrawing ||= result.drawing
-    if (result.drawing || result.node.childElementCount > 0 || result.node.textContent !== '') {
+    if (ELEMENTS.has((child as Element).localName)) {
       clean.appendChild(result.node)
     }
   }
@@ -273,9 +281,25 @@ async function graphicOfUrl(url: string): Promise<Graphic> {
   const image = await loadImage(url)
   const width = image.naturalWidth || 512
   const height = image.naturalHeight || 512
+  if (width * height > MAX_GRAPHIC_PIXELS)
+    throw new GraphicUploadError('图形像素过多', 'resource-limit')
   const sourceRect = visibleImageRect(image, width, height)
   if (!sourceRect) throw new GraphicUploadError('图形没有可见像素', 'empty-graphic')
   return { kind: 'image', image, width: sourceRect.width, height: sourceRect.height, sourceRect }
+}
+
+function retainGraphic(id: string, graphic: Graphic): void {
+  let pixels = 0
+  for (const item of [...registry.values(), graphic]) {
+    if (item.kind === 'image') {
+      const image = item.image as HTMLImageElement
+      pixels += (image.naturalWidth || item.width) * (image.naturalHeight || item.height)
+    }
+  }
+  if (registry.size >= MAX_SESSION_GRAPHICS || pixels > MAX_SESSION_GRAPHIC_PIXELS) {
+    throw new GraphicUploadError('本次会话的图形资源已达上限', 'resource-limit')
+  }
+  registry.set(id, graphic)
 }
 
 /** 注册本次会话的上传图形，不进 URL、存档或历史。 */
@@ -293,7 +317,7 @@ export async function registerUploadedGraphic(file: File): Promise<{ id: string;
     try {
       const graphic = await graphicOfUrl(url)
       const id = randomId()
-      registry.set(id, graphic)
+      retainGraphic(id, graphic)
       names.set(id, file.name)
       return { id, name: file.name }
     } finally {
@@ -305,7 +329,7 @@ export async function registerUploadedGraphic(file: File): Promise<{ id: string;
     try {
       const graphic = await graphicOfUrl(url)
       const id = randomId()
-      registry.set(id, graphic)
+      retainGraphic(id, graphic)
       names.set(id, file.name)
       return { id, name: file.name }
     } finally {

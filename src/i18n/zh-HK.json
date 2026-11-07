@@ -277,5 +277,11 @@
   "icon.brand.primary": "深咖",
   "icon.brand.dongliNote": "深底選白色，淺底選深咖；黑色僅供黑白印刷。",
   "icon.brand.softwareNote": "原圖保留來源配色；程式染色非官方單色稿，可能丟失內部細節。",
-  "icon.brand.category.client": "客戶品牌"
+  "icon.brand.category.client": "客戶品牌",
+  "preview.height.decrease": "縮小預覽",
+  "preview.height.increase": "放大預覽",
+  "preview.height.reset": "恢復預覽高度",
+  "icon.loadFailed": "圖示列表載入失敗，請連線後重新整理。上傳素材需重新上傳。",
+  "icon.reload": "儲存編輯並重新整理",
+  "icon.upload.resourceLimit": "圖形像素或工作階段素材總量超限。請縮小圖片，或匯出儲存後重新整理再上傳。"
 }

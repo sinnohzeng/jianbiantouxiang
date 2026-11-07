@@ -4,6 +4,8 @@ okf_version: "0.2"
 
 # 渐变头像研究知识包
 
+- [编辑精调、异步反馈与可访问性](editor-reliability.md) — 证据强度、适用边界与 SDD 验收。
+
 - [手机精调与编辑空间](mobile-editor.md) — 官方指南、成熟 APP 与实验边界。
 
 - [保留认可布局的圆裁整体放大](circle-fill.md) - 用户图、默认来源与同条件测量。

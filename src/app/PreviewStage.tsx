@@ -12,7 +12,7 @@
  * 网格与安全区参考线的开关在操作条的「更多」里，不压在作品上。
  */
 
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { TriangleAlertIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { getRenderCaps } from '@/engine/caps'
@@ -24,6 +24,7 @@ import { resolveSeed } from '@/engine/seed'
 import { drawGraphic } from '@/graphics/draw'
 import { loadGraphic } from '@/graphics/source'
 import type { Graphic } from '@/graphics/types'
+import { getUploadedFontRevision, subscribeUploadedFonts } from '@/fonts/upload'
 import { displayName } from '@/fonts/catalog'
 import { fontJobs, loadFontsForConfig, topUpGlyphs, type FontLoadResult } from '@/fonts/loader'
 import { drawText } from '@/text/draw'
@@ -102,13 +103,14 @@ export function PreviewStage() {
     const side = Math.min(box.width, box.height) * (1 - 2 * preview.typography.padding)
     return { x: (box.width - side) / 2, y: (box.height - side) / 2, width: side, height: side }
   }, [preview, box.width, box.height])
-  // 要加载的字体集合：两行各自的生效字体，空行不算。它是字体 effect 唯一的字体依赖
+  // 要加载的字体集合：两行各自的生效字体，空行不算。连同上传注册版本驱动字体 effect
+  const fontRevision = useSyncExternalStore(subscribeUploadedFonts, getUploadedFontRevision)
   const fontSetKey = useMemo(
     () =>
       fontJobs(config)
         .map((job) => fontKey(job.font))
-        .join('\n'),
-    [config],
+        .join('\n') + `:${fontRevision}`,
+    [config, fontRevision],
   )
   // 最近一次加载完成的字体集合；与当前集合对不上就是还在加载
   const [fontsReadyFor, setFontsReadyFor] = useState<string | null>(null)

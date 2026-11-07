@@ -29,7 +29,7 @@ import { useIsMobile } from '@/hooks/use-media'
 import { useLocale, useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 import type { IconSource } from '@/state/config'
-import { useAvatarStore } from '@/state/store'
+import { flushConfigSync, useAvatarStore } from '@/state/store'
 
 export interface IconPickerProps {
   open: boolean
@@ -84,6 +84,7 @@ function LucideGlyph({ nodes }: { nodes: readonly LucideIconNode[] }) {
 
 function uploadErrorKey(error: unknown): string {
   if (error instanceof GraphicUploadError) {
+    if (error.code === 'resource-limit') return 'icon.upload.resourceLimit'
     if (error.code === 'too-large') return 'icon.upload.tooLarge'
     if (error.code === 'unsupported-extension') return 'icon.upload.badExt'
     if (error.code === 'invalid-svg' || error.code === 'empty-graphic') return 'icon.upload.badSvg'
@@ -113,14 +114,23 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
   const [emojiEntries, setEmojiEntries] = useState<EmojiEntry[] | null>(null)
   const [brandIndex, setBrandIndex] = useState<BrandIndex | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [indexFailed, setIndexFailed] = useState(false)
+  const uploadTicket = useRef(0)
+  useEffect(() => {
+    if (!open) uploadTicket.current += 1
+  }, [open])
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!open || mode !== 'builtin' || curatedNodes) return
     let cancelled = false
-    void import('@/graphics/generated/lucide-curated').then((module) => {
-      if (!cancelled) setCuratedNodes(module.LUCIDE_CURATED)
-    })
+    void import('@/graphics/generated/lucide-curated')
+      .then((module) => {
+        if (!cancelled) setCuratedNodes(module.LUCIDE_CURATED)
+      })
+      .catch(() => {
+        if (!cancelled) setIndexFailed(true)
+      })
     return () => {
       cancelled = true
     }
@@ -143,9 +153,13 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
       return
     }
     let cancelled = false
-    void import('@/graphics/generated/lucide-full').then((module) => {
-      if (!cancelled) setFullNodes(module.LUCIDE_ICONS)
-    })
+    void import('@/graphics/generated/lucide-full')
+      .then((module) => {
+        if (!cancelled) setFullNodes(module.LUCIDE_ICONS)
+      })
+      .catch(() => {
+        if (!cancelled) setIndexFailed(true)
+      })
     return () => {
       cancelled = true
     }
@@ -167,7 +181,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
         if (!cancelled) setEmojiEntries(entries)
       })
       .catch(() => {
-        if (!cancelled) setEmojiEntries([])
+        if (!cancelled) setIndexFailed(true)
       })
     return () => {
       cancelled = true
@@ -216,7 +230,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
         }
       })
       .catch(() => {
-        if (!cancelled) setBrandIndex({ entries: [], categories: [] })
+        if (!cancelled) setIndexFailed(true)
       })
     return () => {
       cancelled = true
@@ -246,6 +260,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
   }, [brandIndex, query])
 
   const choose = (source: IconSource, id: string): void => {
+    uploadTicket.current += 1
     if (source === 'brand' && isClientPreset(id))
       useAvatarStore.getState().setConfig(clientPresetConfig(id))
     else setLayout({ icon: { source, id, mono: false } })
@@ -255,11 +270,12 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
   const onUpload = async (file: File | undefined): Promise<void> => {
     if (!file) return
     setUploadError(null)
+    const ticket = ++uploadTicket.current
     try {
       const { id } = await registerUploadedGraphic(file)
-      choose('upload', id)
+      if (ticket === uploadTicket.current) choose('upload', id)
     } catch (error) {
-      setUploadError(uploadErrorKey(error))
+      if (ticket === uploadTicket.current) setUploadError(uploadErrorKey(error))
     }
   }
 
@@ -319,7 +335,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
           })}
         </CommandGroup>
       ) : null}
-      {curatedCount === 0 && fullResults.length === 0 ? (
+      {!indexFailed && curatedCount === 0 && fullResults.length === 0 ? (
         <CommandEmpty>{curatedNodes ? t('icon.empty') : t('icon.loading')}</CommandEmpty>
       ) : null}
     </>
@@ -348,7 +364,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
           ))}
         </CommandGroup>
       ))}
-      {emojiGroups.length === 0 ? (
+      {!indexFailed && emojiGroups.length === 0 ? (
         <CommandEmpty>{emojiEntries ? t('icon.empty') : t('icon.loading')}</CommandEmpty>
       ) : null}
     </>
@@ -397,7 +413,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
           ))}
         </CommandGroup>
       ))}
-      {brandResults.length === 0 ? (
+      {!indexFailed && brandResults.length === 0 ? (
         <CommandEmpty>{brandIndex ? t('icon.empty') : t('icon.loading')}</CommandEmpty>
       ) : null}
     </>
@@ -427,6 +443,22 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
         value={query}
         onValueChange={setQuery}
       />
+      {indexFailed ? (
+        <div role="alert" className="p-3 text-sm">
+          <p>{t('icon.loadFailed')}</p>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-2 h-11"
+            onClick={() => {
+              flushConfigSync()
+              window.location.reload()
+            }}
+          >
+            {t('icon.reload')}
+          </Button>
+        </div>
+      ) : null}
       <CommandList className="max-h-[58vh]">
         {mode === 'builtin' ? builtinPanel : mode === 'emoji' ? emojiPanel : brandPanel}
       </CommandList>

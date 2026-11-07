@@ -8,7 +8,8 @@
  * 生成不便宜（合成加编码），所以去抖、页面不可见时不排、新配置来了旧结果作废。
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { getUploadedFontRevision, subscribeUploadedFonts } from '@/fonts/upload'
 import { createExportArtifact } from '@/export/action'
 import { releaseCanvas } from '@/lib/canvas'
 import { blobToDataUrl } from '@/export/share'
@@ -52,26 +53,44 @@ export function createSaveImageScheduler(options: SaveImageSchedulerOptions): Sa
   let ticket = 0
   let disposed = false
 
+  let running = false
+  let pending: { config: AvatarConfig; mine: number } | null = null
+
+  const drain = (): void => {
+    if (running || !pending || disposed || isHidden()) return
+    const { config, mine } = pending
+    pending = null
+    running = true
+    void render(config)
+      .then((dataUrl) => {
+        if (!disposed && mine === ticket) onImage(dataUrl, config)
+      })
+      .catch(() => {
+        // 合成失败时继续显示实时画布。
+      })
+      .finally(() => {
+        running = false
+        drain()
+      })
+  }
+
   const request = (config: AvatarConfig): void => {
     if (disposed) return
     if (timer !== null) clearTimer(timer)
+    pending = null
     ticket += 1
     const mine = ticket
     timer = setTimer(() => {
       timer = null
       if (disposed || mine !== ticket || isHidden()) return
-      void render(config)
-        .then((dataUrl) => {
-          if (!disposed && mine === ticket) onImage(dataUrl, config)
-        })
-        .catch(() => {
-          // 合成失败时继续显示实时画布，不能让旧图片遮住新配置。
-        })
+      pending = { config, mine }
+      drain()
     }, delayMs)
   }
 
   const dispose = (): void => {
     disposed = true
+    pending = null
     ticket += 1
     if (timer !== null) clearTimer(timer)
     timer = null
@@ -86,13 +105,20 @@ export function createSaveImageScheduler(options: SaveImageSchedulerOptions): Sa
  * 配置每变一次就重新排一张；页面切到后台不排，回到前台补一张。
  */
 export function usePreviewSaveImage(config: AvatarConfig, enabled: boolean): string | null {
-  const [image, setImage] = useState<{ dataUrl: string; config: AvatarConfig } | null>(null)
+  const [image, setImage] = useState<{
+    dataUrl: string
+    config: AvatarConfig
+    fontRevision: number
+  } | null>(null)
+  const fontRevision = useSyncExternalStore(subscribeUploadedFonts, getUploadedFontRevision)
   const schedulerRef = useRef<SaveImageScheduler | null>(null)
 
   useEffect(() => {
     if (!enabled) return
+    let renderedFontRevision = 0
     const scheduler = createSaveImageScheduler({
       render: async (next) => {
+        renderedFontRevision = getUploadedFontRevision()
         // 相册只认图片内容，扩展名无所谓；JPG 在各家长按保存里最稳
         const artifact = await createExportArtifact({
           ...next,
@@ -104,7 +130,8 @@ export function usePreviewSaveImage(config: AvatarConfig, enabled: boolean): str
           releaseCanvas(artifact.canvas)
         }
       },
-      onImage: (dataUrl, renderedConfig) => setImage({ dataUrl, config: renderedConfig }),
+      onImage: (dataUrl, renderedConfig) =>
+        setImage({ dataUrl, config: renderedConfig, fontRevision: renderedFontRevision }),
     })
     schedulerRef.current = scheduler
     return () => {
@@ -118,7 +145,7 @@ export function usePreviewSaveImage(config: AvatarConfig, enabled: boolean): str
   useEffect(() => {
     if (!enabled) return
     schedulerRef.current?.request(config)
-  }, [config, enabled])
+  }, [config, enabled, fontRevision])
 
   useEffect(() => {
     if (!enabled || typeof document === 'undefined') return
@@ -127,8 +154,10 @@ export function usePreviewSaveImage(config: AvatarConfig, enabled: boolean): str
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
-  }, [config, enabled])
+  }, [config, enabled, fontRevision])
 
   // 配置改变的同一次渲染即移除旧覆盖图，不等去抖或后台编码完成。
-  return enabled && image?.config === config ? image.dataUrl : null
+  return enabled && image?.config === config && image.fontRevision === fontRevision
+    ? image.dataUrl
+    : null
 }
