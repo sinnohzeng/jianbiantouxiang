@@ -85,7 +85,7 @@ export function MobileDivider() {
       onDoubleClick={reset}
       onKeyDown={onKeyDown}
       // touch-none 挡住浏览器接管竖向手势，否则一拖就变成滚动页面
-      className="focus-visible:ring-ring/60 sticky top-[calc(3.5rem_+_var(--preview-h))] z-20 flex h-7 w-full touch-none items-center justify-center focus-visible:ring-3 focus-visible:outline-none lg:hidden"
+      className="bg-background focus-visible:ring-ring/60 sticky top-[calc(3.5rem_+_var(--preview-h))] z-20 flex h-7 w-full touch-none items-center justify-center border-b focus-visible:ring-3 focus-visible:outline-none lg:hidden"
     >
       <span aria-hidden className="bg-border h-1 w-9 rounded-full" />
     </div>

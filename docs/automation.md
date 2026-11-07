@@ -193,7 +193,7 @@ node service/review.mjs /tmp/gradient-avatar-review
 
 `font` 可选 `sans` 或 `serif`（默认），分别使用随包 Noto Sans SC 700 / Noto Serif SC 700；`optical` 默认 true，关闭后获得几何基线。CLI 使用 `--font serif` 与 `--no-optical`。返回 `optical` 的建议位移、实际位移、`groupScale` 和边界限制；自动 Logo 图文组纵移最多短边 3.5%，为圆裁最多统一缩小 6%，不足则减小位移。纯文字不缩放并保持原有位移上限；不得用这些值冒充视觉质量评分。
 
-`preset` / CLI `--preset` 可选 `dongli-symbol-white`、`dongli-lockup-full-white`、`dongli-wordmark-bilingual-inline-white`，与自带 `logo` 互斥，要求深色配色。群聊优先图形标，完整/横版在小尺寸有密集细节警告。原始白色与约 9% 长边留白保留，不能重新染色。自带素材可设 `logo.preservePadding: true` 保留文件画布；默认裁掉透明留白。
+`preset` / CLI `--preset` 可选 `dongli-symbol-white`、`dongli-lockup-full-white`、`dongli-wordmark-bilingual-inline-white`、`harmay-wordmark-white`，与自带 `logo` 互斥，要求深色配色。群聊优先图形标，完整/横版在小尺寸有密集细节警告。原始白色与约 9% 长边留白保留，不能重新染色。自带素材可设 `logo.preservePadding: true` 保留文件画布；默认裁掉透明留白。
 
 ```bash
 npm run build:service
@@ -210,3 +210,5 @@ node scripts/optical-review.mjs /tmp/optical-review /path/to/private/harmay-logo
 主行 `font` 默认 `serif`，副行 `secondaryFont` 默认 `sans`，均为随包 700 字重；CLI 对应 `--font` 与 `--secondary-font`。整组最后按实际圆裁边界统一放大不超过 16%，响应 `fillScale` 报告本次倍率，各行 `font` 报告实际字体。显式较大 padding 保持，关闭 optical 仍可执行整体安全放大。
 
 `optical` 位移报告描述最终放大之前的光学校正阶段；`fillScale` 是随后施加于整组的统一倍率。
+
+HARMAY 白色预设使用客户原始透明 PNG，裁掉透明画布留白；并非描摹 SVG。黑色 SVG 和东黎深咖/黑色作为网页成品颜色选择，不进入深底自动化白稿预设。

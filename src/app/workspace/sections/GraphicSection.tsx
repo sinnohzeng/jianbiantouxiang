@@ -26,13 +26,13 @@ import { useAvatarStore } from '@/state/store'
 import { SectionCard } from './card'
 import { Row } from './row'
 
-/** 图标的两条补偿共用：量程 ±25%，步进 0.25%，显示一位小数，基准是安全框。 */
+/** 图标的两条补偿共用：量程 ±25%，步进 0.25%，显示两位小数，基准是安全框。 */
 const OFFSET_RANGE = {
   min: -0.25,
   max: 0.25,
   step: 0.0025,
   scale: 100,
-  precision: 1,
+  precision: 2,
   unit: '%',
 } as const
 
@@ -48,8 +48,14 @@ export function GraphicSection() {
   const enabled = icon.source !== 'none'
   const type = config.typography
   // 单色只对品牌标志有意义：emoji 与上传的图压成剪影只会糊成一块
-  const isBrand = icon.source === 'brand' && !isClientPreset(icon.id)
+  const isBrand = icon.source === 'brand' && !isClientPreset(icon.id) && icon.id !== 'tiktok'
   const label = useGraphicLabel(icon.source, icon.id)
+
+  const client = isClientPreset(icon.id)
+  const clientBase = client ? icon.id.replace(/-(white|black|primary)$/, '') : ''
+  const clientColors = clientBase.startsWith('dongli-')
+    ? ['white', 'primary', 'black']
+    : ['white', 'black']
 
   const monoOptions = [
     { value: 'color' as const, label: t('icon.brand.variant.color') },
@@ -108,8 +114,33 @@ export function GraphicSection() {
             </Button>
           </div>
 
+          {client ? (
+            <div data-slot="client-colors">
+              <SegmentedControl
+                name="client-color"
+                label={t('icon.brand.variant')}
+                value={icon.id.split('-').at(-1) ?? 'white'}
+                options={clientColors.map((value) => ({
+                  value,
+                  label:
+                    value === 'white'
+                      ? t('icon.brand.white')
+                      : value === 'black'
+                        ? t('icon.brand.black')
+                        : t('icon.brand.primary'),
+                }))}
+                onChange={(color) =>
+                  setLayout({ icon: { id: `${clientBase}-${color}`, mono: false } })
+                }
+              />
+              {clientBase.startsWith('dongli-') ? (
+                <p className="text-muted-foreground text-xs">{t('icon.brand.dongliNote')}</p>
+              ) : null}
+            </div>
+          ) : null}
           {isBrand ? (
             <div data-slot="brand-mono" className="min-w-0">
+              <p className="text-muted-foreground mb-1 text-xs">{t('icon.brand.softwareNote')}</p>
               <SegmentedControl
                 name="brand-mono"
                 label={t('panel.graphic.mono')}
@@ -122,6 +153,7 @@ export function GraphicSection() {
 
           {/* 大小和上下位置常显，左右位置放在折叠组 */}
           <Row
+            mobileStepper
             label={t('panel.graphic.scale')}
             value={config.layout.graphic}
             defaultValue={DEFAULT_CONFIG.layout.graphic}
@@ -136,6 +168,7 @@ export function GraphicSection() {
           <div data-slot="graphic-offset-y">
             {' '}
             <Row
+              mobileStepper
               label={t('panel.graphic.offsetY')}
               value={config.layout.graphicOffsetY}
               defaultValue={DEFAULT_CONFIG.layout.graphicOffsetY}
@@ -150,6 +183,7 @@ export function GraphicSection() {
             defaultOpen={false}
           >
             <Row
+              mobileStepper
               label={t('panel.graphic.offsetX')}
               value={config.layout.graphicOffsetX}
               defaultValue={DEFAULT_CONFIG.layout.graphicOffsetX}

@@ -45,7 +45,7 @@ interface BrandIndex {
 }
 
 /**
- * 列表里那枚缩略图的地址。单色档有官方单色稿就用它，没有就先摆原色稿，
+ * 列表里那枚缩略图的地址。单色档有上游单色稿就用它，没有就先摆原色稿，
  * 画面上的压平交给绘制期，列表不必自己再合成一遍。
  */
 function brandThumbUrl(entry: BrandEntry, mono: boolean): string {
@@ -54,7 +54,7 @@ function brandThumbUrl(entry: BrandEntry, mono: boolean): string {
   return `${import.meta.env.BASE_URL}brand/${id}.${ext}`
 }
 
-/** 存档里落的可能是品牌 id，也可能是旧存档留下的官方单色稿文件名。 */
+/** 存档里落的可能是品牌 id，也可能是旧存档留下的上游单色稿文件名。 */
 function isChosen(entry: BrandEntry, iconId: string): boolean {
   return iconId === entry.id || iconId === entry.white
 }
@@ -102,10 +102,10 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
   const config = useAvatarStore((state) => state.config)
   const setLayout = useAvatarStore((state) => state.setLayout)
 
-  // upload 与 none 都没有对应的模式页，落回内置图标那一页
+  // upload 与 none 都没有对应的模式页，优先打开客户常用的品牌页
   const iconSource = config.layout.icon.source
   const initialMode: IconSource =
-    iconSource === 'emoji' || iconSource === 'brand' ? iconSource : 'builtin'
+    iconSource === 'emoji' || iconSource === 'builtin' ? iconSource : 'brand'
   const [mode, setMode] = useState<IconSource>(initialMode)
   const [query, setQuery] = useState('')
   const [curatedNodes, setCuratedNodes] = useState<Record<string, LucideIconNode[]> | null>(null)
@@ -226,17 +226,21 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
   const brandResults = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!brandIndex) return []
-    return brandIndex.categories
+    return ['client', ...brandIndex.categories]
       .map((category) => ({
         category,
-        list: brandIndex.entries.filter(
-          (entry) =>
-            entry.category === category &&
-            (hit(entry.zh, q) ||
-              hit(entry.en, q) ||
-              hit(entry.id, q) ||
-              entry.aliases.some((alias) => hit(alias, q))),
-        ),
+        list: [...brandIndex.entries]
+          .sort((a, b) => Number(isClientPreset(b.id)) - Number(isClientPreset(a.id)))
+          .filter(
+            (entry) =>
+              (category === 'client'
+                ? isClientPreset(entry.id) && entry.id.endsWith('-white')
+                : entry.category === category && !isClientPreset(entry.id)) &&
+              (hit(entry.zh, q) ||
+                hit(entry.en, q) ||
+                hit(entry.id, q) ||
+                entry.aliases.some((alias) => hit(alias, q))),
+          ),
       }))
       .filter((group) => group.list.length > 0)
   }, [brandIndex, query])
@@ -244,7 +248,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
   const choose = (source: IconSource, id: string): void => {
     if (source === 'brand' && isClientPreset(id))
       useAvatarStore.getState().setConfig(clientPresetConfig(id))
-    else setLayout({ icon: { source, id } })
+    else setLayout({ icon: { source, id, mono: false } })
     onOpenChange(false)
   }
 
@@ -260,17 +264,12 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
   }
 
   // 单色档写进配置，与挑选栏的那个分段控件读同一份状态
-  const mono = config.layout.icon.mono
+  const mono = false
 
   const modeOptions = [
+    { value: 'brand' as const, label: t('icon.brand') },
     { value: 'builtin' as const, label: t('icon.builtin') },
     { value: 'emoji' as const, label: t('icon.emoji') },
-    { value: 'brand' as const, label: t('icon.brand') },
-  ]
-
-  const variantOptions = [
-    { value: 'color' as const, label: t('icon.brand.variant.color') },
-    { value: 'mono' as const, label: t('icon.brand.variant.mono') },
   ]
 
   const builtinPanel = (
@@ -360,7 +359,11 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
       {brandResults.map((group) => (
         <CommandGroup
           key={`brand:${group.category}`}
-          heading={t(`icon.brand.category.${group.category}`)}
+          heading={
+            group.category === 'client'
+              ? t('icon.brand.category.client')
+              : t(`icon.brand.category.${group.category}`)
+          }
         >
           {group.list.map((entry) => (
             <CommandItem
@@ -375,12 +378,19 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
             >
               <span
                 className={cn(
-                  'flex size-6 shrink-0 items-center justify-center rounded-sm',
-                  // 官方单色稿是纯白的，压在浅色列表上会看不见，给它垫一块深底，观感也贴近渐变底
-                  mono && entry.white ? 'bg-foreground/75' : 'bg-muted',
+                  'flex h-8 w-10 shrink-0 items-center justify-center rounded-sm',
+                  // 上游单色稿是纯白的，压在浅色列表上会看不见，给它垫一块深底，观感也贴近渐变底
+                  (mono && entry.white) || entry.id.endsWith('-white')
+                    ? 'bg-slate-800'
+                    : 'bg-muted',
                 )}
               >
-                <img src={brandThumbUrl(entry, mono)} alt="" loading="lazy" className="size-4.5" />
+                <img
+                  src={brandThumbUrl(entry, mono)}
+                  alt=""
+                  loading="lazy"
+                  className="max-h-6 w-9 object-contain"
+                />
               </span>
               <span className="truncate">{locale.startsWith('zh') ? entry.zh : entry.en}</span>
             </CommandItem>
@@ -417,17 +427,6 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
         value={query}
         onValueChange={setQuery}
       />
-      {mode === 'brand' && !isClientPreset(config.layout.icon.id) ? (
-        <div data-slot="brand-variant" className="p-2 pb-0">
-          <SegmentedControl
-            name="brand-variant"
-            label={t('icon.brand.variant')}
-            value={mono ? 'mono' : 'color'}
-            options={variantOptions}
-            onChange={(next) => setLayout({ icon: { mono: next === 'mono' } })}
-          />
-        </div>
-      ) : null}
       <CommandList className="max-h-[58vh]">
         {mode === 'builtin' ? builtinPanel : mode === 'emoji' ? emojiPanel : brandPanel}
       </CommandList>
@@ -467,10 +466,10 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
-        <DrawerContent className="h-[85dvh] max-h-[85dvh]">
-          <DrawerHeader className="text-left">
+        <DrawerContent className="h-[85dvh] max-h-[85dvh] [--radius:0.375rem]">
+          <DrawerHeader className="py-2 text-left">
             <DrawerTitle>{t('icon.title')}</DrawerTitle>
-            <DrawerDescription>{searchHint}</DrawerDescription>
+            <DrawerDescription className="sr-only">{searchHint}</DrawerDescription>
           </DrawerHeader>
           <div className="min-h-0 flex-1 overflow-hidden px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
             {content}

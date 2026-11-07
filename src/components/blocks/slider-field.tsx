@@ -1,25 +1,14 @@
 /**
- * 带数值输入的滑杆，范式取自 @shadcnblocks/slider-slider-standard-3：
- * 标签在左、当前值在右。数值框常驻，拖不准的值直接敲；给了 `defaultValue`
- * 的行在偏离默认值时多出一个重置小钮，桌面悬停或聚焦才显形，触控设备常显。
- *
- * 一行两段：第一段是「标签 | 自动档 | 重置占位 | 数值框」的固定列 grid，
- * 第二段滑杆独占一行。重置占位与数值框各占定宽列，占位列无条件渲染，
- * 所以每一行的数值框都落在最右一列，右缘与滑杆右端齐平，同一组竖着看是一条直线。
- *
- * 致密尺寸一律 lg: 前缀：手机渲染同一棵树，基值要保持本仓 44 px 触控
- * 与 16 px 输入字号的口径，无前缀收小会让 iOS 聚焦缩放与触控热区一起破线。
- * 手机档的三列按 320 px 宽的 iPhone SE 定：数值列 5rem 装得下最宽的「-0.10em」，
- * 标签列剩 138 px 要放下五种语言里最长的字号标签加一颗“自动”或“跟随”钮；
- * 标签只在桌面截断，手机上让它折行，哪种语言的新文案变长都不会先被吃掉。
- *
- * 数值变化时框里的数走一段弹簧过渡，只影响显示，真实值仍然一步到位。
+ * 同一份数值状态提供两种响应式编辑：桌面用滑块与输入，
+ * mobileStepper 开启时手机用 44px 减/数值/加，适合字号与位置精调。
+ * 两种输入共享步进网格、自动档与重置；普通连续参数仍保留滑块。
+ * 手机输入字号维持 16px，标签允许换行，防止缩小触区或截断多语言。
+ * 精调输入显示实际值，不用弹簧动画插值，以免与已提交的数值不一致。
  */
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { RotateCcwIcon } from 'lucide-react'
+import { MinusIcon, PlusIcon, RotateCcwIcon } from 'lucide-react'
 import { clamp } from '@/engine/math'
-import { useAnimatedNumber } from '@/app/showcase/use-animated-number'
 import { AutoToggle } from '@/components/blocks/auto-toggle'
 import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
@@ -27,6 +16,9 @@ import { cn } from '@/lib/utils'
 
 export interface SliderFieldProps {
   label: string
+  mobileStepper?: boolean
+  increaseLabel?: string
+  decreaseLabel?: string
   value: number
   min: number
   max: number
@@ -83,6 +75,9 @@ function toDisplay(value: number, scale: number, precision: number): string {
 
 export function SliderField({
   label,
+  mobileStepper = false,
+  increaseLabel,
+  decreaseLabel,
   value,
   min,
   max,
@@ -103,9 +98,8 @@ export function SliderField({
   const [draft, setDraft] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const editing = draft !== null
-  // display 是真实值，重置钮的判定与提交都读它；shown 是平滑过渡中的显示值
+  // 输入框、重置与提交统一显示真实值，避免精调反馈落后。
   const display = toDisplay(value, scale, precision)
-  const shown = toDisplay(useAnimatedNumber(value, !editing), scale, precision)
 
   useEffect(() => {
     if (editing) inputRef.current?.select()
@@ -147,9 +141,10 @@ export function SliderField({
         // Input 基类带 lg:text-sm，tailwind-merge 视二者为同组变体，这里才压得住；
         // 基值留在 16 px 是 iOS 聚焦不缩放的口径
         'lg:h-5 lg:px-1 lg:text-[11px]',
+        mobileStepper && 'w-0 min-w-0 flex-1 lg:w-full',
       )}
       inputMode="decimal"
-      value={draft ?? `${shown}${unit}`}
+      value={draft ?? `${display}${unit}`}
       aria-label={editLabel}
       disabled={disabled}
       onFocus={() => setDraft(display)}
@@ -188,15 +183,41 @@ export function SliderField({
     </span>
   )
 
+  const stepButton = (direction: -1 | 1) => (
+    <button
+      type="button"
+      data-slot={direction < 0 ? 'number-decrease' : 'number-increase'}
+      className="flex size-11 shrink-0 items-center justify-center rounded-md border disabled:opacity-30 lg:hidden"
+      aria-label={direction < 0 ? (decreaseLabel ?? `${label} −`) : (increaseLabel ?? `${label} +`)}
+      disabled={disabled || (direction < 0 ? value <= min : value >= max)}
+      onClick={() => {
+        setDraft(null)
+        onChange(snapToStep(value + direction * step, min, max, step))
+      }}
+    >
+      {direction < 0 ? (
+        <MinusIcon className="size-4" aria-hidden />
+      ) : (
+        <PlusIcon className="size-4" aria-hidden />
+      )}
+    </button>
+  )
+
   return (
-    <div className={cn('group flex flex-col gap-0.5', disabled && 'opacity-60', className)}>
+    <div
+      data-slot={mobileStepper ? 'precision-field' : 'range-field'}
+      className={cn('group flex flex-col gap-0.5', disabled && 'opacity-60', className)}
+    >
       <div
         className={cn(
-          'grid min-h-11 grid-cols-[minmax(0,1fr)_2rem_5rem] items-center gap-2',
+          'grid min-h-11 items-center gap-2',
+          mobileStepper
+            ? 'grid-cols-[minmax(0,1fr)_2rem_10.5rem]'
+            : 'grid-cols-[minmax(0,1fr)_2rem_5rem]',
           'lg:min-h-5 lg:grid-cols-[minmax(0,1fr)_1.25rem_3.5rem] lg:gap-1.5',
         )}
       >
-        <span className="flex min-w-0 items-center gap-1.5">
+        <span className="flex min-w-0 flex-wrap items-center gap-1.5">
           <span
             id={labelId}
             title={label}
@@ -207,13 +228,22 @@ export function SliderField({
           {autoNode}
         </span>
         {resetNode}
-        {valueNode}
+        {mobileStepper ? (
+          <div className="flex items-center gap-1 lg:contents">
+            {stepButton(-1)}
+            {valueNode}
+            {stepButton(1)}
+          </div>
+        ) : (
+          valueNode
+        )}
       </div>
       <Slider
         // aria-labelledby 会被 Base UI 传到 thumb 里那个 input[type=range] 上，
         // 屏幕阅读器读到的就是左边那行标签，不用再造一个隐藏名字
         aria-labelledby={labelId}
         className={cn(
+          mobileStepper && 'hidden lg:flex',
           'min-h-11 py-4 [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:after:-inset-3',
           // 桌面整行 16 px：thumb 12 加 after 撑到 28 的命中区，过 WCAG 2.5.8
           'lg:h-4 lg:min-h-4 lg:py-0 lg:[&_[data-slot=slider-thumb]]:size-3 lg:[&_[data-slot=slider-thumb]]:after:-inset-2',

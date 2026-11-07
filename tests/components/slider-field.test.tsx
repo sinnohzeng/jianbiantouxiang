@@ -159,3 +159,36 @@ describe('自动档', () => {
     expect(onReset).not.toHaveBeenCalled()
   })
 })
+
+it('手机步进按钮沿同一网格微调，达到边界禁用', () => {
+  const { onChange, container } = renderField({ mobileStepper: true, precision: 1 })
+  fireEvent.click(container.querySelector('[data-slot="number-increase"]')!)
+  expect(onChange).toHaveBeenLastCalledWith(0.155)
+  fireEvent.click(container.querySelector('[data-slot="number-decrease"]')!)
+  expect(onChange).toHaveBeenLastCalledWith(0.145)
+})
+
+it('步进不能超过上下限', () => {
+  const { container } = renderField({ mobileStepper: true, value: 0.3 })
+  expect(container.querySelector('[data-slot="number-increase"]')).toHaveProperty('disabled', true)
+  expect(container.querySelector('[data-slot="number-decrease"]')).toHaveProperty('disabled', false)
+})
+
+it('外部精调提交值立即显示，不经过动画中间值', () => {
+  const field = (value: number) => (
+    <SliderField
+      label="字号"
+      editLabel="编辑字号"
+      value={value}
+      min={0}
+      max={1}
+      scale={100}
+      precision={1}
+      unit="%"
+      onChange={() => {}}
+    />
+  )
+  const { rerender } = render(field(0.21))
+  rerender(field(0.25))
+  expect(screen.getByLabelText('编辑字号')).toHaveProperty('value', '25.0%')
+})

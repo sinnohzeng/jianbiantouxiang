@@ -884,7 +884,7 @@ describe('HistoryStrip', () => {
 })
 
 describe('IconPicker', () => {
-  it('品牌页能切到并列出飞书，单色档读的是配置里那一位', async () => {
+  it('品牌默认打开并且客户在前，选择器不再提前染色', async () => {
     mount(<IconPicker open onOpenChange={() => {}} />)
 
     const brand = document.querySelector<HTMLInputElement>(
@@ -896,13 +896,9 @@ describe('IconPicker', () => {
     // 索引是懒加载的，等它落地再断言；界面语言随环境，中英文名都认
     expect(await screen.findByRole('option', { name: /飞书|Lark/ })).toBeTruthy()
 
-    // 默认原色，切一下写回配置而不是选择器的局部 state
-    const mono = document.querySelector<HTMLInputElement>(
-      'input[data-group="brand-variant"][value="mono"]',
-    )
-    expect(mono?.checked).toBe(false)
-    fireEvent.click(mono!)
-    expect(config().layout.icon.mono).toBe(true)
+    expect(document.querySelector('[data-group="brand-variant"]')).toBeNull()
+    const options = screen.getAllByRole('option')
+    expect(options[0]?.textContent).toMatch(/东黎|DONGLI/)
   })
 
   it('挑中的品牌落成品牌 id，单色档不再改写 id', async () => {
@@ -910,12 +906,9 @@ describe('IconPicker', () => {
     fireEvent.click(
       document.querySelector<HTMLInputElement>('input[data-group="icon-source"][value="brand"]')!,
     )
-    fireEvent.click(
-      document.querySelector<HTMLInputElement>('input[data-group="brand-variant"][value="mono"]')!,
-    )
     fireEvent.click(await screen.findByRole('option', { name: /飞书|Lark/ }))
 
-    expect(config().layout.icon).toEqual({ source: 'brand', id: 'lark', mono: true })
+    expect(config().layout.icon).toEqual({ source: 'brand', id: 'lark', mono: false })
   })
 })
 

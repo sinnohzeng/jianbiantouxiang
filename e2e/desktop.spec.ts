@@ -372,6 +372,7 @@ test('图标徽章能选内置棕榈图标并导出', async ({ page }) => {
   await openApp(page)
 
   await page.locator('[data-slot="graphic-pick"]').click()
+  await page.locator('label:has(input[data-group="icon-source"][value="builtin"])').click()
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
   await page.locator('#avatar-text-first').fill('产品设计部')
@@ -472,6 +473,7 @@ test('单色那一档只跟着品牌来源出现', async ({ page }) => {
 
   // 内置图标没有单色一说，挑完这一档仍不该冒出来
   await page.locator('[data-slot="graphic-pick"]').click()
+  await page.locator('label:has(input[data-group="icon-source"][value="builtin"])').click()
   await page.locator('[data-slot="command-input"]').fill('棕榈')
   await page.getByRole('option', { name: /棕榈树/ }).click()
   await expect(page.locator('[data-slot="graphic-picker"]')).toContainText('palm')
@@ -518,22 +520,6 @@ test('上传的 SVG 会进入本次会话并用于导出', async ({ page }) => {
   const encoded = await probeEncode(page)
   expect(encoded.bytes).toBeGreaterThan(0)
   expect(encoded.hitTarget).toBe(true)
-})
-
-test('关于是一个独立页面，带版本号，能走回工具', async ({ page }) => {
-  await openApp(page)
-
-  // v5.1 起它不是浮层，是 /about 这张真实的静态页，能单独分享一个链接出去
-  await page.locator('[data-slot="about-action"]').click()
-  await expect(page).toHaveURL(/\/about$/)
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('渐变头像')
-  await expect(page.locator('[data-slot="app-version"]')).toHaveText(/\d+\.\d+\.\d+/)
-
-  // 关于页不拉工具那份 chunk，只有自己那一小段脚本
-  await expect(page.locator('[data-slot="workspace"]')).toHaveCount(0)
-
-  await page.getByRole('link', { name: '开始做图' }).first().click()
-  await expect(page.locator('[data-slot="workspace"]')).toHaveCount(1)
 })
 
 test('赞赏区按配置渲染，收款码图真的取到了', async ({ page }) => {

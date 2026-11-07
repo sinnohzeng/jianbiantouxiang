@@ -82,7 +82,7 @@
   "icon.brand.category.social": "社交与内容",
   "icon.brand.variant": "品牌配色",
   "icon.brand.variant.color": "原色",
-  "icon.brand.variant.mono": "单色",
+  "icon.brand.variant.mono": "程序染色",
   "icon.builtin": "内置图标",
   "icon.category.business": "商务",
   "icon.category.common": "常用",
@@ -230,7 +230,7 @@
   "preview.label": "预览",
   "preview.longPressSave": "长按图片可直接保存为 JPG",
   "preview.smallText": "48 像素小头像中文字偏小，建议缩短文字或移除第二行",
-  "preview.overflow": "文字超出安全区",
+  "preview.overflow": "内容超出安全区",
   "preview.safeArea": "安全区参考线",
   "preview.webgl.desc": "已回落到静态近似渐变，构图与真实效果会有出入",
   "preview.webgl.title": "这个浏览器不支持 WebGL2",
@@ -269,5 +269,13 @@
   "update.title": "有新版本",
   "panel.text.details": "字体与样式",
   "panel.text.restoreLayout": "恢复自动排版",
-  "panel.common.group.horizontal": "左右位置"
+  "panel.common.group.horizontal": "左右位置",
+  "panel.common.decrease": "减小{name}",
+  "panel.common.increase": "增大{name}",
+  "icon.brand.white": "白色",
+  "icon.brand.black": "黑色",
+  "icon.brand.primary": "深咖",
+  "icon.brand.dongliNote": "深底选白色，浅底选深咖；黑色仅供黑白印刷。",
+  "icon.brand.softwareNote": "原图保留源文件配色；程序染色不是官方单色稿，可能丢失图形内部细节。",
+  "icon.brand.category.client": "客户品牌"
 }

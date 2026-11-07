@@ -82,7 +82,7 @@
   "icon.brand.category.social": "Social & media",
   "icon.brand.variant": "Brand color",
   "icon.brand.variant.color": "Original",
-  "icon.brand.variant.mono": "Monochrome",
+  "icon.brand.variant.mono": "Software tint",
   "icon.builtin": "Built-in icons",
   "icon.category.business": "Business",
   "icon.category.common": "Common",
@@ -230,7 +230,7 @@
   "preview.label": "Preview",
   "preview.longPressSave": "Press and hold the image to save it as a JPG",
   "preview.smallText": "Text is small at 48 px. Shorten it or remove the second line.",
-  "preview.overflow": "Text overflows the safe area",
+  "preview.overflow": "Content overflows the safe area",
   "preview.safeArea": "Safe area guide",
   "preview.webgl.desc": "Falling back to a static approximation, which differs from the real render",
   "preview.webgl.title": "This browser has no WebGL2",
@@ -269,5 +269,13 @@
   "update.title": "New version available",
   "panel.text.details": "Fonts & appearance",
   "panel.text.restoreLayout": "Restore auto layout",
-  "panel.common.group.horizontal": "Horizontal position"
+  "panel.common.group.horizontal": "Horizontal position",
+  "panel.common.decrease": "Decrease {name}",
+  "panel.common.increase": "Increase {name}",
+  "icon.brand.white": "White",
+  "icon.brand.black": "Black",
+  "icon.brand.primary": "Dark brown",
+  "icon.brand.dongliNote": "White on dark; brown on light. Black is for monochrome print.",
+  "icon.brand.softwareNote": "Original keeps the source colors. Software tint is not official artwork and may lose internal detail.",
+  "icon.brand.category.client": "Client brands"
 }

@@ -82,7 +82,7 @@
   "icon.brand.category.social": "ソーシャルとメディア",
   "icon.brand.variant": "ブランドカラー",
   "icon.brand.variant.color": "オリジナル",
-  "icon.brand.variant.mono": "単色",
+  "icon.brand.variant.mono": "ソフト着色",
   "icon.builtin": "内蔵アイコン",
   "icon.category.business": "ビジネス",
   "icon.category.common": "よく使う",
@@ -230,7 +230,7 @@
   "preview.label": "プレビュー",
   "preview.longPressSave": "画像を長押しすると JPG で保存できます",
   "preview.smallText": "48 px では文字が小さくなります。文言を短くするか、2行目を削除してください。",
-  "preview.overflow": "テキストがセーフエリアからはみ出しています",
+  "preview.overflow": "コンテンツがセーフエリアからはみ出しています",
   "preview.safeArea": "セーフエリア表示",
   "preview.webgl.desc": "静的な近似表示に切り替えました。実際の書き出しとは差が出ます",
   "preview.webgl.title": "このブラウザーは WebGL2 に対応していません",
@@ -269,5 +269,13 @@
   "update.title": "新しいバージョンがあります",
   "panel.text.details": "フォントとスタイル",
   "panel.text.restoreLayout": "自動配置に戻す",
-  "panel.common.group.horizontal": "左右位置"
+  "panel.common.group.horizontal": "左右位置",
+  "panel.common.decrease": "{name}を減らす",
+  "panel.common.increase": "{name}を増やす",
+  "icon.brand.white": "白",
+  "icon.brand.black": "黒",
+  "icon.brand.primary": "濃茶",
+  "icon.brand.dongliNote": "暗い背景は白、明るい背景は茶。黒は白黒印刷用。",
+  "icon.brand.softwareNote": "原図の配色を保持。ソフト着色は公式素材ではなく、内部の形状が失われる場合があります。",
+  "icon.brand.category.client": "顧客ブランド"
 }

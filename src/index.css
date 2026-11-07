@@ -412,3 +412,10 @@
     opacity: 0;
   }
 }
+
+/* Flat mobile editing surface; keep desktop styling and the exported avatar unchanged. */
+@media (max-width: 63.999rem) {
+  [data-slot='editor-shell'] {
+    --radius: 0.375rem;
+  }
+}

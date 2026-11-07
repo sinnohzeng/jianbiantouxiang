@@ -462,3 +462,101 @@ it('自动圆裁为宽字标保留可见图文间距，文字组间距不随缩�
   const bottom = second!.y + second!.descent
   expect((result.graphic!.y + bottom) / 2).toBeCloseTo(500)
 })
+
+describe('最终落位决定安全区提示', () => {
+  const base: PartialConfig = {
+    text: '大讲堂\n内部群',
+    canvas: { shape: 'square' },
+    typography: {
+      padding: 0.06,
+      optical: false,
+      line1: { size: 0.25 },
+      line2: { size: 0.11 },
+    },
+  }
+  for (const withLogo of [false, true]) {
+    for (const offsetY of [-0.1, 0.1]) {
+      it(`手动主行 ${offsetY}、Logo ${withLogo}：临时文字分区不是安全边界`, () => {
+        const result = layout(
+          {
+            ...base,
+            typography: { ...base.typography, line1: { size: 0.25, offsetY } },
+            ...(withLogo
+              ? { layout: { icon: { source: 'builtin', id: 'star' }, graphic: 0.3 } }
+              : {}),
+          },
+          withLogo ? { width: 3, height: 1 } : null,
+        )
+        for (const line of result.lines) {
+          expect(line.y - line.ascent).toBeGreaterThanOrEqual(60)
+          expect(line.y + line.descent).toBeLessThanOrEqual(940)
+        }
+        expect(result.overflow).toBe(false)
+      })
+    }
+    it(`主行真实越界仍提示，Logo ${withLogo}`, () => {
+      const result = layout(
+        {
+          ...base,
+          text: '甲',
+          typography: { ...base.typography, line1: { size: 0.4, offsetY: 0.3 } },
+          ...(withLogo
+            ? { layout: { icon: { source: 'builtin', id: 'star' }, graphic: 0.3 } }
+            : {}),
+        },
+        withLogo ? { width: 3, height: 1 } : null,
+      )
+      expect(result.overflow).toBe(true)
+    })
+  }
+  it('没有文字时图形移出矩形也提示', () => {
+    expect(
+      layout(
+        {
+          ...base,
+          text: '',
+          layout: {
+            icon: { source: 'builtin', id: 'star' },
+            graphic: 0.9,
+            graphicOffsetY: 0.3,
+          },
+        },
+        { width: 1, height: 1 },
+      ).overflow,
+    ).toBe(true)
+  })
+  it('矩形内的角点仍可能越过圆弧，手动圆图不能漏报', () => {
+    const cfg: PartialConfig = {
+      text: '甲甲甲',
+      typography: {
+        padding: 0.06,
+        line1: { size: 0.25, offsetY: 0.2 },
+      },
+    }
+    expect(layout({ ...cfg, canvas: { shape: 'square' } }).overflow).toBe(false)
+    expect(layout({ ...cfg, canvas: { shape: 'circle' } }).overflow).toBe(true)
+  })
+  it('圆边界内的小幅手调不误报', () => {
+    expect(
+      layout({
+        text: '甲\n乙',
+        canvas: { shape: 'circle' },
+        typography: {
+          padding: 0.06,
+          line1: { size: 0.12, offsetY: 0.02 },
+          line2: { size: 0.08 },
+        },
+      }).overflow,
+    ).toBe(false)
+  })
+})
+
+it('最终提示使用用户圆形边距，区分基准排版边距与显示边距', () => {
+  const result = layout({ text: '甲'.repeat(23), typography: { padding: 0.03, optical: false } })
+  for (const line of result.lines) {
+    const dx = Math.max(Math.abs(line.x - 500), Math.abs(line.x + line.width - 500))
+    const dy = Math.max(Math.abs(line.y - line.ascent - 500), Math.abs(line.y + line.descent - 500))
+    expect(Math.hypot(dx, dy)).toBeLessThanOrEqual(470.01)
+  }
+  expect(result.overflow).toBe(false)
+})

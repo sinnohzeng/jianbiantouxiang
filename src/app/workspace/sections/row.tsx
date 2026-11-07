@@ -24,6 +24,8 @@ export function Row(props: RowProps) {
   return (
     <SliderField
       {...props}
+      increaseLabel={t('panel.common.increase', { name: props.label })}
+      decreaseLabel={t('panel.common.decrease', { name: props.label })}
       editLabel={t('panel.common.edit', { name: props.label })}
       resetLabel={t('panel.common.reset', { name: props.label })}
     />

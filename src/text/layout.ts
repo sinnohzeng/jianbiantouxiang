@@ -209,7 +209,6 @@ function geometricLayoutText(
   // Automatic avatars are designed for a circular crop even when exported square.
   // Fit the complete logo/text stack, then reapply manual nudges unchanged.
   let contentScale = 1
-  const circleSafe = config.typography.line1.size === null || config.canvas.shape === 'circle'
   const radius = Math.min(width, height) * (0.5 - config.typography.padding)
   const gx = safeBox.width * config.layout.graphicOffsetX
   const gy = safeBox.height * config.layout.graphicOffsetY
@@ -315,17 +314,7 @@ function geometricLayoutText(
       }
     }
   }
-  const cropOverflow =
-    circleSafe &&
-    [
-      ...lines.map((l) => ({
-        x: l.x,
-        y: l.y - l.ascent,
-        width: l.width,
-        height: l.ascent + l.descent,
-      })),
-      ...(graphicRect ? [graphicRect] : []),
-    ].some((r) => !insideCircle(r, width / 2, height / 2, radius))
+  const cropOverflow = finalOverflow(lines, graphicRect, config, width, height)
 
   let box: Rect
   if (lines.length > 0) {
@@ -348,9 +337,54 @@ function geometricLayoutText(
     box,
     safeBox,
     pill: pillOf(config, box, fit.primary?.fontSizePx ?? 0),
-    overflow: (contentScale === 1 && !fit.fits) || cropOverflow,
+    // Solver reservations are not final bounds after stacking and manual nudges.
+    overflow: cropOverflow,
     graphic: graphicRect,
   }
+}
+
+/** Match the displayed guide, including the user's padding after composition. */
+function finalOverflow(
+  lines: LayoutLine[],
+  graphicRect: Rect | undefined,
+  config: AvatarConfig,
+  width: number,
+  height: number,
+  measureInk = false,
+): boolean {
+  const ctx =
+    measureInk && typeof document !== 'undefined'
+      ? document.createElement('canvas').getContext('2d')
+      : null
+  const safeBox = safeArea(config, width, height)
+  const circleSafe = config.typography.line1.size === null || config.canvas.shape === 'circle'
+  const radius = Math.min(width, height) * (0.5 - config.typography.padding)
+  return [
+    ...lines.map((l) => {
+      if (ctx) {
+        ctx.font = l.font
+        ctx.textAlign = 'left'
+        ctx.textBaseline = 'alphabetic'
+        ctx.letterSpacing = `${l.letterSpacingPx}px`
+        const m = ctx.measureText(l.text)
+        return {
+          x: l.x - m.actualBoundingBoxLeft,
+          y: l.y - m.actualBoundingBoxAscent,
+          width: m.actualBoundingBoxLeft + m.actualBoundingBoxRight,
+          height: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent,
+        }
+      }
+      return { x: l.x, y: l.y - l.ascent, width: l.width, height: l.ascent + l.descent }
+    }),
+    ...(graphicRect ? [graphicRect] : []),
+  ].some((r) =>
+    circleSafe
+      ? !insideCircle(r, width / 2, height / 2, radius)
+      : r.x < safeBox.x - 0.01 ||
+        r.y < safeBox.y - 0.01 ||
+        r.x + r.width > safeBox.x + safeBox.width + 0.01 ||
+        r.y + r.height > safeBox.y + safeBox.height + 0.01,
+  )
 }
 
 export function layoutText(
@@ -362,18 +396,23 @@ export function layoutText(
 ): TextLayout {
   const base = compositionConfig(config)
   const layout = geometricLayoutText(base, width, height, measure, graphic)
-  if (measure) return layout
-  return fillCircleLayout(
-    applyOpticalLayout(
-      layout,
-      base,
-      width,
-      height,
-      graphic && 'kind' in graphic ? (graphic as Graphic) : null,
-      config.typography.line1.size === null || config.canvas.shape === 'circle',
-    ),
-    config,
-    width,
-    height,
-  )
+  const result = measure
+    ? layout
+    : fillCircleLayout(
+        applyOpticalLayout(
+          layout,
+          base,
+          width,
+          height,
+          graphic && 'kind' in graphic ? (graphic as Graphic) : null,
+          config.typography.line1.size === null || config.canvas.shape === 'circle',
+        ),
+        config,
+        width,
+        height,
+      )
+  return {
+    ...result,
+    overflow: finalOverflow(result.lines, result.graphic, config, width, height, !measure),
+  }
 }

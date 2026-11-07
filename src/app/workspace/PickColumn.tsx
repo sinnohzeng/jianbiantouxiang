@@ -24,7 +24,7 @@ export function PickColumn() {
       data-slot="pick-columns"
       // 640 到 1023 这一档操作条仍是固定层，而页末那行备案号在 640 起就隐掉了，
       // 让位的底部内距只能落回这里，否则最后一张卡片被操作条压住
-      className="gap-3 px-4 pt-3 sm:max-lg:pb-[calc(3.5rem_+_env(safe-area-inset-bottom)_+_1rem)] lg:min-h-0 lg:overflow-y-auto lg:px-0.5 lg:pt-0"
+      className="bg-background gap-0 px-3 pt-0 sm:max-lg:pb-[calc(3.5rem_+_env(safe-area-inset-bottom)_+_1rem)] lg:min-h-0 lg:overflow-y-auto lg:bg-transparent lg:px-0.5 lg:pt-0"
     >
       <StaggerRoot data-slot="pick-column" className={column}>
         <TextSection />

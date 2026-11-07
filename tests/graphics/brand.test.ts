@@ -159,3 +159,12 @@ describe('品牌图形加载', () => {
     expect(second).toBe(first)
   })
 })
+
+it('移除错误变体后旧 id 仍能加载原稿，TikTok 不再软件染色', async () => {
+  const fetchMock = vi.fn().mockResolvedValue({ ok: true, text: async () => SVG })
+  vi.stubGlobal('fetch', fetchMock)
+  const { loadBrandGraphic } = await brandModule()
+  const graphic = await loadBrandGraphic('tiktok-light', true)
+  expect(fetchMock).toHaveBeenCalledWith('/brand/tiktok.svg')
+  expect(graphic).toMatchObject({ preserveColor: true })
+})

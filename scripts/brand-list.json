@@ -1,5 +1,5 @@
 {
-  "$comment": "内置品牌图形清单。id 对应 homarr-labs/dashboard-icons 的文件名；带 file 的条目来自 assets/brand（owner 提供的官方素材），不从远端拉。white 是纯白单色变体的文件名，渐变底上默认用它。改完跑 npm run gen:brand。",
+  "$comment": "品牌源文件清单；远端来自第三方 dashboard-icons，不代表官方授权。white 仅表示已检查的白色源文件；客户版本见 client-assets/README.md。",
   "source": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/svg/",
   "categories": ["office", "ai", "dev", "social", "cloud", "brand"],
   "brands": [
@@ -121,16 +121,14 @@
       "zh": "Anthropic",
       "en": "Anthropic",
       "aliases": [],
-      "category": "ai",
-      "white": "anthropic-dark"
+      "category": "ai"
     },
     {
       "id": "claude-ai",
       "zh": "Claude",
       "en": "Claude",
       "aliases": ["anthropic"],
-      "category": "ai",
-      "white": "claude-ai-light"
+      "category": "ai"
     },
     {
       "id": "google-gemini",
@@ -301,8 +299,7 @@
       "zh": "抖音",
       "en": "TikTok",
       "aliases": ["douyin", "字节跳动"],
-      "category": "social",
-      "white": "tiktok-light"
+      "category": "social"
     },
     {
       "id": "telegram",
@@ -451,6 +448,70 @@
       "aliases": ["东黎", "羊绒", "dongli"],
       "category": "brand",
       "file": "src/graphics/client-assets/dongli-wordmark-bilingual-inline-white.svg"
+    },
+    {
+      "id": "dongli-symbol-primary",
+      "zh": "东黎羊绒 · 图形标",
+      "en": "DONGLI · symbol",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "src/graphics/client-assets/dongli-symbol-primary.svg"
+    },
+    {
+      "id": "dongli-symbol-black",
+      "zh": "东黎羊绒 · 图形标",
+      "en": "DONGLI · symbol",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "src/graphics/client-assets/dongli-symbol-black.svg"
+    },
+    {
+      "id": "dongli-lockup-full-primary",
+      "zh": "东黎羊绒 · 完整组合",
+      "en": "DONGLI · lockup-full",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "src/graphics/client-assets/dongli-lockup-full-primary.svg"
+    },
+    {
+      "id": "dongli-lockup-full-black",
+      "zh": "东黎羊绒 · 完整组合",
+      "en": "DONGLI · lockup-full",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "src/graphics/client-assets/dongli-lockup-full-black.svg"
+    },
+    {
+      "id": "dongli-wordmark-bilingual-inline-primary",
+      "zh": "东黎羊绒 · 横版字标",
+      "en": "DONGLI · wordmark-bilingual-inline",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "src/graphics/client-assets/dongli-wordmark-bilingual-inline-primary.svg"
+    },
+    {
+      "id": "dongli-wordmark-bilingual-inline-black",
+      "zh": "东黎羊绒 · 横版字标",
+      "en": "DONGLI · wordmark-bilingual-inline",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "src/graphics/client-assets/dongli-wordmark-bilingual-inline-black.svg"
+    },
+    {
+      "id": "harmay-wordmark-black",
+      "zh": "话梅 HARMAY 黑色",
+      "en": "HARMAY Black",
+      "aliases": ["harmay", "话梅"],
+      "category": "brand",
+      "file": "src/graphics/client-assets/harmay-wordmark-black.svg"
+    },
+    {
+      "id": "harmay-wordmark-white",
+      "zh": "话梅 HARMAY 白色",
+      "en": "HARMAY White",
+      "aliases": ["harmay", "话梅"],
+      "category": "brand",
+      "file": "src/graphics/client-assets/harmay-wordmark-white.png"
     }
   ]
 }

@@ -1,0 +1,1592 @@
+[
+  {
+    "id": "lark",
+    "zh": "飞书",
+    "en": "Lark",
+    "aliases": [
+      "feishu",
+      "字节跳动",
+      "bytedance"
+    ],
+    "category": "office",
+    "file": "assets/brand/lark.svg",
+    "images": [
+      {
+        "id": "lark",
+        "ext": "svg",
+        "width": 189,
+        "height": 150,
+        "solid": 6368,
+        "white": 0,
+        "black": 0,
+        "colored": 6368
+      }
+    ]
+  },
+  {
+    "id": "notion",
+    "zh": "Notion",
+    "en": "Notion",
+    "aliases": [],
+    "category": "office",
+    "images": [
+      {
+        "id": "notion",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 12505,
+        "white": 5300,
+        "black": 6344,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "figma",
+    "zh": "Figma",
+    "en": "Figma",
+    "aliases": [],
+    "category": "office",
+    "images": [
+      {
+        "id": "figma",
+        "ext": "svg",
+        "width": 100,
+        "height": 150,
+        "solid": 6697,
+        "white": 0,
+        "black": 0,
+        "colored": 6697
+      }
+    ]
+  },
+  {
+    "id": "slack",
+    "zh": "Slack",
+    "en": "Slack",
+    "aliases": [],
+    "category": "office",
+    "images": [
+      {
+        "id": "slack",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 6830,
+        "white": 0,
+        "black": 0,
+        "colored": 6830
+      }
+    ]
+  },
+  {
+    "id": "miro",
+    "zh": "Miro",
+    "en": "Miro",
+    "aliases": [
+      "白板"
+    ],
+    "category": "office",
+    "images": [
+      {
+        "id": "miro",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 13534,
+        "white": 0,
+        "black": 0,
+        "colored": 10131
+      }
+    ]
+  },
+  {
+    "id": "linear",
+    "zh": "Linear",
+    "en": "Linear",
+    "aliases": [],
+    "category": "office",
+    "white": "linear-dark",
+    "images": [
+      {
+        "id": "linear",
+        "ext": "svg",
+        "width": 200,
+        "height": 200,
+        "solid": 8260,
+        "white": 0,
+        "black": 0,
+        "colored": 0
+      },
+      {
+        "id": "linear-dark",
+        "ext": "svg",
+        "width": 200,
+        "height": 200,
+        "solid": 8260,
+        "white": 8260,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "jira",
+    "zh": "Jira",
+    "en": "Jira",
+    "aliases": [
+      "atlassian"
+    ],
+    "category": "office",
+    "images": [
+      {
+        "id": "jira",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 6433,
+        "white": 0,
+        "black": 0,
+        "colored": 6433
+      }
+    ]
+  },
+  {
+    "id": "confluence",
+    "zh": "Confluence",
+    "en": "Confluence",
+    "aliases": [
+      "atlassian",
+      "wiki"
+    ],
+    "category": "office",
+    "images": [
+      {
+        "id": "confluence",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 8059,
+        "white": 0,
+        "black": 0,
+        "colored": 8059
+      }
+    ]
+  },
+  {
+    "id": "obsidian",
+    "zh": "Obsidian",
+    "en": "Obsidian",
+    "aliases": [
+      "黑曜石",
+      "笔记"
+    ],
+    "category": "office",
+    "images": [
+      {
+        "id": "obsidian",
+        "ext": "svg",
+        "width": 116,
+        "height": 150,
+        "solid": 7045,
+        "white": 0,
+        "black": 0,
+        "colored": 7045
+      }
+    ]
+  },
+  {
+    "id": "framer",
+    "zh": "Framer",
+    "en": "Framer",
+    "aliases": [],
+    "category": "office",
+    "images": [
+      {
+        "id": "framer",
+        "ext": "svg",
+        "width": 2500,
+        "height": 2500,
+        "solid": 4554,
+        "white": 0,
+        "black": 4554,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "doubao-work",
+    "zh": "豆包工作",
+    "en": "Doubao Work",
+    "aliases": [
+      "豆包",
+      "doubao",
+      "字节跳动"
+    ],
+    "category": "ai",
+    "file": "assets/brand/doubao-work.png",
+    "images": [
+      {
+        "id": "doubao-work",
+        "ext": "png",
+        "width": 266,
+        "height": 266,
+        "solid": 3935,
+        "white": 1,
+        "black": 0,
+        "colored": 3914
+      }
+    ]
+  },
+  {
+    "id": "qoder",
+    "zh": "Qoder",
+    "en": "Qoder",
+    "aliases": [
+      "阿里",
+      "alibaba"
+    ],
+    "category": "ai",
+    "file": "assets/brand/qoder.svg",
+    "white": "qoder-white",
+    "whiteFile": "assets/brand/qoder-white.svg",
+    "images": [
+      {
+        "id": "qoder",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 4681,
+        "white": 0,
+        "black": 8,
+        "colored": 0
+      },
+      {
+        "id": "qoder-white",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 4681,
+        "white": 4681,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "workbuddy",
+    "zh": "WorkBuddy",
+    "en": "WorkBuddy",
+    "aliases": [
+      "buddy"
+    ],
+    "category": "ai",
+    "file": "assets/brand/workbuddy.svg",
+    "images": [
+      {
+        "id": "workbuddy",
+        "ext": "svg",
+        "width": 130,
+        "height": 130,
+        "solid": 13730,
+        "white": 1301,
+        "black": 0,
+        "colored": 11068
+      }
+    ]
+  },
+  {
+    "id": "openai",
+    "zh": "OpenAI",
+    "en": "OpenAI",
+    "aliases": [],
+    "category": "ai",
+    "white": "openai-light",
+    "images": [
+      {
+        "id": "openai",
+        "ext": "svg",
+        "width": 800,
+        "height": 800,
+        "solid": 4804,
+        "white": 0,
+        "black": 4804,
+        "colored": 0
+      },
+      {
+        "id": "openai-light",
+        "ext": "svg",
+        "width": 800,
+        "height": 800,
+        "solid": 4804,
+        "white": 4804,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "chatgpt",
+    "zh": "ChatGPT",
+    "en": "ChatGPT",
+    "aliases": [
+      "gpt"
+    ],
+    "category": "ai",
+    "images": [
+      {
+        "id": "chatgpt",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 13776,
+        "white": 2847,
+        "black": 0,
+        "colored": 10642
+      }
+    ]
+  },
+  {
+    "id": "anthropic",
+    "zh": "Anthropic",
+    "en": "Anthropic",
+    "aliases": [],
+    "category": "ai",
+    "images": [
+      {
+        "id": "anthropic",
+        "ext": "svg",
+        "width": 248,
+        "height": 248,
+        "solid": 4709,
+        "white": 0,
+        "black": 0,
+        "colored": 4709
+      }
+    ]
+  },
+  {
+    "id": "claude-ai",
+    "zh": "Claude",
+    "en": "Claude",
+    "aliases": [
+      "anthropic"
+    ],
+    "category": "ai",
+    "images": [
+      {
+        "id": "claude-ai",
+        "ext": "svg",
+        "width": 1200,
+        "height": 1200,
+        "solid": 5182,
+        "white": 0,
+        "black": 0,
+        "colored": 5182
+      }
+    ]
+  },
+  {
+    "id": "google-gemini",
+    "zh": "Gemini",
+    "en": "Google Gemini",
+    "aliases": [
+      "谷歌"
+    ],
+    "category": "ai",
+    "images": [
+      {
+        "id": "google-gemini",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 3317,
+        "white": 0,
+        "black": 0,
+        "colored": 3317
+      }
+    ]
+  },
+  {
+    "id": "deepseek",
+    "zh": "DeepSeek",
+    "en": "DeepSeek",
+    "aliases": [
+      "深度求索"
+    ],
+    "category": "ai",
+    "images": [
+      {
+        "id": "deepseek",
+        "ext": "svg",
+        "width": 204,
+        "height": 150,
+        "solid": 5014,
+        "white": 0,
+        "black": 0,
+        "colored": 5014
+      }
+    ]
+  },
+  {
+    "id": "qwen",
+    "zh": "通义千问",
+    "en": "Qwen",
+    "aliases": [
+      "千问",
+      "阿里",
+      "tongyi"
+    ],
+    "category": "ai",
+    "images": [
+      {
+        "id": "qwen",
+        "ext": "svg",
+        "width": 152,
+        "height": 150,
+        "solid": 9201,
+        "white": 4471,
+        "black": 0,
+        "colored": 4687
+      }
+    ]
+  },
+  {
+    "id": "kimi-ai",
+    "zh": "Kimi",
+    "en": "Kimi",
+    "aliases": [
+      "月之暗面",
+      "moonshot"
+    ],
+    "category": "ai",
+    "images": [
+      {
+        "id": "kimi-ai",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 14306,
+        "white": 2534,
+        "black": 0,
+        "colored": 268
+      }
+    ]
+  },
+  {
+    "id": "hugging-face",
+    "zh": "Hugging Face",
+    "en": "Hugging Face",
+    "aliases": [
+      "抱抱脸",
+      "huggingface"
+    ],
+    "category": "ai",
+    "images": [
+      {
+        "id": "hugging-face",
+        "ext": "svg",
+        "width": 162,
+        "height": 150,
+        "solid": 9457,
+        "white": 1176,
+        "black": 0,
+        "colored": 7817
+      }
+    ]
+  },
+  {
+    "id": "github-copilot",
+    "zh": "GitHub Copilot",
+    "en": "GitHub Copilot",
+    "aliases": [
+      "copilot"
+    ],
+    "category": "ai",
+    "white": "github-copilot-dark",
+    "images": [
+      {
+        "id": "github-copilot",
+        "ext": "svg",
+        "width": 189,
+        "height": 150,
+        "solid": 3865,
+        "white": 0,
+        "black": 3865,
+        "colored": 0
+      },
+      {
+        "id": "github-copilot-dark",
+        "ext": "svg",
+        "width": 189,
+        "height": 150,
+        "solid": 3865,
+        "white": 3865,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "github",
+    "zh": "GitHub",
+    "en": "GitHub",
+    "aliases": [
+      "gh"
+    ],
+    "category": "dev",
+    "white": "github-light",
+    "images": [
+      {
+        "id": "github",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 5854,
+        "white": 0,
+        "black": 0,
+        "colored": 0
+      },
+      {
+        "id": "github-light",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 5854,
+        "white": 5854,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "gitlab",
+    "zh": "GitLab",
+    "en": "GitLab",
+    "aliases": [],
+    "category": "dev",
+    "images": [
+      {
+        "id": "gitlab",
+        "ext": "svg",
+        "width": 156,
+        "height": 150,
+        "solid": 8009,
+        "white": 0,
+        "black": 0,
+        "colored": 8009
+      }
+    ]
+  },
+  {
+    "id": "gitee",
+    "zh": "Gitee",
+    "en": "Gitee",
+    "aliases": [
+      "码云"
+    ],
+    "category": "dev",
+    "images": [
+      {
+        "id": "gitee",
+        "ext": "svg",
+        "width": 90,
+        "height": 90,
+        "solid": 11046,
+        "white": 2635,
+        "black": 0,
+        "colored": 8401
+      }
+    ]
+  },
+  {
+    "id": "vscode",
+    "zh": "VS Code",
+    "en": "Visual Studio Code",
+    "aliases": [
+      "vscode"
+    ],
+    "category": "dev",
+    "images": [
+      {
+        "id": "vscode",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 7586,
+        "white": 0,
+        "black": 0,
+        "colored": 7586
+      }
+    ]
+  },
+  {
+    "id": "docker",
+    "zh": "Docker",
+    "en": "Docker",
+    "aliases": [
+      "容器"
+    ],
+    "category": "dev",
+    "images": [
+      {
+        "id": "docker",
+        "ext": "svg",
+        "width": 208,
+        "height": 150,
+        "solid": 5099,
+        "white": 0,
+        "black": 0,
+        "colored": 5099
+      }
+    ]
+  },
+  {
+    "id": "kubernetes",
+    "zh": "Kubernetes",
+    "en": "Kubernetes",
+    "aliases": [
+      "k8s"
+    ],
+    "category": "dev",
+    "images": [
+      {
+        "id": "kubernetes",
+        "ext": "svg",
+        "width": 723,
+        "height": 702,
+        "solid": 9747,
+        "white": 2217,
+        "black": 0,
+        "colored": 7485
+      }
+    ]
+  },
+  {
+    "id": "reactjs",
+    "zh": "React",
+    "en": "React",
+    "aliases": [],
+    "category": "dev",
+    "images": [
+      {
+        "id": "reactjs",
+        "ext": "svg",
+        "width": 169,
+        "height": 150,
+        "solid": 3461,
+        "white": 0,
+        "black": 0,
+        "colored": 3461
+      }
+    ]
+  },
+  {
+    "id": "typescript",
+    "zh": "TypeScript",
+    "en": "TypeScript",
+    "aliases": [
+      "ts"
+    ],
+    "category": "dev",
+    "images": [
+      {
+        "id": "typescript",
+        "ext": "svg",
+        "width": 512,
+        "height": 512,
+        "solid": 14262,
+        "white": 1891,
+        "black": 0,
+        "colored": 12357
+      }
+    ]
+  },
+  {
+    "id": "python",
+    "zh": "Python",
+    "en": "Python",
+    "aliases": [],
+    "category": "dev",
+    "images": [
+      {
+        "id": "python",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 8548,
+        "white": 0,
+        "black": 0,
+        "colored": 8548
+      }
+    ]
+  },
+  {
+    "id": "ubuntu-linux",
+    "zh": "Ubuntu",
+    "en": "Ubuntu",
+    "aliases": [
+      "linux"
+    ],
+    "category": "dev",
+    "images": [
+      {
+        "id": "ubuntu-linux",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 4676,
+        "white": 0,
+        "black": 0,
+        "colored": 4676
+      }
+    ]
+  },
+  {
+    "id": "arch-linux",
+    "zh": "Arch Linux",
+    "en": "Arch Linux",
+    "aliases": [
+      "linux",
+      "arch"
+    ],
+    "category": "dev",
+    "images": [
+      {
+        "id": "arch-linux",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 4164,
+        "white": 0,
+        "black": 0,
+        "colored": 4164
+      }
+    ]
+  },
+  {
+    "id": "android",
+    "zh": "Android",
+    "en": "Android",
+    "aliases": [
+      "安卓"
+    ],
+    "category": "dev",
+    "images": [
+      {
+        "id": "android",
+        "ext": "svg",
+        "width": 267,
+        "height": 150,
+        "solid": 4816,
+        "white": 0,
+        "black": 0,
+        "colored": 4816
+      }
+    ]
+  },
+  {
+    "id": "chrome",
+    "zh": "Chrome",
+    "en": "Google Chrome",
+    "aliases": [
+      "浏览器",
+      "谷歌"
+    ],
+    "category": "dev",
+    "images": [
+      {
+        "id": "chrome",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 9471,
+        "white": 554,
+        "black": 0,
+        "colored": 8857
+      }
+    ]
+  },
+  {
+    "id": "wechat",
+    "zh": "微信",
+    "en": "WeChat",
+    "aliases": [
+      "weixin",
+      "腾讯"
+    ],
+    "category": "social",
+    "white": "wechat-dark",
+    "images": [
+      {
+        "id": "wechat",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 6864,
+        "white": 0,
+        "black": 0,
+        "colored": 6864
+      },
+      {
+        "id": "wechat-dark",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 6864,
+        "white": 6864,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "qq",
+    "zh": "QQ",
+    "en": "QQ",
+    "aliases": [
+      "腾讯"
+    ],
+    "category": "social",
+    "images": [
+      {
+        "id": "qq",
+        "ext": "svg",
+        "width": 1200,
+        "height": 800,
+        "solid": 1618,
+        "white": 399,
+        "black": 696,
+        "colored": 426
+      }
+    ]
+  },
+  {
+    "id": "bilibili",
+    "zh": "哔哩哔哩",
+    "en": "Bilibili",
+    "aliases": [
+      "B站",
+      "b站"
+    ],
+    "category": "social",
+    "images": [
+      {
+        "id": "bilibili",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 14017,
+        "white": 1493,
+        "black": 0,
+        "colored": 12486
+      }
+    ]
+  },
+  {
+    "id": "weibo",
+    "zh": "微博",
+    "en": "Weibo",
+    "aliases": [
+      "新浪"
+    ],
+    "category": "social",
+    "images": [
+      {
+        "id": "weibo",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 4914,
+        "white": 0,
+        "black": 0,
+        "colored": 4108
+      }
+    ]
+  },
+  {
+    "id": "tiktok",
+    "zh": "抖音",
+    "en": "TikTok",
+    "aliases": [
+      "douyin",
+      "字节跳动"
+    ],
+    "category": "social",
+    "images": [
+      {
+        "id": "tiktok",
+        "ext": "svg",
+        "width": 132,
+        "height": 150,
+        "solid": 5492,
+        "white": 0,
+        "black": 3663,
+        "colored": 1827
+      }
+    ]
+  },
+  {
+    "id": "telegram",
+    "zh": "Telegram",
+    "en": "Telegram",
+    "aliases": [
+      "电报",
+      "tg"
+    ],
+    "category": "social",
+    "images": [
+      {
+        "id": "telegram",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 11137,
+        "white": 1394,
+        "black": 0,
+        "colored": 9709
+      }
+    ]
+  },
+  {
+    "id": "discord",
+    "zh": "Discord",
+    "en": "Discord",
+    "aliases": [],
+    "category": "social",
+    "images": [
+      {
+        "id": "discord",
+        "ext": "svg",
+        "width": 194,
+        "height": 150,
+        "solid": 7607,
+        "white": 0,
+        "black": 0,
+        "colored": 7607
+      }
+    ]
+  },
+  {
+    "id": "twitter",
+    "zh": "Twitter",
+    "en": "Twitter",
+    "aliases": [
+      "推特",
+      "x"
+    ],
+    "category": "social",
+    "images": [
+      {
+        "id": "twitter",
+        "ext": "svg",
+        "width": 185,
+        "height": 150,
+        "solid": 6757,
+        "white": 0,
+        "black": 0,
+        "colored": 6757
+      }
+    ]
+  },
+  {
+    "id": "linkedin",
+    "zh": "领英",
+    "en": "LinkedIn",
+    "aliases": [],
+    "category": "social",
+    "images": [
+      {
+        "id": "linkedin",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 14207,
+        "white": 3451,
+        "black": 0,
+        "colored": 10745
+      }
+    ]
+  },
+  {
+    "id": "youtube",
+    "zh": "YouTube",
+    "en": "YouTube",
+    "aliases": [
+      "油管"
+    ],
+    "category": "social",
+    "images": [
+      {
+        "id": "youtube",
+        "ext": "svg",
+        "width": 214,
+        "height": 150,
+        "solid": 9346,
+        "white": 528,
+        "black": 0,
+        "colored": 8816
+      }
+    ]
+  },
+  {
+    "id": "spotify",
+    "zh": "Spotify",
+    "en": "Spotify",
+    "aliases": [],
+    "category": "social",
+    "white": "spotify-light",
+    "images": [
+      {
+        "id": "spotify",
+        "ext": "svg",
+        "width": 227,
+        "height": 227,
+        "solid": 8509,
+        "white": 0,
+        "black": 0,
+        "colored": 8509
+      },
+      {
+        "id": "spotify-light",
+        "ext": "svg",
+        "width": 227,
+        "height": 227,
+        "solid": 8509,
+        "white": 8509,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "cloudflare",
+    "zh": "Cloudflare",
+    "en": "Cloudflare",
+    "aliases": [
+      "cf"
+    ],
+    "category": "cloud",
+    "images": [
+      {
+        "id": "cloudflare",
+        "ext": "svg",
+        "width": 300,
+        "height": 136,
+        "solid": 4302,
+        "white": 274,
+        "black": 0,
+        "colored": 4022
+      }
+    ]
+  },
+  {
+    "id": "vercel",
+    "zh": "Vercel",
+    "en": "Vercel",
+    "aliases": [],
+    "category": "cloud",
+    "white": "vercel-light",
+    "images": [
+      {
+        "id": "vercel",
+        "ext": "svg",
+        "width": 1155,
+        "height": 1000,
+        "solid": 6132,
+        "white": 0,
+        "black": 6132,
+        "colored": 0
+      },
+      {
+        "id": "vercel-light",
+        "ext": "svg",
+        "width": 1155,
+        "height": 1000,
+        "solid": 6132,
+        "white": 6132,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "stripe",
+    "zh": "Stripe",
+    "en": "Stripe",
+    "aliases": [
+      "支付"
+    ],
+    "category": "cloud",
+    "white": "stripe-dark",
+    "images": [
+      {
+        "id": "stripe",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 6727,
+        "white": 0,
+        "black": 0,
+        "colored": 6727
+      },
+      {
+        "id": "stripe-dark",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 6727,
+        "white": 6727,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "paypal",
+    "zh": "PayPal",
+    "en": "PayPal",
+    "aliases": [
+      "贝宝",
+      "支付"
+    ],
+    "category": "cloud",
+    "images": [
+      {
+        "id": "paypal",
+        "ext": "svg",
+        "width": 127,
+        "height": 150,
+        "solid": 8525,
+        "white": 0,
+        "black": 0,
+        "colored": 8525
+      }
+    ]
+  },
+  {
+    "id": "baidu",
+    "zh": "百度",
+    "en": "Baidu",
+    "aliases": [],
+    "category": "cloud",
+    "white": "baidu-dark",
+    "images": [
+      {
+        "id": "baidu",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 6236,
+        "white": 0,
+        "black": 0,
+        "colored": 6236
+      },
+      {
+        "id": "baidu-dark",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 6236,
+        "white": 6236,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "apple",
+    "zh": "苹果",
+    "en": "Apple",
+    "aliases": [
+      "iphone",
+      "mac"
+    ],
+    "category": "brand",
+    "white": "apple-light",
+    "images": [
+      {
+        "id": "apple",
+        "ext": "svg",
+        "width": 122,
+        "height": 150,
+        "solid": 7238,
+        "white": 0,
+        "black": 7238,
+        "colored": 0
+      },
+      {
+        "id": "apple-light",
+        "ext": "svg",
+        "width": 122,
+        "height": 150,
+        "solid": 7238,
+        "white": 7238,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "microsoft",
+    "zh": "微软",
+    "en": "Microsoft",
+    "aliases": [
+      "windows"
+    ],
+    "category": "brand",
+    "images": [
+      {
+        "id": "microsoft",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 14400,
+        "white": 3164,
+        "black": 0,
+        "colored": 11236
+      }
+    ]
+  },
+  {
+    "id": "google",
+    "zh": "谷歌",
+    "en": "Google",
+    "aliases": [],
+    "category": "brand",
+    "images": [
+      {
+        "id": "google",
+        "ext": "svg",
+        "width": 150,
+        "height": 150,
+        "solid": 7058,
+        "white": 0,
+        "black": 0,
+        "colored": 7058
+      }
+    ]
+  },
+  {
+    "id": "huawei",
+    "zh": "华为",
+    "en": "Huawei",
+    "aliases": [],
+    "category": "brand",
+    "images": [
+      {
+        "id": "huawei",
+        "ext": "svg",
+        "width": 135,
+        "height": 137,
+        "solid": 6089,
+        "white": 0,
+        "black": 0,
+        "colored": 5284
+      }
+    ]
+  },
+  {
+    "id": "xiaomi-global",
+    "zh": "小米",
+    "en": "Xiaomi",
+    "aliases": [
+      "mi"
+    ],
+    "category": "brand",
+    "images": [
+      {
+        "id": "xiaomi-global",
+        "ext": "svg",
+        "width": 512,
+        "height": 512,
+        "solid": 12479,
+        "white": 1926,
+        "black": 0,
+        "colored": 10552
+      }
+    ]
+  },
+  {
+    "id": "nvidia",
+    "zh": "英伟达",
+    "en": "NVIDIA",
+    "aliases": [],
+    "category": "brand",
+    "images": [
+      {
+        "id": "nvidia",
+        "ext": "svg",
+        "width": 227,
+        "height": 150,
+        "solid": 5122,
+        "white": 0,
+        "black": 0,
+        "colored": 5122
+      }
+    ]
+  },
+  {
+    "id": "dongli-symbol-white",
+    "zh": "东黎羊绒 · 图形标",
+    "en": "DONGLI · symbol",
+    "aliases": [
+      "东黎",
+      "羊绒",
+      "dongli"
+    ],
+    "category": "brand",
+    "file": "src/graphics/client-assets/dongli-symbol-white.svg",
+    "images": [
+      {
+        "id": "dongli-symbol-white",
+        "ext": "svg",
+        "width": 300,
+        "height": 134,
+        "solid": 859,
+        "white": 859,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "dongli-lockup-full-white",
+    "zh": "东黎羊绒 · 完整组合",
+    "en": "DONGLI · lockup-full",
+    "aliases": [
+      "东黎",
+      "羊绒",
+      "dongli"
+    ],
+    "category": "brand",
+    "file": "src/graphics/client-assets/dongli-lockup-full-white.svg",
+    "images": [
+      {
+        "id": "dongli-lockup-full-white",
+        "ext": "svg",
+        "width": 201,
+        "height": 150,
+        "solid": 1038,
+        "white": 1038,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "dongli-wordmark-bilingual-inline-white",
+    "zh": "东黎羊绒 · 横版字标",
+    "en": "DONGLI · wordmark-bilingual-inline",
+    "aliases": [
+      "东黎",
+      "羊绒",
+      "dongli"
+    ],
+    "category": "brand",
+    "file": "src/graphics/client-assets/dongli-wordmark-bilingual-inline-white.svg",
+    "images": [
+      {
+        "id": "dongli-wordmark-bilingual-inline-white",
+        "ext": "svg",
+        "width": 300,
+        "height": 72,
+        "solid": 37,
+        "white": 37,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "dongli-symbol-primary",
+    "zh": "东黎羊绒 · 图形标",
+    "en": "DONGLI · symbol",
+    "aliases": [
+      "东黎",
+      "羊绒",
+      "dongli"
+    ],
+    "category": "brand",
+    "file": "src/graphics/client-assets/dongli-symbol-primary.svg",
+    "images": [
+      {
+        "id": "dongli-symbol-primary",
+        "ext": "svg",
+        "width": 300,
+        "height": 134,
+        "solid": 859,
+        "white": 0,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "dongli-symbol-black",
+    "zh": "东黎羊绒 · 图形标",
+    "en": "DONGLI · symbol",
+    "aliases": [
+      "东黎",
+      "羊绒",
+      "dongli"
+    ],
+    "category": "brand",
+    "file": "src/graphics/client-assets/dongli-symbol-black.svg",
+    "images": [
+      {
+        "id": "dongli-symbol-black",
+        "ext": "svg",
+        "width": 300,
+        "height": 134,
+        "solid": 859,
+        "white": 0,
+        "black": 859,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "dongli-lockup-full-primary",
+    "zh": "东黎羊绒 · 完整组合",
+    "en": "DONGLI · lockup-full",
+    "aliases": [
+      "东黎",
+      "羊绒",
+      "dongli"
+    ],
+    "category": "brand",
+    "file": "src/graphics/client-assets/dongli-lockup-full-primary.svg",
+    "images": [
+      {
+        "id": "dongli-lockup-full-primary",
+        "ext": "svg",
+        "width": 201,
+        "height": 150,
+        "solid": 1038,
+        "white": 0,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "dongli-lockup-full-black",
+    "zh": "东黎羊绒 · 完整组合",
+    "en": "DONGLI · lockup-full",
+    "aliases": [
+      "东黎",
+      "羊绒",
+      "dongli"
+    ],
+    "category": "brand",
+    "file": "src/graphics/client-assets/dongli-lockup-full-black.svg",
+    "images": [
+      {
+        "id": "dongli-lockup-full-black",
+        "ext": "svg",
+        "width": 201,
+        "height": 150,
+        "solid": 1038,
+        "white": 0,
+        "black": 1038,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "dongli-wordmark-bilingual-inline-primary",
+    "zh": "东黎羊绒 · 横版字标",
+    "en": "DONGLI · wordmark-bilingual-inline",
+    "aliases": [
+      "东黎",
+      "羊绒",
+      "dongli"
+    ],
+    "category": "brand",
+    "file": "src/graphics/client-assets/dongli-wordmark-bilingual-inline-primary.svg",
+    "images": [
+      {
+        "id": "dongli-wordmark-bilingual-inline-primary",
+        "ext": "svg",
+        "width": 300,
+        "height": 72,
+        "solid": 37,
+        "white": 0,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "dongli-wordmark-bilingual-inline-black",
+    "zh": "东黎羊绒 · 横版字标",
+    "en": "DONGLI · wordmark-bilingual-inline",
+    "aliases": [
+      "东黎",
+      "羊绒",
+      "dongli"
+    ],
+    "category": "brand",
+    "file": "src/graphics/client-assets/dongli-wordmark-bilingual-inline-black.svg",
+    "images": [
+      {
+        "id": "dongli-wordmark-bilingual-inline-black",
+        "ext": "svg",
+        "width": 300,
+        "height": 72,
+        "solid": 37,
+        "white": 0,
+        "black": 37,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "harmay-wordmark-black",
+    "zh": "话梅 HARMAY 黑色",
+    "en": "HARMAY Black",
+    "aliases": [
+      "harmay",
+      "话梅"
+    ],
+    "category": "brand",
+    "file": "src/graphics/client-assets/harmay-wordmark-black.svg",
+    "images": [
+      {
+        "id": "harmay-wordmark-black",
+        "ext": "svg",
+        "width": 300,
+        "height": 36,
+        "solid": 216,
+        "white": 0,
+        "black": 216,
+        "colored": 0
+      }
+    ]
+  },
+  {
+    "id": "harmay-wordmark-white",
+    "zh": "话梅 HARMAY 白色",
+    "en": "HARMAY White",
+    "aliases": [
+      "harmay",
+      "话梅"
+    ],
+    "category": "brand",
+    "file": "src/graphics/client-assets/harmay-wordmark-white.png",
+    "images": [
+      {
+        "id": "harmay-wordmark-white",
+        "ext": "png",
+        "width": 2963,
+        "height": 359,
+        "solid": 211,
+        "white": 211,
+        "black": 0,
+        "colored": 0
+      }
+    ]
+  }
+]

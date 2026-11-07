@@ -57,8 +57,13 @@ function AppShellBody() {
   }, [])
 
   return (
-    <div className="relative flex min-h-dvh flex-col lg:h-dvh lg:min-h-0 lg:overflow-hidden">
-      <ShowcaseBackground />
+    <div
+      data-slot="editor-shell"
+      className="bg-background relative flex min-h-dvh flex-col lg:h-dvh lg:min-h-0 lg:overflow-hidden lg:bg-transparent"
+    >
+      <div className="hidden lg:block">
+        <ShowcaseBackground />
+      </div>
       <TopBar />
 
       <main

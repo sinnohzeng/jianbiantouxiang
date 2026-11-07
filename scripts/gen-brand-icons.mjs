@@ -3,7 +3,7 @@
  * 内置品牌图形生成器。
  *
  * 清单 scripts/brand-list.json 是唯一事实来源：远端条目按 `source + id + '.svg'` 从
- * homarr-labs/dashboard-icons 拉取，带 file 的条目从 assets/brand 拷贝（owner 提供的官方素材）。
+ * homarr-labs/dashboard-icons 拉取，带 file 的条目从 assets/brand 拷贝（owner 提供的素材）。
  * 两类都落到 public/brand/<id>.<ext>，并生成 src/graphics/generated/brand-index.ts。
  *
  * 落盘前 SVG 过一遍 inlineClassStyles：上游不少文件把填色写在 <style> 的类规则里，
@@ -51,6 +51,8 @@ async function fetchSvg(source, name) {
 
 /** SVG 一律内联类规则再落盘；PNG 原样拷贝。 */
 async function writeSvg(target, svg) {
+  if (!/<svg[\s>]/.test(svg) || svg.includes('\u0000'))
+    throw new Error(`SVG 源文件格式不符：${path.basename(target)}`)
   await writeFile(target, inlineClassStyles(svg))
 }
 
@@ -136,7 +138,7 @@ function serializeEntry(entry) {
 const source = `/**
  * 由 ${generator} 生成，不要手改。
  * 远端条目来自 homarr-labs/dashboard-icons，Apache-2.0；商标归各品牌所有。
- * 带 file 的条目来自 assets/brand，是 owner 提供的官方素材。
+ * 带 file 的条目来自 assets/brand，是 owner 提供的素材。
  */
 
 export type BrandCategory = ${categories.map((category) => JSON.stringify(category)).join(' | ')}
@@ -148,7 +150,7 @@ export interface BrandEntry {
   readonly aliases: readonly string[]
   readonly category: BrandCategory
   readonly ext: 'svg' | 'png'
-  /** 纯白单色变体的文件名。渐变底上默认用它，没有就退回原色。 */
+  /** 白色源文件变体。第三方来源不等于品牌官方授权。 */
   readonly white?: string
 }
 

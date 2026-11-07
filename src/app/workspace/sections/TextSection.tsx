@@ -49,13 +49,13 @@ const COLOR_PRESETS: readonly {
   { hex: '#000000', key: 'black' },
 ]
 
-/** 逐行补偿四条共用：量程取契约上限，步进 0.25%，显示一位小数。 */
+/** 逐行补偿四条共用：量程取契约上限，步进 0.25%，显示两位小数。 */
 const OFFSET_RANGE = {
   min: -LINE_OFFSET_MAX,
   max: LINE_OFFSET_MAX,
   step: 0.0025,
   scale: 100,
-  precision: 1,
+  precision: 2,
   unit: '%',
 } as const
 
@@ -164,11 +164,13 @@ export function TextSection() {
           再挂一个把它按回 42% 的重置钮只会互相打架 */}
       <div data-slot="text-font-size">
         <Row
+          mobileStepper
           label={t('panel.text.fontSize')}
           value={shownFontSize}
           min={LINE_SIZE_MIN}
           max={LINE_SIZE_MAX}
           step={FONT_SIZE_STEP}
+          precision={1}
           scale={100}
           unit="%"
           auto={{
@@ -196,6 +198,7 @@ export function TextSection() {
       {hasFirst ? (
         <div data-slot="text-line1-offset-y">
           <Row
+            mobileStepper
             label={t('panel.text.lineOffsetY', { index: 1 })}
             value={line1.offsetY}
             defaultValue={defaults.line1.offsetY}
@@ -228,11 +231,13 @@ export function TextSection() {
       {hasFirst && hasSecond ? (
         <div data-slot="text-line2-size">
           <Row
+            mobileStepper
             label={t('panel.text.line2Size')}
             value={line2.size ?? followSize}
             min={LINE2_SIZE_MIN}
             max={LINE_SIZE_MAX}
             step={FONT_SIZE_STEP}
+            precision={1}
             scale={100}
             unit="%"
             auto={{
@@ -250,6 +255,7 @@ export function TextSection() {
       {hasSecond ? (
         <div data-slot="text-line2-offset-y">
           <Row
+            mobileStepper
             label={t('panel.text.lineOffsetY', { index: 2 })}
             value={line2.offsetY}
             defaultValue={defaults.line2.offsetY}
@@ -276,6 +282,7 @@ export function TextSection() {
         {/* 纯色没有强度可言，禁用而不是抽掉：抽掉会让下面那几行在切样式时上下跳 */}
         <div data-slot="text-effect-strength">
           <Row
+            mobileStepper
             label={t('panel.text.effectStrength')}
             value={type.effectStrength}
             defaultValue={defaults.effectStrength}
@@ -292,6 +299,7 @@ export function TextSection() {
         {type.effect === 'pill' ? (
           <>
             <Row
+              mobileStepper
               label={t('panel.text.pill.radius')}
               value={type.pill.radius}
               defaultValue={defaults.pill.radius}
@@ -303,6 +311,7 @@ export function TextSection() {
               onChange={(radius) => setTypography({ pill: { radius } })}
             />
             <Row
+              mobileStepper
               label={t('panel.text.pill.padding')}
               value={type.pill.padding}
               defaultValue={defaults.pill.padding}
@@ -314,6 +323,7 @@ export function TextSection() {
               onChange={(padding) => setTypography({ pill: { padding } })}
             />
             <Row
+              mobileStepper
               label={t('panel.text.pill.opacity')}
               value={type.pill.opacity}
               defaultValue={defaults.pill.opacity}
@@ -358,6 +368,7 @@ export function TextSection() {
             {t('panel.text.optical')}
           </Button>
           <Row
+            mobileStepper
             label={t('panel.text.padding')}
             value={type.padding}
             defaultValue={defaults.padding}
@@ -369,6 +380,7 @@ export function TextSection() {
             onChange={(padding) => setTypography({ padding })}
           />
           <Row
+            mobileStepper
             label={t('panel.text.lineHeight')}
             value={type.lineHeight}
             defaultValue={defaults.lineHeight}
@@ -379,6 +391,7 @@ export function TextSection() {
             onChange={(lineHeight) => setTypography({ lineHeight })}
           />
           <Row
+            mobileStepper
             label={t('panel.text.letterSpacing')}
             value={type.letterSpacing}
             defaultValue={defaults.letterSpacing}
@@ -401,6 +414,7 @@ export function TextSection() {
             {hasFirst ? (
               <>
                 <Row
+                  mobileStepper
                   label={t('panel.text.lineOffsetX', { index: 1 })}
                   value={line1.offsetX}
                   defaultValue={defaults.line1.offsetX}
@@ -412,6 +426,7 @@ export function TextSection() {
             {hasSecond ? (
               <>
                 <Row
+                  mobileStepper
                   label={t('panel.text.lineOffsetX', { index: 2 })}
                   value={line2.offsetX}
                   defaultValue={defaults.line2.offsetX}

@@ -1,7 +1,7 @@
 /**
  * 由 npm run gen:brand 生成，不要手改。
  * 远端条目来自 homarr-labs/dashboard-icons，Apache-2.0；商标归各品牌所有。
- * 带 file 的条目来自 assets/brand，是 owner 提供的官方素材。
+ * 带 file 的条目来自 assets/brand，是 owner 提供的素材。
  */
 
 export type BrandCategory = "office" | "ai" | "dev" | "social" | "cloud" | "brand"
@@ -13,7 +13,7 @@ export interface BrandEntry {
   readonly aliases: readonly string[]
   readonly category: BrandCategory
   readonly ext: 'svg' | 'png'
-  /** 纯白单色变体的文件名。渐变底上默认用它，没有就退回原色。 */
+  /** 白色源文件变体。第三方来源不等于品牌官方授权。 */
   readonly white?: string
 }
 
@@ -42,8 +42,8 @@ export const BRAND_INDEX: readonly BrandEntry[] = [
   { id: "workbuddy", zh: "WorkBuddy", en: "WorkBuddy", aliases: ["buddy"], category: "ai", ext: "svg" },
   { id: "openai", zh: "OpenAI", en: "OpenAI", aliases: [], category: "ai", ext: "svg", white: "openai-light" },
   { id: "chatgpt", zh: "ChatGPT", en: "ChatGPT", aliases: ["gpt"], category: "ai", ext: "svg" },
-  { id: "anthropic", zh: "Anthropic", en: "Anthropic", aliases: [], category: "ai", ext: "svg", white: "anthropic-dark" },
-  { id: "claude-ai", zh: "Claude", en: "Claude", aliases: ["anthropic"], category: "ai", ext: "svg", white: "claude-ai-light" },
+  { id: "anthropic", zh: "Anthropic", en: "Anthropic", aliases: [], category: "ai", ext: "svg" },
+  { id: "claude-ai", zh: "Claude", en: "Claude", aliases: ["anthropic"], category: "ai", ext: "svg" },
   { id: "google-gemini", zh: "Gemini", en: "Google Gemini", aliases: ["谷歌"], category: "ai", ext: "svg" },
   { id: "deepseek", zh: "DeepSeek", en: "DeepSeek", aliases: ["深度求索"], category: "ai", ext: "svg" },
   { id: "qwen", zh: "通义千问", en: "Qwen", aliases: ["千问", "阿里", "tongyi"], category: "ai", ext: "svg" },
@@ -67,7 +67,7 @@ export const BRAND_INDEX: readonly BrandEntry[] = [
   { id: "qq", zh: "QQ", en: "QQ", aliases: ["腾讯"], category: "social", ext: "svg" },
   { id: "bilibili", zh: "哔哩哔哩", en: "Bilibili", aliases: ["B站", "b站"], category: "social", ext: "svg" },
   { id: "weibo", zh: "微博", en: "Weibo", aliases: ["新浪"], category: "social", ext: "svg" },
-  { id: "tiktok", zh: "抖音", en: "TikTok", aliases: ["douyin", "字节跳动"], category: "social", ext: "svg", white: "tiktok-light" },
+  { id: "tiktok", zh: "抖音", en: "TikTok", aliases: ["douyin", "字节跳动"], category: "social", ext: "svg" },
   { id: "telegram", zh: "Telegram", en: "Telegram", aliases: ["电报", "tg"], category: "social", ext: "svg" },
   { id: "discord", zh: "Discord", en: "Discord", aliases: [], category: "social", ext: "svg" },
   { id: "twitter", zh: "Twitter", en: "Twitter", aliases: ["推特", "x"], category: "social", ext: "svg" },
@@ -88,4 +88,12 @@ export const BRAND_INDEX: readonly BrandEntry[] = [
   { id: "dongli-symbol-white", zh: "东黎羊绒 · 图形标", en: "DONGLI · symbol", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
   { id: "dongli-lockup-full-white", zh: "东黎羊绒 · 完整组合", en: "DONGLI · lockup-full", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
   { id: "dongli-wordmark-bilingual-inline-white", zh: "东黎羊绒 · 横版字标", en: "DONGLI · wordmark-bilingual-inline", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
+  { id: "dongli-symbol-primary", zh: "东黎羊绒 · 图形标", en: "DONGLI · symbol", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
+  { id: "dongli-symbol-black", zh: "东黎羊绒 · 图形标", en: "DONGLI · symbol", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
+  { id: "dongli-lockup-full-primary", zh: "东黎羊绒 · 完整组合", en: "DONGLI · lockup-full", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
+  { id: "dongli-lockup-full-black", zh: "东黎羊绒 · 完整组合", en: "DONGLI · lockup-full", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
+  { id: "dongli-wordmark-bilingual-inline-primary", zh: "东黎羊绒 · 横版字标", en: "DONGLI · wordmark-bilingual-inline", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
+  { id: "dongli-wordmark-bilingual-inline-black", zh: "东黎羊绒 · 横版字标", en: "DONGLI · wordmark-bilingual-inline", aliases: ["东黎", "羊绒", "dongli"], category: "brand", ext: "svg" },
+  { id: "harmay-wordmark-black", zh: "话梅 HARMAY 黑色", en: "HARMAY Black", aliases: ["harmay", "话梅"], category: "brand", ext: "svg" },
+  { id: "harmay-wordmark-white", zh: "话梅 HARMAY 白色", en: "HARMAY White", aliases: ["harmay", "话梅"], category: "brand", ext: "png" },
 ]

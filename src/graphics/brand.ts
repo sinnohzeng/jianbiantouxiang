@@ -1,3 +1,4 @@
+import { visibleImageRect } from './trim'
 import { isClientPreset } from './client-presets'
 import { BRAND_INDEX } from './generated/brand-index'
 import type { Graphic } from './types'
@@ -21,11 +22,17 @@ interface BrandFile {
 /**
  * 当前档该取哪个文件。
  *
- * 单色档优先用上游给的官方单色稿，它保留了品牌自己处理过的镂空与留白；
- * 上游只给了 14 个品牌，其余取原色稿，由 draw.ts 在绘制期按 alpha 压平。
- * 官方单色稿一律是 SVG，存档里直接落着它的文件名时按原样取。
+ * 单色档优先用登记的上游白稿，保留源文件的镂空与留白；
+ * 具有 white 字段时取该源文件，其余取原稿；兼容染色在 draw.ts 按 alpha 处理。
+ * 登记的上游白稿均为 SVG，存档里直接落着它的文件名时按原样取。
  */
 function fileOf(id: string, mono: boolean): BrandFile | null {
+  const legacy: Record<string, string> = {
+    'claude-ai-light': 'claude-ai',
+    'tiktok-light': 'tiktok',
+    'anthropic-dark': 'anthropic',
+  }
+  id = legacy[id] ?? id
   for (const entry of BRAND_INDEX) {
     if (entry.id === id) {
       return mono && entry.white
@@ -72,7 +79,18 @@ async function load(file: BrandFile): Promise<Graphic | null> {
   const url = `${import.meta.env.BASE_URL}brand/${file.id}.${file.ext}`
   try {
     const graphic = file.ext === 'svg' ? await loadSvg(url) : graphicOf(await loadImage(url))
-    return isClientPreset(file.id) && graphic.kind === 'image'
+    if (file.id.startsWith('harmay-') && graphic.kind === 'image') {
+      const sourceRect = visibleImageRect(graphic.image, graphic.width, graphic.height)
+      if (sourceRect)
+        return {
+          ...graphic,
+          width: sourceRect.width,
+          height: sourceRect.height,
+          sourceRect,
+          preserveColor: true,
+        }
+    }
+    return (isClientPreset(file.id) || file.id === 'tiktok') && graphic.kind === 'image'
       ? { ...graphic, preserveColor: true }
       : graphic
   } catch {
@@ -83,7 +101,7 @@ async function load(file: BrandFile): Promise<Graphic | null> {
 
 /**
  * 按品牌 id 与单色档取图形。缓存键是真正取到的文件名，
- * 同一品牌的原色稿与官方单色稿各缓存一份；失败的那次也记进缓存，不反复打网络。
+ * 同一品牌的原色稿与上游单色稿各缓存一份；失败的那次也记进缓存，不反复打网络。
  */
 export function loadBrandGraphic(id: string, mono = false): Promise<Graphic | null> {
   const file = fileOf(id, mono)

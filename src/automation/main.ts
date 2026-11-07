@@ -37,8 +37,10 @@ async function render(raw: unknown, validateOnly = false) {
   if (!input.line1 && !input.line2 && !input.logo)
     throw new Error('Provide a logo or at least one text line')
   const warnings: string[] = []
-  if (input.preset && input.preset !== 'dongli-symbol-white')
+  if (input.preset?.startsWith('dongli-') && input.preset !== 'dongli-symbol-white')
     warnings.push('dense-brand-lockup:prefer-dongli-symbol-white-for-small-avatars')
+  if (input.preset === 'harmay-wordmark-white')
+    warnings.push('wide-wordmark:small-avatar-detail-limited')
   const missing = [
     ...unsupportedCharacters(input.line1, input.font),
     ...unsupportedCharacters(input.line2, input.secondaryFont),

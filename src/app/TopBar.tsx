@@ -291,20 +291,17 @@ export function TopBar() {
               <RotateCcwIcon className="size-4" aria-hidden />
               {t('about.reset')}
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              render={<a href="/about" target="_blank" rel="noopener noreferrer" />}
+              data-slot="about-action"
+              className="min-h-11 px-2"
+            >
+              <InfoIcon className="size-4" aria-hidden />
+              {t('topbar.about')}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {/* 关于是一个独立页面，不是浮层：介绍与技术说明有几屏长，塞进对话框既读不下去，
-            也没法单独分享一个链接出去 */}
-        <a
-          href="/about"
-          data-slot="about-action"
-          className={iconButton}
-          aria-label={t('topbar.about')}
-          title={t('topbar.about')}
-        >
-          <InfoIcon className="size-5" />
-        </a>
       </div>
 
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>

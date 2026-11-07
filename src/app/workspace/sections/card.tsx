@@ -21,7 +21,8 @@ export function SectionCard({ title, action, children, className }: SectionCardP
     <StaggerItem
       as="section"
       aria-labelledby={titleId}
-      className={cn('bg-card/60 rounded-2xl border p-2.5 backdrop-blur-sm', className)}
+      data-slot="editor-section"
+      className={cn('lg:bg-card/60 border-b py-3 lg:rounded-xl lg:border lg:p-2.5', className)}
     >
       <div className="mb-1.5 flex min-h-6 items-center justify-between gap-2 px-1">
         <h2 id={titleId} className="text-xs font-semibold">
