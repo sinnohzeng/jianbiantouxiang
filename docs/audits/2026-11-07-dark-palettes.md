@@ -33,6 +33,6 @@
 
 - lint、format:check、typecheck、build 通过；单元76文件、878项通过。
 - E2E完整运行66项通过，1项仍假定初始无品牌；改为先检查默认品牌、清除后验证空态，定向重测通过。总计67个场景覆盖通过，包括两种视口的冷启动慢加载、减少动态效果及2048黑稿墨迹。复制图片曾在并行重负载中超时，后续完整运行通过，未放宽预算或改变功能。
-- service单元3项通过；service构建、CLI options与真实render通过。本轮未重跑全部远程MCP集成矩阵。
+- service单元3项通过；service构建、CLI options与真实render通过。完整服务集成7项通过，包含官方 SDK 的 HTTP/stdio、CLI、批量部分失败、超时队列和 SVG 私网请求隔离。CI 暴露旧配色数量断言，已同步为47并重跑通过。
 
 - 截图脚本完成16张桌面1440、iPhone15和iPhone SE深浅主题、编辑及导出视图，全部逐张检查；[小屏编辑](../assets/reviews/v8.6.0/mobile.png)和[小屏导出](../assets/reviews/v8.6.0/export.png)保留为证据。
