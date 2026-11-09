@@ -1,15 +1,214 @@
 {
   "$comment": "品牌源文件清单；远端来自第三方 dashboard-icons，不代表官方授权。white 仅表示已检查的白色源文件；客户版本见 client-assets/README.md。",
   "source": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@main/svg/",
-  "categories": ["office", "ai", "dev", "social", "cloud", "brand"],
+  "categories": ["bytedance", "office", "ai", "dev", "social", "cloud", "brand"],
   "brands": [
+    {
+      "id": "doubao-work",
+      "zh": "豆包工作",
+      "en": "Doubao Work",
+      "aliases": ["豆包", "doubao", "字节跳动"],
+      "category": "bytedance",
+      "file": "assets/brand/doubao-work.png"
+    },
+    {
+      "id": "bd-doubao-work-black",
+      "zh": "豆包工作 · 黑色组合",
+      "en": "Doubao Work · black lockup",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-doubao-work-black.png"
+    },
+    {
+      "id": "bd-doubao-work-white",
+      "zh": "豆包工作 · 白色组合",
+      "en": "Doubao Work · white lockup",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-doubao-work-white.png"
+    },
     {
       "id": "lark",
       "zh": "飞书",
       "en": "Lark",
       "aliases": ["feishu", "字节跳动", "bytedance"],
-      "category": "office",
+      "category": "bytedance",
       "file": "assets/brand/lark.svg"
+    },
+    {
+      "id": "bd-feishu-color",
+      "zh": "飞书 · 原色组合",
+      "en": "Feishu · color lockup",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-feishu-color.svg"
+    },
+    {
+      "id": "bd-feishu-black",
+      "zh": "飞书 · 纯黑组合",
+      "en": "Feishu · black lockup",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-feishu-black.svg"
+    },
+    {
+      "id": "bd-feishu-white",
+      "zh": "飞书 · 纯白组合",
+      "en": "Feishu · white lockup",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-feishu-white.svg"
+    },
+    {
+      "id": "bd-doubao-color",
+      "zh": "豆包 · 原色组合",
+      "en": "Doubao · Color lockup",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-doubao-color.png"
+    },
+    {
+      "id": "bd-volcengine-color",
+      "zh": "火山引擎 · 原色组合",
+      "en": "Volcengine · Color lockup",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-volcengine-color.svg"
+    },
+    {
+      "id": "bd-oceanengine-black",
+      "zh": "巨量引擎 · 纯黑",
+      "en": "Ocean Engine · black",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-oceanengine-black.svg"
+    },
+    {
+      "id": "bd-oceanengine-white",
+      "zh": "巨量引擎 · 纯白",
+      "en": "Ocean Engine · white",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-oceanengine-white.svg"
+    },
+    {
+      "id": "bd-bytedance-color",
+      "zh": "字节跳动 · 原色",
+      "en": "ByteDance · Color",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-bytedance-color.svg"
+    },
+    {
+      "id": "bd-bytedance-white",
+      "zh": "字节跳动 · 纯白",
+      "en": "ByteDance · White",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-bytedance-white.png"
+    },
+    {
+      "id": "bd-douyin-group-color",
+      "zh": "抖音集团 · 原色",
+      "en": "Douyin Group · Color",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-douyin-group-color.png"
+    },
+    {
+      "id": "bd-douyin-color",
+      "zh": "抖音 · 原色组合",
+      "en": "Douyin · Color lockup",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-douyin-color.png"
+    },
+    {
+      "id": "bd-douyin-white",
+      "zh": "抖音 · 纯白组合",
+      "en": "Douyin · White lockup",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-douyin-white.png"
+    },
+    {
+      "id": "bd-toutiao-color",
+      "zh": "今日头条 · 原色",
+      "en": "Toutiao · color",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-toutiao-color.png"
+    },
+    {
+      "id": "bd-toutiao-black",
+      "zh": "今日头条 · 纯黑",
+      "en": "Toutiao · black",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-toutiao-black.png"
+    },
+    {
+      "id": "bd-toutiao-white",
+      "zh": "今日头条 · 纯白",
+      "en": "Toutiao · white",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-toutiao-white.png"
+    },
+    {
+      "id": "bd-xigua-color",
+      "zh": "西瓜视频 · 原色",
+      "en": "Xigua Video · color",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-xigua-color.svg"
+    },
+    {
+      "id": "bd-xigua-white",
+      "zh": "西瓜视频 · 纯白",
+      "en": "Xigua Video · white",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-xigua-white.svg"
+    },
+    {
+      "id": "bd-capcut-black",
+      "zh": "CapCut · 纯黑",
+      "en": "CapCut · black",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-capcut-black.svg"
+    },
+    {
+      "id": "bd-capcut-white",
+      "zh": "CapCut · 纯白",
+      "en": "CapCut · white",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-capcut-white.svg"
+    },
+    {
+      "id": "bd-tiktok-black",
+      "zh": "TikTok · 纯黑音符",
+      "en": "TikTok · black symbol",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-tiktok-black.svg"
+    },
+    {
+      "id": "bd-tiktok-white",
+      "zh": "TikTok · 纯白音符",
+      "en": "TikTok · white symbol",
+      "aliases": ["字节跳动", "bytedance"],
+      "category": "bytedance",
+      "file": "assets/brand/bytedance/bd-tiktok-white.svg"
+    },
+    {
+      "id": "tiktok",
+      "zh": "抖音",
+      "en": "TikTok",
+      "aliases": ["douyin", "字节跳动"],
+      "category": "bytedance"
     },
     {
       "id": "notion",
@@ -74,14 +273,6 @@
       "en": "Framer",
       "aliases": [],
       "category": "office"
-    },
-    {
-      "id": "doubao-work",
-      "zh": "豆包工作",
-      "en": "Doubao Work",
-      "aliases": ["豆包", "doubao", "字节跳动"],
-      "category": "ai",
-      "file": "assets/brand/doubao-work.png"
     },
     {
       "id": "qoder",
@@ -292,13 +483,6 @@
       "zh": "微博",
       "en": "Weibo",
       "aliases": ["新浪"],
-      "category": "social"
-    },
-    {
-      "id": "tiktok",
-      "zh": "抖音",
-      "en": "TikTok",
-      "aliases": ["douyin", "字节跳动"],
       "category": "social"
     },
     {

@@ -168,3 +168,10 @@ it('移除错误变体后旧 id 仍能加载原稿，TikTok 不再软件染色',
   expect(fetchMock).toHaveBeenCalledWith('/brand/tiktok.svg')
   expect(graphic).toMatchObject({ preserveColor: true })
 })
+
+it('字节精选黑白原稿忽略存档里的程序染色开关', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, text: async () => SVG }))
+  const { loadBrandGraphic } = await brandModule()
+  const graphic = await loadBrandGraphic('bd-feishu-black', true)
+  expect(graphic?.kind === 'image' && graphic.preserveColor).toBe(true)
+})

@@ -66,7 +66,7 @@ npm run gen:app-icons # 用本机 chromium 把 SVG 应用图标位图化
 - Vite 8、React 19、TypeScript、Tailwind CSS v4、shadcn/ui（Base UI 底层）、zustand。
 - 渲染引擎是 [@paper-design/shaders](https://github.com/paper-design/shaders)（Apache-2.0）的 `staticMeshGradient`、`meshGradient`、`warp`、`grainGradient` 四个着色器，项目只做种子映射、离屏渲染与限幅。
 - 内置图标来自 lucide-react 1.37（ISC），emoji 索引来自 emojibase-data 15.0.0（MIT），emoji 图形来自 Noto Emoji v2.047（Apache-2.0）；索引产物入库，选择器按需加载。
-- 内置品牌图形 58 个，文件随站点同源分发，索引与加载器都是懒 chunk。
+- 内置品牌图形 92 个，文件随站点同源分发，索引与加载器都是懒 chunk。
 - 颜色计算用 culori，全部在 OKLCH 空间做。
 - 着色器、字体选择器、品牌索引都按需加载；首屏体积口径见 `docs/architecture.md`。
 
@@ -87,7 +87,7 @@ v3 是整体重写。v2 的 SVG 多层径向渐变、SVG 导出与旧命令行�
 
 ## 素材与致谢
 
-- 内置品牌图形取自 [dashboard-icons](https://github.com/homarr-labs/dashboard-icons)（Apache-2.0）。图形本身按该许可分发，各品牌名称与标识的商标权归其所有者，本项目不主张任何权利，也不代表与这些品牌有关联或获得其背书。
+- 第三方内置品牌图形取自 [dashboard-icons](https://github.com/homarr-labs/dashboard-icons)（Apache-2.0）。图形本身按该许可分发，各品牌名称与标识的商标权归其所有者，本项目不主张任何权利，也不代表与这些品牌有关联或获得其背书。
 - 飞书、豆包工作、WorkBuddy 三个图形用的是 owner 手上的官方素材，Qoder 是照官方标识描摹的矢量。清单在 `scripts/brand-list.json`，跑 `npm run gen:brand` 重出。
 - [Justin Jay Wang](https://justinjay.wang/methods-for-random-gradients/) 的多层径向渐变方法是 v1 与 v2 的出发点。
 - [Paper](https://paper.design) 开源的 shader 库让 v3 的四种质感不必从零写 GLSL。
@@ -124,3 +124,5 @@ Noto Serif SC 600/700 按需加载，新选宋体默认 600，已有字重保留
 手机精调提供字号/位置减加与直接数值输入，品牌选择优先客户素材；HARMAY 与东黎颜色版本按客户成品选取。简介位于设置菜单并以新标签打开。素材来源与版本缺失见 [审计](docs/audits/2026-11-07-brand-assets.md)。
 
 网页合成不上传文字和素材；站点加速与安全服务可能使用必要 Cookie。其他字体、目录及 emoji 可能使用外部服务，离线依赖已缓存资源。远程 MCP 在部署方服务器处理请求，见 [自动化边界](docs/automation.md)。
+
+字节品牌分组位于客户素材之后，优先豆包工作、飞书、豆包。新增23个原色及黑白版本，缺少的版本不自动补造；精选稿保持原色，来源与版本见 [素材说明](assets/brand/bytedance/README.md)。

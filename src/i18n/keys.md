@@ -289,6 +289,7 @@
 | `icon.brand.dongliNote` | 深底选白色，浅底选深咖；黑色仅供黑白印刷。 |
 | `icon.brand.softwareNote` | 原图保留源文件配色；程序染色不是官方单色稿，可能丢失图形内部细节。 |
 | `icon.brand.category.client` | 客户品牌 |
+| `icon.brand.category.bytedance` | 字节跳动 |
 
 | `preview.height.decrease` | 缩小预览 |
 | `preview.height.increase` | 放大预览 |

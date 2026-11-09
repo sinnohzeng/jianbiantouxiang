@@ -48,7 +48,11 @@ export function GraphicSection() {
   const enabled = icon.source !== 'none'
   const type = config.typography
   // 单色只对品牌标志有意义：emoji 与上传的图压成剪影只会糊成一块
-  const isBrand = icon.source === 'brand' && !isClientPreset(icon.id) && icon.id !== 'tiktok'
+  const isBrand =
+    icon.source === 'brand' &&
+    !isClientPreset(icon.id) &&
+    icon.id !== 'tiktok' &&
+    !icon.id.startsWith('bd-')
   const label = useGraphicLabel(icon.source, icon.id)
 
   const client = isClientPreset(icon.id)

@@ -1,0 +1,209 @@
+[
+  {
+    "id": "bd-doubao-work-black",
+    "label": "豆包工作 · 黑色组合",
+    "width": 3917,
+    "height": 998,
+    "ink": 24839,
+    "black": 1,
+    "white": 0
+  },
+  {
+    "id": "bd-doubao-work-white",
+    "label": "豆包工作 · 白色组合",
+    "width": 3916,
+    "height": 998,
+    "ink": 24931,
+    "black": 0,
+    "white": 1
+  },
+  {
+    "id": "bd-feishu-color",
+    "label": "飞书 · 原色组合",
+    "width": 223,
+    "height": 100,
+    "ink": 18433,
+    "black": 0.38832528617154016,
+    "white": 0
+  },
+  {
+    "id": "bd-feishu-black",
+    "label": "飞书 · 纯黑组合",
+    "width": 227,
+    "height": 100,
+    "ink": 17374,
+    "black": 1,
+    "white": 0
+  },
+  {
+    "id": "bd-feishu-white",
+    "label": "飞书 · 纯白组合",
+    "width": 227,
+    "height": 100,
+    "ink": 17374,
+    "black": 0,
+    "white": 1
+  },
+  {
+    "id": "bd-doubao-color",
+    "label": "豆包 · 原色组合",
+    "width": 2378,
+    "height": 1024,
+    "ink": 33963,
+    "black": 0.2578983010923652,
+    "white": 0.2197391278744516
+  },
+  {
+    "id": "bd-volcengine-color",
+    "label": "火山引擎 · 原色组合",
+    "width": 352,
+    "height": 75,
+    "ink": 24324,
+    "black": 0,
+    "white": 0
+  },
+  {
+    "id": "bd-oceanengine-black",
+    "label": "巨量引擎 · 纯黑",
+    "width": 103,
+    "height": 28,
+    "ink": 25213,
+    "black": 1,
+    "white": 0
+  },
+  {
+    "id": "bd-oceanengine-white",
+    "label": "巨量引擎 · 纯白",
+    "width": 103,
+    "height": 28,
+    "ink": 25213,
+    "black": 0,
+    "white": 1
+  },
+  {
+    "id": "bd-bytedance-color",
+    "label": "字节跳动 · 原色",
+    "width": 432,
+    "height": 74,
+    "ink": 14611,
+    "black": 0,
+    "white": 0
+  },
+  {
+    "id": "bd-bytedance-white",
+    "label": "字节跳动 · 纯白",
+    "width": 4553,
+    "height": 1640,
+    "ink": 4409,
+    "black": 0,
+    "white": 1
+  },
+  {
+    "id": "bd-douyin-group-color",
+    "label": "抖音集团 · 原色",
+    "width": 1024,
+    "height": 268,
+    "ink": 22153,
+    "black": 0,
+    "white": 0
+  },
+  {
+    "id": "bd-douyin-color",
+    "label": "抖音 · 原色组合",
+    "width": 1703,
+    "height": 708,
+    "ink": 24034,
+    "black": 0.7571773321128401,
+    "white": 0
+  },
+  {
+    "id": "bd-douyin-white",
+    "label": "抖音 · 纯白组合",
+    "width": 1703,
+    "height": 720,
+    "ink": 21880,
+    "black": 0,
+    "white": 1
+  },
+  {
+    "id": "bd-toutiao-color",
+    "label": "今日头条 · 原色",
+    "width": 4000,
+    "height": 2250,
+    "ink": 9353,
+    "black": 0.34288463594568586,
+    "white": 0.24997327060836094
+  },
+  {
+    "id": "bd-toutiao-black",
+    "label": "今日头条 · 纯黑",
+    "width": 4000,
+    "height": 2251,
+    "ink": 6303,
+    "black": 1,
+    "white": 0
+  },
+  {
+    "id": "bd-toutiao-white",
+    "label": "今日头条 · 纯白",
+    "width": 4000,
+    "height": 2251,
+    "ink": 6303,
+    "black": 0,
+    "white": 1
+  },
+  {
+    "id": "bd-xigua-color",
+    "label": "西瓜视频 · 原色",
+    "width": 277,
+    "height": 61,
+    "ink": 26782,
+    "black": 0.6316555895750877,
+    "white": 0
+  },
+  {
+    "id": "bd-xigua-white",
+    "label": "西瓜视频 · 纯白",
+    "width": 277,
+    "height": 62,
+    "ink": 26782,
+    "black": 0,
+    "white": 1
+  },
+  {
+    "id": "bd-capcut-black",
+    "label": "CapCut · 纯黑",
+    "width": 705,
+    "height": 143,
+    "ink": 22593,
+    "black": 1,
+    "white": 0
+  },
+  {
+    "id": "bd-capcut-white",
+    "label": "CapCut · 纯白",
+    "width": 705,
+    "height": 143,
+    "ink": 22593,
+    "black": 0,
+    "white": 1
+  },
+  {
+    "id": "bd-tiktok-black",
+    "label": "TikTok · 纯黑音符",
+    "width": 24,
+    "height": 24,
+    "ink": 11264,
+    "black": 1,
+    "white": 0
+  },
+  {
+    "id": "bd-tiktok-white",
+    "label": "TikTok · 纯白音符",
+    "width": 24,
+    "height": 24,
+    "ink": 11264,
+    "black": 0,
+    "white": 1
+  }
+]

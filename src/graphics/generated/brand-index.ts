@@ -4,7 +4,7 @@
  * 带 file 的条目来自 assets/brand，是 owner 提供的素材。
  */
 
-export type BrandCategory = "office" | "ai" | "dev" | "social" | "cloud" | "brand"
+export type BrandCategory = "bytedance" | "office" | "ai" | "dev" | "social" | "cloud" | "brand"
 
 export interface BrandEntry {
   readonly id: string
@@ -18,6 +18,7 @@ export interface BrandEntry {
 }
 
 export const BRAND_CATEGORIES: readonly BrandCategory[] = [
+  "bytedance",
   "office",
   "ai",
   "dev",
@@ -27,7 +28,32 @@ export const BRAND_CATEGORIES: readonly BrandCategory[] = [
 ]
 
 export const BRAND_INDEX: readonly BrandEntry[] = [
-  { id: "lark", zh: "飞书", en: "Lark", aliases: ["feishu", "字节跳动", "bytedance"], category: "office", ext: "svg" },
+  { id: "doubao-work", zh: "豆包工作", en: "Doubao Work", aliases: ["豆包", "doubao", "字节跳动"], category: "bytedance", ext: "png" },
+  { id: "bd-doubao-work-black", zh: "豆包工作 · 黑色组合", en: "Doubao Work · black lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
+  { id: "bd-doubao-work-white", zh: "豆包工作 · 白色组合", en: "Doubao Work · white lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
+  { id: "lark", zh: "飞书", en: "Lark", aliases: ["feishu", "字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-feishu-color", zh: "飞书 · 原色组合", en: "Feishu · color lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-feishu-black", zh: "飞书 · 纯黑组合", en: "Feishu · black lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-feishu-white", zh: "飞书 · 纯白组合", en: "Feishu · white lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-doubao-color", zh: "豆包 · 原色组合", en: "Doubao · Color lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
+  { id: "bd-volcengine-color", zh: "火山引擎 · 原色组合", en: "Volcengine · Color lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-oceanengine-black", zh: "巨量引擎 · 纯黑", en: "Ocean Engine · black", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-oceanengine-white", zh: "巨量引擎 · 纯白", en: "Ocean Engine · white", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-bytedance-color", zh: "字节跳动 · 原色", en: "ByteDance · Color", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-bytedance-white", zh: "字节跳动 · 纯白", en: "ByteDance · White", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
+  { id: "bd-douyin-group-color", zh: "抖音集团 · 原色", en: "Douyin Group · Color", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
+  { id: "bd-douyin-color", zh: "抖音 · 原色组合", en: "Douyin · Color lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
+  { id: "bd-douyin-white", zh: "抖音 · 纯白组合", en: "Douyin · White lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
+  { id: "bd-toutiao-color", zh: "今日头条 · 原色", en: "Toutiao · color", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
+  { id: "bd-toutiao-black", zh: "今日头条 · 纯黑", en: "Toutiao · black", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
+  { id: "bd-toutiao-white", zh: "今日头条 · 纯白", en: "Toutiao · white", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
+  { id: "bd-xigua-color", zh: "西瓜视频 · 原色", en: "Xigua Video · color", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-xigua-white", zh: "西瓜视频 · 纯白", en: "Xigua Video · white", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-capcut-black", zh: "CapCut · 纯黑", en: "CapCut · black", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-capcut-white", zh: "CapCut · 纯白", en: "CapCut · white", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-tiktok-black", zh: "TikTok · 纯黑音符", en: "TikTok · black symbol", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "bd-tiktok-white", zh: "TikTok · 纯白音符", en: "TikTok · white symbol", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "tiktok", zh: "抖音", en: "TikTok", aliases: ["douyin", "字节跳动"], category: "bytedance", ext: "svg" },
   { id: "notion", zh: "Notion", en: "Notion", aliases: [], category: "office", ext: "svg" },
   { id: "figma", zh: "Figma", en: "Figma", aliases: [], category: "office", ext: "svg" },
   { id: "slack", zh: "Slack", en: "Slack", aliases: [], category: "office", ext: "svg" },
@@ -37,7 +63,6 @@ export const BRAND_INDEX: readonly BrandEntry[] = [
   { id: "confluence", zh: "Confluence", en: "Confluence", aliases: ["atlassian", "wiki"], category: "office", ext: "svg" },
   { id: "obsidian", zh: "Obsidian", en: "Obsidian", aliases: ["黑曜石", "笔记"], category: "office", ext: "svg" },
   { id: "framer", zh: "Framer", en: "Framer", aliases: [], category: "office", ext: "svg" },
-  { id: "doubao-work", zh: "豆包工作", en: "Doubao Work", aliases: ["豆包", "doubao", "字节跳动"], category: "ai", ext: "png" },
   { id: "qoder", zh: "Qoder", en: "Qoder", aliases: ["阿里", "alibaba"], category: "ai", ext: "svg", white: "qoder-white" },
   { id: "workbuddy", zh: "WorkBuddy", en: "WorkBuddy", aliases: ["buddy"], category: "ai", ext: "svg" },
   { id: "openai", zh: "OpenAI", en: "OpenAI", aliases: [], category: "ai", ext: "svg", white: "openai-light" },
@@ -67,7 +92,6 @@ export const BRAND_INDEX: readonly BrandEntry[] = [
   { id: "qq", zh: "QQ", en: "QQ", aliases: ["腾讯"], category: "social", ext: "svg" },
   { id: "bilibili", zh: "哔哩哔哩", en: "Bilibili", aliases: ["B站", "b站"], category: "social", ext: "svg" },
   { id: "weibo", zh: "微博", en: "Weibo", aliases: ["新浪"], category: "social", ext: "svg" },
-  { id: "tiktok", zh: "抖音", en: "TikTok", aliases: ["douyin", "字节跳动"], category: "social", ext: "svg" },
   { id: "telegram", zh: "Telegram", en: "Telegram", aliases: ["电报", "tg"], category: "social", ext: "svg" },
   { id: "discord", zh: "Discord", en: "Discord", aliases: [], category: "social", ext: "svg" },
   { id: "twitter", zh: "Twitter", en: "Twitter", aliases: ["推特", "x"], category: "social", ext: "svg" },

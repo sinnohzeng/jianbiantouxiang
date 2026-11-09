@@ -1,0 +1,117 @@
+[
+  {
+    "id": "bd-doubao-work-black",
+    "file": "bd-doubao-work-black.png",
+    "sha256": "bcf5e62add547d4dfe0065cb29d7a0eeac0e1022904175f880a7f5c16ddc7973"
+  },
+  {
+    "id": "bd-doubao-work-white",
+    "file": "bd-doubao-work-white.png",
+    "sha256": "10ee1b932965bfa640eada325e6ed754c62612a1bab604d0bfa6ba24d4058b94"
+  },
+  {
+    "id": "bd-feishu-color",
+    "file": "bd-feishu-color.svg",
+    "sha256": "3ffe29ac9d73be1b38e35bebf04171f54ea7deab885b527ba18a1408c83da733"
+  },
+  {
+    "id": "bd-feishu-black",
+    "file": "bd-feishu-black.svg",
+    "sha256": "e4cb74d2dff7c557271872b40db5096f27602dc93cd2a395bebf3be3e5f595fa"
+  },
+  {
+    "id": "bd-feishu-white",
+    "file": "bd-feishu-white.svg",
+    "sha256": "59390cead4e0455e088cc9a4a84ac0d8e729f7367314ad6e4f301837479d0a3d"
+  },
+  {
+    "id": "bd-doubao-color",
+    "file": "bd-doubao-color.png",
+    "sha256": "d3503578237ff1f2eca9f9c789ccdfae2b30445c80cd4d6bda108c98c489d677"
+  },
+  {
+    "id": "bd-volcengine-color",
+    "file": "bd-volcengine-color.svg",
+    "sha256": "30b84f5159c02bb4e6b4d0d5ef8a731e58e7cff8b3b3edff72d6a5f903a1724b"
+  },
+  {
+    "id": "bd-oceanengine-black",
+    "file": "bd-oceanengine-black.svg",
+    "sha256": "f00921e3681d56555ae5781e31e160411077b6e16bd921fd784ca5d7b355475c"
+  },
+  {
+    "id": "bd-oceanengine-white",
+    "file": "bd-oceanengine-white.svg",
+    "sha256": "0dfd992c11e17f38881f1ec6d1233aa6d694b6cffd27f4361279a3ead2f3e035"
+  },
+  {
+    "id": "bd-bytedance-color",
+    "file": "bd-bytedance-color.svg",
+    "sha256": "b04bd510c814a5d69391375f333eb0e7572e7b2cd6de50fe2826a3a7296018e7"
+  },
+  {
+    "id": "bd-bytedance-white",
+    "file": "bd-bytedance-white.png",
+    "sha256": "1bf604805938447f716645ef43b1c8f9cc831a42cc3dc142bd58b8acda2e5302"
+  },
+  {
+    "id": "bd-douyin-group-color",
+    "file": "bd-douyin-group-color.png",
+    "sha256": "ada3ecfc3a4c1d92d47486bbaba2fac60a3dcedfa2505eb58f71049b13a88dcf"
+  },
+  {
+    "id": "bd-douyin-color",
+    "file": "bd-douyin-color.png",
+    "sha256": "4f923b1f5203592bb5714847ac98ec01aec7a4a1c2e813891690c2fde446bb1a"
+  },
+  {
+    "id": "bd-douyin-white",
+    "file": "bd-douyin-white.png",
+    "sha256": "cc029de165dafb0b6b1363c0f3b440a72ba7393968b0cd05f398e5e53280670f"
+  },
+  {
+    "id": "bd-toutiao-color",
+    "file": "bd-toutiao-color.png",
+    "sha256": "7c0a9d23e7c98576bb4b2389299b9a6eef523d9cc334dc3ff896bb83ad2b17ba"
+  },
+  {
+    "id": "bd-toutiao-black",
+    "file": "bd-toutiao-black.png",
+    "sha256": "0184d085bbb75ae50edda7a3fa49a461fad9078c6a3d84ee60201d475ccf7c90"
+  },
+  {
+    "id": "bd-toutiao-white",
+    "file": "bd-toutiao-white.png",
+    "sha256": "8545f6ae9196e9a3a0b39e8e104e3a938a7f76abeb9745d0092a1564769d9e29"
+  },
+  {
+    "id": "bd-xigua-color",
+    "file": "bd-xigua-color.svg",
+    "sha256": "8d496c694c5e3a93de04d7aec73c9c0600edfdf3bffc13a81d2b5be2f5841795"
+  },
+  {
+    "id": "bd-xigua-white",
+    "file": "bd-xigua-white.svg",
+    "sha256": "3bda3e100437f5a3905da284332746d0854408136c1ec5062639b43a8f665aac"
+  },
+  {
+    "id": "bd-capcut-black",
+    "file": "bd-capcut-black.svg",
+    "sha256": "8d397969e5f3afac08a5110c9824256e0a0d2baf37fda22bb06c92ef2b6661d4"
+  },
+  {
+    "id": "bd-capcut-white",
+    "file": "bd-capcut-white.svg",
+    "sha256": "bffe71f614078789690d0689fe029c0129eba123e7e5c0075fe092f7eaf35f3f"
+  },
+  {
+    "id": "bd-tiktok-black",
+    "file": "bd-tiktok-black.svg",
+    "sha256": "6f54ac8d325faacea8935bdc44cbed60206a6b408641799e5fea1cba7c1a0af7"
+  },
+  {
+    "id": "bd-tiktok-white",
+    "file": "bd-tiktok-white.svg",
+    "sha256": "9896cc20e74294d17091180875a6e6f7e3fa4d0b82f22ee166c16eebf4ea6b9e"
+  }
+]

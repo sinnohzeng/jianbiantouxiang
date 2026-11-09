@@ -90,7 +90,8 @@ async function load(file: BrandFile): Promise<Graphic | null> {
           preserveColor: true,
         }
     }
-    return (isClientPreset(file.id) || file.id === 'tiktok') && graphic.kind === 'image'
+    return (isClientPreset(file.id) || file.id === 'tiktok' || file.id.startsWith('bd-')) &&
+      graphic.kind === 'image'
       ? { ...graphic, preserveColor: true }
       : graphic
   } catch {

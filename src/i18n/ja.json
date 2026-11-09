@@ -284,5 +284,6 @@
   "icon.reload": "編集を保存して再読み込み",
   "icon.upload.resourceLimit": "画像の画素数またはセッションの素材量が上限を超えました。画像を縮小するか、作品を書き出してから再読み込みしてください。",
   "export.loading": "書き出し設定を読み込み中…",
-  "export.loadFailed": "書き出し設定を読み込めません。接続して再読み込みしてください。"
+  "export.loadFailed": "書き出し設定を読み込めません。接続して再読み込みしてください。",
+  "icon.brand.category.bytedance": "ByteDance"
 }

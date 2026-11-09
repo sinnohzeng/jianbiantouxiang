@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { openApp, probeEncode } from './helpers'
+import { openApp, probeEncode, probeFlush } from './helpers'
 
 // 界面语言默认跟浏览器走，Playwright 的 chromium 是 en-US，标题会变成英文。
 // 用 ?lang= 把语言钉死，断言才跟运行环境无关。
@@ -160,4 +160,22 @@ test('减少动态效果时导出设置仍可首次打开和关闭', async ({ pa
   expect(duration).toBeLessThanOrEqual(0.001)
   await page.keyboard.press('Escape')
   await expect(popup).toBeHidden()
+})
+
+test('字节品牌紧随客户素材，选择原稿后刷新保留', async ({ page }) => {
+  await openApp(page)
+  await page.locator('[data-slot="graphic-picker"]').click()
+  const groups = page.locator('[cmdk-group-heading]')
+  await expect(groups.nth(0)).toHaveText('客户品牌')
+  await expect(groups.nth(1)).toHaveText('字节跳动')
+  const entries = page.locator('[cmdk-group]').nth(1).getByRole('option')
+  await expect(entries.nth(0)).toContainText('豆包工作')
+  await expect(entries.nth(3)).toContainText('飞书')
+  await expect(entries.nth(7)).toContainText('豆包')
+  await page.getByRole('option', { name: '飞书 · 纯白组合', exact: true }).click()
+  await expect(page.locator('[data-slot="graphic-name"]')).toContainText('飞书 · 纯白组合')
+  await expect(page.locator('[data-slot="brand-mono"]')).toHaveCount(0)
+  await probeFlush(page)
+  await page.reload()
+  await expect(page.locator('[data-slot="graphic-name"]')).toContainText('飞书 · 纯白组合')
 })

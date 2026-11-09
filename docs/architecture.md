@@ -58,7 +58,7 @@
 
 “恢复自动排版”清除尺寸位置手调并恢复客户 Logo 比例，保留文字、字体、Logo 和配色。字体选择器桌面为锚定弹层、手机为抽屉，按行选择；第二行可显式跟随第一行。字体加载失败在该行显示提示。
 
-图形选择器默认品牌，客户成品置顶，再到其他品牌、内置图标及 emoji。索引失败显示网络错误和保存编辑后刷新入口；上传素材只在当前会话有效。原色/程序染色及授权边界见“图形来源”。
+图形选择器默认品牌，客户成品置顶，再到字节品牌、其他品牌、内置图标及 emoji。索引失败显示网络错误和保存编辑后刷新入口；上传素材只在当前会话有效。原色/程序染色及授权边界见“图形来源”。
 
 底栏提供「变换底纹」（只换种子）、随机配色、导出和导出选项。顶栏提供撤销重做、历史、语言和设置；简介在设置内以新标签打开（noopener noreferrer）。字体、图形、历史和导出控件按需加载；ExportDrawer 外壳常驻，首次打开经过关闭到打开状态，内容下载期间显示加载状态。关于页是独立静态入口。
 
@@ -139,7 +139,7 @@ flowchart LR
 | --- | --- | --- |
 | 内置图标 | lucide-react 1.37 的 1790 个主图标；精选 162 个随选择器小索引加载，全库 470 KB 原始数据只在搜索超出精选时加载 | `__iconNode` 转 `Path2D`，按文字色描边，并复用文字效果 |
 | emoji | emojibase-data 15.0.0 的 1879 个可分组条目，五种语言各一份标签 chunk | 按码点取 Noto Emoji v2.047 单个 SVG，fetch 转 Blob 再画，保留原色 |
-| 品牌 | `src/graphics/generated/brand-index.ts` 的 69 个条目（含客户颜色版本），带中英文名、别名及上游白色源文件（`white` 字段，11 个条目有值） | 同源静态文件 `public/brand/<id>.svg\|png`，SVG 走 fetch 加消毒再转 Blob，PNG 直接 `Image`，保留原色 |
+| 品牌 | `src/graphics/generated/brand-index.ts` 的 92 个条目（含客户颜色版本），带中英文名、别名及上游白色源文件（`white` 字段，11 个条目有值） | 同源静态文件 `public/brand/<id>.svg\|png`，SVG 走 fetch 加消毒再转 Blob，PNG 直接 `Image`，保留原色 |
 | 上传 | 无索引，模块级会话注册表 | SVG 先经元素与属性白名单重建；PNG / WebP 直接 `Image`，保留原色 |
 
 品牌图形的清单事实来源是 `scripts/brand-list.json`，`npm run gen:brand` 把远端条目从 homarr-labs/dashboard-icons 拉下来、把 `assets/brand/` 里 owner 提供的素材拷过去，统一落到 `public/brand/`，同时生成索引；两个产物都不手改。
@@ -338,3 +338,5 @@ Noto Serif SC 600/700 按需加载，新选宋体默认 600，已有字重保留
 配置平时去抖 300 ms 写 localStorage，pagehide、页面隐藏及明确刷新动作同步待写状态。存储可能因权限、配额或浏览器清理失效，不保证进程强杀时保存。上传字体和图形字节不持久化。
 
 网页合成在浏览器完成；默认字体来自本站，其他字体、目录、emoji 可请求外部服务。正文字体请求不带用户文字的 text 参数；字体名预览的 text 参数是目录显示名。可选远程 MCP 的输入在部署方服务器处理，边界见 automation.md。
+
+字节精选稿以 `bd-` ID登记，加载时设置 preserveColor，界面不提供程序染色；已有 doubao-work、lark、tiktok ID 和文件保留。品牌清单中的 bytedance 类别决定组内顺序，客户分组仍由选择器优先展示。

@@ -398,7 +398,9 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
                   // 上游单色稿是纯白的，压在浅色列表上会看不见，给它垫一块深底，观感也贴近渐变底
                   (mono && entry.white) || entry.id.endsWith('-white')
                     ? 'bg-slate-800'
-                    : 'bg-muted',
+                    : entry.id.startsWith('bd-')
+                      ? 'bg-white'
+                      : 'bg-muted',
                 )}
               >
                 <img
