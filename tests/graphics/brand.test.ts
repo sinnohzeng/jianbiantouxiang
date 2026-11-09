@@ -82,7 +82,7 @@ describe('品牌图形加载', () => {
 
     expect(fetchMock).not.toHaveBeenCalled()
     expect(graphic?.kind).toBe('image')
-    expect(FakeImage.loaded).toEqual(['/brand/doubao-work.png'])
+    expect(FakeImage.loaded).toEqual(['/brand/doubao-work-202611.png'])
   })
 
   it('纯白变体也认，按 SVG 取', async () => {
@@ -111,9 +111,9 @@ describe('品牌图形加载', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     const { loadBrandGraphic } = await brandModule()
-    await loadBrandGraphic('lark', true)
+    await loadBrandGraphic('figma', true)
 
-    expect(fetchMock).toHaveBeenCalledWith('/brand/lark.svg')
+    expect(fetchMock).toHaveBeenCalledWith('/brand/figma.svg')
   })
 
   it('同一品牌的原色稿与官方单色稿各缓存一份，互不顶替', async () => {
@@ -175,3 +175,18 @@ it('字节精选黑白原稿忽略存档里的程序染色开关', async () => {
   const graphic = await loadBrandGraphic('bd-feishu-black', true)
   expect(graphic?.kind === 'image' && graphic.preserveColor).toBe(true)
 })
+
+for (const [id, asset] of [
+  ['doubao-work', '/brand/doubao-work-202611.png'],
+  ['lark', '/brand/feishu-symbol-202611.svg'],
+] as const) {
+  it(`旧配置 ${id} 使用新文件且残留单色开关不改写原稿`, async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, text: async () => SVG })
+    vi.stubGlobal('fetch', fetchMock)
+    const { loadBrandGraphic } = await brandModule()
+    const graphic = await loadBrandGraphic(id, true)
+    expect(graphic).toMatchObject({ preserveColor: true })
+    if (id === 'lark') expect(fetchMock).toHaveBeenCalledWith(asset)
+    else expect(FakeImage.loaded).toEqual([asset])
+  })
+}

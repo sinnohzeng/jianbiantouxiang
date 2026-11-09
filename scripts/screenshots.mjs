@@ -53,12 +53,16 @@ async function main() {
         })
         const page = await context.newPage()
         await page.goto(url, { waitUntil: 'networkidle' })
-        // 固定睡 600 ms 会撞上进场编排：卡片还在半路平移，目检会误判成布局坏了。
-        // 先等幕布脱离 DOM，再等编排落定，与 e2e 的 waitReady 同一口径
-        await page
-          .locator('[data-slot="preloader"][data-loading="true"]')
-          .waitFor({ state: 'detached', timeout: 15_000 })
-          .catch(() => {})
+        // 截图需等完整遮罩退场；loading=false只表示已允许交互，动画仍可能覆盖画面。
+        await page.getByRole('heading', { level: 1 }).waitFor({ state: 'visible' })
+        await page.locator('[data-slot="preloader"][data-loading="true"]').waitFor({
+          state: 'detached',
+          timeout: 60_000,
+        })
+        await page.locator('[data-slot="preloader"] [role="status"]').waitFor({
+          state: 'detached',
+          timeout: 60_000,
+        })
         await page.waitForTimeout(1200)
 
         const base = `${target.name}-${theme}`

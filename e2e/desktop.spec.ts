@@ -450,15 +450,15 @@ test('挑选栏能把没有官方单色稿的品牌切成单色并导出', async
 
   await page.locator('[data-slot="graphic-picker"], [data-slot="graphic-pick"]').click()
   await page.locator('label:has(input[data-group="icon-source"][value="brand"])').click()
-  await page.locator('[data-slot="command-input"]').fill('飞书')
-  await page.getByRole('option', { name: /^(飞书|Lark)$/ }).click()
+  await page.locator('[data-slot="command-input"]').fill('Figma')
+  await page.getByRole('option', { name: /^Figma$/ }).click()
 
-  // 上游没给飞书配官方单色稿，压平在绘制期做，界面上照样切得动
+  // 上游没给Figma配官方单色稿，压平在绘制期做，界面上照样切得动
   const monoTile = page.locator('label:has(input[data-group="brand-mono"][value="mono"])')
   await expect(monoTile).toBeVisible()
   await monoTile.click()
 
-  expect(await readIcon(page)).toMatchObject({ id: 'lark', mono: true })
+  expect(await readIcon(page)).toMatchObject({ id: 'figma', mono: true })
 
   await page.locator('#avatar-text-first').fill('产品设计部')
 
@@ -472,11 +472,11 @@ test('挑选栏能把没有官方单色稿的品牌切成单色并导出', async
   expect(encoded.hitTarget).toBe(true)
 })
 
-test('单色那一档只跟着品牌来源出现', async ({ page }) => {
+test('程序染色只出现在支持的品牌上', async ({ page }) => {
   await openApp(page)
 
   const monoControl = page.locator('[data-slot="brand-mono"]')
-  await expect(monoControl).toBeVisible()
+  await expect(monoControl).toHaveCount(0)
   await page.locator('[data-slot="icon-clear"]').click()
   await expect(monoControl).toHaveCount(0)
 
@@ -490,8 +490,8 @@ test('单色那一档只跟着品牌来源出现', async ({ page }) => {
 
   await page.locator('[data-slot="graphic-picker"]').click()
   await page.locator('label:has(input[data-group="icon-source"][value="brand"])').click()
-  await page.locator('[data-slot="command-input"]').fill('飞书')
-  await page.getByRole('option', { name: /^(飞书|Lark)$/ }).click()
+  await page.locator('[data-slot="command-input"]').fill('Figma')
+  await page.getByRole('option', { name: /^Figma$/ }).click()
   await expect(monoControl).toBeVisible()
 
   // 移除钮是填充态唯一的清空入口

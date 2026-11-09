@@ -52,6 +52,8 @@ export function GraphicSection() {
     icon.source === 'brand' &&
     !isClientPreset(icon.id) &&
     icon.id !== 'tiktok' &&
+    icon.id !== 'doubao-work' &&
+    icon.id !== 'lark' &&
     !icon.id.startsWith('bd-')
   const label = useGraphicLabel(icon.source, icon.id)
 

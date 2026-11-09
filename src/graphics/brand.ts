@@ -37,7 +37,7 @@ function fileOf(id: string, mono: boolean): BrandFile | null {
     if (entry.id === id) {
       return mono && entry.white
         ? { id: entry.white, ext: 'svg' }
-        : { id: entry.id, ext: entry.ext }
+        : { id: entry.asset ?? entry.id, ext: entry.ext }
     }
     if (entry.white === id) return { id, ext: 'svg' }
   }
@@ -90,7 +90,11 @@ async function load(file: BrandFile): Promise<Graphic | null> {
           preserveColor: true,
         }
     }
-    return (isClientPreset(file.id) || file.id === 'tiktok' || file.id.startsWith('bd-')) &&
+    return (isClientPreset(file.id) ||
+      file.id === 'tiktok' ||
+      file.id.startsWith('bd-') ||
+      file.id === 'doubao-work-202611' ||
+      file.id === 'feishu-symbol-202611') &&
       graphic.kind === 'image'
       ? { ...graphic, preserveColor: true }
       : graphic

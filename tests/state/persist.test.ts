@@ -15,7 +15,7 @@ function withText(text: string): AvatarConfig {
 }
 
 function entry(text: string, thumb?: string): HistoryEntry {
-  return { config: withText(text), ...(thumb ? { thumb } : {}) }
+  return { config: withText(text), ...(thumb ? { thumb, thumbVersion: 1 as const } : {}) }
 }
 
 afterEach(() => {
@@ -151,4 +151,33 @@ describe('存储不可用', () => {
     })
     expect(() => clearPersisted()).not.toThrow()
   })
+})
+
+it('素材升级只失效两个品牌的旧缩略图，历史配置与其他品牌保持', () => {
+  const history = ['doubao-work', 'lark', 'github'].map((id) => ({
+    config: {
+      ...DEFAULT_CONFIG,
+      text: id,
+      layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'brand' as const, id, mono: false } },
+    },
+    thumb: 'data:image/jpeg;base64,old',
+  }))
+  store.setItem(PERSIST_KEY, JSON.stringify({ config: DEFAULT_CONFIG, history }))
+  const loaded = loadPersistedState()!
+  expect(loaded.history.map((e) => e.config)).toEqual(history.map((e) => e.config))
+  expect(loaded.history.map((e) => e.thumb)).toEqual([undefined, undefined, history[2]?.thumb])
+  savePersisted(loaded.config, loaded.history)
+  expect(loadPersistedState()?.history).toEqual(loaded.history)
+})
+
+it('更新后重新生成的品牌缩略图继续保留', () => {
+  for (const id of ['doubao-work', 'lark']) {
+    const config = {
+      ...DEFAULT_CONFIG,
+      layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'brand' as const, id, mono: false } },
+    }
+    const history = [{ config, thumb: 'data:image/jpeg;base64,new', thumbVersion: 1 as const }]
+    savePersisted(config, history)
+    expect(loadPersistedState()?.history).toEqual(history)
+  }
 })

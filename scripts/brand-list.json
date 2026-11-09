@@ -9,7 +9,8 @@
       "en": "Doubao Work",
       "aliases": ["豆包", "doubao", "字节跳动"],
       "category": "bytedance",
-      "file": "assets/brand/doubao-work.png"
+      "file": "assets/brand/bytedance/doubao-work-202611.png",
+      "asset": "doubao-work-202611"
     },
     {
       "id": "bd-doubao-work-black",
@@ -33,7 +34,8 @@
       "en": "Lark",
       "aliases": ["feishu", "字节跳动", "bytedance"],
       "category": "bytedance",
-      "file": "assets/brand/lark.svg"
+      "file": "assets/brand/bytedance/feishu-symbol-202611.svg",
+      "asset": "feishu-symbol-202611"
     },
     {
       "id": "bd-feishu-color",

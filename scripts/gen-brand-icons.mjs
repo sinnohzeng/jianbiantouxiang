@@ -83,16 +83,17 @@ let copied = 0
 
 for (const brand of list.brands) {
   const id = assertSafeName(brand.id)
+  const asset = brand.asset ? assertSafeName(brand.asset) : id
   if (!known.has(brand.category)) throw new Error(`${id} 的类别不在清单里：${brand.category}`)
 
   const ext = brand.file ? path.extname(brand.file).slice(1).toLowerCase() : 'svg'
   if (ext !== 'svg' && ext !== 'png') throw new Error(`${id} 的扩展名不支持：${ext}`)
 
   if (brand.file) {
-    await copyAsset(path.join(root, brand.file), path.join(outputDir, `${id}.${ext}`))
+    await copyAsset(path.join(root, brand.file), path.join(outputDir, `${asset}.${ext}`))
     copied += 1
   } else {
-    await writeSvg(path.join(outputDir, `${id}.svg`), await fetchSvg(list.source, id))
+    await writeSvg(path.join(outputDir, `${asset}.svg`), await fetchSvg(list.source, id))
     fetched += 1
   }
 
@@ -109,6 +110,7 @@ for (const brand of list.brands) {
 
   entries.push({
     id,
+    asset: brand.asset,
     zh: brand.zh,
     en: brand.en,
     aliases: brand.aliases ?? [],
@@ -131,6 +133,7 @@ function serializeEntry(entry) {
     `category: ${JSON.stringify(entry.category)}`,
     `ext: ${JSON.stringify(entry.ext)}`,
   ]
+  if (entry.asset) fields.push(`asset: ${JSON.stringify(entry.asset)}`)
   if (entry.white) fields.push(`white: ${JSON.stringify(entry.white)}`)
   return `  { ${fields.join(', ')} },`
 }
@@ -145,6 +148,8 @@ export type BrandCategory = ${categories.map((category) => JSON.stringify(catego
 
 export interface BrandEntry {
   readonly id: string
+  /** 版本化资源名；未指定时与稳定存档ID相同。 */
+  readonly asset?: string
   readonly zh: string
   readonly en: string
   readonly aliases: readonly string[]

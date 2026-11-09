@@ -1,0 +1,106 @@
+{
+  "rows": [
+    {
+      "id": "doubao-work",
+      "version": "old",
+      "width": 266,
+      "height": 266,
+      "bounds": {
+        "x": 42,
+        "y": 35,
+        "width": 187,
+        "height": 197
+      }
+    },
+    {
+      "id": "doubao-work",
+      "version": "new",
+      "width": 947,
+      "height": 1001,
+      "bounds": {
+        "x": 0,
+        "y": 1,
+        "width": 947,
+        "height": 1000
+      }
+    },
+    {
+      "id": "lark",
+      "version": "old",
+      "width": 189,
+      "height": 150,
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 189,
+        "height": 150
+      }
+    },
+    {
+      "id": "lark",
+      "version": "new",
+      "width": 90,
+      "height": 100,
+      "bounds": {
+        "x": 0,
+        "y": 15,
+        "width": 88,
+        "height": 70
+      }
+    },
+    {
+      "id": "bd-doubao-work-black",
+      "version": "new",
+      "width": 3917,
+      "height": 998,
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 3917,
+        "height": 998
+      }
+    },
+    {
+      "id": "bd-doubao-work-white",
+      "version": "new",
+      "width": 3916,
+      "height": 998,
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 3916,
+        "height": 998
+      }
+    },
+    {
+      "id": "bd-feishu-black",
+      "version": "new",
+      "width": 227,
+      "height": 100,
+      "bounds": {
+        "x": 0,
+        "y": 15,
+        "width": 227,
+        "height": 70
+      }
+    },
+    {
+      "id": "bd-feishu-white",
+      "version": "new",
+      "width": 227,
+      "height": 100,
+      "bounds": {
+        "x": 0,
+        "y": 15,
+        "width": 227,
+        "height": 70
+      }
+    }
+  ],
+  "vector": {
+    "x": 0,
+    "y": 15.000001907348633,
+    "width": 88.02999877929688,
+    "height": 70
+  }
+}

@@ -40,7 +40,7 @@ it('精选源文件与哈希清单一致，仅包含网页Logo及说明', () => 
     file: string
     sha256: string
   }[]
-  expect(manifest).toHaveLength(23)
+  expect(manifest).toHaveLength(25)
   for (const x of manifest) {
     expect(
       createHash('sha256')
@@ -52,4 +52,29 @@ it('精选源文件与哈希清单一致，仅包含网页Logo及说明', () => 
   expect(readdirSync(dir).sort()).toEqual(
     [...manifest.map((x) => x.file), 'manifest.json', 'README.md'].sort(),
   )
+})
+
+it('稳定ID使用独立版本化文件，不再请求退役资源', () => {
+  expect(BRAND_INDEX.find((x) => x.id === 'doubao-work')).toMatchObject({
+    asset: 'doubao-work-202611',
+    ext: 'png',
+  })
+  expect(BRAND_INDEX.find((x) => x.id === 'lark')).toMatchObject({
+    asset: 'feishu-symbol-202611',
+    ext: 'svg',
+  })
+  const files = readdirSync('public/brand')
+  expect(files).not.toContain('doubao-work.png')
+  expect(files).not.toContain('lark.svg')
+  const config = normalizeConfig({
+    text: '已保存客户\n协作群',
+    layout: {
+      icon: { source: 'brand', id: 'doubao-work', mono: true },
+      graphic: 0.37,
+      offsetY: 0.04,
+    },
+  })
+  expect(config.text).toBe('已保存客户\n协作群')
+  expect(config.layout.icon).toMatchObject({ id: 'doubao-work', mono: true })
+  expect(config.layout.graphic).toBe(0.37)
 })

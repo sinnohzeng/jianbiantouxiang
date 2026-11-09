@@ -49,11 +49,21 @@ export function loadPersistedState(): PersistedState | null {
         .slice(0, HISTORY_MAX)
         .map((item) => {
           const rawConfig = isRecord(item.config) ? item.config : {}
+          const config = normalizeConfig(rawConfig)
+          const replacedBrand =
+            config.layout.icon.source === 'brand' &&
+            ['doubao-work', 'lark'].includes(config.layout.icon.id)
+          const staleThumb = replacedBrand && item.thumbVersion !== 1
           const thumb =
-            typeof item.thumb === 'string' && item.thumb.startsWith('data:image/')
+            !staleThumb && typeof item.thumb === 'string' && item.thumb.startsWith('data:image/')
               ? item.thumb
               : undefined
-          return { config: normalizeConfig(rawConfig), ...(thumb ? { thumb } : {}) }
+          return {
+            config,
+            ...(thumb
+              ? { thumb, ...(item.thumbVersion === 1 ? { thumbVersion: 1 as const } : {}) }
+              : {}),
+          }
         })
     : []
 

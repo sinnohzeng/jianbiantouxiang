@@ -8,6 +8,8 @@ export type BrandCategory = "bytedance" | "office" | "ai" | "dev" | "social" | "
 
 export interface BrandEntry {
   readonly id: string
+  /** 版本化资源名；未指定时与稳定存档ID相同。 */
+  readonly asset?: string
   readonly zh: string
   readonly en: string
   readonly aliases: readonly string[]
@@ -28,10 +30,10 @@ export const BRAND_CATEGORIES: readonly BrandCategory[] = [
 ]
 
 export const BRAND_INDEX: readonly BrandEntry[] = [
-  { id: "doubao-work", zh: "豆包工作", en: "Doubao Work", aliases: ["豆包", "doubao", "字节跳动"], category: "bytedance", ext: "png" },
+  { id: "doubao-work", zh: "豆包工作", en: "Doubao Work", aliases: ["豆包", "doubao", "字节跳动"], category: "bytedance", ext: "png", asset: "doubao-work-202611" },
   { id: "bd-doubao-work-black", zh: "豆包工作 · 黑色组合", en: "Doubao Work · black lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
   { id: "bd-doubao-work-white", zh: "豆包工作 · 白色组合", en: "Doubao Work · white lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "png" },
-  { id: "lark", zh: "飞书", en: "Lark", aliases: ["feishu", "字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
+  { id: "lark", zh: "飞书", en: "Lark", aliases: ["feishu", "字节跳动", "bytedance"], category: "bytedance", ext: "svg", asset: "feishu-symbol-202611" },
   { id: "bd-feishu-color", zh: "飞书 · 原色组合", en: "Feishu · color lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
   { id: "bd-feishu-black", zh: "飞书 · 纯黑组合", en: "Feishu · black lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },
   { id: "bd-feishu-white", zh: "飞书 · 纯白组合", en: "Feishu · white lockup", aliases: ["字节跳动", "bytedance"], category: "bytedance", ext: "svg" },

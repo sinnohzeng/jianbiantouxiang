@@ -49,8 +49,9 @@ interface BrandIndex {
  * 画面上的压平交给绘制期，列表不必自己再合成一遍。
  */
 function brandThumbUrl(entry: BrandEntry, mono: boolean): string {
-  const id = mono && entry.white ? entry.white : entry.id
-  const ext = id === entry.id ? entry.ext : 'svg'
+  const white = mono && entry.white
+  const id = white || entry.asset || entry.id
+  const ext = white ? 'svg' : entry.ext
   return `${import.meta.env.BASE_URL}brand/${id}.${ext}`
 }
 

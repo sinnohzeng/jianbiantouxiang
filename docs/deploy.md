@@ -55,6 +55,8 @@ NS 接入下记录与路由约一分钟生效，浏览器直接打开根域名�
 | `/assets/*`、`/fonts/*`、`/brand/*` | 1 年 | 1 年 | 文件名带内容哈希或内容不变 |
 | `*.html`、`/sw.js`、`/registerSW.js`、`/workbox-*.js`、`/manifest*.webmanifest` | 10 分钟 | 不缓存 | 浏览器缓存了它们，PWA 的新版本提示就失灵 |
 
+品牌清单的稳定ID不代表URL不可变。替换已有素材须更新 `asset` 资源名，选择器与绘制同时使用该路径；新构建的Workbox清单会登记新URL，旧标签页在接受更新或下次打开后切换。
+
 响应头补三条，与 `_headers` 对齐：`X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、`Referrer-Policy: strict-origin-when-cross-origin`。
 
 ### 上线核对

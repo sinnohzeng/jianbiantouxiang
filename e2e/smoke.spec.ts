@@ -179,3 +179,32 @@ test('字节品牌紧随客户素材，选择原稿后刷新保留', async ({ pa
   await page.reload()
   await expect(page.locator('[data-slot="graphic-name"]')).toContainText('飞书 · 纯白组合')
 })
+
+for (const [id, asset] of [
+  ['doubao-work', 'doubao-work-202611.png'],
+  ['lark', 'feishu-symbol-202611.svg'],
+] as const) {
+  test(`旧品牌配置 ${id} 加载新素材并保留文字`, async ({ page }) => {
+    await page.addInitScript((brandId) => {
+      localStorage.setItem(
+        'gradient-avatar:v4',
+        JSON.stringify({
+          config: {
+            text: '已保存客户\n协作群',
+            layout: { icon: { source: 'brand', id: brandId, mono: true }, graphic: 0.37 },
+          },
+        }),
+      )
+    }, id)
+    const response = page.waitForResponse((r) => r.url().endsWith('/brand/' + asset))
+    await openApp(page)
+    expect((await response).ok()).toBe(true)
+    await expect(page.locator('#avatar-text-first')).toHaveValue('已保存客户')
+    await expect(page.locator('[data-slot="brand-mono"]')).toHaveCount(0)
+    await probeEncode(page, 192)
+    await probeFlush(page)
+    await page.reload()
+    await expect(page.locator('#avatar-text-second')).toHaveValue('协作群')
+    await expect(page.locator('[data-slot="graphic-picker"]')).toContainText(id)
+  })
+}

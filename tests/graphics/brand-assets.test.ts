@@ -6,7 +6,7 @@ import { BRAND_INDEX } from '@/graphics/generated/brand-index'
 
 it('每个登记的品牌文件格式与扩展名一致，SVG 可解析', () => {
   for (const entry of BRAND_INDEX) {
-    const files = [{ id: entry.id, ext: entry.ext }]
+    const files = [{ id: entry.asset ?? entry.id, ext: entry.ext }]
     if (entry.white) files.push({ id: entry.white, ext: 'svg' })
     for (const file of files) {
       const name = `${file.id}.${file.ext}`

@@ -7,6 +7,8 @@ export interface HistoryEntry {
   config: AvatarConfig
   /** 96 px JPEG data URL。旧存档没有时历史条回落到 CSS 近似缩略图。 */
   thumb?: string
+  /** 图形素材更新后的缩略图缓存版本。 */
+  thumbVersion?: 1
 }
 
 /**
@@ -30,5 +32,7 @@ export function attachHistoryThumb(
   hash: string,
   thumb: string,
 ): HistoryEntry[] {
-  return list.map((entry) => (configHash(entry.config) === hash ? { ...entry, thumb } : entry))
+  return list.map((entry) =>
+    configHash(entry.config) === hash ? { ...entry, thumb, thumbVersion: 1 as const } : entry,
+  )
 }

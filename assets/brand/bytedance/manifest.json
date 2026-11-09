@@ -113,5 +113,15 @@
     "id": "bd-tiktok-white",
     "file": "bd-tiktok-white.svg",
     "sha256": "9896cc20e74294d17091180875a6e6f7e3fa4d0b82f22ee166c16eebf4ea6b9e"
+  },
+  {
+    "id": "doubao-work",
+    "file": "doubao-work-202611.png",
+    "sha256": "f5f2a8dcc5122f36b432cc2b0e3f7f4e039c0cd6053a4058ceb3fbb30c9f429b"
+  },
+  {
+    "id": "lark",
+    "file": "feishu-symbol-202611.svg",
+    "sha256": "20b2c36ae18fd92b78760b7e0b5cc7186aaa4465c8f796c89b4c4f6125355f6a"
   }
 ]

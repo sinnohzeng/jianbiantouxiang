@@ -954,7 +954,7 @@ describe('挑选栏 · 品牌单色', () => {
     useAvatarStore.setState({
       config: {
         ...DEFAULT_CONFIG,
-        layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'brand', id: 'lark', mono: false } },
+        layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'brand', id: 'figma', mono: false } },
       },
     })
     rerender(
@@ -969,7 +969,7 @@ describe('挑选栏 · 品牌单色', () => {
     useAvatarStore.setState({
       config: {
         ...DEFAULT_CONFIG,
-        layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'brand', id: 'lark', mono: false } },
+        layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'brand', id: 'figma', mono: false } },
       },
       past: [],
     })
