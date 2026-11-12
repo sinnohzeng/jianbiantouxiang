@@ -129,7 +129,7 @@ flowchart LR
 
 文字色就是用户挑的那一个，预览与导出读同一个字段，没有第二条判定路径。`src/text/ink.ts` 只留纯色彩数学，供配色表与选择器判明暗。
 
-图标进栈在 `layoutText` 里落位，`layout.graphic` 区间 0.1–0.8。带文字时图形先等比放进参照框（安全框全宽 × 安全框高的 52%，`GRAPHIC_REFERENCE`），再按 `graphic / 0.52` 缩放，占栈顶：方形与竖版图形就是安全框高的 `graphic` 倍，宽图形在 52% 时正好铺满安全框宽，其余档位按比例变。自动排版不按安全框宽收边，超宽由整组圆裁缩放兜住，图形越大文字越小；手动字号时按安全框宽收边。文字拿到剩余高度，两行一起缩小到放得下为止。文字为空时图形在安全框里居中，尺寸是圆形安全区（按用户边距）内能放下的最大同比例矩形的 `graphic / 0.8`，不走排版边距抬升与整组放大。图形缺失时文字退回整块安全框居中。
+图标进栈在 `layoutText` 里落位，`layout.graphic` 区间 0.1–0.8，大小只相对安全框计算，素材像素尺寸只提供宽高比。带文字时图形高度取 `min(参照高 / √max(1, 宽高比), 安全框宽 / 宽高比)`，参照高是安全框高的 52%（`GRAPHIC_REFERENCE`），再按 `graphic / 0.52` 缩放，占栈顶：方形与竖版图形就是安全框高的 `graphic` 倍；宽高比 1 到 3.7 的图形与同档方形图形等面积；更宽的图形在 52% 时正好铺满安全框宽。各档位线性变化。自动排版不按安全框宽收边，超宽由整组圆裁缩放兜住，图形越大文字越小；手动字号时按安全框宽收边。文字拿到剩余高度，两行一起缩小到放得下为止。文字为空时图形在安全框里居中，尺寸是圆形安全区（按用户边距）内能放下的最大同比例矩形的 `graphic / 0.8`，不走排版边距抬升与整组放大。图形缺失时文字退回整块安全框居中。
 
 ## 图形来源
 
@@ -139,12 +139,12 @@ flowchart LR
 | --- | --- | --- |
 | 内置图标 | lucide-react 1.37 的 1790 个主图标；精选 162 个随选择器小索引加载，全库 470 KB 原始数据只在搜索超出精选时加载 | `__iconNode` 转 `Path2D`，按文字色描边，并复用文字效果 |
 | emoji | emojibase-data 15.0.0 的 1879 个可分组条目，五种语言各一份标签 chunk | 按码点取 Noto Emoji v2.047 单个 SVG，fetch 转 Blob 再画，保留原色 |
-| 品牌 | `src/graphics/generated/brand-index.ts` 的 92 个条目（含客户颜色版本），带中英文名、别名及上游白色源文件（`white` 字段，11 个条目有值） | 同源静态文件 `public/brand/<id>.svg\|png`，SVG 走 fetch 加消毒再转 Blob，PNG 直接 `Image`，保留原色 |
+| 品牌 | `src/graphics/generated/brand-index.ts` 的 184 个条目，分 8 组，含客户颜色版本与 92 个 ISV 条目，带中英文名、别名及上游白色源文件（`white` 字段，11 个条目有值） | 同源静态文件 `public/brand/<asset>.svg\|png`，SVG 走 fetch 加消毒再转 Blob，PNG 直接 `Image`，保留原色；按可见像素裁边，东黎保留品牌留白 |
 | 上传 | 无索引，模块级会话注册表 | SVG 先经元素与属性白名单重建；PNG / WebP 直接 `Image`，保留原色 |
 
-品牌图形的清单事实来源是 `scripts/brand-list.json`，`npm run gen:brand` 把远端条目从 homarr-labs/dashboard-icons 拉下来、把 `assets/brand/` 里 owner 提供的素材拷过去，统一落到 `public/brand/`，同时生成索引；两个产物都不手改。
+品牌图形的清单事实来源是 `scripts/brand-list.json`，`npm run gen:brand` 把远端条目从 homarr-labs/dashboard-icons 拉下来、把 `assets/brand/` 里 owner 提供的素材拷过去（字节素材在 `bytedance/`，ISV 素材在 `isv/`，各带哈希清单），统一落到 `public/brand/`，同时生成索引；两个产物都不手改。SVG 落盘前内联 `<style>` 类规则、展开引用内部图形的 `<use>`，运行时净化器两者都不放行。
 
-兼容染色由 `layout.icon.mono` 控制，默认 false。11 个历史品牌条目有经过文件内容检查的上游白色源文件，其他取原稿；`paintMono()` 以 source-in 按文字颜色染色，属于程序转换而非官方稿。客户颜色版本和 TikTok 设置 preserveColor 保留源色。选择器展示原稿与客户成品，染色在已选品牌的属性区明确标注细节损失与非官方性质。源文件与使用授权是两种证据，来源、异常和缺失清单见当轮素材审计。
+兼容染色由 `layout.icon.mono` 控制，默认 false。11 个历史品牌条目有经过文件内容检查的上游白色源文件，其他取原稿；`paintMono()` 以 source-in 按文字颜色染色，属于程序转换而非官方稿。字节分组、ISV 分组与客户素材是精确原稿（`isExactBrand`），设置 preserveColor 保留源色，不给单色档。选择器展示原稿与客户成品，染色在已选品牌的属性区明确标注细节损失与非官方性质。源文件与使用授权是两种证据，来源、异常和缺失清单见当轮素材审计。
 
 索引与加载器都只在图形选择器或 `loadGraphic` 命中 brand 时才 `import()`，不进首屏预算。SVG 与上传路径同过一遍 `sanitizeSvg`，取不到或解析失败只 `console.warn` 并让图形位留空。
 
@@ -254,7 +254,7 @@ staggered-text、preloader），随它们进来的 three、@react-three/fiber、
 | 层 | 命令 | 覆盖 |
 | --- | --- | --- |
 | 单测 | `npm test` | `tests/` 与 `src/` 同名，jsdom 环境，覆盖种子映射、排版与自动填满、补偿独立性、图标排版、SVG 消毒、品牌图形加载、图形绘制消费端、索引结构、明暗判定、体积二分、预览参考层与预览高度存取、数字框对齐与重置、字体名预览的请求与注册、工作台冒烟、字典对齐 |
-| 端到端 | `npm run e2e` | 两个 project：`desktop` 跑 1440 桌面，`iphone-15` 跑设备模拟。覆盖内置图标、emoji、品牌图形、品牌单色切换、上传 SVG、双列工作台、桌面首屏四节不溢出且画框不超 640、预览区无滚动条、折叠组展开后的滑杆与重置钮、垂直补偿落存档、操作条三格与随机配色只换配色、图标移除钮清空回空态、顶栏设置里的恢复默认、主题与参考层、备案号、手机分隔条拖拽留存、手机底部抽屉、存档刷新恢复、网格开关留存、字号自动态切手动、字体名预览、关于页独立成页、赞赏区渲染、炫技层背景、微信长按保存与既有导出路径 |
+| 端到端 | `npm run e2e` | 两个 project：`desktop` 跑 1440 桌面，`iphone-15` 跑设备模拟。覆盖内置图标、emoji、品牌图形、ISV 分组选择与刷新保留、品牌单色切换、上传 SVG、双列工作台、桌面首屏四节不溢出且画框不超 640、预览区无滚动条、折叠组展开后的滑杆与重置钮、垂直补偿落存档、操作条三格与随机配色只换配色、图标移除钮清空回空态、顶栏设置里的恢复默认、主题与参考层、备案号、手机分隔条拖拽留存、手机底部抽屉、存档刷新恢复、网格开关留存、字号自动态切手动、字体名预览、关于页独立成页、赞赏区渲染、炫技层背景、微信长按保存与既有导出路径 |
 | 视觉 | `npm run screenshots` | 桌面 1440、iPhone 15、iPhone SE 三个设备各截深浅两套主题，输出到 `.screenshots/` |
 
 headless chromium 默认没有 GPU，WebGL2 靠 `--use-angle=swiftshader` 等启动参数走软件渲染。`devices['iPhone 15']` 的默认浏览器是 webkit，project 里必须显式覆盖成 chromium，否则那几个参数不生效。
@@ -271,7 +271,7 @@ headless chromium 默认没有 GPU，WebGL2 靠 `--use-angle=swiftshader` 等启
 
 主站在阿里云 ESA Pages，构建配置在仓库根目录的 `esa.jsonc`，`_headers` 与 `_redirects` 在那里不生效，等价的缓存规则、响应头与接入步骤见 `docs/deploy.md`。旧域名所在的 Cloudflare Pages 构建命令是 `npm run build`，输出目录 `dist`，Node 版本读 `.node-version`。`public/_headers` 给全站发安全头、给 `/assets/*` 发一年不可变缓存；`public/_redirects` 只留一条 `/*  /index.html  200` 给单页应用兜底，`/about` 由 Pages 的静态资源层在这条兜底之前自己解析，映射到 `about.html`，不需要也不能再给它单独写一条重写规则：`/about.html` 会被资源层的 HTML 规范化 308 回 `/about`，与重写规则互相咬成死循环。两份文件随构建进入输出目录。
 
-PWA 由 `vite-plugin-pwa` 生成 manifest 与 service worker，预缓存覆盖 js、css、html、svg、png、woff2。
+PWA 由 `vite-plugin-pwa` 生成 manifest 与 service worker，预缓存覆盖 js、css、html、svg、png、woff2。ISV 品牌素材近 19 MB，不进预缓存，运行时 CacheFirst 按需缓存。
 注册不走插件注入的那段脚本，改在 `src/app/sw-update.ts` 自己注册：只有拿到 registration 才能主动轮询新版本。
 service worker 默认只在页面加载时查一次更新，标签页开着不关就一直停在旧版本；这里每 15 分钟问一次，
 回到前台与窗口重新聚焦时再各问一次。发现新版本不闷声重载，弹一条不自动消失的提示，
@@ -341,4 +341,4 @@ Noto Serif SC 600/700 按需加载，新选宋体默认 600，已有字重保留
 
 字节精选稿以 `bd-` ID登记，加载时设置 preserveColor，界面不提供程序染色；doubao-work、lark 使用用户素材的独立图形并保留源色，存档ID保持稳定；可选 asset 字段把资源文件名与ID分离，替换素材必须改资源名以避开长缓存。tiktok保留原稿。品牌清单中的 bytedance 类别决定组内顺序，客户分组仍由选择器优先展示。
 
-历史缩略图作为配置的渲染缓存保存。豆包工作、飞书素材更新后，仅失效缺少thumbVersion:1的对应旧缩略图，历史配置及其他品牌缩略图保留；新渲染缓存带版本，缺图使用已有文字与配色占位。恢复及导出始终使用当前品牌素材。
+历史缩略图作为配置的渲染缓存保存，带生成时的 `thumbVersion`（当前为 2，`THUMB_VERSION`）。品牌素材或尺寸口径变化后版本加一，品牌与上传图形的旧版缩略图失效，历史配置及其余缩略图保留；缺图使用已有文字与配色占位。恢复及导出始终使用当前品牌素材。

@@ -1,0 +1,1815 @@
+[
+{
+"id": "doubao-work",
+"category": "bytedance",
+"aspect": 1,
+"density": 0.782,
+"trim": [
+0.007,
+0.002
+]
+},
+{
+"id": "bd-doubao-work-black",
+"category": "bytedance",
+"aspect": 3.634,
+"density": 0.368,
+"trim": [
+0.002,
+0.002
+]
+},
+{
+"id": "bd-doubao-work-white",
+"category": "bytedance",
+"aspect": 3.634,
+"density": 0.368,
+"trim": [
+0.002,
+0.002
+]
+},
+{
+"id": "lark",
+"category": "bytedance",
+"aspect": 1.257,
+"density": 0.581,
+"trim": [
+0,
+0.15
+]
+},
+{
+"id": "bd-feishu-color",
+"category": "bytedance",
+"aspect": 3.186,
+"density": 0.381,
+"trim": [
+0,
+0.15
+]
+},
+{
+"id": "bd-feishu-black",
+"category": "bytedance",
+"aspect": 3.243,
+"density": 0.352,
+"trim": [
+0,
+0.15
+]
+},
+{
+"id": "bd-feishu-white",
+"category": "bytedance",
+"aspect": 3.243,
+"density": 0.352,
+"trim": [
+0,
+0.15
+]
+},
+{
+"id": "bd-doubao-color",
+"category": "bytedance",
+"aspect": 2.322,
+"density": 0.465,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "bd-volcengine-color",
+"category": "bytedance",
+"aspect": 4.693,
+"density": 0.361,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "bd-oceanengine-black",
+"category": "bytedance",
+"aspect": 3.679,
+"density": 0.298,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "bd-oceanengine-white",
+"category": "bytedance",
+"aspect": 3.679,
+"density": 0.298,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "bd-bytedance-color",
+"category": "bytedance",
+"aspect": 5.838,
+"density": 0.277,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "bd-bytedance-white",
+"category": "bytedance",
+"aspect": 5.782,
+"density": 0.274,
+"trim": [
+0.167,
+0.34
+]
+},
+{
+"id": "bd-douyin-group-color",
+"category": "bytedance",
+"aspect": 3.813,
+"density": 0.273,
+"trim": [
+0.001,
+0
+]
+},
+{
+"id": "bd-douyin-color",
+"category": "bytedance",
+"aspect": 2.405,
+"density": 0.322,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "bd-douyin-white",
+"category": "bytedance",
+"aspect": 2.365,
+"density": 0.298,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "bd-toutiao-color",
+"category": "bytedance",
+"aspect": 3.599,
+"density": 0.422,
+"trim": [
+0.048,
+0.277
+]
+},
+{
+"id": "bd-toutiao-black",
+"category": "bytedance",
+"aspect": 3.594,
+"density": 0.305,
+"trim": [
+0.048,
+0.277
+]
+},
+{
+"id": "bd-toutiao-white",
+"category": "bytedance",
+"aspect": 3.594,
+"density": 0.305,
+"trim": [
+0.048,
+0.277
+]
+},
+{
+"id": "bd-xigua-color",
+"category": "bytedance",
+"aspect": 4.541,
+"density": 0.383,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "bd-xigua-white",
+"category": "bytedance",
+"aspect": 4.468,
+"density": 0.377,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "bd-capcut-black",
+"category": "bytedance",
+"aspect": 4.93,
+"density": 0.346,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "bd-capcut-white",
+"category": "bytedance",
+"aspect": 4.93,
+"density": 0.346,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "bd-tiktok-black",
+"category": "bytedance",
+"aspect": 0.917,
+"density": 0.388,
+"trim": [
+0.042,
+0
+]
+},
+{
+"id": "bd-tiktok-white",
+"category": "bytedance",
+"aspect": 0.917,
+"density": 0.388,
+"trim": [
+0.042,
+0
+]
+},
+{
+"id": "tiktok",
+"category": "bytedance",
+"aspect": 0.881,
+"density": 0.482,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-aptsell-symbol-color",
+"category": "isv",
+"aspect": 1.024,
+"density": 0.453,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-aptsell-symbol-black",
+"category": "isv",
+"aspect": 1.024,
+"density": 0.453,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-aptsell-symbol-white",
+"category": "isv",
+"aspect": 1.024,
+"density": 0.453,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-aptsell-lockup-color",
+"category": "isv",
+"aspect": 4.145,
+"density": 0.304,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-aptsell-lockup-black",
+"category": "isv",
+"aspect": 4.145,
+"density": 0.304,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-aptsell-lockup-white",
+"category": "isv",
+"aspect": 4.145,
+"density": 0.304,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-aptsell-wordmark-color",
+"category": "isv",
+"aspect": 4.14,
+"density": 0.42,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-aptsell-wordmark-black",
+"category": "isv",
+"aspect": 4.14,
+"density": 0.42,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-aptsell-wordmark-white",
+"category": "isv",
+"aspect": 4.14,
+"density": 0.42,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-beisen-symbol-color",
+"category": "isv",
+"aspect": 0.243,
+"density": 0.669,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-beisen-symbol-black",
+"category": "isv",
+"aspect": 0.243,
+"density": 0.669,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-beisen-symbol-white",
+"category": "isv",
+"aspect": 0.243,
+"density": 0.669,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-beisen-wordmark-color",
+"category": "isv",
+"aspect": 5.97,
+"density": 0.459,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-beisen-wordmark-black",
+"category": "isv",
+"aspect": 5.97,
+"density": 0.459,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-beisen-wordmark-white",
+"category": "isv",
+"aspect": 5.97,
+"density": 0.459,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fanruan-symbol-color",
+"category": "isv",
+"aspect": 1,
+"density": 0.774,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fanruan-symbol-black",
+"category": "isv",
+"aspect": 1,
+"density": 0.774,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fanruan-symbol-white",
+"category": "isv",
+"aspect": 1,
+"density": 0.774,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fanruan-lockup-color",
+"category": "isv",
+"aspect": 3.119,
+"density": 0.499,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fanruan-lockup-black",
+"category": "isv",
+"aspect": 3.119,
+"density": 0.499,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fanruan-lockup-white",
+"category": "isv",
+"aspect": 3.119,
+"density": 0.499,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fanruan-wordmark-color",
+"category": "isv",
+"aspect": 2.305,
+"density": 0.546,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fanruan-wordmark-black",
+"category": "isv",
+"aspect": 2.305,
+"density": 0.546,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fanruan-wordmark-white",
+"category": "isv",
+"aspect": 2.305,
+"density": 0.546,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fenbeitong-symbol-color",
+"category": "isv",
+"aspect": 1.706,
+"density": 0.548,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fenbeitong-symbol-black",
+"category": "isv",
+"aspect": 1.706,
+"density": 0.548,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fenbeitong-symbol-white",
+"category": "isv",
+"aspect": 1.706,
+"density": 0.548,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fenbeitong-lockup-color",
+"category": "isv",
+"aspect": 4.585,
+"density": 0.417,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fenbeitong-lockup-black",
+"category": "isv",
+"aspect": 4.585,
+"density": 0.417,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fenbeitong-lockup-white",
+"category": "isv",
+"aspect": 4.585,
+"density": 0.417,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fenbeitong-wordmark-color",
+"category": "isv",
+"aspect": 3.206,
+"density": 0.427,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fenbeitong-wordmark-black",
+"category": "isv",
+"aspect": 3.206,
+"density": 0.427,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-fenbeitong-wordmark-white",
+"category": "isv",
+"aspect": 3.206,
+"density": 0.427,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-hosecloud-symbol-color",
+"category": "isv",
+"aspect": 1.005,
+"density": 0.957,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-hosecloud-symbol-black",
+"category": "isv",
+"aspect": 1.005,
+"density": 0.653,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-hosecloud-symbol-white",
+"category": "isv",
+"aspect": 1.005,
+"density": 0.653,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-hosecloud-lockup-color",
+"category": "isv",
+"aspect": 3.137,
+"density": 0.605,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-hosecloud-lockup-black",
+"category": "isv",
+"aspect": 3.137,
+"density": 0.51,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-hosecloud-lockup-white",
+"category": "isv",
+"aspect": 3.137,
+"density": 0.51,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-hosecloud-wordmark-color",
+"category": "isv",
+"aspect": 2.005,
+"density": 0.494,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-hosecloud-wordmark-black",
+"category": "isv",
+"aspect": 2.005,
+"density": 0.494,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-hosecloud-wordmark-white",
+"category": "isv",
+"aspect": 2.005,
+"density": 0.494,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-helios-symbol-color",
+"category": "isv",
+"aspect": 1.077,
+"density": 0.48,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-helios-symbol-black",
+"category": "isv",
+"aspect": 1.077,
+"density": 0.479,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-helios-symbol-white",
+"category": "isv",
+"aspect": 1.077,
+"density": 0.479,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-helios-lockup-color",
+"category": "isv",
+"aspect": 8.184,
+"density": 0.436,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-helios-lockup-black",
+"category": "isv",
+"aspect": 8.184,
+"density": 0.436,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-helios-lockup-white",
+"category": "isv",
+"aspect": 8.184,
+"density": 0.436,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-helios-wordmark-color",
+"category": "isv",
+"aspect": 3.587,
+"density": 0.434,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-helios-wordmark-black",
+"category": "isv",
+"aspect": 3.587,
+"density": 0.433,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-helios-wordmark-white",
+"category": "isv",
+"aspect": 3.587,
+"density": 0.433,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-moka-symbol-color",
+"category": "isv",
+"aspect": 1.699,
+"density": 0.332,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-moka-symbol-black",
+"category": "isv",
+"aspect": 1.699,
+"density": 0.332,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-moka-symbol-white",
+"category": "isv",
+"aspect": 1.699,
+"density": 0.332,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-moka-lockup-color",
+"category": "isv",
+"aspect": 5.014,
+"density": 0.34,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-moka-lockup-black",
+"category": "isv",
+"aspect": 5.014,
+"density": 0.34,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-moka-lockup-white",
+"category": "isv",
+"aspect": 5.014,
+"density": 0.34,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-moka-wordmark-color",
+"category": "isv",
+"aspect": 3.234,
+"density": 0.502,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-moka-wordmark-white",
+"category": "isv",
+"aspect": 3.234,
+"density": 0.502,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-xiaoliebian-symbol-color",
+"category": "isv",
+"aspect": 1.001,
+"density": 0.989,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-xiaoliebian-symbol-black",
+"category": "isv",
+"aspect": 1.001,
+"density": 0.717,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-xiaoliebian-symbol-white",
+"category": "isv",
+"aspect": 1.001,
+"density": 0.717,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-xiaoliebian-lockup-color",
+"category": "isv",
+"aspect": 3.604,
+"density": 0.483,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-xiaoliebian-lockup-black",
+"category": "isv",
+"aspect": 3.604,
+"density": 0.407,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-xiaoliebian-lockup-white",
+"category": "isv",
+"aspect": 3.604,
+"density": 0.407,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-xiaoliebian-wordmark-color",
+"category": "isv",
+"aspect": 3.119,
+"density": 0.383,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-xiaoliebian-wordmark-black",
+"category": "isv",
+"aspect": 3.119,
+"density": 0.383,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-xiaoliebian-wordmark-white",
+"category": "isv",
+"aspect": 3.119,
+"density": 0.383,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-neocrm-symbol-color",
+"category": "isv",
+"aspect": 1,
+"density": 0.959,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-neocrm-symbol-black",
+"category": "isv",
+"aspect": 1,
+"density": 0.799,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-neocrm-symbol-white",
+"category": "isv",
+"aspect": 1,
+"density": 0.799,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-neocrm-lockup-color",
+"category": "isv",
+"aspect": 6.897,
+"density": 0.402,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-neocrm-lockup-black",
+"category": "isv",
+"aspect": 6.897,
+"density": 0.402,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-neocrm-lockup-white",
+"category": "isv",
+"aspect": 6.897,
+"density": 0.402,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-patsnap-symbol-color",
+"category": "isv",
+"aspect": 2.413,
+"density": 0.48,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-patsnap-symbol-black",
+"category": "isv",
+"aspect": 2.402,
+"density": 0.353,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-patsnap-symbol-white",
+"category": "isv",
+"aspect": 2.402,
+"density": 0.353,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-patsnap-lockup-color",
+"category": "isv",
+"aspect": 5.97,
+"density": 0.417,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-patsnap-lockup-black",
+"category": "isv",
+"aspect": 4.713,
+"density": 0.287,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-patsnap-lockup-white",
+"category": "isv",
+"aspect": 4.713,
+"density": 0.287,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-patsnap-wordmark-color",
+"category": "isv",
+"aspect": 3.272,
+"density": 0.41,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-patsnap-wordmark-black",
+"category": "isv",
+"aspect": 3.272,
+"density": 0.41,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-patsnap-wordmark-white",
+"category": "isv",
+"aspect": 3.272,
+"density": 0.41,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-zhishu-symbol-color",
+"category": "isv",
+"aspect": 1.1,
+"density": 0.614,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-zhishu-symbol-black",
+"category": "isv",
+"aspect": 1.1,
+"density": 0.614,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-zhishu-symbol-white",
+"category": "isv",
+"aspect": 1.1,
+"density": 0.614,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-zhishu-lockup-color",
+"category": "isv",
+"aspect": 5.281,
+"density": 0.33,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-zhishu-lockup-black",
+"category": "isv",
+"aspect": 5.281,
+"density": 0.33,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-zhishu-lockup-white",
+"category": "isv",
+"aspect": 5.281,
+"density": 0.33,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-zhishu-wordmark-color",
+"category": "isv",
+"aspect": 5.178,
+"density": 0.353,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-zhishu-wordmark-black",
+"category": "isv",
+"aspect": 5.178,
+"density": 0.353,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "isv-zhishu-wordmark-white",
+"category": "isv",
+"aspect": 5.178,
+"density": 0.353,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "notion",
+"category": "office",
+"aspect": 0.961,
+"density": 0.914,
+"trim": [
+0.02,
+0
+]
+},
+{
+"id": "figma",
+"category": "office",
+"aspect": 0.667,
+"density": 0.716,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "slack",
+"category": "office",
+"aspect": 1,
+"density": 0.508,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "miro",
+"category": "office",
+"aspect": 1,
+"density": 0.946,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "linear",
+"category": "office",
+"aspect": 1,
+"density": 0.597,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "jira",
+"category": "office",
+"aspect": 1.028,
+"density": 0.476,
+"trim": [
+0,
+0.014
+]
+},
+{
+"id": "confluence",
+"category": "office",
+"aspect": 1.041,
+"density": 0.601,
+"trim": [
+0,
+0.02
+]
+},
+{
+"id": "obsidian",
+"category": "office",
+"aspect": 0.775,
+"density": 0.644,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "framer",
+"category": "office",
+"aspect": 0.669,
+"density": 0.581,
+"trim": [
+0.193,
+0.041
+]
+},
+{
+"id": "qoder",
+"category": "ai",
+"aspect": 0.976,
+"density": 0.388,
+"trim": [
+0.023,
+0.018
+]
+},
+{
+"id": "workbuddy",
+"category": "ai",
+"aspect": 1,
+"density": 0.959,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "openai",
+"category": "ai",
+"aspect": 0.988,
+"density": 0.38,
+"trim": [
+0.006,
+0
+]
+},
+{
+"id": "chatgpt",
+"category": "ai",
+"aspect": 1,
+"density": 0.962,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "anthropic",
+"category": "ai",
+"aspect": 1,
+"density": 0.396,
+"trim": [
+0.024,
+0.024
+]
+},
+{
+"id": "claude-ai",
+"category": "ai",
+"aspect": 0.999,
+"density": 0.397,
+"trim": [
+0,
+0.005
+]
+},
+{
+"id": "google-gemini",
+"category": "ai",
+"aspect": 1,
+"density": 0.905,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "deepseek",
+"category": "ai",
+"aspect": 1.356,
+"density": 0.503,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "qwen",
+"category": "ai",
+"aspect": 1.007,
+"density": 0.66,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "kimi-ai",
+"category": "ai",
+"aspect": 1,
+"density": 0.995,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "hugging-face",
+"category": "ai",
+"aspect": 1.079,
+"density": 0.797,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "github-copilot",
+"category": "ai",
+"aspect": 1.263,
+"density": 0.374,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "github",
+"category": "dev",
+"aspect": 1.024,
+"density": 0.438,
+"trim": [
+0,
+0.012
+]
+},
+{
+"id": "gitlab",
+"category": "dev",
+"aspect": 1.038,
+"density": 0.588,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "gitee",
+"category": "dev",
+"aspect": 1,
+"density": 0.78,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "vscode",
+"category": "dev",
+"aspect": 1,
+"density": 0.543,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "docker",
+"category": "dev",
+"aspect": 1.384,
+"density": 0.516,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "kubernetes",
+"category": "dev",
+"aspect": 1.032,
+"density": 0.75,
+"trim": [
+0.012,
+0.014
+]
+},
+{
+"id": "reactjs",
+"category": "dev",
+"aspect": 1.15,
+"density": 0.321,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "typescript",
+"category": "dev",
+"aspect": 1,
+"density": 0.992,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "python",
+"category": "dev",
+"aspect": 0.992,
+"density": 0.626,
+"trim": [
+0.004,
+0
+]
+},
+{
+"id": "ubuntu-linux",
+"category": "dev",
+"aspect": 1.041,
+"density": 0.362,
+"trim": [
+0,
+0.02
+]
+},
+{
+"id": "arch-linux",
+"category": "dev",
+"aspect": 0.996,
+"density": 0.306,
+"trim": [
+0.002,
+0
+]
+},
+{
+"id": "android",
+"category": "dev",
+"aspect": 1.784,
+"density": 0.624,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "chrome",
+"category": "dev",
+"aspect": 1,
+"density": 0.785,
+"trim": [
+0.037,
+0.037
+]
+},
+{
+"id": "wechat",
+"category": "social",
+"aspect": 1.2,
+"density": 0.596,
+"trim": [
+0,
+0.083
+]
+},
+{
+"id": "qq",
+"category": "social",
+"aspect": 0.843,
+"density": 0.724,
+"trim": [
+0.312,
+0.166
+]
+},
+{
+"id": "bilibili",
+"category": "social",
+"aspect": 1,
+"density": 0.978,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "weibo",
+"category": "social",
+"aspect": 1.259,
+"density": 0.464,
+"trim": [
+0,
+0.103
+]
+},
+{
+"id": "telegram",
+"category": "social",
+"aspect": 1,
+"density": 0.785,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "discord",
+"category": "social",
+"aspect": 1.293,
+"density": 0.708,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "twitter",
+"category": "social",
+"aspect": 1.231,
+"density": 0.599,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "linkedin",
+"category": "social",
+"aspect": 1,
+"density": 0.989,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "youtube",
+"category": "social",
+"aspect": 1.43,
+"density": 0.942,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "spotify",
+"category": "social",
+"aspect": 1,
+"density": 0.629,
+"trim": [
+0.004,
+0.004
+]
+},
+{
+"id": "cloudflare",
+"category": "cloud",
+"aspect": 2.207,
+"density": 0.677,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "vercel",
+"category": "cloud",
+"aspect": 1.155,
+"density": 0.5,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "stripe",
+"category": "cloud",
+"aspect": 0.75,
+"density": 0.644,
+"trim": [
+0.125,
+0
+]
+},
+{
+"id": "paypal",
+"category": "cloud",
+"aspect": 0.842,
+"density": 0.714,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "baidu",
+"category": "cloud",
+"aspect": 1,
+"density": 0.459,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "apple",
+"category": "brand",
+"aspect": 0.814,
+"density": 0.633,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "microsoft",
+"category": "brand",
+"aspect": 1,
+"density": 1,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "google",
+"category": "brand",
+"aspect": 0.98,
+"density": 0.517,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "huawei",
+"category": "brand",
+"aspect": 0.985,
+"density": 0.479,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "xiaomi-global",
+"category": "brand",
+"aspect": 1,
+"density": 0.88,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "nvidia",
+"category": "brand",
+"aspect": 1.51,
+"density": 0.582,
+"trim": [
+0,
+0
+]
+},
+{
+"id": "dongli-symbol-white",
+"category": "brand",
+"aspect": 2.243,
+"density": 0.17,
+"trim": null
+},
+{
+"id": "dongli-lockup-full-white",
+"category": "brand",
+"aspect": 1.338,
+"density": 0.142,
+"trim": null
+},
+{
+"id": "dongli-wordmark-bilingual-inline-white",
+"category": "brand",
+"aspect": 4.18,
+"density": 0.068,
+"trim": null
+},
+{
+"id": "dongli-symbol-primary",
+"category": "brand",
+"aspect": 2.243,
+"density": 0.17,
+"trim": null
+},
+{
+"id": "dongli-symbol-black",
+"category": "brand",
+"aspect": 2.243,
+"density": 0.17,
+"trim": null
+},
+{
+"id": "dongli-lockup-full-primary",
+"category": "brand",
+"aspect": 1.338,
+"density": 0.142,
+"trim": null
+},
+{
+"id": "dongli-lockup-full-black",
+"category": "brand",
+"aspect": 1.338,
+"density": 0.142,
+"trim": null
+},
+{
+"id": "dongli-wordmark-bilingual-inline-primary",
+"category": "brand",
+"aspect": 4.18,
+"density": 0.068,
+"trim": null
+},
+{
+"id": "dongli-wordmark-bilingual-inline-black",
+"category": "brand",
+"aspect": 4.18,
+"density": 0.068,
+"trim": null
+},
+{
+"id": "harmay-wordmark-black",
+"category": "brand",
+"aspect": 9.583,
+"density": 0.272,
+"trim": [
+0.025,
+0.161
+]
+},
+{
+"id": "harmay-wordmark-white",
+"category": "brand",
+"aspect": 9.494,
+"density": 0.268,
+"trim": [
+0.02,
+0.161
+]
+}
+]
