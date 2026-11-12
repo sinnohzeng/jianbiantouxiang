@@ -1,6 +1,7 @@
 import { visibleImageRect } from './trim'
-import { isClientPreset } from './client-presets'
+import { isExactBrand, keepsClearspace } from './client-presets'
 import { BRAND_INDEX } from './generated/brand-index'
+import type { Rect } from '@/text/layout'
 import type { Graphic } from './types'
 import { sanitizeSvg } from './upload'
 
@@ -15,6 +16,9 @@ import { sanitizeSvg } from './upload'
 const cache = new Map<string, Promise<Graphic | null>>()
 
 interface BrandFile {
+  /** 品牌条目 id，决定原色与裁边口径。 */
+  brand: string
+  /** public/brand 下的文件名。 */
   id: string
   ext: 'svg' | 'png'
 }
@@ -36,10 +40,10 @@ function fileOf(id: string, mono: boolean): BrandFile | null {
   for (const entry of BRAND_INDEX) {
     if (entry.id === id) {
       return mono && entry.white
-        ? { id: entry.white, ext: 'svg' }
-        : { id: entry.asset ?? entry.id, ext: entry.ext }
+        ? { brand: entry.id, id: entry.white, ext: 'svg' }
+        : { brand: entry.id, id: entry.asset ?? entry.id, ext: entry.ext }
     }
-    if (entry.white === id) return { id, ext: 'svg' }
+    if (entry.white === id) return { brand: entry.id, id, ext: 'svg' }
   }
   return null
 }
@@ -75,29 +79,29 @@ async function loadSvg(url: string): Promise<Graphic> {
   }
 }
 
+/** 量不了（拿不到 2D 画布）就按整张图排，Logo 照常画出来。 */
+function measureVisible(graphic: Graphic & { kind: 'image' }): Rect | null {
+  try {
+    return visibleImageRect(graphic.image, graphic.width, graphic.height)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 素材文件里的透明边不算 Logo 的大小：版面按可见像素的外接框排，留白由版式自己给。
+ * 东黎的留白是品牌规范的一部分，原样保留。
+ */
 async function load(file: BrandFile): Promise<Graphic | null> {
   const url = `${import.meta.env.BASE_URL}brand/${file.id}.${file.ext}`
   try {
     const graphic = file.ext === 'svg' ? await loadSvg(url) : graphicOf(await loadImage(url))
-    if (file.id.startsWith('harmay-') && graphic.kind === 'image') {
-      const sourceRect = visibleImageRect(graphic.image, graphic.width, graphic.height)
-      if (sourceRect)
-        return {
-          ...graphic,
-          width: sourceRect.width,
-          height: sourceRect.height,
-          sourceRect,
-          preserveColor: true,
-        }
-    }
-    return (isClientPreset(file.id) ||
-      file.id === 'tiktok' ||
-      file.id.startsWith('bd-') ||
-      file.id === 'doubao-work-202611' ||
-      file.id === 'feishu-symbol-202611') &&
-      graphic.kind === 'image'
-      ? { ...graphic, preserveColor: true }
+    if (graphic.kind !== 'image') return graphic
+    const sourceRect = keepsClearspace(file.brand) ? null : measureVisible(graphic)
+    const trimmed = sourceRect
+      ? { ...graphic, width: sourceRect.width, height: sourceRect.height, sourceRect }
       : graphic
+    return isExactBrand(file.brand) ? { ...trimmed, preserveColor: true } : trimmed
   } catch {
     console.warn(`品牌图形读不出来：${url}`)
     return null

@@ -582,6 +582,15 @@ describe('Logo 大小', () => {
     }
   })
 
+  it('中等宽度的 Logo 与同档方形 Logo 面积相同', () => {
+    const square = 800 * 0.52
+    for (const ratio of [1.5, 2, 3]) {
+      const rect = manual(0.52, { width: 100 * ratio, height: 100 })
+      expect(rect.width / rect.height).toBeCloseTo(ratio)
+      expect(rect.width * rect.height).toBeCloseTo(square * square)
+    }
+  })
+
   it('宽 Logo 在 52% 铺满安全框宽，往下每一档按比例缩小', () => {
     const wide = { width: 1000, height: 100 }
     expect(manual(0.52, wide).width).toBeCloseTo(800)

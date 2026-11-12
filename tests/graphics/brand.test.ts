@@ -82,7 +82,7 @@ describe('品牌图形加载', () => {
 
     expect(fetchMock).not.toHaveBeenCalled()
     expect(graphic?.kind).toBe('image')
-    expect(FakeImage.loaded).toEqual(['/brand/doubao-work-202611.png'])
+    expect(FakeImage.loaded).toEqual(['/brand/doubao-work-avatar.png'])
   })
 
   it('纯白变体也认，按 SVG 取', async () => {
@@ -177,7 +177,9 @@ it('字节精选黑白原稿忽略存档里的程序染色开关', async () => {
 })
 
 for (const [id, asset] of [
-  ['doubao-work', '/brand/doubao-work-202611.png'],
+  ['doubao-work', '/brand/doubao-work-avatar.png'],
+  ['bd-doubao-work-black', '/brand/bd-doubao-work-avatar-black.png'],
+  ['bd-doubao-work-white', '/brand/bd-doubao-work-avatar-white.png'],
   ['lark', '/brand/feishu-symbol-202611.svg'],
 ] as const) {
   it(`旧配置 ${id} 使用新文件且残留单色开关不改写原稿`, async () => {
@@ -190,3 +192,40 @@ for (const [id, asset] of [
     else expect(FakeImage.loaded).toEqual([asset])
   })
 }
+
+it('ISV 素材按原色原稿取，不做程序染色', async () => {
+  vi.stubGlobal('fetch', vi.fn())
+  const { loadBrandGraphic } = await brandModule()
+  const graphic = await loadBrandGraphic('isv-beisen-symbol-color', true)
+  expect(FakeImage.loaded).toEqual(['/brand/isv-beisen-symbol-color.png'])
+  expect(graphic).toMatchObject({ preserveColor: true })
+})
+
+describe('透明边', () => {
+  const visible = { x: 8, y: 12, width: 100, height: 60 }
+
+  async function trimmedModule() {
+    vi.resetModules()
+    vi.doMock('@/graphics/trim', () => ({ visibleImageRect: () => visible }))
+    return await import('@/graphics/brand')
+  }
+
+  afterEach(() => {
+    vi.doUnmock('@/graphics/trim')
+  })
+
+  it('品牌素材按可见像素裁边，版面尺寸取可见区域', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, text: async () => SVG }))
+    const { loadBrandGraphic } = await trimmedModule()
+    const graphic = await loadBrandGraphic('lark')
+    expect(graphic).toMatchObject({ width: 100, height: 60, sourceRect: visible })
+  })
+
+  it('东黎保留品牌规范留白，不裁边', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, text: async () => SVG }))
+    const { loadBrandGraphic } = await trimmedModule()
+    const graphic = await loadBrandGraphic('dongli-symbol-white')
+    expect(graphic).toMatchObject({ width: 128, height: 96 })
+    expect(graphic?.kind === 'image' && graphic.sourceRect).toBeFalsy()
+  })
+})

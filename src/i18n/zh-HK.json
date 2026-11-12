@@ -285,5 +285,6 @@
   "icon.upload.resourceLimit": "圖形像素或工作階段素材總量超限。請縮小圖片，或匯出儲存後重新整理再上傳。",
   "export.loading": "正在載入匯出選項…",
   "export.loadFailed": "匯出選項載入失敗，請連線後重新整理。",
-  "icon.brand.category.bytedance": "字節跳動"
+  "icon.brand.category.bytedance": "字節跳動",
+  "icon.brand.category.isv": "ISV"
 }

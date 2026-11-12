@@ -1,0 +1,554 @@
+[
+  {
+    "id": "isv-aptsell-symbol-color",
+    "file": "isv-aptsell-symbol-color.png",
+    "source": "APTSell/APTSell-图标-品牌色.png",
+    "sha256": "d293f88282481107380223ed46792b98d1dcb8f9a15315eaf58cb598e60482c2"
+  },
+  {
+    "id": "isv-aptsell-symbol-black",
+    "file": "isv-aptsell-symbol-black.png",
+    "source": "APTSell/APTSell-图标-纯黑.png",
+    "sha256": "2e559de73f4573f48738fe6e8faccf9f3e361d0848b2b44942f7cfabc91f8f8e"
+  },
+  {
+    "id": "isv-aptsell-symbol-white",
+    "file": "isv-aptsell-symbol-white.png",
+    "source": "APTSell/APTSell-图标-纯白.png",
+    "sha256": "724ea002d2cbfd05d2b90f57658a6e1fe78bd385b7159b8d950df0561ab536e5"
+  },
+  {
+    "id": "isv-aptsell-lockup-color",
+    "file": "isv-aptsell-lockup-color.png",
+    "source": "APTSell/APTSell-组合标-品牌色.png",
+    "sha256": "b6c55fc3857fd60511354a49ca729ac7a26eff1d21c5411ec4945ae899087372"
+  },
+  {
+    "id": "isv-aptsell-lockup-black",
+    "file": "isv-aptsell-lockup-black.png",
+    "source": "APTSell/APTSell-组合标-纯黑.png",
+    "sha256": "2a29dc93ade42bdf90bf12410458d2ba94ad5159469a4e68295296b6759342de"
+  },
+  {
+    "id": "isv-aptsell-lockup-white",
+    "file": "isv-aptsell-lockup-white.png",
+    "source": "APTSell/APTSell-组合标-纯白.png",
+    "sha256": "1f92c2842f2afc08cba426e7f292336da524b4b42a5827576d8ef865f27f7902"
+  },
+  {
+    "id": "isv-aptsell-wordmark-color",
+    "file": "isv-aptsell-wordmark-color.png",
+    "source": "APTSell/APTSell-字标-品牌色.png",
+    "sha256": "75a5be01b20f226c7424eb7a141e90434ee4f8ebda3cc1b40d5459cfbd5047a9"
+  },
+  {
+    "id": "isv-aptsell-wordmark-black",
+    "file": "isv-aptsell-wordmark-black.png",
+    "source": "APTSell/APTSell-字标-纯黑.png",
+    "sha256": "d0f366e6b294a75e7282d26d08fa64592e82f130ac6c014c69c79227005e0392"
+  },
+  {
+    "id": "isv-aptsell-wordmark-white",
+    "file": "isv-aptsell-wordmark-white.png",
+    "source": "APTSell/APTSell-字标-纯白.png",
+    "sha256": "9039d37167fb09bbf57cea488f23ea3b95b7287abd28f985d535e4fa5df5c03e"
+  },
+  {
+    "id": "isv-beisen-symbol-color",
+    "file": "isv-beisen-symbol-color.png",
+    "source": "北森/北森-图标-品牌色.png",
+    "sha256": "650dcc8f5f9a83c9251d39d24f653ac47f054a45d7ea90846a572a548fe425b4"
+  },
+  {
+    "id": "isv-beisen-symbol-black",
+    "file": "isv-beisen-symbol-black.png",
+    "source": "北森/北森-图标-纯黑.png",
+    "sha256": "e1fd8d82ec7beeca2dd8d834118137327ef463f78afca81aa1d6ec57f094a851"
+  },
+  {
+    "id": "isv-beisen-symbol-white",
+    "file": "isv-beisen-symbol-white.png",
+    "source": "北森/北森-图标-纯白.png",
+    "sha256": "392ca5a2bac6ef594acfb31afdbd1e60f1315aae151a6adc30d89cea66f0139a"
+  },
+  {
+    "id": "isv-beisen-wordmark-color",
+    "file": "isv-beisen-wordmark-color.png",
+    "source": "北森/北森-字标-品牌色.png",
+    "sha256": "f48dc96d60abd94e9852933c8dc09dfc55138c3998f48cf45f33e1096f934375"
+  },
+  {
+    "id": "isv-beisen-wordmark-black",
+    "file": "isv-beisen-wordmark-black.png",
+    "source": "北森/北森-字标-纯黑.png",
+    "sha256": "08af242883ee8a3f1d86a86704ce4b45f5dafeee99a48d1d2b6874ec619d79a8"
+  },
+  {
+    "id": "isv-beisen-wordmark-white",
+    "file": "isv-beisen-wordmark-white.png",
+    "source": "北森/北森-字标-纯白.png",
+    "sha256": "735b7466e8aeddab634b375f05d2ffe2ca3529d963fdb3a39d7b3039c3ebe9d0"
+  },
+  {
+    "id": "isv-fanruan-symbol-color",
+    "file": "isv-fanruan-symbol-color.png",
+    "source": "帆软/帆软-图标-品牌色.png",
+    "sha256": "b67f3c3ab8f0465d065f7bf24e612ec725344491423ff45dc9793ca7cee462e9"
+  },
+  {
+    "id": "isv-fanruan-symbol-black",
+    "file": "isv-fanruan-symbol-black.png",
+    "source": "帆软/帆软-图标-纯黑.png",
+    "sha256": "b315f1e6a4788e57a1820f1aade9a07b5d8b52841d32394487cab0123b4ce2db"
+  },
+  {
+    "id": "isv-fanruan-symbol-white",
+    "file": "isv-fanruan-symbol-white.png",
+    "source": "帆软/帆软-图标-纯白.png",
+    "sha256": "9587dc7e8e0c118c19b6322fdd6d6d7ffbabbfac41febef22332b366f6e7806c"
+  },
+  {
+    "id": "isv-fanruan-lockup-color",
+    "file": "isv-fanruan-lockup-color.png",
+    "source": "帆软/帆软-组合标-品牌色.png",
+    "sha256": "c7e57667a0688df4bbc4d3fa1c35cfb8eb5e33767fccbdcfe05d081d8fb271b9"
+  },
+  {
+    "id": "isv-fanruan-lockup-black",
+    "file": "isv-fanruan-lockup-black.png",
+    "source": "帆软/帆软-组合标-纯黑.png",
+    "sha256": "76de848672c32776549dddc7f0e0aefe3834a0f242cfe7621690b5b2c3768531"
+  },
+  {
+    "id": "isv-fanruan-lockup-white",
+    "file": "isv-fanruan-lockup-white.png",
+    "source": "帆软/帆软-组合标-纯白.png",
+    "sha256": "15a0da07f2a6c150194e77c07fe60ec46f9efc8f49a4473cd0c7e7e344333730"
+  },
+  {
+    "id": "isv-fanruan-wordmark-color",
+    "file": "isv-fanruan-wordmark-color.png",
+    "source": "帆软/帆软-字标-品牌色.png",
+    "sha256": "643b557cd15bb5612821ad0639ad6bbfca44afdd5c92253c60aebbf65f826375"
+  },
+  {
+    "id": "isv-fanruan-wordmark-black",
+    "file": "isv-fanruan-wordmark-black.png",
+    "source": "帆软/帆软-字标-纯黑.png",
+    "sha256": "2439097f982ac29e08733ab0ad258265d1de95dde04dc40b847f9265f153cf1d"
+  },
+  {
+    "id": "isv-fanruan-wordmark-white",
+    "file": "isv-fanruan-wordmark-white.png",
+    "source": "帆软/帆软-字标-纯白.png",
+    "sha256": "071fd11919c80b6f7bcfdb9c221cf8411488b3ab84b387f73ed3a087281fe0f2"
+  },
+  {
+    "id": "isv-fenbeitong-symbol-color",
+    "file": "isv-fenbeitong-symbol-color.png",
+    "source": "分贝通/分贝通-图标-品牌色.png",
+    "sha256": "9eb430ba8e872f3b8759e7a4d1cdba03095beb3794b408ea33c29ef4962e4b88"
+  },
+  {
+    "id": "isv-fenbeitong-symbol-black",
+    "file": "isv-fenbeitong-symbol-black.png",
+    "source": "分贝通/分贝通-图标-纯黑.png",
+    "sha256": "db9c5b97137d73e438cc700d25fdbe4a87371ccf51b2b8599c125f7388fa898f"
+  },
+  {
+    "id": "isv-fenbeitong-symbol-white",
+    "file": "isv-fenbeitong-symbol-white.png",
+    "source": "分贝通/分贝通-图标-纯白.png",
+    "sha256": "53cd220391a3d14a5111b84a582bbae135f0448953c272025189f2e8b9d7dc50"
+  },
+  {
+    "id": "isv-fenbeitong-lockup-color",
+    "file": "isv-fenbeitong-lockup-color.png",
+    "source": "分贝通/分贝通-组合标-品牌色.png",
+    "sha256": "8f4e48ad8f82718a83345091ebfdbcb3d40a3fa9506bc9d5d4d0ceb5ecfdd8a4"
+  },
+  {
+    "id": "isv-fenbeitong-lockup-black",
+    "file": "isv-fenbeitong-lockup-black.png",
+    "source": "分贝通/分贝通-组合标-纯黑.png",
+    "sha256": "be9c044355e52398a304af6d8c43763c3e18e731f51fa6d1283079bd6476b1f5"
+  },
+  {
+    "id": "isv-fenbeitong-lockup-white",
+    "file": "isv-fenbeitong-lockup-white.png",
+    "source": "分贝通/分贝通-组合标-纯白.png",
+    "sha256": "5e483f053edb0f4b150ac53371cc62dc1291c9d4182e2088b2765b525cf5e4a0"
+  },
+  {
+    "id": "isv-fenbeitong-wordmark-color",
+    "file": "isv-fenbeitong-wordmark-color.png",
+    "source": "分贝通/分贝通-字标-品牌色.png",
+    "sha256": "3530c5c0e21ccaac176d0e7c6c9b86e27b6f68e9616a9c983f953e1229c8f25a"
+  },
+  {
+    "id": "isv-fenbeitong-wordmark-black",
+    "file": "isv-fenbeitong-wordmark-black.png",
+    "source": "分贝通/分贝通-字标-纯黑.png",
+    "sha256": "22f8cae9c707a6a5ab35eeea6e6356b6926a88387876ec4d0aab9828205f8e0f"
+  },
+  {
+    "id": "isv-fenbeitong-wordmark-white",
+    "file": "isv-fenbeitong-wordmark-white.png",
+    "source": "分贝通/分贝通-字标-纯白.png",
+    "sha256": "e4601c121dc6489945f9602508daf03577bab8c0909eacfa1947e94b1ddc3161"
+  },
+  {
+    "id": "isv-hosecloud-symbol-color",
+    "file": "isv-hosecloud-symbol-color.png",
+    "source": "合思/合思-图标-品牌色.png",
+    "sha256": "d6dccdfdd5d4164d8f1fbacf04b3e0355a3f0f7ad025111e8e99b43b128b02fa"
+  },
+  {
+    "id": "isv-hosecloud-symbol-black",
+    "file": "isv-hosecloud-symbol-black.png",
+    "source": "合思/合思-图标-纯黑.png",
+    "sha256": "38c3795df4129ba5932e8316ec9dcd0c581a4a73f7f36b636d28d6ca3ec00b4c"
+  },
+  {
+    "id": "isv-hosecloud-symbol-white",
+    "file": "isv-hosecloud-symbol-white.png",
+    "source": "合思/合思-图标-纯白.png",
+    "sha256": "f29a515fdd13ecac94ba07185e88c384a4e2ab18706990236e77b3c7272a7f86"
+  },
+  {
+    "id": "isv-hosecloud-lockup-color",
+    "file": "isv-hosecloud-lockup-color.png",
+    "source": "合思/合思-组合标-品牌色.png",
+    "sha256": "941a211820cb27c0a962ac60c6e6e85fcd52dce19e0acdb8b6f32c56b980cd4a"
+  },
+  {
+    "id": "isv-hosecloud-lockup-black",
+    "file": "isv-hosecloud-lockup-black.png",
+    "source": "合思/合思-组合标-纯黑.png",
+    "sha256": "1fcaf70fa00e414b4e330b2604c1421fa7d5fb7f33e96625d7f190d63bc9fafd"
+  },
+  {
+    "id": "isv-hosecloud-lockup-white",
+    "file": "isv-hosecloud-lockup-white.png",
+    "source": "合思/合思-组合标-纯白.png",
+    "sha256": "a1f6da00ff4bd6659913fbbfbb00cc0bfe15765b277a6e0637e10615680c2731"
+  },
+  {
+    "id": "isv-hosecloud-wordmark-color",
+    "file": "isv-hosecloud-wordmark-color.png",
+    "source": "合思/合思-字标-品牌色.png",
+    "sha256": "cb4f2d70f51e7f5e7b6ba67cc922fb595ccb557479505eb63f03c6dba727ff0a"
+  },
+  {
+    "id": "isv-hosecloud-wordmark-black",
+    "file": "isv-hosecloud-wordmark-black.png",
+    "source": "合思/合思-字标-纯黑.png",
+    "sha256": "e4c7550e61a089a77278188af995e3ec6da9c49a2f31eaf928b2ce076fa74eb5"
+  },
+  {
+    "id": "isv-hosecloud-wordmark-white",
+    "file": "isv-hosecloud-wordmark-white.png",
+    "source": "合思/合思-字标-纯白.png",
+    "sha256": "d4100c56fa24bcc3ab0d13a7e328790daa4e28af0808d0bc28972fac16e4d4b9"
+  },
+  {
+    "id": "isv-helios-symbol-color",
+    "file": "isv-helios-symbol-color.png",
+    "source": "汇联易/汇联易-图标-品牌色.png",
+    "sha256": "899aa024be7c1a89dd5eb29de7e37ee79c181e834d9d67e94ac254b32a28244f"
+  },
+  {
+    "id": "isv-helios-symbol-black",
+    "file": "isv-helios-symbol-black.png",
+    "source": "汇联易/汇联易-图标-纯黑.png",
+    "sha256": "e2c76571632d5aef10bc02955501effab5ba92d11984b6bc24784e217bc48a5e"
+  },
+  {
+    "id": "isv-helios-symbol-white",
+    "file": "isv-helios-symbol-white.png",
+    "source": "汇联易/汇联易-图标-纯白.png",
+    "sha256": "1bd945ad21319f0ca2bcc0a2fcb0b96a9f1e529f3ee9656da191a78b5ea82867"
+  },
+  {
+    "id": "isv-helios-lockup-color",
+    "file": "isv-helios-lockup-color.png",
+    "source": "汇联易/汇联易-组合标-品牌色.png",
+    "sha256": "af136c9f5b50e88e2f22670b59487e24e97ad93faa908d4ca3906356d0a93aea"
+  },
+  {
+    "id": "isv-helios-lockup-black",
+    "file": "isv-helios-lockup-black.png",
+    "source": "汇联易/汇联易-组合标-纯黑.png",
+    "sha256": "d15a99d1e7afdd6e536deb431b8bf2f84c8149ba8ac467db699bd3b24e78d10d"
+  },
+  {
+    "id": "isv-helios-lockup-white",
+    "file": "isv-helios-lockup-white.png",
+    "source": "汇联易/汇联易-组合标-纯白.png",
+    "sha256": "443e15fca000db2f7c232f690dceacab162be28febd0d52712398dd63fe56d8a"
+  },
+  {
+    "id": "isv-helios-wordmark-color",
+    "file": "isv-helios-wordmark-color.png",
+    "source": "汇联易/汇联易-字标-品牌色.png",
+    "sha256": "4da793e58f5cf1102821173364fa37321a4465efa32058cfd1280f85f1b39779"
+  },
+  {
+    "id": "isv-helios-wordmark-black",
+    "file": "isv-helios-wordmark-black.png",
+    "source": "汇联易/汇联易-字标-纯黑.png",
+    "sha256": "22c8cd22754ccddf06c9e4978fab7f4c77faee2849ec7aff0b0556dc24efac16"
+  },
+  {
+    "id": "isv-helios-wordmark-white",
+    "file": "isv-helios-wordmark-white.png",
+    "source": "汇联易/汇联易-字标-纯白.png",
+    "sha256": "7f2c65bc2b31e3b5cbde22bd47bc1ef0e81e53fb428adcd4742f6f3dfc7f47a7"
+  },
+  {
+    "id": "isv-moka-symbol-color",
+    "file": "isv-moka-symbol-color.png",
+    "source": "Moka/Moka-图标-品牌蓝.png",
+    "sha256": "87448659f2e316453e7901ea039bea3a136975e0fa0071fabfb552cd7ed27cf0"
+  },
+  {
+    "id": "isv-moka-symbol-black",
+    "file": "isv-moka-symbol-black.png",
+    "source": "Moka/Moka-图标-纯黑.png",
+    "sha256": "11087b6cbb3c902b0adc269697a44410284bacd152cc154dc8764fab7a6e2b6a"
+  },
+  {
+    "id": "isv-moka-symbol-white",
+    "file": "isv-moka-symbol-white.png",
+    "source": "Moka/Moka-图标-纯白.png",
+    "sha256": "1c37378f31dcc16e8f3eb702337ed22664de3f2e05f60f0f6cf6ab8f1893f80f"
+  },
+  {
+    "id": "isv-moka-lockup-color",
+    "file": "isv-moka-lockup-color.png",
+    "source": "Moka/Moka-组合标-品牌色.png",
+    "sha256": "eacf5d6ff1289c2b639ba723556207f4dc48d7dcf30f3cf4dae0359e6cba8661"
+  },
+  {
+    "id": "isv-moka-lockup-black",
+    "file": "isv-moka-lockup-black.png",
+    "source": "Moka/Moka-组合标-纯黑.png",
+    "sha256": "dd45c1a0d6e68a5526b9e4be41c623c1f985a8d074be4021ae082c179bb99e2c"
+  },
+  {
+    "id": "isv-moka-lockup-white",
+    "file": "isv-moka-lockup-white.png",
+    "source": "Moka/Moka-组合标-纯白.png",
+    "sha256": "e8f5b33a10ad606bec31473a772930ed9cc0772b06bec8810e9d41af02dba564"
+  },
+  {
+    "id": "isv-moka-wordmark-color",
+    "file": "isv-moka-wordmark-color.png",
+    "source": "Moka/Moka-字标-品牌黑.png",
+    "sha256": "d2b9219151ee7440c7319fa33f255755eb4aa9d51747ae457f301064e4e57e6d"
+  },
+  {
+    "id": "isv-moka-wordmark-white",
+    "file": "isv-moka-wordmark-white.png",
+    "source": "Moka/Moka-字标-纯白.png",
+    "sha256": "ddcdcdf859ba35418626091509ff1caff0d2eeffb979661a6f885a90da7349ee"
+  },
+  {
+    "id": "isv-xiaoliebian-symbol-color",
+    "file": "isv-xiaoliebian-symbol-color.png",
+    "source": "小裂变/小裂变-图标-品牌色.png",
+    "sha256": "8fdd5c8ffeb52b2ff94902e5c42fd61a6cc7a1790a1a3ce94ac04ad3727aaef4"
+  },
+  {
+    "id": "isv-xiaoliebian-symbol-black",
+    "file": "isv-xiaoliebian-symbol-black.png",
+    "source": "小裂变/小裂变-图标-纯黑.png",
+    "sha256": "e4a41c39c88c01feff07cdb4ec4f000a443ffbc31ec06968613856f856cd528e"
+  },
+  {
+    "id": "isv-xiaoliebian-symbol-white",
+    "file": "isv-xiaoliebian-symbol-white.png",
+    "source": "小裂变/小裂变-图标-纯白.png",
+    "sha256": "ae15ccd382604960c9ef98af98317051d7971cbefca253aeb692d90b2e722b7c"
+  },
+  {
+    "id": "isv-xiaoliebian-lockup-color",
+    "file": "isv-xiaoliebian-lockup-color.png",
+    "source": "小裂变/小裂变-组合标-品牌色.png",
+    "sha256": "4a8cba234b97c5573e2225539b8b6da9051cbecde7c95e06a7fb39a529a0e519"
+  },
+  {
+    "id": "isv-xiaoliebian-lockup-black",
+    "file": "isv-xiaoliebian-lockup-black.png",
+    "source": "小裂变/小裂变-组合标-纯黑.png",
+    "sha256": "790cd151c6ef0644cecf9ca885ee68c3fe7cae7c1b6eae925506801fb0c7287e"
+  },
+  {
+    "id": "isv-xiaoliebian-lockup-white",
+    "file": "isv-xiaoliebian-lockup-white.png",
+    "source": "小裂变/小裂变-组合标-纯白.png",
+    "sha256": "603e5d467578212b9f510e2e00f2d97417d347240f2a40eb29a41cfc17ce0e4f"
+  },
+  {
+    "id": "isv-xiaoliebian-wordmark-color",
+    "file": "isv-xiaoliebian-wordmark-color.png",
+    "source": "小裂变/小裂变-字标-品牌色.png",
+    "sha256": "0396eceb35f4f6d2f559f58a2995b59e1d28fa9761d14dc84eda7593c4a3edef"
+  },
+  {
+    "id": "isv-xiaoliebian-wordmark-black",
+    "file": "isv-xiaoliebian-wordmark-black.png",
+    "source": "小裂变/小裂变-字标-纯黑.png",
+    "sha256": "e1ffa077100e6dc4f7cddf29e46e01c6266e3a0662cf621d1df9165d70ec3f82"
+  },
+  {
+    "id": "isv-xiaoliebian-wordmark-white",
+    "file": "isv-xiaoliebian-wordmark-white.png",
+    "source": "小裂变/小裂变-字标-纯白.png",
+    "sha256": "c3e0c3c4c97070cc5a3255e75778d9625044f3ccf54983e4d4b038fff4f8ece6"
+  },
+  {
+    "id": "isv-neocrm-symbol-color",
+    "file": "isv-neocrm-symbol-color.png",
+    "source": "销售易/销售易-图标-品牌色.png",
+    "sha256": "2254242f90b870d3ca77445e90497528a5137199040c01b292dc56233ebd41dc"
+  },
+  {
+    "id": "isv-neocrm-symbol-black",
+    "file": "isv-neocrm-symbol-black.png",
+    "source": "销售易/销售易-图标-纯黑.png",
+    "sha256": "a27d16d5982e9a4b0a16bd6b3020193eb2f708f479aa88cbce6f2276e50722f8"
+  },
+  {
+    "id": "isv-neocrm-symbol-white",
+    "file": "isv-neocrm-symbol-white.png",
+    "source": "销售易/销售易-图标-纯白.png",
+    "sha256": "fb4171e5d410e9f01c9ffefa7377a0732184c4617873311983bc398ec2bd90ed"
+  },
+  {
+    "id": "isv-neocrm-lockup-color",
+    "file": "isv-neocrm-lockup-color.png",
+    "source": "销售易/销售易-组合标-品牌色.png",
+    "sha256": "3dbaf639bbc9aa6c8c91e7d627b61f2cb7a150419690629513853b610dfcc2db"
+  },
+  {
+    "id": "isv-neocrm-lockup-black",
+    "file": "isv-neocrm-lockup-black.png",
+    "source": "销售易/销售易-组合标-纯黑.png",
+    "sha256": "07c313acfd2ffdd69dbd6b6f29ec760d05f5c5265da9fe890dc6b8ad89a640c7"
+  },
+  {
+    "id": "isv-neocrm-lockup-white",
+    "file": "isv-neocrm-lockup-white.png",
+    "source": "销售易/销售易-组合标-纯白.png",
+    "sha256": "a67e37e8467bf98dd260048591f4e36796fab96837ea51a9732a502059a9ea63"
+  },
+  {
+    "id": "isv-patsnap-symbol-color",
+    "file": "isv-patsnap-symbol-color.png",
+    "source": "智慧芽/智慧芽-图标-品牌色.png",
+    "sha256": "96daee07f2cab786172f4d0458d6bbe82a4236b0836e37c7d2bc2c386f49e635"
+  },
+  {
+    "id": "isv-patsnap-symbol-black",
+    "file": "isv-patsnap-symbol-black.png",
+    "source": "智慧芽/智慧芽-图标-纯黑.png",
+    "sha256": "2667078caa5b13d4f58f356caf29688d7d242ea6c222c8ca7ab54237862f9f83"
+  },
+  {
+    "id": "isv-patsnap-symbol-white",
+    "file": "isv-patsnap-symbol-white.png",
+    "source": "智慧芽/智慧芽-图标-纯白.png",
+    "sha256": "7450fe9b6a3c47a38e8d1c6c4decc1fd8a779e1063f74bdd88bf336bc137c864"
+  },
+  {
+    "id": "isv-patsnap-lockup-color",
+    "file": "isv-patsnap-lockup-color.png",
+    "source": "智慧芽/智慧芽-组合标-品牌色.png",
+    "sha256": "6a1ba26527feb961be042bd1d369fdb0240dd984ce38b36c54c0d504eed1a1e1"
+  },
+  {
+    "id": "isv-patsnap-lockup-black",
+    "file": "isv-patsnap-lockup-black.png",
+    "source": "智慧芽/智慧芽-组合标-纯黑.png",
+    "sha256": "31c2a09fb8626956c377dafa64444ba2aa4ecbbeae1830388348d0ba0f3a617c"
+  },
+  {
+    "id": "isv-patsnap-lockup-white",
+    "file": "isv-patsnap-lockup-white.png",
+    "source": "智慧芽/智慧芽-组合标-纯白.png",
+    "sha256": "12d18e4d69ed1b7d76ef889f803883de3329f1e5512b4283274becced2c217bc"
+  },
+  {
+    "id": "isv-patsnap-wordmark-color",
+    "file": "isv-patsnap-wordmark-color.png",
+    "source": "智慧芽/智慧芽-字标-品牌色.png",
+    "sha256": "6f32e4f2e3c7fd54f4eec9bdb38f029b69f9889104283c31fb4fbff26c0cef76"
+  },
+  {
+    "id": "isv-patsnap-wordmark-black",
+    "file": "isv-patsnap-wordmark-black.png",
+    "source": "智慧芽/智慧芽-字标-纯黑.png",
+    "sha256": "6f32e4f2e3c7fd54f4eec9bdb38f029b69f9889104283c31fb4fbff26c0cef76"
+  },
+  {
+    "id": "isv-patsnap-wordmark-white",
+    "file": "isv-patsnap-wordmark-white.png",
+    "source": "智慧芽/智慧芽-字标-纯白.png",
+    "sha256": "87da457e473b7ca416c10ffafcc523d983e552349c4c1660d7bf7245992e362c"
+  },
+  {
+    "id": "isv-zhishu-symbol-color",
+    "file": "isv-zhishu-symbol-color.png",
+    "source": "智书/智书-图标-品牌色.png",
+    "sha256": "236812219025d19dbb8ae14fccdb2fbdd8258c6fcea3f2a7dfdd75129aa7ca08"
+  },
+  {
+    "id": "isv-zhishu-symbol-black",
+    "file": "isv-zhishu-symbol-black.png",
+    "source": "智书/智书-图标-纯黑.png",
+    "sha256": "47543b6ab1a9da71956be2529d7f4ac16902630861561913f6cb846217647d03"
+  },
+  {
+    "id": "isv-zhishu-symbol-white",
+    "file": "isv-zhishu-symbol-white.png",
+    "source": "智书/智书-图标-纯白.png",
+    "sha256": "2d8408727cd5bf75c9026cbd2b4c7e7080b94b1dc37e37a1b755f5808f551fd3"
+  },
+  {
+    "id": "isv-zhishu-lockup-color",
+    "file": "isv-zhishu-lockup-color.png",
+    "source": "智书/智书-组合标-品牌色.png",
+    "sha256": "68c66bb5e4ef618222828b2c0a30bf0c1f996462b92def3a6b5351ec6ca1ae89"
+  },
+  {
+    "id": "isv-zhishu-lockup-black",
+    "file": "isv-zhishu-lockup-black.png",
+    "source": "智书/智书-组合标-纯黑.png",
+    "sha256": "fc3304cbbf227e9de142003357ffa9aefa83a83a8f199e12bfece506412d786e"
+  },
+  {
+    "id": "isv-zhishu-lockup-white",
+    "file": "isv-zhishu-lockup-white.png",
+    "source": "智书/智书-组合标-纯白.png",
+    "sha256": "e500a4ee26cda05335f89d1d949fbb6b9eba343948a3701bf80ba1bd319dc355"
+  },
+  {
+    "id": "isv-zhishu-wordmark-color",
+    "file": "isv-zhishu-wordmark-color.png",
+    "source": "智书/智书-字标-品牌色.png",
+    "sha256": "70f7c86f6b0a0331b6b29c696cd188b6f6d77e1c3669881c8415f1058dead3b5"
+  },
+  {
+    "id": "isv-zhishu-wordmark-black",
+    "file": "isv-zhishu-wordmark-black.png",
+    "source": "智书/智书-字标-纯黑.png",
+    "sha256": "70f7c86f6b0a0331b6b29c696cd188b6f6d77e1c3669881c8415f1058dead3b5"
+  },
+  {
+    "id": "isv-zhishu-wordmark-white",
+    "file": "isv-zhishu-wordmark-white.png",
+    "source": "智书/智书-字标-纯白.png",
+    "sha256": "d4b1724bbe3d14af6a08d495ef172bbe6dcb3579039dca4dcc56da833212db65"
+  }
+]

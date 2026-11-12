@@ -285,5 +285,6 @@
   "icon.upload.resourceLimit": "图形像素或会话素材总量超限。请缩小图片，或保存导出后刷新再上传。",
   "export.loading": "正在加载导出选项…",
   "export.loadFailed": "导出选项加载失败，请联网后刷新。",
-  "icon.brand.category.bytedance": "字节跳动"
+  "icon.brand.category.bytedance": "字节跳动",
+  "icon.brand.category.isv": "ISV"
 }

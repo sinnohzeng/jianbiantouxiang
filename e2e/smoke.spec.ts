@@ -35,7 +35,7 @@ for (const offsetY of [-0.1, 0.3]) {
             canvas: { shape: 'square' },
             layout: {
               icon: { source: 'brand', id: 'dongli-symbol-white', mono: false },
-              graphic: 0.35,
+              graphic: 0.45,
             },
             typography: {
               padding: 0.06,
@@ -198,8 +198,29 @@ test('字节品牌紧随客户素材，选择原稿后刷新保留', async ({ pa
   await expect(page.locator('[data-slot="graphic-name"]')).toContainText('飞书 · 纯白组合')
 })
 
+test('ISV 分组紧随字节分组，选中后加载原稿并刷新保留', async ({ page }) => {
+  await openApp(page)
+  await page.locator('[data-slot="graphic-picker"]').click()
+  const groups = page.locator('[cmdk-group-heading]')
+  await expect(groups.nth(2)).toHaveText('ISV')
+  const entries = page.locator('[cmdk-group]').nth(2).getByRole('option')
+  await expect(entries).toHaveCount(92)
+  const response = page.waitForResponse((r) =>
+    r.url().endsWith('/brand/isv-beisen-symbol-color.png'),
+  )
+  await page.getByRole('option', { name: '北森 · 图标 · 品牌色', exact: true }).click()
+  expect((await response).ok()).toBe(true)
+  await expect(page.locator('[data-slot="graphic-name"]')).toContainText('北森 · 图标 · 品牌色')
+  await expect(page.locator('[data-slot="brand-mono"]')).toHaveCount(0)
+  await probeEncode(page, 192)
+  await probeFlush(page)
+  await page.reload()
+  await expect(page.locator('[data-slot="graphic-name"]')).toContainText('北森 · 图标 · 品牌色')
+})
+
 for (const [id, asset] of [
-  ['doubao-work', 'doubao-work-202611.png'],
+  ['doubao-work', 'doubao-work-avatar.png'],
+  ['bd-doubao-work-black', 'bd-doubao-work-avatar-black.png'],
   ['lark', 'feishu-symbol-202611.svg'],
 ] as const) {
   test(`旧品牌配置 ${id} 加载新素材并保留文字`, async ({ page }) => {

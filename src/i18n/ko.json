@@ -285,5 +285,6 @@
   "icon.upload.resourceLimit": "이미지 픽셀 또는 세션 자료 한도를 초과했습니다. 이미지를 줄이거나 작업을 내보낸 뒤 새로고침하세요.",
   "export.loading": "내보내기 옵션 로딩 중…",
   "export.loadFailed": "내보내기 옵션을 불러오지 못했습니다. 연결 후 새로고침하세요.",
-  "icon.brand.category.bytedance": "ByteDance"
+  "icon.brand.category.bytedance": "ByteDance",
+  "icon.brand.category.isv": "ISV"
 }

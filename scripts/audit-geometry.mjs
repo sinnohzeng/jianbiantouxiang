@@ -1,5 +1,6 @@
 /* global document */
 /** Pixel audit of layout invariants with production layout/draw code and real fonts and brand assets.
+ * Every brand asset must load and draw visible pixels.
  * Start npm run dev, then node scripts/audit-geometry.mjs <output-dir> [origin]. Exits 1 on a violation. */
 import { chromium } from 'playwright'
 import { mkdir, writeFile } from 'node:fs/promises'
@@ -66,15 +67,34 @@ try {
     }
 
     const aspects = []
+    const unreadable = []
     for (const entry of BRAND_INDEX) {
       const g = await graphicOf({ source: 'brand', id: entry.id, mono: false })
-      if (g) aspects.push({ id: entry.id, aspect: Math.round((g.width / g.height) * 100) / 100 })
+      ctx.clearRect(0, 0, S, S)
+      if (g)
+        drawGraphic(
+          ctx,
+          g,
+          { x: 0, y: 0, width: S, height: S / (g.width / g.height) },
+          normalizeConfig({}),
+          '#000',
+        )
+      if (!g || !ink()) unreadable.push(entry.id)
+      else aspects.push({ id: entry.id, aspect: Math.round((g.width / g.height) * 100) / 100 })
     }
     const byAspect = [...aspects].sort((a, b) => a.aspect - b.aspect)
     const tall = byAspect[0].id
     const wide = byAspect.at(-1).id
 
-    const icons = ['none', 'doubao-work', 'lark', 'dongli-lockup-full-white', tall, wide]
+    const icons = [
+      'none',
+      'doubao-work',
+      'lark',
+      'dongli-lockup-full-white',
+      'isv-fenbeitong-symbol-color',
+      tall,
+      wide,
+    ]
     const iconOf = (id) =>
       id === 'none' ? { source: 'none' } : { source: 'brand', id, mono: false }
     const texts = [
@@ -118,10 +138,10 @@ try {
         const [a, b] = m.lines
         lineHeightSweep.push({ icon: id, lineHeight, gap: a && b ? b.y - (a.y + a.height) : null })
       }
-    return { aspects, centering, logoSweep, lineHeightSweep }
+    return { aspects, unreadable, centering, logoSweep, lineHeightSweep }
   })
 
-  const violations = []
+  const violations = result.unreadable.map((id) => `brand ${id}: no visible pixels`)
   for (const c of result.centering)
     if (Math.abs(c.errY) > 0.5)
       violations.push(`centre ${c.icon} ${JSON.stringify(c.text)} ${c.shape}: errY ${c.errY}%`)

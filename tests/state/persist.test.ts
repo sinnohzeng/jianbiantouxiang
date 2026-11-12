@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_CONFIG, type AvatarConfig } from '@/state/config'
-import type { HistoryEntry } from '@/state/history'
+import { THUMB_VERSION, type HistoryEntry } from '@/state/history'
 import {
   PERSIST_KEY,
   clearPersisted,
@@ -15,7 +15,7 @@ function withText(text: string): AvatarConfig {
 }
 
 function entry(text: string, thumb?: string): HistoryEntry {
-  return { config: withText(text), ...(thumb ? { thumb, thumbVersion: 1 as const } : {}) }
+  return { config: withText(text), ...(thumb ? { thumb, thumbVersion: THUMB_VERSION } : {}) }
 }
 
 afterEach(() => {
@@ -153,31 +153,40 @@ describe('存储不可用', () => {
   })
 })
 
-it('素材升级只失效两个品牌的旧缩略图，历史配置与其他品牌保持', () => {
-  const history = ['doubao-work', 'lark', 'github'].map((id) => ({
-    config: {
-      ...DEFAULT_CONFIG,
-      text: id,
-      layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'brand' as const, id, mono: false } },
-    },
+it('图形口径升级失效品牌与上传图形的旧缩略图，配置与其余缩略图保持', () => {
+  const icons = [
+    { source: 'brand' as const, id: 'doubao-work', mono: false },
+    { source: 'upload' as const, id: 'upload-1', mono: false },
+    { source: 'emoji' as const, id: 'rocket', mono: false },
+    { source: 'none' as const, id: '', mono: false },
+  ]
+  const history = icons.map((icon, index) => ({
+    config: { ...DEFAULT_CONFIG, text: `第${index}条`, layout: { ...DEFAULT_CONFIG.layout, icon } },
     thumb: 'data:image/jpeg;base64,old',
+    thumbVersion: 1,
   }))
   store.setItem(PERSIST_KEY, JSON.stringify({ config: DEFAULT_CONFIG, history }))
   const loaded = loadPersistedState()!
-  expect(loaded.history.map((e) => e.config)).toEqual(history.map((e) => e.config))
-  expect(loaded.history.map((e) => e.thumb)).toEqual([undefined, undefined, history[2]?.thumb])
-  savePersisted(loaded.config, loaded.history)
-  expect(loadPersistedState()?.history).toEqual(loaded.history)
+  expect(loaded.history.map((e) => e.config.text)).toEqual(history.map((e) => e.config.text))
+  expect(loaded.history.map((e) => e.thumb)).toEqual([
+    undefined,
+    undefined,
+    'data:image/jpeg;base64,old',
+    'data:image/jpeg;base64,old',
+  ])
 })
 
-it('更新后重新生成的品牌缩略图继续保留', () => {
-  for (const id of ['doubao-work', 'lark']) {
-    const config = {
-      ...DEFAULT_CONFIG,
-      layout: { ...DEFAULT_CONFIG.layout, icon: { source: 'brand' as const, id, mono: false } },
-    }
-    const history = [{ config, thumb: 'data:image/jpeg;base64,new', thumbVersion: 1 as const }]
-    savePersisted(config, history)
-    expect(loadPersistedState()?.history).toEqual(history)
+it('当前版本生成的品牌缩略图继续保留', () => {
+  const config = {
+    ...DEFAULT_CONFIG,
+    layout: {
+      ...DEFAULT_CONFIG.layout,
+      icon: { source: 'brand' as const, id: 'lark', mono: false },
+    },
   }
+  const history: HistoryEntry[] = [
+    { config, thumb: 'data:image/jpeg;base64,new', thumbVersion: THUMB_VERSION },
+  ]
+  savePersisted(config, history)
+  expect(loadPersistedState()?.history).toEqual(history)
 })

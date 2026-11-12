@@ -1,4 +1,4 @@
-import { isClientPreset, clientPresetConfig } from '@/graphics/client-presets'
+import { clientPresetConfig, isClientPreset, isExactBrand } from '@/graphics/client-presets'
 import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { UploadIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -399,7 +399,7 @@ export function IconPicker({ open, onOpenChange }: IconPickerProps) {
                   // 上游单色稿是纯白的，压在浅色列表上会看不见，给它垫一块深底，观感也贴近渐变底
                   (mono && entry.white) || entry.id.endsWith('-white')
                     ? 'bg-slate-800'
-                    : entry.id.startsWith('bd-')
+                    : isExactBrand(entry.id)
                       ? 'bg-white'
                       : 'bg-muted',
                 )}

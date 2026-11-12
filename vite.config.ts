@@ -76,7 +76,15 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // 收款码只在关于页出现，没必要让每个装 PWA 的人先下 200 KB
-        globIgnores: ['support/**', '**/noto-serif-sc-*.woff2'],
+        globIgnores: ['support/**', '**/noto-serif-sc-*.woff2', 'brand/isv-*'],
+        // ISV 素材近 19 MB，进预缓存就是每个访客后台先下一遍；改成用到哪张缓存哪张，离线时照样可用
+        runtimeCaching: [
+          {
+            urlPattern: /\/brand\/isv-[\w-]+\.png$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'brand-isv' },
+          },
+        ],
         // 站点是两个真实页面，不是单页应用。留着导航兜底会让装过 PWA 的人
         // 打开 /about 拿到缓存里的 index.html
         navigateFallback: null,

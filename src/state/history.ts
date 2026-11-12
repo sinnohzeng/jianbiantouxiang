@@ -7,9 +7,12 @@ export interface HistoryEntry {
   config: AvatarConfig
   /** 96 px JPEG data URL。旧存档没有时历史条回落到 CSS 近似缩略图。 */
   thumb?: string
-  /** 图形素材更新后的缩略图缓存版本。 */
-  thumbVersion?: 1
+  /** 缩略图按哪一版图形排版生成。 */
+  thumbVersion?: typeof THUMB_VERSION
 }
+
+/** 品牌与上传图形的尺寸口径或素材换过一次就加一，旧版缩略图画的已不是现在的样子。 */
+export const THUMB_VERSION = 2
 
 /**
  * 把一份配置放到历史表首位。相同配置只保留一条：用户反复点回同一状态时，
@@ -33,6 +36,6 @@ export function attachHistoryThumb(
   thumb: string,
 ): HistoryEntry[] {
   return list.map((entry) =>
-    configHash(entry.config) === hash ? { ...entry, thumb, thumbVersion: 1 as const } : entry,
+    configHash(entry.config) === hash ? { ...entry, thumb, thumbVersion: THUMB_VERSION } : entry,
   )
 }

@@ -1,5 +1,5 @@
 import { normalizeConfig, type AvatarConfig } from '@/state/config'
-import { HISTORY_MAX, type HistoryEntry } from '@/state/history'
+import { HISTORY_MAX, THUMB_VERSION, type HistoryEntry } from '@/state/history'
 
 /** 存档键是存档结构的唯一版本号：结构一变就升键，旧键不读。 */
 export const PERSIST_KEY = 'gradient-avatar:v4'
@@ -50,10 +50,9 @@ export function loadPersistedState(): PersistedState | null {
         .map((item) => {
           const rawConfig = isRecord(item.config) ? item.config : {}
           const config = normalizeConfig(rawConfig)
-          const replacedBrand =
-            config.layout.icon.source === 'brand' &&
-            ['doubao-work', 'lark'].includes(config.layout.icon.id)
-          const staleThumb = replacedBrand && item.thumbVersion !== 1
+          const source = config.layout.icon.source
+          const staleThumb =
+            (source === 'brand' || source === 'upload') && item.thumbVersion !== THUMB_VERSION
           const thumb =
             !staleThumb && typeof item.thumb === 'string' && item.thumb.startsWith('data:image/')
               ? item.thumb
@@ -61,7 +60,10 @@ export function loadPersistedState(): PersistedState | null {
           return {
             config,
             ...(thumb
-              ? { thumb, ...(item.thumbVersion === 1 ? { thumbVersion: 1 as const } : {}) }
+              ? {
+                  thumb,
+                  ...(item.thumbVersion === THUMB_VERSION ? { thumbVersion: THUMB_VERSION } : {}),
+                }
               : {}),
           }
         })

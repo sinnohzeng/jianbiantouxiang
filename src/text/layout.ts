@@ -121,7 +121,12 @@ function placeGraphic(
     }
   }
 
-  const reference = Math.min(safeBox.height * GRAPHIC_REFERENCE, safeBox.width / aspect)
+  // 宽 Logo 按与方形 Logo 等面积取高（宽高比的 0.5 次方），否则宽 2 左右的 Logo 在参照框里
+  // 占到方形的近两倍面积。高度封顶在参照高，竖长 Logo 不挤占文字；宽度封顶在安全框宽。
+  const reference = Math.min(
+    (safeBox.height * GRAPHIC_REFERENCE) / Math.sqrt(Math.max(1, aspect)),
+    safeBox.width / aspect,
+  )
   let gh = reference * (config.layout.graphic / GRAPHIC_REFERENCE)
   let gw = gh * aspect
   if (!auto && gw > safeBox.width) {

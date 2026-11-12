@@ -1,13 +1,18 @@
 [
   {
+    "id": "doubao-work",
+    "file": "doubao-work-avatar.png",
+    "sha256": "38fcdc2a851b2bff178fa128b01d614db261c8338322f29ebf9c06197d8a328d"
+  },
+  {
     "id": "bd-doubao-work-black",
-    "file": "bd-doubao-work-black.png",
-    "sha256": "bcf5e62add547d4dfe0065cb29d7a0eeac0e1022904175f880a7f5c16ddc7973"
+    "file": "bd-doubao-work-avatar-black.png",
+    "sha256": "9ead0f0f294ac6463c8e24bf8de718c865a520affac0851f793e53d08b45830f"
   },
   {
     "id": "bd-doubao-work-white",
-    "file": "bd-doubao-work-white.png",
-    "sha256": "10ee1b932965bfa640eada325e6ed754c62612a1bab604d0bfa6ba24d4058b94"
+    "file": "bd-doubao-work-avatar-white.png",
+    "sha256": "0a9359bdc8ce7d2ef01672f7468368d84efa221dca9c4e57091752b02a75f7a8"
   },
   {
     "id": "bd-feishu-color",
@@ -113,11 +118,6 @@
     "id": "bd-tiktok-white",
     "file": "bd-tiktok-white.svg",
     "sha256": "9896cc20e74294d17091180875a6e6f7e3fa4d0b82f22ee166c16eebf4ea6b9e"
-  },
-  {
-    "id": "doubao-work",
-    "file": "doubao-work-202611.png",
-    "sha256": "f5f2a8dcc5122f36b432cc2b0e3f7f4e039c0cd6053a4058ceb3fbb30c9f429b"
   },
   {
     "id": "lark",

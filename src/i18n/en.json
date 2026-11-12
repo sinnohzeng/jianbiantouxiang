@@ -285,5 +285,6 @@
   "icon.upload.resourceLimit": "Image pixels or session assets exceed the limit. Use a smaller image, or export your work and reload before uploading.",
   "export.loading": "Loading export options…",
   "export.loadFailed": "Export options could not load. Reconnect and refresh.",
-  "icon.brand.category.bytedance": "ByteDance"
+  "icon.brand.category.bytedance": "ByteDance",
+  "icon.brand.category.isv": "ISV"
 }
