@@ -43,6 +43,8 @@ sources:
 
 2026-11-06：整理联网来源、原始素材、工程推断与实测边界；当前是机器整理和出图复核，未记录真人审美批准。外部规范更新、字体版本或品牌原稿变化时重新验证。
 
+2026-11-12：整组纵向修正改为只按可见边界居中，质心只留在每行横向修正里；依据与量测见 `docs/audits/2026-11-12-geometry.md`。
+
 [^hmtx]: https://learn.microsoft.com/en-us/typography/opentype/otspec190/hmtx
 [^clreq]: https://www.w3.org/TR/clreq/#baselines
 [^font-license]: https://github.com/notofonts/noto-cjk/blob/main/Serif/LICENSE
