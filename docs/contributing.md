@@ -25,6 +25,8 @@ npm run dev
 | `npm test` | Vitest 单跑一遍 |
 | `npm run test:watch` | Vitest 监听模式 |
 | `npm run e2e` | Playwright，桌面 1440 与 iPhone 15 两组 |
+| `npm run check` | 提交前门禁：lint、format:check、typecheck、单测、build、自动化服务单测与构建 |
+| `npm run ci` | 完整门禁：check 之后再跑自动化服务集成测试与 e2e |
 | `npm run screenshots` | 三个设备各截深浅两套主题到 `.screenshots/` |
 | `npm run gen:icons` | 从 lucide-react 重建内置图标索引 |
 | `npm run gen:emoji` | 从 emojibase-data 重建五语 emoji 索引 |
@@ -35,7 +37,7 @@ npm run dev
 | `npm run format` | Prettier 写回 |
 | `npm run format:check` | Prettier 只检查 |
 
-提交前至少跑 `npm run lint && npm run format:check && npm run typecheck && npm test && npm run build`，CI 的 check job 跑的就是这五步；e2e job 只在 main 分支的 push 与手动触发时跑，失败会把 `playwright-report/` 与 `test-results/` 上传成制品，不用只靠日志猜。
+仓库不在 GitHub 上跑 CI，门禁全在本地跑完再推送。提交前跑 `npm run check`：lint、format:check、typecheck、单测、build，加自动化服务的单测与构建。改了界面或定版前跑 `npm run ci`，在 check 之后再跑服务集成测试与 e2e。e2e 失败时截图与 trace 留在 `test-results/`，用 `npx playwright show-trace` 打开。
 
 ## 目录约定
 
@@ -106,7 +108,7 @@ docs: 补齐字体加载链的说明
 
 ## 付费 registry
 
-`components.json` 启用了 `@shadcnblocks`、`@reactbits-starter`、`@reactbits-pro` 三个付费 registry。装进来的件就是仓库里的普通源码，CI 与 Cloudflare 构建都不需要密钥；只有再从 registry 拉新件时才要密钥。
+`components.json` 启用了 `@shadcnblocks`、`@reactbits-starter`、`@reactbits-pro` 三个付费 registry。装进来的件就是仓库里的普通源码，本地门禁与 ESA、Cloudflare 构建都不需要密钥；只有再从 registry 拉新件时才要密钥。
 
 用项目里的 CLI，不要用 npx：
 

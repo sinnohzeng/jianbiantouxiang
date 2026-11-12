@@ -263,7 +263,7 @@ headless chromium 默认没有 GPU，WebGL2 靠 `--use-angle=swiftshader` 等启
 
 ## 构建与部署
 
-`npm run build` 先 `tsc -b` 再 `vite build`，产物在 `dist/`。CI 在每次 push 与 pull request 上跑 lint、格式、typecheck、单测、构建五步，Node 24。
+`npm run build` 先 `tsc -b` 再 `vite build`，产物在 `dist/`。门禁在本地跑，脚本见 `docs/contributing.md`，Node 24。
 
 站点是两个入口，不是单页应用：`index.html` 是工具本体，`about.html` 是关于页。
 `appType` 必须是 mpa，spa 那一档会把 `/about` 也兜回 `index.html`，开发与 `vite preview` 上就永远看不到关于页。

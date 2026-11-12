@@ -12,13 +12,13 @@
 
 ## 验证门禁
 
-提交前必须全绿：
+仓库不在 GitHub 上跑 CI，门禁全在本地。提交前必须全绿：
 
 ```bash
-npm run lint && npm run format:check && npm run typecheck && npm test && npm run build
+npm run check
 ```
 
-改了界面另跑 `npm run e2e`。任何一步红了就不提交，先修。命令与 CI 各 job 的对应关系见 `docs/contributing.md`。
+改了界面或定版前跑 `npm run ci`，它在 check 之后再跑服务集成测试与 e2e。任何一步红了就不提交，先修。两个脚本各含哪些步骤见 `docs/contributing.md`。
 
 ## 边界
 

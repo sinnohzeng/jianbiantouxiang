@@ -23,4 +23,4 @@
 - 渲染与导出全部在浏览器内完成，导出产物不经过任何第三方。
 - 外部请求包括字体样式表与字体切片，以及选中 emoji 时从 jsDelivr 取 Noto Emoji SVG：Google Fonts css2 主链、fontsource 两级镜像与 Noto Emoji 都见相关文档；页面不注入任何第三方脚本。
 - 上传字体经 `FontFace` 只在本会话注册；上传 SVG 图形先经白名单消毒再注册，PNG 与 WebP 原样读取。两者的文件字节都不写盘，存档里只有一个会话内的引用，刷新即失效。
-- 依赖均为知名开源库，锁文件入库，CI 每次 push 跑 lint、typecheck、单测与构建。
+- 依赖均为知名开源库，锁文件入库，每次提交前在本地跑 lint、typecheck、单测与构建。
