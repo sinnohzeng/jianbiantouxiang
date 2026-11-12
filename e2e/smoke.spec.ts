@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { openApp, probeEncode, probeFlush } from './helpers'
+import { openApp, probeEncode, probeFlush, probeInk } from './helpers'
 
 // 界面语言默认跟浏览器走，Playwright 的 chromium 是 en-US，标题会变成英文。
 // 用 ?lang= 把语言钉死，断言才跟运行环境无关。
@@ -35,7 +35,7 @@ for (const offsetY of [-0.1, 0.3]) {
             canvas: { shape: 'square' },
             layout: {
               icon: { source: 'brand', id: 'dongli-symbol-white', mono: false },
-              graphic: 0.3,
+              graphic: 0.35,
             },
             typography: {
               padding: 0.06,
@@ -69,6 +69,24 @@ for (const offsetY of [-0.1, 0.3]) {
       })
       expect(spare).toBeGreaterThanOrEqual(0)
     } else await expect(warning).toBeVisible()
+  })
+}
+
+// 两行整组按可见墨迹居中：字重分布再不均，也不按质心把整组挪离中心
+for (const text of ['飞书\n效率先锋', '研发\nSTUDIO', '工作新习惯\n你说豆包干']) {
+  test(`无图标两行整组上下居中：${text.replace('\n', ' / ')}`, async ({ page }) => {
+    await page.addInitScript((value) => {
+      localStorage.setItem(
+        'gradient-avatar:v4',
+        JSON.stringify({ config: { text: value, layout: { icon: { source: 'none' } } } }),
+      )
+    }, text)
+    await openApp(page)
+    const size = 512
+    const ink = await probeInk(page, size)
+    expect(ink).not.toBeNull()
+    const centre = ink!.y + ink!.height / 2
+    expect(Math.abs(centre - size / 2)).toBeLessThanOrEqual(size * 0.005)
   })
 }
 

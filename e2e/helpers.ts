@@ -53,10 +53,18 @@ export interface ProbeConfig {
   layout: { icon: { source: string; id: string; mono: boolean } }
 }
 
+export interface ProbeRect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 interface ProbeWindow {
   __gradientAvatarProbe?: {
     stats(size?: number): Promise<ProbePixelStats>
     encode(size?: number): Promise<ProbeEncodeResult>
+    ink(size?: number): Promise<ProbeRect | null>
     config(): ProbeConfig
     flush(): void
   }
@@ -131,6 +139,14 @@ export function probeStats(page: Page, size?: number): Promise<ProbePixelStats> 
 export function probeEncode(page: Page, size?: number): Promise<ProbeEncodeResult> {
   return page.evaluate(
     (px) => (globalThis as unknown as ProbeWindow).__gradientAvatarProbe!.encode(px),
+    size,
+  )
+}
+
+/** 文字与图形的可见墨迹框，走生产排版与绘制。 */
+export function probeInk(page: Page, size?: number): Promise<ProbeRect | null> {
+  return page.evaluate(
+    (px) => (globalThis as unknown as ProbeWindow).__gradientAvatarProbe!.ink(px),
     size,
   )
 }

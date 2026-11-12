@@ -10,11 +10,17 @@
  * 也没有任何产品代码引用 window.__gradientAvatarProbe。
  */
 
-import { releaseCanvas } from '@/lib/canvas'
+import { createCanvas, releaseCanvas } from '@/lib/canvas'
 import { composeAvatar } from '@/export/compose'
 import { encodeCanvas } from '@/export/encode'
+import { loadFontsForConfig } from '@/fonts/loader'
+import { drawGraphic } from '@/graphics/draw'
+import { loadGraphic } from '@/graphics/source'
+import { alphaBounds } from '@/graphics/trim'
 import type { AvatarConfig } from '@/state/config'
 import { flushConfigSync, useAvatarStore } from '@/state/store'
+import { drawText } from '@/text/draw'
+import { layoutText, type Rect } from '@/text/layout'
 
 /** 统计用的默认边长。够看出画面有没有内容，又不至于让软件渲染跑很久。 */
 const STATS_SIZE = 192
@@ -46,6 +52,8 @@ export interface GradientAvatarProbe {
   stats(size?: number): Promise<ProbePixelStats>
   /** 按当前配置合成并编码，返回产物的类型与体积。 */
   encode(size?: number): Promise<ProbeEncodeResult>
+  /** 按当前配置排版，只把文字与图形画到透明画布上，返回可见墨迹的包围盒。 */
+  ink(size?: number): Promise<Rect | null>
   /** 当前配置，即 store 里的那份。 */
   config(): AvatarConfig
   /** 把防抖中的配置立刻写进存档。 */
@@ -101,10 +109,29 @@ async function encode(size?: number): Promise<ProbeEncodeResult> {
   }
 }
 
+async function ink(size = STATS_SIZE): Promise<Rect | null> {
+  const stored = useAvatarStore.getState().config
+  const config = { ...stored, typography: { ...stored.typography, effect: 'plain' as const } }
+  await loadFontsForConfig(config)
+  const graphic = await loadGraphic(config.layout.icon)
+  const layout = layoutText(config, size, size, undefined, graphic)
+  const canvas = createCanvas(size, size)
+  try {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
+    if (!ctx) throw new Error('probe: 拿不到 2D 上下文')
+    if (graphic && layout.graphic) drawGraphic(ctx, graphic, layout.graphic, config, '#000')
+    drawText(ctx, layout, config, '#000')
+    return alphaBounds(ctx.getImageData(0, 0, size, size).data, size, size)
+  } finally {
+    releaseCanvas(canvas)
+  }
+}
+
 export function installProbe(): void {
   window.__gradientAvatarProbe = {
     stats,
     encode,
+    ink,
     config: () => useAvatarStore.getState().config,
     flush: flushConfigSync,
   }
