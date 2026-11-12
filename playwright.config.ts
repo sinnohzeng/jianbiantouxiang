@@ -1,5 +1,4 @@
 import { defineConfig, devices } from '@playwright/test'
-import { CI_FACTOR } from './e2e/ci-factor'
 
 // headless chromium 默认没有 GPU，WebGL2 走 swiftshader 软件渲染
 const chromiumLaunch = {
@@ -9,17 +8,15 @@ const chromiumLaunch = {
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
-  // runner 只有 2 vCPU，钉死 2 而不是跟着核数推断，免得换了机型 worker 数跟着变
-  workers: process.env.CI ? 2 : undefined,
+  // 本地跑的就是门禁，漏删的 test.only 会让整套只跑一条还报绿
+  forbidOnly: true,
+  reporter: [['list']],
   use: {
     baseURL: 'http://localhost:4173',
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
   },
   // 默认画布是 2048²，软件渲染下合成一遍要几秒，Playwright 默认的 30 s 不够
-  timeout: 60_000 * CI_FACTOR,
+  timeout: 60_000,
   projects: [
     {
       name: 'desktop',
@@ -47,7 +44,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run preview -- --port 4173',
     url: 'http://localhost:4173',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 120_000,
   },
 })

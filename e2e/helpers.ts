@@ -7,7 +7,6 @@
 
 import { fileURLToPath } from 'node:url'
 import { expect, type Locator, type Page } from '@playwright/test'
-import { CI_FACTOR } from './ci-factor'
 
 export const APP_URL = '/?probe=1&lang=zh-CN'
 
@@ -83,16 +82,16 @@ const OPEN_APP_BUDGET_MS = 30_000
  * 把真正的失败点盖掉。所以它必须严格大于自己内含的最大断言预算，也就是 PROBE_TIMEOUT_MS：
  * 一条用例最多串两次探针断言，再加一次 openApp 的余量。
  */
-export const PROBE_TEST_TIMEOUT_MS = (PROBE_TIMEOUT_MS * 2 + OPEN_APP_BUDGET_MS) * CI_FACTOR
+export const PROBE_TEST_TIMEOUT_MS = PROBE_TIMEOUT_MS * 2 + OPEN_APP_BUDGET_MS
 
 /** expect.poll 等状态落到存档或界面的预算。 */
-export const POLL_TIMEOUT_MS = 5_000 * CI_FACTOR
+export const POLL_TIMEOUT_MS = 5_000
 
 /** 等界面自己稳下来的预算：幕布读完秒、网络字体到货之后重排完成。 */
-export const SETTLE_TIMEOUT_MS = 15_000 * CI_FACTOR
+export const SETTLE_TIMEOUT_MS = 15_000
 
 /** 等一张图真的算出来的预算：离屏合成加 JPEG 编码，软件渲染下这一步最慢。 */
-export const RENDER_TIMEOUT_MS = 30_000 * CI_FACTOR
+export const RENDER_TIMEOUT_MS = 30_000
 
 /**
  * 打开首页并等到界面与探针都就绪。
