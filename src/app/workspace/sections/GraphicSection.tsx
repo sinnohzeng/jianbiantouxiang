@@ -21,7 +21,7 @@ import { useT } from '@/i18n'
 import { useGraphicLabel } from '@/graphics/label'
 import { GraphicThumb } from '@/app/panels/GraphicThumb'
 import { IconPickerLazy } from '@/app/panels/lazy'
-import { DEFAULT_CONFIG } from '@/state/config'
+import { DEFAULT_CONFIG, GRAPHIC_MAX, GRAPHIC_MIN } from '@/state/config'
 import { useAvatarStore } from '@/state/store'
 import { SectionCard } from './card'
 import { Row } from './row'
@@ -163,8 +163,8 @@ export function GraphicSection() {
             label={t('panel.graphic.scale')}
             value={config.layout.graphic}
             defaultValue={DEFAULT_CONFIG.layout.graphic}
-            min={0.3}
-            max={0.8}
+            min={GRAPHIC_MIN}
+            max={GRAPHIC_MAX}
             step={0.01}
             scale={100}
             unit="%"

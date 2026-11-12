@@ -23,7 +23,7 @@ describe('恢复自动排版', () => {
         line1: { size: null, offsetX: 0, offsetY: 0 },
         line2: { size: null, offsetX: 0, offsetY: 0 },
       },
-      layout: { graphic: 0.42, graphicOffsetX: 0, graphicOffsetY: 0 },
+      layout: { graphic: 0.49, graphicOffsetX: 0, graphicOffsetY: 0 },
     })
     expect(patch.typography?.line1?.font).toBeUndefined()
     expect(patch.typography?.line2?.font).toBeUndefined()

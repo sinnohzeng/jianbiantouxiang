@@ -287,6 +287,8 @@ describe('行级垂直补偿互相独立', () => {
 
 describe('图标进栈', () => {
   const GRAPHIC = { width: 100, height: 100 }
+  // 边距 0.1 时圆形安全区直径 800，方形内接边长 800/√2，80% 档正好放满
+  const iconOnlySide = (graphic: number) => (800 / Math.SQRT2) * (graphic / 0.8)
 
   it('图标和文字作为紧凑整体垂直居中', () => {
     const result = layout(
@@ -317,7 +319,7 @@ describe('图标进栈', () => {
     )
     expect(result.lines).toHaveLength(0)
     const graphic = result.graphic!
-    expect(graphic.width).toBeCloseTo(800 * 0.52)
+    expect(graphic.width).toBeCloseTo(iconOnlySide(0.52))
     expect(graphic.x).toBeCloseTo(100 + (800 - graphic.width) / 2)
     expect(graphic.y).toBeCloseTo(graphic.x)
   })
@@ -350,7 +352,7 @@ describe('图标进栈', () => {
       },
       GRAPHIC,
     )
-    const centred = 100 + (800 - 800 * 0.52) / 2
+    const centred = 100 + (800 - iconOnlySide(0.52)) / 2
     expect(iconOnly.graphic!.x).toBeCloseTo(centred - 40)
   })
 
@@ -380,7 +382,7 @@ describe('图标进栈', () => {
       },
       GRAPHIC,
     )
-    const centred = 100 + (800 - 800 * 0.52) / 2
+    const centred = 100 + (800 - iconOnlySide(0.52)) / 2
     expect(iconOnly.graphic!.y).toBeCloseTo(centred - 40)
   })
 
@@ -559,4 +561,101 @@ it('最终提示使用用户圆形边距，区分基准排版边距与显示边�
     expect(Math.hypot(dx, dy)).toBeLessThanOrEqual(470.01)
   }
   expect(result.overflow).toBe(false)
+})
+
+describe('Logo 大小', () => {
+  const steps = [0.1, 0.2, 0.3, 0.4, 0.52, 0.6, 0.7, 0.8]
+  const manual = (graphic: number, size: { width: number; height: number }) =>
+    layout(
+      {
+        text: '文字',
+        typography: { line1: { size: 0.1 }, padding: 0.1 },
+        layout: { graphic, icon: { source: 'builtin', id: 'logo' } },
+      },
+      size,
+    ).graphic!
+
+  it('方形与竖版 Logo 每一档都是安全框高的 graphic 倍', () => {
+    for (const graphic of steps) {
+      expect(manual(graphic, { width: 100, height: 100 }).height).toBeCloseTo(800 * graphic)
+      expect(manual(graphic, { width: 50, height: 100 }).height).toBeCloseTo(800 * graphic)
+    }
+  })
+
+  it('宽 Logo 在 52% 铺满安全框宽，往下每一档按比例缩小', () => {
+    const wide = { width: 1000, height: 100 }
+    expect(manual(0.52, wide).width).toBeCloseTo(800)
+    expect(manual(0.1, wide).width).toBeCloseTo((800 * 0.1) / 0.52)
+    for (let i = 1; i < steps.length && steps[i]! <= 0.52; i++)
+      expect(manual(steps[i]!, wide).width).toBeGreaterThan(manual(steps[i - 1]!, wide).width)
+  })
+
+  it.each([
+    ['方形', { width: 100, height: 100 }],
+    ['横版 10:1', { width: 1000, height: 100 }],
+    ['横版 4:1', { width: 400, height: 100 }],
+  ])('自动排版里%s Logo 每一档都比上一档占得多', (_, size) => {
+    const share = (graphic: number) => {
+      const result = layout(
+        { text: '飞书对接\n外部群', layout: { graphic, icon: { source: 'builtin', id: 'logo' } } },
+        size,
+      )
+      return result.graphic!.height / result.lines[0]!.fontSizePx
+    }
+    for (let i = 1; i < steps.length; i++)
+      expect(share(steps[i]!)).toBeGreaterThan(share(steps[i - 1]!) * 1.01)
+  })
+
+  it.each([
+    ['方形', { width: 100, height: 100 }],
+    ['横版 10:1', { width: 1000, height: 100 }],
+    ['竖版 1:2', { width: 50, height: 100 }],
+  ])('纯%s Logo 逐档变大，最大档正好内接圆形安全区', (_, size) => {
+    const rectOf = (graphic: number) =>
+      layout(
+        {
+          text: '',
+          typography: { padding: 0.1 },
+          layout: { graphic, icon: { source: 'builtin', id: 'logo' } },
+        },
+        size,
+      ).graphic!
+    for (let i = 1; i < steps.length; i++)
+      expect(rectOf(steps[i]!).width).toBeGreaterThan(rectOf(steps[i - 1]!).width)
+    const full = rectOf(0.8)
+    expect(Math.hypot(full.width, full.height)).toBeCloseTo(800)
+  })
+})
+
+describe('行高作用于两行之间', () => {
+  const gapAt = (lineHeight: number, icon: boolean) => {
+    const result = layout(
+      {
+        text: '工作新习惯\n你说豆包干',
+        typography: { lineHeight },
+        layout: icon
+          ? { icon: { source: 'builtin', id: 'logo' } }
+          : { icon: { source: 'none', id: '' } },
+      },
+      icon ? { width: 100, height: 100 } : null,
+    )
+    const [first, second] = result.lines
+    return {
+      gap: second!.y - second!.ascent - (first!.y + first!.descent),
+      font: Math.max(first!.fontSizePx, second!.fontSizePx),
+    }
+  }
+
+  it('默认行高下纯文字两行留白是较大字号的 18%', () => {
+    const { gap, font } = gapAt(1.03, false)
+    expect(gap).toBeCloseTo(font * 0.18)
+  })
+
+  it.each([false, true])('行高越大两行越开，有 Logo：%s', (icon) => {
+    const ratios = [0.85, 1.03, 1.3, 1.6, 2].map((lh) => {
+      const { gap, font } = gapAt(lh, icon)
+      return gap / font
+    })
+    for (let i = 1; i < ratios.length; i++) expect(ratios[i]!).toBeGreaterThan(ratios[i - 1]!)
+  })
 })

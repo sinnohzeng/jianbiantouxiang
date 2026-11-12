@@ -38,7 +38,8 @@ export function clientPresetConfig(id: ClientPresetId): PartialConfig {
     },
     layout: {
       icon: { source: 'brand', id, mono: false },
-      graphic: id.startsWith('dongli-symbol-') ? 0.42 : 0.52,
+      // 图形标宽高比约 2.24，0.49 时宽度是安全框的 94%
+      graphic: id.startsWith('dongli-symbol-') ? 0.49 : 0.52,
       graphicOffsetX: 0,
       graphicOffsetY: 0,
     },

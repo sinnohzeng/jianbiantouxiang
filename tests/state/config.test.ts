@@ -250,17 +250,18 @@ describe('normalizeConfig 的 layout 子树', () => {
 
     const config = normalizeConfig({
       layout: {
-        graphic: 0.1,
+        graphic: 0.05,
         icon: { source: 'emoji', id: '1f334' },
       },
     })
-    expect(config.layout.graphic).toBe(0.3)
+    expect(config.layout.graphic).toBe(0.1)
     expect(config.layout.icon).toEqual({ source: 'emoji', id: '1f334', mono: false })
   })
 
-  it('graphic 夹在 0.3..0.8，非法值回落默认', () => {
-    expect(normalizeConfig({ layout: { graphic: 0 } }).layout.graphic).toBe(0.3)
-    expect(normalizeConfig({ layout: { graphic: 0.3 } }).layout.graphic).toBe(0.3)
+  it('graphic 夹在 0.1..0.8，非法值回落默认', () => {
+    expect(normalizeConfig({ layout: { graphic: 0 } }).layout.graphic).toBe(0.1)
+    expect(normalizeConfig({ layout: { graphic: 0.1 } }).layout.graphic).toBe(0.1)
+    expect(normalizeConfig({ layout: { graphic: 0.15 } }).layout.graphic).toBe(0.15)
     expect(normalizeConfig({ layout: { graphic: 0.8 } }).layout.graphic).toBe(0.8)
     expect(normalizeConfig({ layout: { graphic: 9 } }).layout.graphic).toBe(0.8)
     expect(normalizeConfig({ layout: { graphic: 'wide' } }).layout.graphic).toBe(

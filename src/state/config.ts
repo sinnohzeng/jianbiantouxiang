@@ -86,8 +86,8 @@ export interface AvatarConfig {
     pill: { radius: number; padding: number; opacity: number }
   }
   layout: {
-    /** logo：图形占安全框高度的比例。 */
-    graphic: number // 0.3..0.8
+    /** Logo 大小 GRAPHIC_MIN..GRAPHIC_MAX，换算见 `src/text/layout.ts` 的 `placeGraphic`。 */
+    graphic: number
     /** 图形的水平视觉补偿，按安全框宽度比例，正数往右。 */
     graphicOffsetX: number // -0.25..0.25
     /** 图形的垂直视觉补偿，按安全框高度比例，正数往下。 */
@@ -151,6 +151,20 @@ export function line2FollowScale(config: AvatarConfig): number {
 /** 两行之间的留白比例，按两行里较大的那个字号算。 */
 export const LINE_GAP_RATIO = 0.18
 
+/** 默认行高。两行留白在这一档取基准值，行高每偏离 1 就按较大字号等量加减。 */
+export const LINE_HEIGHT_DEFAULT = 1.03
+
+/** Logo 大小的区间。 */
+export const GRAPHIC_MIN = 0.1
+export const GRAPHIC_MAX = 0.8
+
+/**
+ * 带文字时 Logo 的参照档：先把 Logo 等比放进“安全框全宽 × 安全框高的这个比例”，再按
+ * `graphic / GRAPHIC_REFERENCE` 缩放。方形与竖版 Logo 因此就是安全框高的 `graphic` 倍；
+ * 宽 Logo 在参照档正好铺满安全框宽，其余档位按比例变，不会整段拖动都撞在宽度上。
+ */
+export const GRAPHIC_REFERENCE = 0.52
+
 /**
  * 字号滑杆的步进（画布短边比例）。自动档回写给滑杆的值也按它向下对齐：
  * 滑杆控件在触碰时会把值取整到步进，回写值不在网格上的话，轻触一下就会被取整到比求解上限更大的档，
@@ -198,7 +212,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     },
     optical: true,
     padding: 0.03,
-    lineHeight: 1.03,
+    lineHeight: LINE_HEIGHT_DEFAULT,
     letterSpacing: 0,
     // 深底白字依靠对比度；默认不以投影改变文字轮廓
     effect: 'plain',
@@ -467,7 +481,7 @@ export function normalizeConfig(partial: unknown): AvatarConfig {
       const rawId = str(icon.id, source === d.layout.icon.source ? d.layout.icon.id : '').trim()
       const id = source === 'none' || rawId.length > ICON_ID_MAX ? '' : rawId
       return {
-        graphic: num(lay.graphic, d.layout.graphic, 0.3, 0.8),
+        graphic: num(lay.graphic, d.layout.graphic, GRAPHIC_MIN, GRAPHIC_MAX),
         graphicOffsetX: num(lay.graphicOffsetX, d.layout.graphicOffsetX, -0.25, 0.25),
         graphicOffsetY: num(lay.graphicOffsetY, d.layout.graphicOffsetY, -0.25, 0.25),
         // 单色档只认布尔真

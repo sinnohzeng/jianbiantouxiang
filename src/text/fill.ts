@@ -18,9 +18,13 @@ export function automaticGroup(config: AvatarConfig): boolean {
   )
 }
 
-/** Keep the approved internal composition; use extra circle space only in the final scale. */
+/**
+ * Keep the approved internal composition; use extra circle space only in the final scale.
+ * 纯 Logo 没有图文组可保持，尺寸直接按用户边距的圆形安全区算。
+ */
 export function compositionConfig(config: AvatarConfig): AvatarConfig {
   return automaticGroup(config) &&
+    config.text.trim() !== '' &&
     config.typography.effect === 'plain' &&
     config.typography.padding < 0.06
     ? { ...config, typography: { ...config.typography, padding: 0.06 } }
@@ -36,6 +40,7 @@ export function fillCircleLayout(
 ): TextLayout {
   if (
     !automaticGroup(config) ||
+    layout.lines.length === 0 ||
     layout.overflow ||
     typeof document === 'undefined' ||
     config.typography.effect !== 'plain'

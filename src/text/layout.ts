@@ -1,9 +1,9 @@
 import { compositionConfig, fillCircleLayout } from './fill'
-import { brandGap, titleGap } from './spacing'
+import { brandGap, stackGap } from './spacing'
 import { applyOpticalLayout, type OpticalReport } from './optical'
 import type { Graphic } from '@/graphics/types'
 import { insideCircle } from './circle'
-import type { AvatarConfig } from '@/state/config'
+import { GRAPHIC_MAX, GRAPHIC_REFERENCE, type AvatarConfig } from '@/state/config'
 import { fitStack, safeArea, type ParagraphFit } from './fit'
 import { createCanvasMeasure, type MeasureFn } from './measure'
 
@@ -82,13 +82,22 @@ function pillOf(config: AvatarConfig, box: Rect, fontSizePx: number): PillRect {
   return rect
 }
 
-/** 图标落位：有文字时占安全框顶部，纯图标时在安全框里居中。 */
+/**
+ * Logo 落位。
+ *
+ * 带文字时 Logo 占栈顶：先等比放进参照框（安全框全宽 × 安全框高的 GRAPHIC_REFERENCE），
+ * 再按 `graphic / GRAPHIC_REFERENCE` 缩放。自动排版的超宽交给整组圆裁缩放，Logo 越大文字越小；
+ * 手动字号时整组不缩放，Logo 按安全框宽收边。
+ *
+ * 纯 Logo 时在安全框里居中，尺寸是圆形安全区内能放下的最大同比例矩形的 `graphic / GRAPHIC_MAX`。
+ */
 function placeGraphic(
   config: AvatarConfig,
   safeBox: Rect,
   graphic: GraphicSize,
   hasText: boolean,
   short: number,
+  auto: boolean,
 ): { graphicRect: Rect; textArea: Rect } {
   const aspect = graphic.width / Math.max(1, graphic.height)
   // 两向补偿都按安全框算，与逐行文字补偿同一口径：水平看宽，垂直看高
@@ -96,30 +105,26 @@ function placeGraphic(
   const shiftY = safeBox.height * config.layout.graphicOffsetY
 
   if (!hasText) {
-    let side = Math.min(safeBox.width, safeBox.height) * config.layout.graphic
-    let gw = side * aspect
-    if (gw > safeBox.width) {
-      gw = safeBox.width
-      side = gw / aspect
-    }
-    if (side > safeBox.height) {
-      side = safeBox.height
-      gw = side * aspect
-    }
+    // 同比例矩形的半对角线等于半径时正好内接
+    const diameter = 2 * short * (0.5 - config.typography.padding)
+    const scale = config.layout.graphic / GRAPHIC_MAX / Math.hypot(aspect, 1)
+    const gw = diameter * aspect * scale
+    const gh = diameter * scale
     return {
       graphicRect: {
         x: safeBox.x + (safeBox.width - gw) / 2 + shift,
-        y: safeBox.y + (safeBox.height - side) / 2 + shiftY,
+        y: safeBox.y + (safeBox.height - gh) / 2 + shiftY,
         width: gw,
-        height: side,
+        height: gh,
       },
       textArea: { x: safeBox.x, y: safeBox.y, width: safeBox.width, height: 0 },
     }
   }
 
-  let gh = safeBox.height * config.layout.graphic
+  const reference = Math.min(safeBox.height * GRAPHIC_REFERENCE, safeBox.width / aspect)
+  let gh = reference * (config.layout.graphic / GRAPHIC_REFERENCE)
   let gw = gh * aspect
-  if (gw > safeBox.width) {
+  if (!auto && gw > safeBox.width) {
     gw = safeBox.width
     gh = gw / aspect
   }
@@ -158,11 +163,12 @@ function geometricLayoutText(
   const m = measure ?? getSharedMeasure()
   const safeBox = safeArea(config, width, height)
   const hasText = config.text.trim() !== ''
+  const auto = config.typography.line1.size === null && config.typography.line2.size === null
 
   let graphicRect: Rect | undefined
   let textArea: Rect = safeBox
   if (graphic && config.layout.icon.source !== 'none') {
-    const placed = placeGraphic(config, safeBox, graphic, hasText, Math.min(width, height))
+    const placed = placeGraphic(config, safeBox, graphic, hasText, Math.min(width, height), auto)
     graphicRect = placed.graphicRect
     textArea = placed.textArea
   }
@@ -212,11 +218,7 @@ function geometricLayoutText(
   const radius = Math.min(width, height) * (0.5 - config.typography.padding)
   const gx = safeBox.width * config.layout.graphicOffsetX
   const gy = safeBox.height * config.layout.graphicOffsetY
-  if (
-    graphicRect &&
-    config.typography.line1.size === null &&
-    config.typography.line2.size === null
-  ) {
+  if (graphicRect && auto) {
     if (lines.length > 0 && lines.length <= 2) {
       const baseGraphic = { ...graphicRect }
       const originals = positioned.map(({ line, offset }) => ({ line, offset, base: { ...line } }))
@@ -225,9 +227,11 @@ function geometricLayoutText(
         const logoSpace = brandGap(Math.min(width, height), baseGraphic.width / baseGraphic.height)
         const textSpace =
           lines.length > 1
-            ? titleGap(
+            ? stackGap(
                 Math.min(width, height),
                 Math.max(...originals.map(({ base }) => base.fontSizePx)) * factor,
+                true,
+                config.typography.lineHeight,
               )
             : 0
         const stackHeight =
