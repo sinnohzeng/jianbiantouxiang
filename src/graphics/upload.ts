@@ -249,7 +249,10 @@ export function sanitizeSvg(source: string): string {
   const clean = cloned.node
   // Canvas 的九参数 drawImage 使用固有尺寸作为裁切坐标；viewBox 本身只提供比例。
   // 明确尺寸使同一 SVG 在预览和大尺寸导出中使用同一坐标系。
-  if (!clean.hasAttribute('width') && !clean.hasAttribute('height')) {
+  // 百分比宽高同样没有固有尺寸，九参数裁切会对错坐标（微博的 SVG 就写着 100%）
+  const absolute = (name: string) =>
+    /^(?:\d+\.?\d*|\.\d+)(?:px)?$/.test(clean.getAttribute(name)?.trim() ?? '')
+  if (!absolute('width') || !absolute('height')) {
     const size = viewBoxSize(root)
     const scale = Math.min(1, 2048 / Math.max(size.width, size.height))
     clean.setAttribute('width', String(size.width * scale))

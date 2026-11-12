@@ -6,8 +6,8 @@
  * homarr-labs/dashboard-icons 拉取，带 file 的条目从 assets/brand 拷贝（owner 提供的素材）。
  * 两类都落到 public/brand/<id>.<ext>，并生成 src/graphics/generated/brand-index.ts。
  *
- * 落盘前 SVG 过一遍 inlineClassStyles：上游不少文件把填色写在 <style> 的类规则里，
- * 而运行时的 sanitizeSvg 不放行 <style> 元素，不内联的话画出来是纯黑。
+ * 落盘前 SVG 过一遍 inlineClassStyles 与 inlineUses：上游不少文件把填色写在 <style> 的类规则里，
+ * 少数靠 <use> 复用图形上色，而运行时的 sanitizeSvg 两种元素都不放行，不展开的话画出来缺色缺形。
  *
  * 生成物勿手改，改完清单跑 npm run gen:brand。
  * 可选 --cache <dir>：先在该目录找 <name>.svg，找不到才走网络，断网也能重跑。
@@ -16,7 +16,7 @@
 import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
-import { inlineClassStyles } from '../build/brand-svg.ts'
+import { inlineClassStyles, inlineUses } from '../build/brand-svg.ts'
 
 const root = path.resolve(import.meta.dirname, '..')
 const listPath = path.join(root, 'scripts/brand-list.json')
@@ -53,7 +53,7 @@ async function fetchSvg(source, name) {
 async function writeSvg(target, svg) {
   if (!/<svg[\s>]/.test(svg) || svg.includes('\u0000'))
     throw new Error(`SVG 源文件格式不符：${path.basename(target)}`)
-  await writeFile(target, inlineClassStyles(svg))
+  await writeFile(target, inlineUses(inlineClassStyles(svg)))
 }
 
 async function copyAsset(from, to) {

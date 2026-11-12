@@ -86,3 +86,34 @@ export function inlineClassStyles(svg: string): string {
   const body = svg.replace(STYLE_BLOCK, '')
   return body.replace(TAG, (tag) => rewriteTag(tag, rules))
 }
+
+/** 自闭合元素，属性值里的引号不当作标签结束。 */
+const SELF_CLOSING = /<[a-zA-Z][\w:.-]*(?:"[^"]*"|'[^']*'|[^>"'])*?\/>/g
+/** `<use>`，自闭合或带空的结束标签。 */
+const USE = /<use\b(?:"[^"]*"|'[^']*'|[^>"'])*?\/?>(?:\s*<\/use>)?/g
+
+/**
+ * 把引用文件内部图形的 `<use>` 展开成 `<g>`：`<use>` 自己的属性留在 `<g>` 上，被引用元素去掉 id 后
+ * 复制进去，继承关系与 `<use>` 相同。运行时的 `sanitizeSvg` 不放行 `<use>`，不展开的话
+ * chrome、chatgpt 这类靠 `<use>` 上色的上游文件只剩底稿。
+ *
+ * 只展开指向自闭合元素、且不带 x、y 的引用，上游这批文件都是这种；其余原样保留。
+ */
+export function inlineUses(svg: string): string {
+  if (!/<use\b/.test(svg)) return svg
+  const targets = new Map<string, string>()
+  for (const [element] of svg.matchAll(SELF_CLOSING)) {
+    const id = attribute(element, 'id')
+    if (id && !element.startsWith('<use')) targets.set(id.value, element.replace(id.whole, ''))
+  }
+  return svg.replace(USE, (use) => {
+    const href = attribute(use, 'xlink:href') ?? attribute(use, 'href')
+    const target = href?.value.startsWith('#') ? targets.get(href.value.slice(1)) : undefined
+    if (!href || !target || attribute(use, 'x') || attribute(use, 'y')) return use
+    const rest = use
+      .replace(href.whole, '')
+      .replace(/^<use\b/, '')
+      .replace(/\s*\/?>(?:\s*<\/use>)?$/, '')
+    return `<g${rest}>${target}</g>`
+  })
+}

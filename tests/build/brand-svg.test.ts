@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { classRules, inlineClassStyles } from '../../build/brand-svg'
+import { classRules, inlineClassStyles, inlineUses } from '../../build/brand-svg'
 
 describe('类规则内联', () => {
   it('类规则并进元素的 style，style 元素与 class 属性一并删掉', () => {
@@ -49,5 +49,22 @@ describe('类规则内联', () => {
     expect(classRules('path{fill:#123}#id{fill:#456}.a{fill:#789}')).toEqual(
       new Map([['a', 'fill:#789']]),
     )
+  })
+})
+
+describe('<use> 展开', () => {
+  it('引用展开成带同样属性的 g，被引用元素去掉 id 后复制进去', () => {
+    const out = inlineUses(
+      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path id="c" d="M0 0h1v1z"/><use xlink:href="#c" fill="#db4437"/><use href="#c" transform="rotate(60 5 5)"></use></svg>',
+    )
+    expect(out).toBe(
+      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path id="c" d="M0 0h1v1z"/><g fill="#db4437"><path d="M0 0h1v1z"/></g><g transform="rotate(60 5 5)"><path d="M0 0h1v1z"/></g></svg>',
+    )
+  })
+
+  it('外部引用与带 x、y 的引用原样保留', () => {
+    const svg =
+      '<svg><path id="c" d="M0 0h1v1z"/><use href="https://evil.example/a.svg#c"/><use href="#c" x="2"/><use href="#missing"/></svg>'
+    expect(inlineUses(svg)).toBe(svg)
   })
 })
