@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { maskStats, opticalShift, brandGroupShift, applyOpticalLayout } from '@/text/optical'
+import { maskStats, opticalShift, groupCenterShift, applyOpticalLayout } from '@/text/optical'
 import { normalizeConfig } from '@/state/config'
 import { badgeLayout } from '@/automation/layout'
 
@@ -34,10 +34,10 @@ describe('bounded optical diagnostics', () => {
   })
 })
 
-it('brand placement distinguishes visible bounds from mass and caps extreme asymmetry', () => {
-  expect(brandGroupShift(50, 50, 50, 100)).toBe(0)
-  expect(brandGroupShift(50, 58, 50, 100)).toBe(-2)
-  expect(brandGroupShift(54, 54, 50, 100)).toBeCloseTo(-3.5)
-  expect(brandGroupShift(50, 90, 50, 100)).toBeCloseTo(-3.5)
-  expect(brandGroupShift(50, 50.1, 50, 100)).toBe(0)
+it('整组纵向修正把可见边界中心移到画布中心，亚像素不动，极端留白截断', () => {
+  expect(groupCenterShift(50, 50, 100)).toBe(0)
+  expect(groupCenterShift(52, 50, 100)).toBe(-2)
+  expect(groupCenterShift(48.5, 50, 100)).toBe(1.5)
+  expect(groupCenterShift(60, 50, 100)).toBeCloseTo(-3.5)
+  expect(groupCenterShift(50.04, 50, 100)).toBe(0)
 })

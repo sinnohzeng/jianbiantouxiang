@@ -1,6 +1,7 @@
 import { drawText } from './draw'
 import { insideCircle } from './circle'
 import { drawGraphic } from '@/graphics/draw'
+import { alphaBounds } from '@/graphics/trim'
 import type { Graphic } from '@/graphics/types'
 import type { AvatarConfig } from '@/state/config'
 import type { Rect, TextLayout } from './layout'
@@ -62,18 +63,43 @@ export function opticalShift(delta: number, short: number): number {
   return Math.max(-short * 0.015, Math.min(short * 0.015, delta * 0.25))
 }
 
-/** Visible bounds are the baseline; ink mass supplies only a quarter-strength correction.
- * Reserved transparent brand space must not masquerade as visible content. */
-export function brandGroupShift(
-  boundsCenter: number,
-  massCenter: number,
-  center: number,
-  short: number,
-): number {
-  const delta = center - (boundsCenter * 0.75 + massCenter * 0.25)
-  return Math.abs(delta) < short * 0.004
+/**
+ * 整组纵向修正：把可见边界的中心移到画布中心。质心不参与，人看整组居中看的是上下留白。
+ * 亚像素级的差不动，超过短边 3.5% 的截断，后者只会出现在素材自带大片透明留白时。
+ */
+export function groupCenterShift(boundsCenter: number, center: number, short: number): number {
+  const delta = center - boundsCenter
+  return Math.abs(delta) < short * 0.0005
     ? 0
     : Math.max(-short * 0.035, Math.min(short * 0.035, delta))
+}
+
+/** 素材可见像素在落位框里的比例。按素材对象缓存，同一张图只量一次。 */
+const inkFractions = new WeakMap<Graphic, Rect | null>()
+
+function graphicInkFraction(graphic: Graphic, config: AvatarConfig): Rect | null {
+  if (inkFractions.has(graphic)) return inkFractions.get(graphic) ?? null
+  const k = 512 / Math.max(graphic.width, graphic.height)
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(graphic.width * k))
+  canvas.height = Math.max(1, Math.round(graphic.height * k))
+  try {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
+    if (!ctx) return null
+    const { width, height } = canvas
+    drawGraphic(ctx, graphic, { x: 0, y: 0, width, height }, config, '#fff')
+    const bounds = alphaBounds(ctx.getImageData(0, 0, width, height).data, width, height)
+    const fraction = bounds && {
+      x: bounds.x / width,
+      y: bounds.y / height,
+      width: bounds.width / width,
+      height: bounds.height / height,
+    }
+    inkFractions.set(graphic, fraction)
+    return fraction
+  } finally {
+    canvas.width = canvas.height = 1
+  }
 }
 
 export function applyOpticalLayout(
@@ -137,21 +163,11 @@ export function applyOpticalLayout(
     r.x + r.width <= safe.x + safe.width + 0.01 &&
     r.y + r.height <= safe.y + safe.height + 0.01 &&
     (!circle || insideCircle(r, width / 2, height / 2, short * (0.5 - config.typography.padding)))
-  const sample = (single?: number) => {
+  const sample = (single: number) => {
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.scale(scale, scale)
-    if (single === undefined && graphic && result.graphic)
-      drawGraphic(ctx, graphic, result.graphic, plain, '#fff')
-    drawText(
-      ctx,
-      {
-        ...result,
-        lines: single === undefined ? result.lines : result.lines.filter((_, i) => i === single),
-      },
-      plain,
-      '#fff',
-    )
+    drawText(ctx, { ...result, lines: result.lines.filter((_, i) => i === single) }, plain, '#fff')
     return maskStats(
       ctx.getImageData(0, 0, canvas.width, canvas.height).data,
       canvas.width,
@@ -177,6 +193,27 @@ export function applyOpticalLayout(
       height: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent,
     }
   }
+  const visibleGroup = (): Rect | null => {
+    const rects = result.lines.map(measuredRect)
+    const frame = result.graphic
+    const ink = graphic && frame ? graphicInkFraction(graphic, plain) : null
+    if (frame && ink)
+      rects.push({
+        x: frame.x + ink.x * frame.width,
+        y: frame.y + ink.y * frame.height,
+        width: ink.width * frame.width,
+        height: ink.height * frame.height,
+      })
+    if (rects.length === 0) return null
+    const top = Math.min(...rects.map((r) => r.y))
+    const left = Math.min(...rects.map((r) => r.x))
+    return {
+      x: left,
+      y: top,
+      width: Math.max(...rects.map((r) => r.x + r.width)) - left,
+      height: Math.max(...rects.map((r) => r.y + r.height)) - top,
+    }
+  }
   const rows: Rect[] = []
   try {
     report.mode = 'bounded'
@@ -198,20 +235,13 @@ export function applyOpticalLayout(
       rect.x += shift
       rows.push(rect)
     })
-    const group = sample()
-    if (group) {
+    const visible = visibleGroup()
+    if (visible) {
       const automaticBrand =
         !!result.graphic &&
         config.typography.line1.size === null &&
         config.typography.line2.size === null
-      const proposed = automaticBrand
-        ? brandGroupShift(
-            (group.bounds.y + group.bounds.height / 2) / scale,
-            group.y / scale,
-            height / 2,
-            short,
-          )
-        : opticalShift(height / 2 - group.y / scale, short)
+      const proposed = groupCenterShift(visible.y + visible.height / 2, height / 2, short)
       report.proposedGroupShiftY = proposed
       let shift = proposed
       // Tight circle fits previously vetoed useful translation. Reserve at most 6% size.
