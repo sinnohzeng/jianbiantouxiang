@@ -286,7 +286,7 @@ test(
       assert.equal(client.getServerVersion().name, 'gradient-avatar')
       assert.equal((await client.listTools()).tools.length, 4)
       const options = await client.callTool({ name: 'list_avatar_options', arguments: {} })
-      assert.equal(options.structuredContent.palettes.length, 47)
+      assert.equal(options.structuredContent.palettes.length, 48)
       const result = await client.callTool({
         name: 'render_avatar',
         arguments: { ...request, logo },

@@ -106,6 +106,8 @@ test('改文字后可以用键盘撤销与重做', async ({ page }) => {
   await page.keyboard.press('ControlOrMeta+z')
   await expect(firstLine).toHaveValue('工作新习惯')
   await expect(page.locator('#avatar-text-second')).toHaveValue('你说豆包干')
+  expect((await probeConfig(page)).typography.effect).toBe('shadow')
+  expect((await probeConfig(page)).typography.effectStrength).toBe(0.4)
   expect((await probeConfig(page)).layout.icon).toEqual({
     source: 'brand',
     id: 'doubao-work',
@@ -548,6 +550,7 @@ test('赞赏区按配置渲染，收款码图真的取到了', async ({ page }) 
 test('顶栏设置菜单里恢复默认，确认后回到默认档', async ({ page }) => {
   await openApp(page)
 
+  expect((await probeConfig(page)).typography.effect).toBe('shadow')
   await page.locator('#avatar-text-first').fill('重置演练')
   await page.locator('[data-slot="settings-menu"]').click()
   await page.locator('[data-slot="reset-action"]').click()
@@ -561,6 +564,8 @@ test('顶栏设置菜单里恢复默认，确认后回到默认档', async ({ pa
   // 重置回到共享默认档，画布内容不随界面语言改变
   await expect(page.locator('#avatar-text-first')).toHaveValue('工作新习惯')
   await expect(page.locator('#avatar-text-second')).toHaveValue('你说豆包干')
+  expect((await probeConfig(page)).typography.effect).toBe('shadow')
+  expect((await probeConfig(page)).typography.effectStrength).toBe(0.4)
   expect((await probeConfig(page)).layout.icon).toEqual({
     source: 'brand',
     id: 'doubao-work',

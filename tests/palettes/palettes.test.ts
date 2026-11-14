@@ -96,8 +96,8 @@ describe('低彩度深色拓展', () => {
   ]
 
   it('在既有 37 套之后追加十套，原默认保持', () => {
-    expect(PALETTES.slice(37).map((p) => p.id)).toEqual(ids)
-    expect(PALETTES.filter((p) => p.tone === 'light')).toHaveLength(21)
+    expect(PALETTES.slice(37, 47).map((p) => p.id)).toEqual(ids)
+    expect(PALETTES.filter((p) => p.tone === 'light')).toHaveLength(22)
     expect(DEFAULT_CONFIG.palette).toBe('steel-slate')
     expect(DEFAULT_PALETTE_ID).toBe('glacier')
   })
@@ -183,4 +183,16 @@ describe('getPalette 与 paletteColors', () => {
     colors[0] = '#000000'
     expect(getPalette('glacier')!.colors[0]).toBe('#5FB4F5')
   })
+})
+
+it('晴空沿用演示分支色值，保留当前深色默认', () => {
+  expect(getPalette('clear-sky')?.colors).toEqual([
+    '#E3EEFF',
+    '#B9D4FF',
+    '#8FBBFF',
+    '#66A3FF',
+    '#4A8EFF',
+  ])
+  expect(normalizeConfig({ palette: 'clear-sky' }).palette).toBe('clear-sky')
+  expect(DEFAULT_CONFIG.palette).toBe('steel-slate')
 })

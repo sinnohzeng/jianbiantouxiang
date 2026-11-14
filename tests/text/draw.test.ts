@@ -42,6 +42,19 @@ describe('drawText 基本行为', () => {
 })
 
 describe('文字样式', () => {
+  it('默认两行都有适度投影，显式纯色关闭投影', () => {
+    const { paints, ctx } = render({ text: '第一行\n第二行' })
+    const text = paints.filter((p) => p.op === 'fillText')
+    expect(text).toHaveLength(2)
+    for (const paint of text) {
+      expect(paint.shadowColor).toBe('rgba(0, 0, 0, 0.330)')
+      expect(paint.shadowBlur).toBeCloseTo(fontSizeOf(paint.font) * 0.064)
+    }
+    expect(ctx.shadowBlur).toBe(0)
+    const plain = render({ text: '第一行\n第二行', typography: { effect: 'plain' } })
+    expect(plain.paints.every((p) => p.shadowBlur === 0)).toBe(true)
+  })
+
   it('outline 先描边后填充，线宽按字号比例', () => {
     const { ctx, calls } = render({
       ...BASE,

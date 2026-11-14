@@ -1,0 +1,74 @@
+[
+  {
+    "id": "dark-logo",
+    "palette": "steel-slate",
+    "color": "#ffffff",
+    "logo": true,
+    "images": [
+      {
+        "effect": "plain",
+        "file": "dark-logo-plain.png"
+      },
+      {
+        "effect": "shadow",
+        "file": "dark-logo-shadow.png"
+      }
+    ],
+    "sameLayout": true,
+    "changedPixels": 23164
+  },
+  {
+    "id": "light-logo",
+    "palette": "glacier",
+    "color": "#ffffff",
+    "logo": true,
+    "images": [
+      {
+        "effect": "plain",
+        "file": "light-logo-plain.png"
+      },
+      {
+        "effect": "shadow",
+        "file": "light-logo-shadow.png"
+      }
+    ],
+    "sameLayout": true,
+    "changedPixels": 26721
+  },
+  {
+    "id": "sky-white",
+    "palette": "clear-sky",
+    "color": "#ffffff",
+    "logo": false,
+    "images": [
+      {
+        "effect": "plain",
+        "file": "sky-white-plain.png"
+      },
+      {
+        "effect": "shadow",
+        "file": "sky-white-shadow.png"
+      }
+    ],
+    "sameLayout": true,
+    "changedPixels": 32232
+  },
+  {
+    "id": "light-dark-ink",
+    "palette": "glacier",
+    "color": "#141413",
+    "logo": false,
+    "images": [
+      {
+        "effect": "plain",
+        "file": "light-dark-ink-plain.png"
+      },
+      {
+        "effect": "shadow",
+        "file": "light-dark-ink-shadow.png"
+      }
+    ],
+    "sameLayout": true,
+    "changedPixels": 29532
+  }
+]

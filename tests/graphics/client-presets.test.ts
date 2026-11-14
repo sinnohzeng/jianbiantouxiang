@@ -7,7 +7,8 @@ it('customer presets keep original white marks on a dark background', () => {
   for (const id of CLIENT_PRESET_IDS) {
     const config = normalizeConfig(clientPresetConfig(id))
     expect(config.layout.icon.mono).toBe(false)
-    expect(config.typography.effect).toBe('plain')
+    expect(config.typography.effect).toBe('shadow')
+    expect(clientPresetConfig(id).typography?.effect).toBeUndefined()
     expect(config.palette).toBe('steel-slate')
     expect(renderSchema.parse({ preset: id }).preset).toBe(id)
   }

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { openApp, probeEncode, probeFlush, probeInk } from './helpers'
+import { openApp, probeConfig, probeEncode, probeFlush, probeInk } from './helpers'
 
 // 界面语言默认跟浏览器走，Playwright 的 chromium 是 en-US，标题会变成英文。
 // 用 ?lang= 把语言钉死，断言才跟运行环境无关。
@@ -199,15 +199,15 @@ test('字节品牌紧随客户素材，选择原稿后刷新保留', async ({ pa
 })
 
 test('ISV 分组紧随字节分组，选中后加载原稿并刷新保留', async ({ page }) => {
+  const response = page.waitForResponse((r) =>
+    r.url().endsWith('/brand/isv-beisen-symbol-color.png'),
+  )
   await openApp(page)
   await page.locator('[data-slot="graphic-picker"]').click()
   const groups = page.locator('[cmdk-group-heading]')
   await expect(groups.nth(2)).toHaveText('ISV')
   const entries = page.locator('[cmdk-group]').nth(2).getByRole('option')
   await expect(entries).toHaveCount(92)
-  const response = page.waitForResponse((r) =>
-    r.url().endsWith('/brand/isv-beisen-symbol-color.png'),
-  )
   await page.getByRole('option', { name: '北森 · 图标 · 品牌色', exact: true }).click()
   expect((await response).ok()).toBe(true)
   await expect(page.locator('[data-slot="graphic-name"]')).toContainText('北森 · 图标 · 品牌色')
@@ -247,3 +247,23 @@ for (const [id, asset] of [
     await expect(page.locator('[data-slot="graphic-picker"]')).toContainText(id)
   })
 }
+
+test('保存的纯色文字刷新后保持', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem('gradient-avatar:v4'))
+      localStorage.setItem(
+        'gradient-avatar:v4',
+        JSON.stringify({
+          config: { text: '保留选择', typography: { effect: 'plain', effectStrength: 0 } },
+        }),
+      )
+  })
+  await openApp(page)
+  expect((await probeConfig(page)).typography.effect).toBe('plain')
+  await page.locator('#avatar-text-first').fill('保存后的内容')
+  await probeFlush(page)
+  await page.reload()
+  await expect(page.locator('#avatar-text-first')).toHaveValue('保存后的内容')
+  await expect.poll(async () => (await probeConfig(page)).typography.effect).toBe('plain')
+  expect((await probeConfig(page)).typography.effectStrength).toBe(0)
+})

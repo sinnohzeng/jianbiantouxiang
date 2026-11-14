@@ -1,6 +1,6 @@
-# 项目记忆索引
+# 项目记忆
 
-- [工程口径与协作约定](decisions-and-conventions.md) - 品牌图形素材来源、新增字体固定版本、改默认值重生成样张
-- [owner 偏好与授权](owner-preferences.md) - 开发阶段授权、半成品不进主干、炫技优先于维护性红线、典型用法洞察、预览类需求只做最小形态、无人值守整轮推进、注释与提交只写现状不写“没加什么”
+- [用户偏好与授权](owner-preferences.md)：工作方式、文字风格、视觉和手机操作偏好。
+- [素材与维护约定](decisions-and-conventions.md)：跨会话需要知道的来源和流程。
 
-2026-11-06 补充：owner 的 SDD、OKF 研究、文档债务交接及深底白字偏好见 [owner 偏好](owner-preferences.md)。
+现状见[文档目录](../index.md)，工程经验见[工程经验](../engineering-lessons.md)。

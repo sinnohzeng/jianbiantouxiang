@@ -425,6 +425,14 @@ const ROWS: readonly Row[] = [
     '#0F1A1B',
     ['烟玉青', '煙玉青', 'Smoked Jade', 'スモークジェイド', '스모크 제이드'],
   ],
+  [
+    'clear-sky',
+    'light',
+    ['#E3EEFF', '#B9D4FF', '#8FBBFF', '#66A3FF', '#4A8EFF'],
+    '#141413',
+    '#F4F8FF',
+    ['晴空', '晴空', 'Clear Sky', 'クリアスカイ', '클리어 스카이'],
+  ],
 ]
 
 export const PALETTES: Palette[] = ROWS.map(([id, tone, colors, text, bg, names]) => ({

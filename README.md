@@ -1,128 +1,42 @@
 # 渐变头像
 
-输入几个字，得到一张柔光渐变的头像。线上地址：<https://jianbiantouxiang.com>，项目与技术介绍在 <https://jianbiantouxiang.com/about>。English summary: see [below](#english).
+用两行文字和一个 Logo 制作渐变头像。可自动排版、调整配色，导出 JPG、PNG 或 WebP；也可通过 CLI 或 MCP 批量生成。
 
-![配色 × 四种质感样张，第一组](docs/assets/samples/styles-x-palettes-1.jpg)
+**[在线制作](https://jianbiantouxiang.com)** · [使用指南](docs/usage.md) · [CLI / MCP](docs/automation.md) · [开发指南](docs/contributing.md)
 
-![配色 × 四种质感样张，第二组](docs/assets/samples/styles-x-palettes-2.jpg)
+## 开始使用
 
-![配色 × 四种质感样张，第三组](docs/assets/samples/styles-x-palettes-3.jpg)
+1. 输入第一行和第二行文字，按需选择或上传 Logo。
+2. 选择配色与质感。想调整构图，用「变换底纹」；想换颜色，用「随机配色」。
+3. 点击「导出」下载。尺寸、格式和复制图片在导出选项中设置。
 
-## 它做什么
+文字默认带轻投影，主行用宋体、副行用黑体。字号与图文位置自动适配圆形头像；细调入口在文字和图标旁，字体与效果收在「字体与样式」。
 
-- **四种质感**：柔光（mesh）、流动（flow）、丝绸（silk）、颗粒（grain），由 WebGL2 片元着色器实时渲染。同一配置在同一设备上每次输出一致，换个种子就是一张新图。不支持 WebGL2 的浏览器会回落到静态近似渐变，导出得到的也是这张近似图。
-- **47 套配色**：浅色 21 套、深色 26 套；也可以自定义 2 到 6 个颜色，或给一两个种子色，由 OKLCH 算法生成整套。
-- **文字排版**：最多两行（第一行、第二行），第二行为空只渲染第一行；字号默认自动填满，一拖滑杆就以当前值切成手动，点“自动”回去；默认简体中文主行 Noto Serif SC 700、副行 Noto Sans SC 700 从本站加载；默认安全边距 3%、行高 1.03，行高同时控制两行之间的间距；自动字号按圆形头像裁切优化，即使导出方图也保留圆裁主体；小字提示建议缩短文案；无图标自动排版的两行同字号，有图标自动排版的副行取 62%，首行手动时第二行跟随 62%，也能单独定，两行字号互不牵连；逐行水平、垂直补偿只动自己那一行，其余行字号与位置一个像素都不变；五种文字效果（投影、纯色、描边、发光、胶囊底），默认纯色白字配钢灰深色渐变，光感 8%，不叠投影；五档从白到黑的预设色加自选，文字色就是选的那一个，没有自动挡。
-- **图标**：图标节提供选择、替换与移除，图标置顶、文字两行自动缩小适配；可搜 lucide 内置图标、按中文搜 emoji，或上传 SVG / PNG / WebP。内置图标跟随文字颜色与效果，emoji 跨平台取同一份 Noto SVG，上传 SVG 会先做白名单消毒且只在本次会话有效。
-- **字体**：Google Fonts 全库按需加载，中文字体按 unicode-range 切片只拉用到的字，默认简体字体从本站分片加载，其他字体按需请求网络资源；也能上传本地 TTF、OTF、WOFF、WOFF2。第一行与第二行可以分别选字体与字重，简体中文默认主行 Noto Serif SC 700、副行 Noto Sans SC 700。选择器里每个字体名都用这款字体自己写出来，中日韩字体显示原生名，比如站酷快乐体、しっぽり明朝，字体名预览只请求显示名的字形子集。
-- **画布与导出**：64 到 8192 像素，默认方形，也可切圆角或圆形；JPG（默认压到 2 MB 以内）、PNG、WebP；点主按钮直接触发浏览器下载，导出选项里另有“复制图片”按钮；微信内置浏览器里改为长按图片保存。
-- **预览参考层**：安全区与网格参考线两个开关，在顶栏的设置菜单里，只在预览显示，导出的图上没有；开关状态记在本机。
-- **存档与历史**：配置自动存在本机，刷新即恢复；本地保留最近 8 次结果。
-- **界面**：五种语言（简体、繁體、English、日本語、한국어），深浅主题，可安装为 PWA。
+[查看配色与质感样张](docs/samples.md)
 
-![文字效果样张](docs/assets/samples/text-effects.jpg)
+## 本地运行
 
-## CLI、批量与 MCP
-
-仓库提供独立的命令行和远程 MCP 服务，可传 PNG/SVG Logo 与两行文字生成方形头像；包括 Logo 裁边、黑白底处理、自动配色、安全区与溢出报告。先运行 `npm ci`、安装 Playwright Chromium，再 `npm run build:service`。命令、输入格式、客户端兼容性与部署限制见 [自动化使用说明](docs/automation.md)。远程服务需要独立 Node + Chromium 容器，现有网页继续静态部署。
-
-## 怎么用
-
-首次进入及恢复默认使用「工作新习惯 / 你说豆包干」和原色豆包工作图标，主行宋体、副行黑体。界面语言不改变画布内容；已有存档的明确内容、图标与字体保留。
-
-1. 打开网址，输入文字。主流聊天应用的列表头像大多在 40 像素上下，两到四个字优先；黑体 700、宋体 600 需按实际小图复核。桌面上文字与图标一列、配色与质感一列，一屏摊开，不用先切页签。
-2. 在“配色”和“质感”两节里挑，或者点“变换底纹”改变背景纹理分布（保留文字、图标、配色与质感）、“随机配色”只换一套配色（种子与质感不动）。
-3. 点“导出”立即下载；需要粘贴到聊天窗口时，点导出按钮右侧的设置图标，再选“复制图片”。
-4. 要做部门或产品标识，在“图标”节点“选图标”挑一个内置图标、品牌图形或 emoji，也可以上传自家 logo；不想要了点旁边的叉移除，再填名称并导出。
-5. 第一、二行及 Logo 的大小和上下位置常显，字体与样式、左右位置按需展开。手机用减加和数值输入精调，桌面滑杆保留数字框；“恢复自动排版”保留内容、字体、Logo 和配色。
-6. 主题、参考线与恢复默认在顶栏右上角的设置菜单里。
-
-## 本地开发
-
-需要 Node.js 24 以上。
+需要 Node.js 24 或更高版本。
 
 ```bash
-npm install
-npm run dev          # http://localhost:5173
-npm test             # vitest 单测
-npm run e2e          # Playwright，桌面与 iPhone 15 两组
-npm run screenshots  # 设备模拟截图到 .screenshots/
-npm run build        # 产物在 dist/
-npm run budget       # 构建后报一次首屏 JS 体积，只作参考
-npm run samples      # 重生成 README 的样张
-npm run gen:icons    # 从已安装的 lucide-react 重建图标索引
-npm run gen:emoji    # 从 emojibase-data 重建五语 emoji 索引（需要网络）
-npm run gen:app-icons # 用本机 chromium 把 SVG 应用图标位图化
+git clone https://github.com/sinnohzeng/jianbiantouxiang.git
+cd jianbiantouxiang
+npm ci
+npm run dev
 ```
 
-界面组件来自 shadcnblocks 与 React Bits Pro 两个付费 registry，装进来之后就是仓库里的普通源码，构建和部署都不需要密钥。只有再从 registry 拉新组件时，才要在 `.env.local` 里放密钥。
+打开 <http://localhost:5173>。构建、测试和发布见[开发指南](docs/contributing.md)。
 
-## 部署
+CLI 与 MCP 使用本地 Node + Chromium 渲染；[自动化指南](docs/automation.md)提供安装、单张、批量及客户端配置。远程 MCP 需自行部署，本项目目前提供的是源码与运行方式。
 
-主站在阿里云 ESA Pages，构建配置在 `esa.jsonc`；旧域名留在 Cloudflare Pages 做 301。接入、缓存规则与上线核对命令见 `docs/deploy.md`。
+## 数据与素材
 
-## 技术说明
+网页在浏览器中合成头像，配置和最近历史保存在本机。上传文件仅当前会话可用；刷新后需要重新上传。默认字体随站点提供，其他字体和 emoji 可能请求外部服务。远程 MCP 的输入由部署方服务器处理，详见[安全与数据说明](SECURITY.md)。
 
-- Vite 8、React 19、TypeScript、Tailwind CSS v4、shadcn/ui（Base UI 底层）、zustand。
-- 渲染引擎是 [@paper-design/shaders](https://github.com/paper-design/shaders)（Apache-2.0）的 `staticMeshGradient`、`meshGradient`、`warp`、`grainGradient` 四个着色器，项目只做种子映射、离屏渲染与限幅。
-- 内置图标来自 lucide-react 1.37（ISC），emoji 索引来自 emojibase-data 15.0.0（MIT），emoji 图形来自 Noto Emoji v2.047（Apache-2.0）；索引产物入库，选择器按需加载。
-- 内置品牌图形 184 个，含字节系与 ISV 分组，文件随站点同源分发，索引与加载器都是懒 chunk。Logo 按可见像素裁边、按等面积定大小，不同宽高比的 Logo 分量一致。
-- 颜色计算用 culori，全部在 OKLCH 空间做。
-- 着色器、字体选择器、品牌索引都按需加载；首屏体积口径见 `docs/architecture.md`。
+代码采用 [MIT 许可](LICENSE)。第三方字体、图标和品牌素材各有权利约束，来源与许可见[素材说明](docs/assets.md)；公开可下载不等于获得商标使用或再分发许可。
 
-文档：
-
-| 想看什么 | 去哪看 |
-| --- | --- |
-| 模块划分与数据流 | `docs/architecture.md` |
-| 为什么选这条技术路线 | `docs/adr/`、`docs/research/` |
-| 规范与实施计划 | `specs/` |
-| 踩过的坑 | `docs/engineering-lessons.md` |
-| 跨会话项目记忆 | `docs/memory/` |
-| 参与开发 | `docs/contributing.md` |
-
-## 与 v2 的关系
-
-v3 是整体重写。v2 的 SVG 多层径向渐变、SVG 导出与旧命令行工具已下线。当前 CLI/MCP 通过无界面 Chromium 复用 shader 导出管线，输出位图。要用旧版本，切到 `v2.3.0` 标签。变更细节见 `CHANGELOG.md`。
-
-## 素材与致谢
-
-- 第三方内置品牌图形取自 [dashboard-icons](https://github.com/homarr-labs/dashboard-icons)（Apache-2.0）。图形本身按该许可分发，各品牌名称与标识的商标权归其所有者，本项目不主张任何权利，也不代表与这些品牌有关联或获得其背书。
-- 字节系（含飞书、豆包工作）、ISV 与 WorkBuddy 图形用的是 owner 提供或从公开渠道收集的官方素材，按原色原稿使用；Qoder 是照官方标识描摹的矢量。清单在 `scripts/brand-list.json`，跑 `npm run gen:brand` 重出。
-- [Justin Jay Wang](https://justinjay.wang/methods-for-random-gradients/) 的多层径向渐变方法是 v1 与 v2 的出发点。
-- [Paper](https://paper.design) 开源的 shader 库让 v3 的四种质感不必从零写 GLSL。
+维护文档、实现说明及历史证据见[文档目录](docs/index.md)。
 
 ## English
 
-Gradient Avatar turns a few characters into a soft, luminous gradient avatar, entirely in the browser. Try it at <https://jianbiantouxiang.com>.
-
-What it does: four WebGL2 textures (mesh, flow, silk, and grain without circular ripple seeds); 47 palettes plus OKLCH palette generation from one or two seed colors; any Google Font, with CJK fonts loaded as unicode-range slices, a separate font and weight for each line, and a picker that renders every font name in its own typeface; auto-fit typography with 3% padding, 1.03 line height, and per-line size and nudge controls; one-click browser download and PNG clipboard copy; JPG, PNG, and WebP export with a file-size target; safe-area and grid overlays for the preview only; settings persist locally; five UI languages; installable as a PWA.
-
-Assets: brand graphics come from [dashboard-icons](https://github.com/homarr-labs/dashboard-icons) (Apache-2.0); every brand name and logo remains the trademark of its owner, and their inclusion implies no affiliation or endorsement.
-
-Development: `npm install && npm run dev` (Node 24+). Deployment is a static build (`npm run build`, output `dist`); hosting notes live in `docs/deploy.md`.
-
-## 许可
-
-MIT，见 `LICENSE`。
-
-
-### 光学补偿与客户案例
-
-默认启用有界光学补偿，不调整单个字的字距；显式手动位置优先，可在文字排版中关闭。每行按掩膜质心整行横移，不超过 0.02em。整组纵向按可见边界居中：文字取实际 TextMetrics 字形框，Logo 取素材可见像素在落位框里的比例（每张素材量一次），并集中心移到画布中心，纵移不超过短边 3.5%；自动 Logo 图文组在圆裁需要时整体最多缩小 6%，不足则减小位移。素材自带大片透明留白且 Logo 调到很大时，留白先顶到圆边，居中修正会被限住。预览、导出和自动化复用 `src/text/optical.ts`。
-
-Noto Serif SC 600/700 按需加载，新选宋体默认 600，已有字重保留，许可见 `public/FONT-NOTO-SERIF-SC-LICENSE.txt`。东黎品牌案例保留原白色和素材内置留白，品牌权利见 `src/graphics/client-assets/README.md`，不属于项目 MIT 授权。自动化参数和样张复现见 [自动化说明](docs/automation.md)。
-
-品牌与标题之间按标识宽高比分配间距：宽字标取短边 6%，其他图形取 4.5%；带 Logo 的主副行间距取短边 3.5% 与主字号 18% 中的较大值，纯文字取较大字号的 18%。行高偏离默认 1.03 时，两行间距按较大字号等量加减，不小于 0，算法在 `src/text/spacing.ts` 的 `stackGap`。自动圆裁求解保留间距，再重新居中整组。
-
-光学微缩的每个候选字号使用实际 TextMetrics 重新量测，最终行框与元数据同步，避免字体取整被线性缩放假设掩盖。
-
-自动字号与零位移时，完成基准排版后整组等比放大至圆裁允许范围，最多 16%；Logo、间距和字号比例一起缩放。新默认边距 3%，显式旧边距与手动字号、位移保留。
-
-手机常用调整按内容排列：文字输入、逐行大小和上下位置常显，字体与样式可展开；Logo 大小（10%–80%，自动排版下任何宽高比的 Logo 每一档都有变化）和上下位置常显。“恢复自动排版”恢复字号、位置与 Logo 默认比例，保留内容、字体、配色和图形选择。
-
-手机精调提供字号/位置减加与直接数值输入，品牌选择优先客户素材；HARMAY 与东黎颜色版本按客户成品选取。简介位于设置菜单并以新标签打开。素材来源与版本缺失见 [审计](docs/audits/2026-11-07-brand-assets.md)。
-
-网页合成不上传文字和素材；站点加速与安全服务可能使用必要 Cookie。其他字体、目录及 emoji 可能使用外部服务，离线依赖已缓存资源。远程 MCP 在部署方服务器处理请求，见 [自动化边界](docs/automation.md)。
-
-字节品牌分组位于客户素材之后，优先豆包工作、飞书、豆包。精选25个原色及黑白文件，包含默认豆包工作与飞书独立图形，缺少的版本不自动补造；精选稿保持原色，来源与版本见 [素材说明](assets/brand/bytedance/README.md)。
+Create a gradient avatar from two text lines and an optional logo. [Try the editor](https://jianbiantouxiang.com), or use the repository's [CLI and MCP tools](docs/automation.md). Node.js 24+ is required for local development. Code is MIT-licensed; third-party fonts and brand assets retain their own licenses and rights.

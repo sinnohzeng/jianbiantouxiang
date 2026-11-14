@@ -11,7 +11,7 @@ describe('保持已认可比例的整体放大', () => {
     expect(automaticGroup(normalizeConfig({ layout: { graphicOffsetY: 0.1 } }))).toBe(false)
     expect(compositionConfig(normalizeConfig({})).typography.padding).toBe(0.06)
     expect(
-      compositionConfig(normalizeConfig({ typography: { effect: 'shadow' } })).typography.padding,
+      compositionConfig(normalizeConfig({ typography: { effect: 'outline' } })).typography.padding,
     ).toBe(0.03)
     expect(
       compositionConfig(normalizeConfig({ typography: { padding: 0.14 } })).typography.padding,
@@ -61,6 +61,9 @@ describe('保持已认可比例的整体放大', () => {
       overflow: false,
     }
     const out = fillCircleLayout(layout, normalizeConfig({}), 512, 512)
+    expect(
+      fillCircleLayout(layout, normalizeConfig({ typography: { effect: 'plain' } }), 512, 512),
+    ).toEqual(out)
     const ratio = out.fillScale ?? 1
     expect(ratio).toBeCloseTo(1.16, 4)
     expect(out.lines[1]!.fontSizePx / out.lines[0]!.fontSizePx).toBeCloseTo(0.62)

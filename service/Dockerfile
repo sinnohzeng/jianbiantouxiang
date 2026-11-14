@@ -9,9 +9,10 @@ COPY src ./src
 COPY service ./service
 RUN npm run build:service
 RUN npm prune --offline --omit=dev --ignore-scripts --no-audit \
-    && mkdir -p /runtime/service /runtime/src/automation \
+    && mkdir -p /runtime/service /runtime/src/automation /runtime/src/graphics \
     && cp service/cli.mjs service/http.mjs service/mcp.mjs service/renderer.mjs /runtime/service/ \
     && cp src/automation/schema.ts /runtime/src/automation/ \
+    && cp src/graphics/client-presets.ts /runtime/src/graphics/ \
     && cp package.json package-lock.json /runtime/ \
     && mv node_modules dist-service /runtime/
 

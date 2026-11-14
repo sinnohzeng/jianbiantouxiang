@@ -23,6 +23,17 @@ afterEach(() => {
 })
 
 describe('savePersisted / loadPersisted', () => {
+  it('省略效果补投影，保存过的纯色与零强度保持', () => {
+    store.setItem(PERSIST_KEY, JSON.stringify({ config: { text: '旧内容' } }))
+    expect(loadPersisted()?.typography.effect).toBe('shadow')
+    const explicit = {
+      ...DEFAULT_CONFIG,
+      typography: { ...DEFAULT_CONFIG.typography, effect: 'plain' as const, effectStrength: 0 },
+    }
+    savePersisted(explicit)
+    expect(loadPersisted()?.typography).toEqual(explicit.typography)
+  })
+
   it('写进去再读出来是同一份配置', () => {
     const config = withText('猪猪家族')
     savePersisted(config)

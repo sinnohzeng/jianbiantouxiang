@@ -25,7 +25,7 @@ export function automaticGroup(config: AvatarConfig): boolean {
 export function compositionConfig(config: AvatarConfig): AvatarConfig {
   return automaticGroup(config) &&
     config.text.trim() !== '' &&
-    config.typography.effect === 'plain' &&
+    ['plain', 'shadow'].includes(config.typography.effect) &&
     config.typography.padding < 0.06
     ? { ...config, typography: { ...config.typography, padding: 0.06 } }
     : config
@@ -43,7 +43,7 @@ export function fillCircleLayout(
     layout.lines.length === 0 ||
     layout.overflow ||
     typeof document === 'undefined' ||
-    config.typography.effect !== 'plain'
+    !['plain', 'shadow'].includes(config.typography.effect)
   )
     return layout
   const ctx = document.createElement('canvas').getContext('2d')

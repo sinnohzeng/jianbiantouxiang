@@ -1,182 +1,84 @@
-# 参与开发
+# 开发与发布
 
-模块划分与数据流见 `docs/architecture.md`，这份只写约定。
+需要 Node.js 24+。克隆仓库后运行 `npm ci`，再用 `npm run dev` 启动开发页。模块和数据流见[架构](architecture.md)。
 
-## 环境
+## 修改顺序
 
-Node.js 24 以上，npm 随 Node 安装。克隆后 `npm ci` 即可，构建与测试都不需要任何密钥。
+多文件改动先在 `specs/<版本或功能>/` 写简短规约与计划：读者或用户、目标、边界、验收方法。实施前检查体验、工程、数据与安全约束，只处理适用问题。实现开始后保留原意图，变动写入追加说明；收尾补“实到范围”，链接 CHANGELOG 并标记已封存。
 
-```bash
-git clone https://github.com/sinnohzeng/jianbiantouxiang.git
-cd jianbiantouxiang
-npm ci
-npm run dev
-```
+新文件按职责放入现有目录。纯逻辑放库模块，页面与面板放 `src/app/`，复用组件放 `src/components/blocks/`。`src/components/ui/` 由 shadcn CLI 生成，不手改。跨目录使用 `@/` 别名，避免桶文件扩大依赖图。
 
-## 命令
+TypeScript 使用 strict 与 noUncheckedIndexedAccess。格式交给 Prettier；docs、specs、根目录长文档和 UI 生成件在忽略清单中。界面文案用 i18n key，五份字典同步；配色名随清单记录五语。
 
-| 命令 | 做什么 |
-| --- | --- |
-| `npm run dev` | 开发服务器，<http://localhost:5173> |
-| `npm run build` | 先 `tsc -b` 再 `vite build`，产物在 `dist/` |
-| `npm run preview` | 预览构建产物，端到端与截图脚本都打这个地址 |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | `tsc -b --noEmit` |
-| `npm test` | Vitest 单跑一遍 |
-| `npm run test:watch` | Vitest 监听模式 |
-| `npm run e2e` | Playwright，桌面 1440 与 iPhone 15 两组 |
-| `npm run check` | 提交前门禁：lint、format:check、typecheck、单测、build、自动化服务单测与构建 |
-| `npm run ci` | 完整门禁：check 之后再跑自动化服务集成测试与 e2e |
-| `npm run screenshots` | 三个设备各截深浅两套主题到 `.screenshots/` |
-| `npm run gen:icons` | 从 lucide-react 重建内置图标索引 |
-| `npm run gen:emoji` | 从 emojibase-data 重建五语 emoji 索引 |
-| `npm run gen:app-icons` | 用本机 chromium 把 SVG 应用图标位图化成三张 PNG |
-| `npm run gen:brand` | 按 `scripts/brand-list.json` 拉取或拷贝品牌图形，重建 `src/graphics/generated/brand-index.ts` |
-| `npm run samples` | 重生成 README 的样张到 `docs/assets/samples/` |
-| `npm run budget` | 按 entry 加 modulepreload 的 gzip 和报一次首屏 JS 体积，只作参考 |
-| `npm run format` | Prettier 写回 |
-| `npm run format:check` | Prettier 只检查 |
+触控目标至少 44 px，输入字号至少 16 px。装饰动画遵循减少动效偏好。需要组件时先查看现有原语，再按项目需要参考已授权 registry。
 
-仓库不在 GitHub 上跑 CI，门禁全在本地跑完再推送。提交前跑 `npm run check`：lint、format:check、typecheck、单测、build，加自动化服务的单测与构建。改了界面或定版前跑 `npm run ci`，在 check 之后再跑服务集成测试与 e2e。e2e 失败时截图与 trace 留在 `test-results/`，用 `npx playwright show-trace` 打开。
+## 验证
 
-## 目录约定
-
-新文件按职责放进对应目录，不在 `src/` 根下堆散文件。
-
-| 放什么 | 放哪 |
-| --- | --- |
-| 纯逻辑 | `src/engine/`、`src/text/`、`src/palettes/`、`src/fonts/`、`src/export/`、`src/state/`、`src/graphics/` 七个库目录之一 |
-| 工具本体的页面结构、面板与工作台分区 | `src/app/`、`src/app/panels/`、`src/app/workspace/` |
-| 首屏演示动效 | `src/app/showcase/` 与 `src/components/showcase/` |
-| 关于页 | `src/about/`，纯静态入口，不挂 React 树，样式复用 `src/index.css` |
-| shadcn 原语 | `src/components/ui/`，由 CLI 生成，不手改 |
-| 跨面板复用的组合件 | `src/components/blocks/` |
-| 单测 | `tests/`，目录与文件名跟 `src/` 对齐 |
-| 端到端 | `e2e/`，文件名决定跑在哪一档 |
-
-库目录都没有出口文件，跨目录直接引用模块（如 `@/graphics/draw`、`@/engine/math`、`@/fonts/catalog`）。桶文件会把整目录的符号拖进引用方的依赖图，懒加载边界因此变糊。
-
-## 提交
-
-Conventional Commits，类型用英文，描述用中文，一行说清这次做了什么。
-
-```
-feat: 配色面板支持粘贴 hex 列表
-fix: 第一行补偿在自动字号下不再牵动第二行
-docs: 补齐字体加载链的说明
-```
-
-常用类型：`feat`、`fix`、`refactor`、`perf`、`test`、`docs`、`chore`、`build`、`ci`。
-
-提交信息不带任何署名或协作者尾注。
-
-## 定版与标签
-
-每轮改动收尾时自动定版、自动打标签并推送，不需要人来手动打。
-
-主站托管在阿里云 ESA Pages，旧域名由 Cloudflare Pages 重定向；main 分支 **Push 即部署**：推送一到远端，线上同步更新。
-所以改完必须 commit 加 push 一条龙；只 commit 不 push 等于没上线，不算收尾。
-代理或智能体代改时同样适用：本轮最后一个动作是把提交与标签推到 origin。
-
-档次看这轮的用户可见面：
-
-| 档次 | 触发条件 |
-| --- | --- |
-| patch | 修复、文案与 i18n 调整、格式、文档与规范、依赖更新；没有新增用户可见行为 |
-| minor | 新功能、新控件、新入口、契约只增不改；旧存档仍然有效 |
-| major | `AvatarConfig` 契约语义变更（旧存档需要迁移或作废）、移除既有功能、大规模重写 |
-
-流程：
-
-1. 收尾时按上表定档，同轮更新 `package.json` 的 `version` 与 CHANGELOG 最新条目。
-2. 提交按逻辑分批，推送。
-3. 在本轮最后一个提交上 `git tag -a v<semver>`，注解用 CHANGELOG 该轮的一句话摘要，标签同轮推送。
-4. 纯规范或文档提交不单独触发新版本，随当前轮的标签一起走。
-5. 档次有边界争议时按表裁决，并在收尾汇报里说明依据，不把选号的问题抛给人。
-
-历史标签补打前先核对提交内容，别只按日期猜。
-
-## 代码约定
-
-- TypeScript strict，另开 `noUncheckedIndexedAccess`。取数组元素与可选字段要显式处理 `undefined`，不用非空断言绕过。
-- 模块内引用用相对路径，跨目录一律用 `@/` 别名，不写 `../../`。
-- 格式交给 Prettier：单引号、不加分号、行宽 100、尾随逗号。`src/components/ui`、`docs/`、`specs/` 与根目录的长文档都在 `.prettierignore` 里，改这些文件不必也不要跑格式化。
-- 新组件按这个顺序找：先看 `src/components/ui/` 的 shadcn 原语够不够用，不够就去付费 registry 找可借鉴的范式并按本仓需要改造，都不合适才自己写。`src/components/blocks/` 里的件都在文件头注明了范式来源。
-- 界面文案一律走 i18n key，源码里不出现硬编码的中文或英文文案。key 是扁平的点分命名，一级前缀就是区域，现有的是 `about`、`app`、`bottombar`、`common`、`export`、`font`、`history`、`icon`、`locale`、`panel`、`preview`、`reset`、`style`、`theme`、`topbar`、`update`。加 key 要同时改五份字典，少一份 typecheck 就报错。配色名不进字典，它在 `src/palettes/palettes.ts` 里自带五语。
-- 触控目标不小于 44 px，输入类控件字号不小于 16 px，后者是为了避开 iOS 聚焦时的自动缩放。
-- 装饰性动画要读 `prefers-reduced-motion`。用 `usePrefersReducedMotion()` 或 CSS 媒体查询，做法是把时长归零而不是移除元素，布局才不会跟着跳。
-
-## 付费 registry
-
-`components.json` 启用了 `@shadcnblocks`、`@reactbits-starter`、`@reactbits-pro` 三个付费 registry。装进来的件就是仓库里的普通源码，本地门禁与 ESA、Cloudflare 构建都不需要密钥；只有再从 registry 拉新件时才要密钥。
-
-用项目里的 CLI，不要用 npx：
+首次运行浏览器测试前安装 Chromium：
 
 ```bash
-./node_modules/.bin/shadcn add @reactbits-pro/mobile-4
+npx playwright install --with-deps chromium
 ```
 
-`npx shadcn` 会把本机 `~/.npmrc` 的 `allow-scripts` 以环境变量传给子进程，项目级 `npm install` 不接受这个选项，直接报错。走 devDependencies 里的那份还顺带锁住了 CLI 版本。
+```bash
+npm run check
+npm run ci
+```
 
-密钥只放 `.env.local`，它已在 `.gitignore` 里。不要把密钥写进 `components.json`、命令行历史或任何提交。
+`check` 依次运行 lint、format:check、typecheck、单测、网页构建、服务单测及服务构建。`ci` 在此基础上追加服务集成测试和 E2E。门禁在本地运行；改界面或定版前跑完整 ci，失败先修复再提交。
 
-已经 `view` 过源码的候选件与它们的可借鉴之处记在 `docs/engineering-lessons.md`，动手前先翻一遍，省一轮枚举。
+界面修改还需查看实际截图：
 
-## 测试
+```bash
+npm run preview
+# 在另一个终端运行
+npm run screenshots
+```
 
-- 新增或改动纯逻辑要带 Vitest 用例，放进 `tests/` 下的同名目录。合成、编码、字体加载这类有外部依赖的模块把依赖抽成参数，用例不必拉起 WebGL 与网络。
-- 品牌头像视觉改动须保留用户原始参照与上一版输出，并列完整图及 32/48/64 px 圆裁；缺失原图要注明。边界等距、质心或无溢出均不能单独充当视觉通过依据，工程通过与用户审美认可分开报告。
-- 改动界面要跑 `npm run e2e`，再跑 `npm run screenshots` 并逐张看图。截图脚本打的是 `npm run preview` 的地址，先构建再截。
-- 端到端断言画面走 `window.__gradientAvatarProbe`，它只在开发模式或 URL 带 `?probe=1` 时装。要断言导出产物就用探针的 `encode()`，不要去猜下载文件的落点。
-- 改默认值要同步更新 `DEFAULT_CONFIG`、对应 spec、README、architecture、CHANGELOG 和测试；还要补一条显式旧值的用例。存档缺字段时由 `normalizeConfig` 补当前默认值。
-- 端到端读配置走探针的 `config()`，测刷新恢复前调探针的 `flush()` 立刻落盘，用例不读 localStorage。截图要喂任意配置时，配置不进 URL，用 `page.addInitScript` 往 `PERSIST_KEY`（`src/state/persist.ts`）写一份 `{ config }` 再打开页面；应用只在模块初始化时读一次存档。
-- 新增 i18n key 后跑一遍 `npm test`，`tests/i18n/keys.test.ts` 会扫源码核对五份字典。
+截图写入 `.screenshots/`，覆盖桌面和两种手机尺寸的深浅主题。确保 4173 上的 preview 服务来自本次构建；不能把旧产物的截图当作验证。运行测试后保持源码不变，改动后重跑受影响检查。
 
-## 智能体协作
+- 纯逻辑测试放 `tests/` 的对应模块；浏览器流程放 `e2e/`。
+- 通过 `?probe=1` 的 `window.__gradientAvatarProbe` 读取配置、同步存档和编码结果。测试刷新前调用 flush；预置存档在页面初始化前写入。
+- 改默认值同步规约、使用说明、架构、CHANGELOG 和测试，覆盖显式旧值。运行 `npm run samples` 重建样张并查看。
+- 视觉修改比较原始参照、新旧完整图和 32/48/64 px 圆裁。工程无溢出与审美认可分别报告。
+- 字体加载、合成和编码测试应检查实际结果；单元测试可注入替身，避免依赖网络与 GPU。
 
-- 本仓是轻量级项目。用智能体做核查、对抗检验、评审或验收时，每轮合计不超过 5 个；一遍单人评审只报门禁抓不到的问题，不做多轮反驳投票。用量优先留给设计与取舍，实现任务与机械改动交给 Opus 5 子智能体。
-- 子智能体不做 git 操作、不读 `.env.local`；提交与推送由主会话在门禁全绿后执行。
-- 临时文件只写会话草稿目录，不往仓库根目录落任何文件；不关闭共享的浏览器，也不动别人的快照。派活的 prompt 里把这两条写明，并行调研时尤其如此。
-- 实现任务委派给子智能体时，要求每次工具调用小而快；中途卡住就用原智能体续跑，不重开。
-- 跑 e2e 或截图前先看 4173 端口上的预览服务是不是这次 build 之后起的，不是就停掉，让 Playwright 自己起。
+## 常用命令
 
-## 文档
-
-| 写什么 | 写哪 |
+| 命令 | 用途 |
 | --- | --- |
-| 现状：模块、数据流、约定、边界 | `README.md`、`docs/architecture.md`、这份文件 |
-| 变更叙事：这个版本加了什么、改了什么、去掉了什么 | `CHANGELOG.md` |
-| 决策：为什么选这条路线，否决了什么 | `docs/adr/` |
-| 踩坑：非显然的失败与它的判据 | `docs/engineering-lessons.md` |
-| 规范与实施计划：造什么、怎么造 | `specs/<feature>/` |
-| 调研：外部事实与出处 | `docs/research/` |
-| 审计：某轮发现、证据与落地去向 | `docs/audits/`，按日期命名，只记当轮发现，不记现状 |
-| 交接：跨会话继续未完工作 | `docs/handoff/`，按特性命名；接手会话完成后更新或删除 |
-| 项目记忆：跨会话维护口径 | `docs/memory/` |
+| npm run dev / build / preview | 开发、构建 dist、预览 |
+| npm test / test:watch | 单元测试与监听 |
+| npm run e2e | 桌面与手机浏览器流程 |
+| npm run samples | 重建配色与文字效果样张 |
+| npm run gen:brand | 生成品牌文件与索引，需网络的来源按清单读取 |
+| npm run gen:icons / gen:emoji | 生成图标、emoji 索引 |
+| npm run gen:app-icons | 用 Chromium 生成应用图标 |
+| npm run budget | 报告首屏 JS 体积 |
+| npm run build:service | 构建 CLI/MCP 渲染资源 |
 
-常驻文档只写现状。不要在 `README.md` 或 `architecture.md` 里写“本次改了什么”“相比上一版”，那些进 `CHANGELOG.md`。
+生成器、源清单和产物同批提交。新增字体镜像固定具体版本。品牌来源与许可见[素材说明](assets.md)。
 
-### 分层与记忆准入
+## 提交与定版
 
-上面九行按半衰期归到三层：
+单人项目直接在 main 工作，测试后提交并推送。提交信息用 Conventional Commits：英文类型、中文描述，例如 `fix: 修正圆裁后的文字位置`，不加署名尾注。
 
-| 层 | 落点 | 写什么 | 谁读 |
-| --- | --- | --- | --- |
-| 常驻文档 | `README.md`、`docs/architecture.md`、`docs/contributing.md`、`AGENTS.md` | 现状。同一事实只定义一次，别处给指针 | 人与智能体，每次 |
-| 冻结快照 | `specs/<version>/`、`docs/adr/`、`CHANGELOG.md` | 当时为什么这么定、否决了什么、改了什么；写完封存不回写 | 按需 |
-| 项目记忆 | `docs/memory/` | 前两层都推不出来的当前事实 | 按需，索引常驻 |
+每轮同步 package.json、package-lock.json 和 CHANGELOG，最后一个提交打注解标签 `v<版本>`，与 main 一起推送。修复、文档和依赖调整用 patch；新增功能或兼容的契约扩展用 minor；破坏旧存档的契约变化用 major。
 
-一条事实要不要写进 `docs/memory/`，过四问，全过才准入：
+推 main 会触发静态站构建。推送后核验远端提交、部署日志（如可访问）和线上文件，不能只凭 push 成功报告上线。具体步骤见[部署](deploy.md)。
 
-1. 能从代码或配置读出来吗？能，就不进。
-2. 能从 `git log` 或 `CHANGELOG.md` 读出来吗？能，就不进。
-3. 属于“现状”吗？属于，就进常驻文档，记忆最多留一行指针。
-4. 是踩过的坑吗？是，就进 `docs/engineering-lessons.md`，那里才是教训的 SSOT。
+清理分支前核对独有提交与补丁等价性，保存可恢复标签或归档，再删除已处理分支；删除前再次比对远程提交，避免遗漏新工作。
 
-四问都不命中的才是记忆该收的：owner 的偏好与授权、协作口径、外部约束，以及跨会话才用得上而代码里看不出来的约定。
+## 文档与记忆
 
-规范与计划是当轮意图快照，实现开始后不再回写正文：需求或设计变了就在新一轮规范里重写，不追溯改旧规范。
-每轮收尾时在 `spec.md` 尾部补一节“实到范围”，把与正文不同的地方一次性列清并指向 `CHANGELOG.md` 对应版本段，
-再把头部状态行改成已封存。
+现状分别写入使用、接口、架构和部署文档；同一事实只详述一次，其他位置给链接。变更写 CHANGELOG，决策写 ADR，研究写 research，验证证据写 audits，经验写 engineering-lessons。冻结的历史记录按版本保留。
 
-需要多文件改动的新功能先写规范再写计划再动手，一句话能描述的改动直接做。
+写作先明确立场、读者、目的和提纲，再核对事实、删重，最后修改句词。使用清楚的书面语，不追求刻意口语化。只保留帮助读者操作或判断的信息。
+
+项目记忆只记录代码、现状和提交记录推不出的偏好、授权与外部约束；已有工程经验不重复存为记忆。每轮交付列明更新文档、记忆变化、文档债务及未验证项。
+
+## 工具与协作
+
+registry 密钥放在 `.env.local`，不写入命令或提交。安装已授权组件使用项目 CLI：`./node_modules/.bin/shadcn add <组件>`，避免 npx 转发本机 npm 选项导致安装失败。
+
+子智能体核查、评审和验收每轮合计最多 5 个；不做 Git 操作、不读取 `.env.local`。临时文件放会话草稿目录，不覆盖别人的截图或关闭共享浏览器。评审聚焦常规门禁无法发现的问题，具体限制以用户当前授权为准。

@@ -214,8 +214,8 @@ export const DEFAULT_CONFIG: AvatarConfig = {
     padding: 0.03,
     lineHeight: LINE_HEIGHT_DEFAULT,
     letterSpacing: 0,
-    // 深底白字依靠对比度；默认不以投影改变文字轮廓
-    effect: 'plain',
+    // 两行文字共用轻投影，具体尺度随各行字号。
+    effect: 'shadow',
     effectStrength: 0.4,
     color: '#ffffff',
     pill: { radius: 0.5, padding: 0.3, opacity: 0.55 },

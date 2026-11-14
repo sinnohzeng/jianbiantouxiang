@@ -42,6 +42,8 @@ export interface ProbeConfig {
   style: string
   palette: string
   typography: {
+    effect: string
+    effectStrength: number
     line1: {
       offsetY: number
       size: number | null
