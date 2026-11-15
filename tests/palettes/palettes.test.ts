@@ -97,7 +97,7 @@ describe('低彩度深色拓展', () => {
 
   it('在既有 37 套之后追加十套，原默认保持', () => {
     expect(PALETTES.slice(37, 47).map((p) => p.id)).toEqual(ids)
-    expect(PALETTES.filter((p) => p.tone === 'light')).toHaveLength(22)
+    expect(PALETTES.slice(0, 48).filter((p) => p.tone === 'light')).toHaveLength(22)
     expect(DEFAULT_CONFIG.palette).toBe('steel-slate')
     expect(DEFAULT_PALETTE_ID).toBe('glacier')
   })
@@ -195,4 +195,25 @@ it('晴空沿用演示分支色值，保留当前深色默认', () => {
   ])
   expect(normalizeConfig({ palette: 'clear-sky' }).palette).toBe('clear-sky')
   expect(DEFAULT_CONFIG.palette).toBe('steel-slate')
+})
+
+describe('有来源的三组配色', () => {
+  it('追加并保留原默认，完整色组不重复', () => {
+    expect(PALETTES.slice(48).map((p) => p.id)).toEqual([
+      'supabase-green',
+      'fluent-spark',
+      'fluent-indigo',
+    ])
+    expect(new Set(PALETTES.map((p) => [...p.colors].sort().join(','))).size).toBe(PALETTES.length)
+    expect(DEFAULT_CONFIG.palette).toBe('steel-slate')
+    expect(DEFAULT_CONFIG.typography.effect).toBe('shadow')
+  })
+  it.each(['supabase-green', 'fluent-spark', 'fluent-indigo'])(
+    '%s 推荐字色通过节点筛选且可被配置恢复',
+    (id) => {
+      const p = getPalette(id)!
+      expect(normalizeConfig({ palette: id }).palette).toBe(id)
+      for (const c of p.colors) expect(wcagContrast(p.text, c)).toBeGreaterThanOrEqual(4.5)
+    },
+  )
 })

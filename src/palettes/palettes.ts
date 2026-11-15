@@ -433,6 +433,31 @@ const ROWS: readonly Row[] = [
     '#F4F8FF',
     ['晴空', '晴空', 'Clear Sky', 'クリアスカイ', '클리어 스카이'],
   ],
+  // 来源与实际出图验证：docs/research/avatar-optical/source-palettes.md
+  [
+    'supabase-green',
+    'light',
+    ['#249361', '#3ECF8E'],
+    '#141413',
+    '#F8F8F8',
+    ['翠绿跃动', '翠綠躍動', 'Emerald Pulse', 'エメラルドパルス', '에메랄드 펄스'],
+  ],
+  [
+    'fluent-spark',
+    'light',
+    ['#FF8A69', '#FFCD0F'],
+    '#141413',
+    '#FFF4E8',
+    ['杏金星芒', '杏金星芒', 'Apricot Spark', 'アプリコットスパーク', '애프리콧 스파크'],
+  ],
+  [
+    'fluent-indigo',
+    'dark',
+    ['#4E44DB', '#3D35B1'],
+    '#FFFFFF',
+    '#151329',
+    ['深靛微光', '深靛微光', 'Indigo Glow', 'インディゴグロー', '인디고 글로우'],
+  ],
 ]
 
 export const PALETTES: Palette[] = ROWS.map(([id, tone, colors, text, bg, names]) => ({

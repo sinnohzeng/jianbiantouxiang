@@ -1,0 +1,258 @@
+{
+  "rows": [
+    {
+      "id": "supabase-green",
+      "style": "mesh",
+      "seed": 0,
+      "worst": 4.534393984052739
+    },
+    {
+      "id": "supabase-green",
+      "style": "mesh",
+      "seed": 1,
+      "worst": 4.531278993947049
+    },
+    {
+      "id": "supabase-green",
+      "style": "mesh",
+      "seed": 2,
+      "worst": 4.7209416968289935
+    },
+    {
+      "id": "supabase-green",
+      "style": "flow",
+      "seed": 0,
+      "worst": 4.761863411910114
+    },
+    {
+      "id": "supabase-green",
+      "style": "flow",
+      "seed": 1,
+      "worst": 4.590514901850928
+    },
+    {
+      "id": "supabase-green",
+      "style": "flow",
+      "seed": 2,
+      "worst": 4.660280974752164
+    },
+    {
+      "id": "supabase-green",
+      "style": "silk",
+      "seed": 0,
+      "worst": 4.875315650264116
+    },
+    {
+      "id": "supabase-green",
+      "style": "silk",
+      "seed": 1,
+      "worst": 4.701039853702489
+    },
+    {
+      "id": "supabase-green",
+      "style": "silk",
+      "seed": 2,
+      "worst": 4.701039853702489
+    },
+    {
+      "id": "supabase-green",
+      "style": "grain",
+      "seed": 0,
+      "worst": 4.758660012562718
+    },
+    {
+      "id": "supabase-green",
+      "style": "grain",
+      "seed": 1,
+      "worst": 4.758660012562718
+    },
+    {
+      "id": "supabase-green",
+      "style": "grain",
+      "seed": 2,
+      "worst": 4.758660012562718
+    },
+    {
+      "id": "fluent-spark",
+      "style": "mesh",
+      "seed": 0,
+      "worst": 7.543113454030158
+    },
+    {
+      "id": "fluent-spark",
+      "style": "mesh",
+      "seed": 1,
+      "worst": 7.543113454030158
+    },
+    {
+      "id": "fluent-spark",
+      "style": "mesh",
+      "seed": 2,
+      "worst": 7.701422720148161
+    },
+    {
+      "id": "fluent-spark",
+      "style": "flow",
+      "seed": 0,
+      "worst": 7.724032022709249
+    },
+    {
+      "id": "fluent-spark",
+      "style": "flow",
+      "seed": 1,
+      "worst": 7.641097893202756
+    },
+    {
+      "id": "fluent-spark",
+      "style": "flow",
+      "seed": 2,
+      "worst": 7.687318985131812
+    },
+    {
+      "id": "fluent-spark",
+      "style": "silk",
+      "seed": 0,
+      "worst": 8.106110116634266
+    },
+    {
+      "id": "fluent-spark",
+      "style": "silk",
+      "seed": 1,
+      "worst": 7.9231364988158655
+    },
+    {
+      "id": "fluent-spark",
+      "style": "silk",
+      "seed": 2,
+      "worst": 7.9231364988158655
+    },
+    {
+      "id": "fluent-spark",
+      "style": "grain",
+      "seed": 0,
+      "worst": 7.976829989055208
+    },
+    {
+      "id": "fluent-spark",
+      "style": "grain",
+      "seed": 1,
+      "worst": 7.976829989055208
+    },
+    {
+      "id": "fluent-spark",
+      "style": "grain",
+      "seed": 2,
+      "worst": 7.976829989055208
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "mesh",
+      "seed": 0,
+      "worst": 6.062133203329287
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "mesh",
+      "seed": 1,
+      "worst": 5.987350990960185
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "mesh",
+      "seed": 2,
+      "worst": 5.85406015338853
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "flow",
+      "seed": 0,
+      "worst": 6.455356838579811
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "flow",
+      "seed": 1,
+      "worst": 6.023100075669746
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "flow",
+      "seed": 2,
+      "worst": 5.824119710203831
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "silk",
+      "seed": 0,
+      "worst": 6.401596405083268
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "silk",
+      "seed": 1,
+      "worst": 6.267402253965773
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "silk",
+      "seed": 2,
+      "worst": 6.112506918301987
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "grain",
+      "seed": 0,
+      "worst": 6.045679655548854
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "grain",
+      "seed": 1,
+      "worst": 6.045679655548854
+    },
+    {
+      "id": "fluent-indigo",
+      "style": "grain",
+      "seed": 2,
+      "worst": 6.045679655548854
+    }
+  ],
+  "samples": [
+    {
+      "id": "supabase-green",
+      "color": "#141413",
+      "recommended": true,
+      "file": "supabase-green-dark.png"
+    },
+    {
+      "id": "supabase-green",
+      "color": "#FFFFFF",
+      "recommended": false,
+      "file": "supabase-green-white.png"
+    },
+    {
+      "id": "fluent-spark",
+      "color": "#141413",
+      "recommended": true,
+      "file": "fluent-spark-dark.png"
+    },
+    {
+      "id": "fluent-spark",
+      "color": "#FFFFFF",
+      "recommended": false,
+      "file": "fluent-spark-white.png"
+    },
+    {
+      "id": "fluent-indigo",
+      "color": "#141413",
+      "recommended": false,
+      "file": "fluent-indigo-dark.png"
+    },
+    {
+      "id": "fluent-indigo",
+      "color": "#FFFFFF",
+      "recommended": true,
+      "file": "fluent-indigo-white.png"
+    }
+  ]
+}

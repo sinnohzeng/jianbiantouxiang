@@ -113,7 +113,7 @@ export function PaletteSection() {
         <div
           role="radiogroup"
           aria-label={t('panel.palette.builtin')}
-          className="grid grid-cols-6 gap-1.5"
+          className="grid grid-cols-6 gap-1.5 lg:gap-y-1"
         >
           {visible.map((palette) => {
             const active = config.palette === palette.id
