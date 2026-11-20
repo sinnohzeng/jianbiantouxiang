@@ -53,7 +53,7 @@ export function GraphicSection() {
 
   const client = isClientPreset(icon.id)
   const clientBase = client ? icon.id.replace(/-(white|black|primary)$/, '') : ''
-  const clientColors = clientBase.startsWith('dongli-')
+  const clientColors = !clientBase.startsWith('harmay-')
     ? ['white', 'primary', 'black']
     : ['white', 'black']
 
@@ -127,7 +127,9 @@ export function GraphicSection() {
                       ? t('icon.brand.white')
                       : value === 'black'
                         ? t('icon.brand.black')
-                        : t('icon.brand.primary'),
+                        : clientBase.startsWith('dongli-')
+                          ? t('icon.brand.primary')
+                          : t('icon.brand.variant.color'),
                 }))}
                 onChange={(color) =>
                   setLayout({ icon: { id: `${clientBase}-${color}`, mono: false } })

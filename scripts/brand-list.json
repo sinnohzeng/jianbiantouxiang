@@ -1436,6 +1436,366 @@
       "aliases": ["harmay", "话梅"],
       "category": "brand",
       "file": "src/graphics/client-assets/harmay-wordmark-white.png"
+    },
+    {
+      "id": "client-cephei-wordmark-white",
+      "zh": "润晖投资 · 字标",
+      "en": "cephei · wordmark",
+      "aliases": ["润晖投资", "cephei"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-cephei-wordmark-white.png"
+    },
+    {
+      "id": "client-cephei-wordmark-primary",
+      "zh": "润晖投资 · 字标",
+      "en": "cephei · wordmark",
+      "aliases": ["润晖投资", "cephei"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-cephei-wordmark-primary.png"
+    },
+    {
+      "id": "client-cephei-wordmark-black",
+      "zh": "润晖投资 · 字标",
+      "en": "cephei · wordmark",
+      "aliases": ["润晖投资", "cephei"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-cephei-wordmark-black.png"
+    },
+    {
+      "id": "client-exploring-symbol-white",
+      "zh": "行知探索 · 图形标",
+      "en": "exploring · symbol",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-symbol-white.png"
+    },
+    {
+      "id": "client-exploring-symbol-primary",
+      "zh": "行知探索 · 图形标",
+      "en": "exploring · symbol",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-symbol-primary.png"
+    },
+    {
+      "id": "client-exploring-symbol-black",
+      "zh": "行知探索 · 图形标",
+      "en": "exploring · symbol",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-symbol-black.png"
+    },
+    {
+      "id": "client-exploring-wordmark-white",
+      "zh": "行知探索 · 字标",
+      "en": "exploring · wordmark",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-wordmark-white.png"
+    },
+    {
+      "id": "client-exploring-wordmark-primary",
+      "zh": "行知探索 · 字标",
+      "en": "exploring · wordmark",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-wordmark-primary.png"
+    },
+    {
+      "id": "client-exploring-wordmark-black",
+      "zh": "行知探索 · 字标",
+      "en": "exploring · wordmark",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-wordmark-black.png"
+    },
+    {
+      "id": "client-exploring-handwritten-white",
+      "zh": "行知探索 · 横版手写标",
+      "en": "exploring · handwritten",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-handwritten-white.png"
+    },
+    {
+      "id": "client-exploring-handwritten-primary",
+      "zh": "行知探索 · 横版手写标",
+      "en": "exploring · handwritten",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-handwritten-primary.png"
+    },
+    {
+      "id": "client-exploring-handwritten-black",
+      "zh": "行知探索 · 横版手写标",
+      "en": "exploring · handwritten",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-handwritten-black.png"
+    },
+    {
+      "id": "client-exploring-stacked-white",
+      "zh": "行知探索 · 竖版组合标",
+      "en": "exploring · stacked",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-stacked-white.png"
+    },
+    {
+      "id": "client-exploring-stacked-primary",
+      "zh": "行知探索 · 竖版组合标",
+      "en": "exploring · stacked",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-stacked-primary.png"
+    },
+    {
+      "id": "client-exploring-stacked-black",
+      "zh": "行知探索 · 竖版组合标",
+      "en": "exploring · stacked",
+      "aliases": ["行知探索", "exploring"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-exploring-stacked-black.png"
+    },
+    {
+      "id": "client-borrun-symbol-white",
+      "zh": "博润阳光 · 图形标",
+      "en": "borrun · symbol",
+      "aliases": ["博润阳光", "borrun"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-borrun-symbol-white.png"
+    },
+    {
+      "id": "client-borrun-symbol-primary",
+      "zh": "博润阳光 · 图形标",
+      "en": "borrun · symbol",
+      "aliases": ["博润阳光", "borrun"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-borrun-symbol-primary.png"
+    },
+    {
+      "id": "client-borrun-symbol-black",
+      "zh": "博润阳光 · 图形标",
+      "en": "borrun · symbol",
+      "aliases": ["博润阳光", "borrun"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-borrun-symbol-black.png"
+    },
+    {
+      "id": "client-borrun-wordmark-white",
+      "zh": "博润阳光 · 字标",
+      "en": "borrun · wordmark",
+      "aliases": ["博润阳光", "borrun"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-borrun-wordmark-white.png"
+    },
+    {
+      "id": "client-borrun-wordmark-primary",
+      "zh": "博润阳光 · 字标",
+      "en": "borrun · wordmark",
+      "aliases": ["博润阳光", "borrun"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-borrun-wordmark-primary.png"
+    },
+    {
+      "id": "client-borrun-wordmark-black",
+      "zh": "博润阳光 · 字标",
+      "en": "borrun · wordmark",
+      "aliases": ["博润阳光", "borrun"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-borrun-wordmark-black.png"
+    },
+    {
+      "id": "client-borrun-lockup-white",
+      "zh": "博润阳光 · 横版组合标",
+      "en": "borrun · lockup",
+      "aliases": ["博润阳光", "borrun"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-borrun-lockup-white.png"
+    },
+    {
+      "id": "client-borrun-lockup-primary",
+      "zh": "博润阳光 · 横版组合标",
+      "en": "borrun · lockup",
+      "aliases": ["博润阳光", "borrun"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-borrun-lockup-primary.png"
+    },
+    {
+      "id": "client-borrun-lockup-black",
+      "zh": "博润阳光 · 横版组合标",
+      "en": "borrun · lockup",
+      "aliases": ["博润阳光", "borrun"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-borrun-lockup-black.png"
+    },
+    {
+      "id": "client-alliance-health-wordmark-white",
+      "zh": "国养爱连 · 字标",
+      "en": "alliance-health · wordmark",
+      "aliases": ["国养爱连", "alliance-health"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-alliance-health-wordmark-white.png"
+    },
+    {
+      "id": "client-alliance-health-wordmark-primary",
+      "zh": "国养爱连 · 字标",
+      "en": "alliance-health · wordmark",
+      "aliases": ["国养爱连", "alliance-health"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-alliance-health-wordmark-primary.png"
+    },
+    {
+      "id": "client-alliance-health-wordmark-black",
+      "zh": "国养爱连 · 字标",
+      "en": "alliance-health · wordmark",
+      "aliases": ["国养爱连", "alliance-health"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-alliance-health-wordmark-black.png"
+    },
+    {
+      "id": "client-synapsor-symbol-white",
+      "zh": "深纳普思 · 图形标",
+      "en": "synapsor · symbol",
+      "aliases": ["深纳普思", "synapsor"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-synapsor-symbol-white.png"
+    },
+    {
+      "id": "client-synapsor-symbol-primary",
+      "zh": "深纳普思 · 图形标",
+      "en": "synapsor · symbol",
+      "aliases": ["深纳普思", "synapsor"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-synapsor-symbol-primary.png"
+    },
+    {
+      "id": "client-synapsor-symbol-black",
+      "zh": "深纳普思 · 图形标",
+      "en": "synapsor · symbol",
+      "aliases": ["深纳普思", "synapsor"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-synapsor-symbol-black.png"
+    },
+    {
+      "id": "client-synapsor-wordmark-white",
+      "zh": "深纳普思 · 字标",
+      "en": "synapsor · wordmark",
+      "aliases": ["深纳普思", "synapsor"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-synapsor-wordmark-white.png"
+    },
+    {
+      "id": "client-synapsor-wordmark-primary",
+      "zh": "深纳普思 · 字标",
+      "en": "synapsor · wordmark",
+      "aliases": ["深纳普思", "synapsor"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-synapsor-wordmark-primary.png"
+    },
+    {
+      "id": "client-synapsor-wordmark-black",
+      "zh": "深纳普思 · 字标",
+      "en": "synapsor · wordmark",
+      "aliases": ["深纳普思", "synapsor"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-synapsor-wordmark-black.png"
+    },
+    {
+      "id": "client-synapsor-lockup-white",
+      "zh": "深纳普思 · 横版组合标",
+      "en": "synapsor · lockup",
+      "aliases": ["深纳普思", "synapsor"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-synapsor-lockup-white.png"
+    },
+    {
+      "id": "client-synapsor-lockup-primary",
+      "zh": "深纳普思 · 横版组合标",
+      "en": "synapsor · lockup",
+      "aliases": ["深纳普思", "synapsor"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-synapsor-lockup-primary.png"
+    },
+    {
+      "id": "client-synapsor-lockup-black",
+      "zh": "深纳普思 · 横版组合标",
+      "en": "synapsor · lockup",
+      "aliases": ["深纳普思", "synapsor"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/client-synapsor-lockup-black.png"
+    },
+    {
+      "id": "dongli-wordmark-cn-white",
+      "zh": "东黎羊绒 · 中文字标",
+      "en": "DONGLI · wordmark-cn",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/dongli-wordmark-cn-white.svg"
+    },
+    {
+      "id": "dongli-wordmark-cn-primary",
+      "zh": "东黎羊绒 · 中文字标",
+      "en": "DONGLI · wordmark-cn",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/dongli-wordmark-cn-primary.svg"
+    },
+    {
+      "id": "dongli-wordmark-cn-black",
+      "zh": "东黎羊绒 · 中文字标",
+      "en": "DONGLI · wordmark-cn",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/dongli-wordmark-cn-black.svg"
+    },
+    {
+      "id": "dongli-wordmark-en-white",
+      "zh": "东黎羊绒 · 英文字标",
+      "en": "DONGLI · wordmark-en",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/dongli-wordmark-en-white.svg"
+    },
+    {
+      "id": "dongli-wordmark-en-primary",
+      "zh": "东黎羊绒 · 英文字标",
+      "en": "DONGLI · wordmark-en",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/dongli-wordmark-en-primary.svg"
+    },
+    {
+      "id": "dongli-wordmark-en-black",
+      "zh": "东黎羊绒 · 英文字标",
+      "en": "DONGLI · wordmark-en",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/dongli-wordmark-en-black.svg"
+    },
+    {
+      "id": "dongli-wordmark-bilingual-stacked-white",
+      "zh": "东黎羊绒 · 双语堆叠字标",
+      "en": "DONGLI · wordmark-bilingual-stacked",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/dongli-wordmark-bilingual-stacked-white.svg"
+    },
+    {
+      "id": "dongli-wordmark-bilingual-stacked-primary",
+      "zh": "东黎羊绒 · 双语堆叠字标",
+      "en": "DONGLI · wordmark-bilingual-stacked",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/dongli-wordmark-bilingual-stacked-primary.svg"
+    },
+    {
+      "id": "dongli-wordmark-bilingual-stacked-black",
+      "zh": "东黎羊绒 · 双语堆叠字标",
+      "en": "DONGLI · wordmark-bilingual-stacked",
+      "aliases": ["东黎", "羊绒", "dongli"],
+      "category": "brand",
+      "file": "assets/brand/clients-202611/dongli-wordmark-bilingual-stacked-black.svg"
     }
   ]
 }

@@ -1,0 +1,389 @@
+[
+  {
+    "id": "client-cephei-wordmark-white",
+    "file": "client-cephei-wordmark-white.png",
+    "source": "润晖投资_字标_单白.png",
+    "sha256": "a25e39c2ae82c93578c9c6de7a9dae3498fd5cdf79453c570739063beaeb001a",
+    "sourceSha256": "a25e39c2ae82c93578c9c6de7a9dae3498fd5cdf79453c570739063beaeb001a",
+    "width": 455,
+    "height": 218
+  },
+  {
+    "id": "client-cephei-wordmark-primary",
+    "file": "client-cephei-wordmark-primary.png",
+    "source": "润晖投资_字标_彩色透明底.png",
+    "sha256": "0cf18acc802b2133ef9dab28dc3071b6049f2ec223b8a22e380192ea9b949ef7",
+    "sourceSha256": "0cf18acc802b2133ef9dab28dc3071b6049f2ec223b8a22e380192ea9b949ef7",
+    "width": 455,
+    "height": 218
+  },
+  {
+    "id": "client-cephei-wordmark-black",
+    "file": "client-cephei-wordmark-black.png",
+    "source": "润晖投资_字标_单黑.png",
+    "sha256": "0719d22c5562e57bd6cad641c73b66c898221d596a706515201b943661c5a9d0",
+    "sourceSha256": "0719d22c5562e57bd6cad641c73b66c898221d596a706515201b943661c5a9d0",
+    "width": 455,
+    "height": 218
+  },
+  {
+    "id": "client-exploring-symbol-white",
+    "file": "client-exploring-symbol-white.png",
+    "source": "行知探索_图形标_单白.png",
+    "sha256": "d930fc8e77766e0ddd014caa07723f0a8f4c0268ec601e0b2264f349da0387fb",
+    "sourceSha256": "d930fc8e77766e0ddd014caa07723f0a8f4c0268ec601e0b2264f349da0387fb",
+    "width": 505,
+    "height": 390
+  },
+  {
+    "id": "client-exploring-symbol-primary",
+    "file": "client-exploring-symbol-primary.png",
+    "source": "行知探索_图形标_彩色透明底.png",
+    "sha256": "534b08f89b9d43bd75cd55368be721b262d3a2b2b406a491d1dcd6d7ad218d5c",
+    "sourceSha256": "534b08f89b9d43bd75cd55368be721b262d3a2b2b406a491d1dcd6d7ad218d5c",
+    "width": 505,
+    "height": 390
+  },
+  {
+    "id": "client-exploring-symbol-black",
+    "file": "client-exploring-symbol-black.png",
+    "source": "行知探索_图形标_单黑.png",
+    "sha256": "a118c24f71f24c5334b7b87876caa20772585b2a6a5e67b9d2dd69ea507e2bdb",
+    "sourceSha256": "a118c24f71f24c5334b7b87876caa20772585b2a6a5e67b9d2dd69ea507e2bdb",
+    "width": 505,
+    "height": 390
+  },
+  {
+    "id": "client-exploring-wordmark-white",
+    "file": "client-exploring-wordmark-white.png",
+    "source": "行知探索_字标_单白.png",
+    "sha256": "9f42bb73c2bf7f7b64828900d42e7c49b32ad138fca693fe8ddd4140ff44171b",
+    "sourceSha256": "9f42bb73c2bf7f7b64828900d42e7c49b32ad138fca693fe8ddd4140ff44171b",
+    "width": 378,
+    "height": 176
+  },
+  {
+    "id": "client-exploring-wordmark-primary",
+    "file": "client-exploring-wordmark-primary.png",
+    "source": "行知探索_字标_彩色透明底.png",
+    "sha256": "2780f3d94ec16a57e02655dae2303bcd8d6cbfe6a0319f71cee409ab478174de",
+    "sourceSha256": "2780f3d94ec16a57e02655dae2303bcd8d6cbfe6a0319f71cee409ab478174de",
+    "width": 378,
+    "height": 176
+  },
+  {
+    "id": "client-exploring-wordmark-black",
+    "file": "client-exploring-wordmark-black.png",
+    "source": "行知探索_字标_单黑.png",
+    "sha256": "1aed3639c17c69b963fedc49ae5268533062271ce4a957f7fe7a507b2f972a63",
+    "sourceSha256": "1aed3639c17c69b963fedc49ae5268533062271ce4a957f7fe7a507b2f972a63",
+    "width": 378,
+    "height": 176
+  },
+  {
+    "id": "client-exploring-handwritten-white",
+    "file": "client-exploring-handwritten-white.png",
+    "source": "行知探索_横版手写标_单白.png",
+    "sha256": "bae2056f60528ded2ce1dcc85a380c5306c155852b6ac019589910d6be887d14",
+    "sourceSha256": "bae2056f60528ded2ce1dcc85a380c5306c155852b6ac019589910d6be887d14",
+    "width": 1277,
+    "height": 560
+  },
+  {
+    "id": "client-exploring-handwritten-primary",
+    "file": "client-exploring-handwritten-primary.png",
+    "source": "行知探索_横版手写标_彩色透明底.png",
+    "sha256": "4af08bfafd4404241e8c9e6a4ca9a8c2b3f640c11bed516bf2860e0c92ae2d27",
+    "sourceSha256": "4af08bfafd4404241e8c9e6a4ca9a8c2b3f640c11bed516bf2860e0c92ae2d27",
+    "width": 1277,
+    "height": 560
+  },
+  {
+    "id": "client-exploring-handwritten-black",
+    "file": "client-exploring-handwritten-black.png",
+    "source": "行知探索_横版手写标_单黑.png",
+    "sha256": "fe7f2daa3febc554b085a543d8453db7228a68bf09fcea227a6db4397585ad22",
+    "sourceSha256": "fe7f2daa3febc554b085a543d8453db7228a68bf09fcea227a6db4397585ad22",
+    "width": 1277,
+    "height": 560
+  },
+  {
+    "id": "client-exploring-stacked-white",
+    "file": "client-exploring-stacked-white.png",
+    "source": "行知探索_竖版组合标_单白.png",
+    "sha256": "8302cd010a8bcd7fe85c1cd621be30f6176909492dc5f6648e828738dd1381c6",
+    "sourceSha256": "8302cd010a8bcd7fe85c1cd621be30f6176909492dc5f6648e828738dd1381c6",
+    "width": 519,
+    "height": 556
+  },
+  {
+    "id": "client-exploring-stacked-primary",
+    "file": "client-exploring-stacked-primary.png",
+    "source": "行知探索_竖版组合标_彩色透明底.png",
+    "sha256": "2212f27dd637bb3203cf247bafec9a528babfb57fa4436f702db7c86111aeff2",
+    "sourceSha256": "2212f27dd637bb3203cf247bafec9a528babfb57fa4436f702db7c86111aeff2",
+    "width": 519,
+    "height": 556
+  },
+  {
+    "id": "client-exploring-stacked-black",
+    "file": "client-exploring-stacked-black.png",
+    "source": "行知探索_竖版组合标_单黑.png",
+    "sha256": "3ee8ad31bc590e3bbf27cde073bb61fc5e92049845a71e02f3eea1f3876c0168",
+    "sourceSha256": "3ee8ad31bc590e3bbf27cde073bb61fc5e92049845a71e02f3eea1f3876c0168",
+    "width": 519,
+    "height": 556
+  },
+  {
+    "id": "client-borrun-symbol-white",
+    "file": "client-borrun-symbol-white.png",
+    "source": "博润阳光_图形标_单白.png",
+    "sha256": "d888417eb48bea98a02c91e764196d59ad81ffe801fab74218d4c7194c3daee4",
+    "sourceSha256": "d888417eb48bea98a02c91e764196d59ad81ffe801fab74218d4c7194c3daee4",
+    "width": 1482,
+    "height": 1482
+  },
+  {
+    "id": "client-borrun-symbol-primary",
+    "file": "client-borrun-symbol-primary.png",
+    "source": "博润阳光_图形标_彩色透明底.png",
+    "sha256": "86847ac42f0bdcf347dd254ede78335df5cc73921a853f73f8efe947e0949f11",
+    "sourceSha256": "86847ac42f0bdcf347dd254ede78335df5cc73921a853f73f8efe947e0949f11",
+    "width": 1482,
+    "height": 1482
+  },
+  {
+    "id": "client-borrun-symbol-black",
+    "file": "client-borrun-symbol-black.png",
+    "source": "博润阳光_图形标_单黑.png",
+    "sha256": "464962636c513b36db15e7bccd000b7d60b69d05da8b774abdb2334d74669f5a",
+    "sourceSha256": "464962636c513b36db15e7bccd000b7d60b69d05da8b774abdb2334d74669f5a",
+    "width": 1482,
+    "height": 1482
+  },
+  {
+    "id": "client-borrun-wordmark-white",
+    "file": "client-borrun-wordmark-white.png",
+    "source": "博润阳光_字标_单白.png",
+    "sha256": "95d7fd7637ed3e613f04100fd5610701c84f4e059e275199a867a3690394d07d",
+    "sourceSha256": "95d7fd7637ed3e613f04100fd5610701c84f4e059e275199a867a3690394d07d",
+    "width": 449,
+    "height": 173
+  },
+  {
+    "id": "client-borrun-wordmark-primary",
+    "file": "client-borrun-wordmark-primary.png",
+    "source": "博润阳光_字标_彩色透明底.png",
+    "sha256": "252c07a52a00e4ed813b18647d74adac7d9f86030cc7f513fac0d307056f3c97",
+    "sourceSha256": "252c07a52a00e4ed813b18647d74adac7d9f86030cc7f513fac0d307056f3c97",
+    "width": 449,
+    "height": 173
+  },
+  {
+    "id": "client-borrun-wordmark-black",
+    "file": "client-borrun-wordmark-black.png",
+    "source": "博润阳光_字标_单黑.png",
+    "sha256": "4544f9071f51014ae68beaa49ca8d5c92e1a984c54ac4714511b517d550b04c2",
+    "sourceSha256": "4544f9071f51014ae68beaa49ca8d5c92e1a984c54ac4714511b517d550b04c2",
+    "width": 449,
+    "height": 173
+  },
+  {
+    "id": "client-borrun-lockup-white",
+    "file": "client-borrun-lockup-white.png",
+    "source": "博润阳光_横版组合标_单白.png",
+    "sha256": "80ea42cd96b2f78170b5451998b2dad9c82309bd5e691d817c7ff7b567b5989b",
+    "sourceSha256": "80ea42cd96b2f78170b5451998b2dad9c82309bd5e691d817c7ff7b567b5989b",
+    "width": 647,
+    "height": 193
+  },
+  {
+    "id": "client-borrun-lockup-primary",
+    "file": "client-borrun-lockup-primary.png",
+    "source": "博润阳光_横版组合标_彩色透明底.png",
+    "sha256": "71c93bd8ece494a5f178a07415207db593d66d5fc0e0925896687761d618fe3e",
+    "sourceSha256": "71c93bd8ece494a5f178a07415207db593d66d5fc0e0925896687761d618fe3e",
+    "width": 647,
+    "height": 193
+  },
+  {
+    "id": "client-borrun-lockup-black",
+    "file": "client-borrun-lockup-black.png",
+    "source": "博润阳光_横版组合标_单黑.png",
+    "sha256": "ad80bdd7fff2b842d7ab85e443c8ec068fa18facaa9e7da8631dc1959cd53dff",
+    "sourceSha256": "ad80bdd7fff2b842d7ab85e443c8ec068fa18facaa9e7da8631dc1959cd53dff",
+    "width": 647,
+    "height": 193
+  },
+  {
+    "id": "client-alliance-health-wordmark-white",
+    "file": "client-alliance-health-wordmark-white.png",
+    "source": "国养爱连_字标_单白.png",
+    "sha256": "26fa08f068d9c24502c80265001a1b19928c9f1f3eb20647e37df0919e8d2d0b",
+    "sourceSha256": "26fa08f068d9c24502c80265001a1b19928c9f1f3eb20647e37df0919e8d2d0b",
+    "width": 264,
+    "height": 104
+  },
+  {
+    "id": "client-alliance-health-wordmark-primary",
+    "file": "client-alliance-health-wordmark-primary.png",
+    "source": "国养爱连_字标_彩色透明底.png",
+    "sha256": "8b09590e7f016d72303e65a4e2e444999646587be33a30df85a8fa782b2013ca",
+    "sourceSha256": "8b09590e7f016d72303e65a4e2e444999646587be33a30df85a8fa782b2013ca",
+    "width": 264,
+    "height": 104
+  },
+  {
+    "id": "client-alliance-health-wordmark-black",
+    "file": "client-alliance-health-wordmark-black.png",
+    "source": "国养爱连_字标_单黑.png",
+    "sha256": "7d37e26f05026038318e4541c751d6f20308cb2d42f50e1a44d3aeb4dec16a34",
+    "sourceSha256": "7d37e26f05026038318e4541c751d6f20308cb2d42f50e1a44d3aeb4dec16a34",
+    "width": 264,
+    "height": 104
+  },
+  {
+    "id": "client-synapsor-symbol-white",
+    "file": "client-synapsor-symbol-white.png",
+    "source": "深纳普思_图形标_单白.png",
+    "sha256": "e48ecb31d42da0493f8a3e5c526207ca0a20654511c63e9a51efadbe88657d5f",
+    "sourceSha256": "e48ecb31d42da0493f8a3e5c526207ca0a20654511c63e9a51efadbe88657d5f",
+    "width": 143,
+    "height": 140
+  },
+  {
+    "id": "client-synapsor-symbol-primary",
+    "file": "client-synapsor-symbol-primary.png",
+    "source": "深纳普思_图形标_彩色透明底.png",
+    "sha256": "9108edefaf2c215147c364cb9f1a16134a2e0e3bd549f7e0105bee7596bf479f",
+    "sourceSha256": "9108edefaf2c215147c364cb9f1a16134a2e0e3bd549f7e0105bee7596bf479f",
+    "width": 143,
+    "height": 140
+  },
+  {
+    "id": "client-synapsor-symbol-black",
+    "file": "client-synapsor-symbol-black.png",
+    "source": "深纳普思_图形标_单黑.png",
+    "sha256": "763afbf8c1af1428e3e5c72f033326a6ec29793da51a3b0e7001f4452b095c5c",
+    "sourceSha256": "763afbf8c1af1428e3e5c72f033326a6ec29793da51a3b0e7001f4452b095c5c",
+    "width": 143,
+    "height": 140
+  },
+  {
+    "id": "client-synapsor-wordmark-white",
+    "file": "client-synapsor-wordmark-white.png",
+    "source": "深纳普思_字标_单白.png",
+    "sha256": "175afbda61fa8eb8024aec8c3dda772c866ce6c8ad229c78cdf318435308b1f0",
+    "sourceSha256": "175afbda61fa8eb8024aec8c3dda772c866ce6c8ad229c78cdf318435308b1f0",
+    "width": 237,
+    "height": 132
+  },
+  {
+    "id": "client-synapsor-wordmark-primary",
+    "file": "client-synapsor-wordmark-primary.png",
+    "source": "深纳普思_字标_彩色透明底.png",
+    "sha256": "1e10b727072c229ff05864d5e2588a1c737a93ce7852c48df3f12111a033c726",
+    "sourceSha256": "1e10b727072c229ff05864d5e2588a1c737a93ce7852c48df3f12111a033c726",
+    "width": 237,
+    "height": 132
+  },
+  {
+    "id": "client-synapsor-wordmark-black",
+    "file": "client-synapsor-wordmark-black.png",
+    "source": "深纳普思_字标_单黑.png",
+    "sha256": "52c9404d575a5c934723ebd3849d210dae2ccca7605957c8d1de086c417634c7",
+    "sourceSha256": "52c9404d575a5c934723ebd3849d210dae2ccca7605957c8d1de086c417634c7",
+    "width": 237,
+    "height": 132
+  },
+  {
+    "id": "client-synapsor-lockup-white",
+    "file": "client-synapsor-lockup-white.png",
+    "source": "深纳普思_横版组合标_单白.png",
+    "sha256": "64e40cadeaf0e7961a42fe8099b320af486cc5aca6fca4654ddad38366dcf886",
+    "sourceSha256": "64e40cadeaf0e7961a42fe8099b320af486cc5aca6fca4654ddad38366dcf886",
+    "width": 374,
+    "height": 134
+  },
+  {
+    "id": "client-synapsor-lockup-primary",
+    "file": "client-synapsor-lockup-primary.png",
+    "source": "深纳普思_横版组合标_彩色透明底.png",
+    "sha256": "e7e56bdb9c7b04fadc52619abca729f82d704f633cc938ce6dc05ec1e3ff15af",
+    "sourceSha256": "e7e56bdb9c7b04fadc52619abca729f82d704f633cc938ce6dc05ec1e3ff15af",
+    "width": 374,
+    "height": 134
+  },
+  {
+    "id": "client-synapsor-lockup-black",
+    "file": "client-synapsor-lockup-black.png",
+    "source": "深纳普思_横版组合标_单黑.png",
+    "sha256": "7f701841940e069d23340138bc515bfed3d50934e1bd9b5b7499dc2ac36e223d",
+    "sourceSha256": "7f701841940e069d23340138bc515bfed3d50934e1bd9b5b7499dc2ac36e223d",
+    "width": 374,
+    "height": 134
+  },
+  {
+    "id": "dongli-wordmark-cn-white",
+    "file": "dongli-wordmark-cn-white.svg",
+    "source": "dongli-wordmark-cn-white.svg",
+    "sha256": "a0f296044c08637a0d7fd88716661cf2c58dba73ed63cef927e4580116eb9c65",
+    "sourceSha256": "76d47fc991c55744d31dc4d64a39326c79bee9dfa98bd9f4f85333bca270505e"
+  },
+  {
+    "id": "dongli-wordmark-cn-primary",
+    "file": "dongli-wordmark-cn-primary.svg",
+    "source": "dongli-wordmark-cn-primary.svg",
+    "sha256": "7d4b4a1d29a356e9678c8b43554ac9e7030cade2e0a34195c658617650ed87df",
+    "sourceSha256": "a9403dc658cd91fc7535e720886ea9703d3dc7a22ee70ecf4e830a3762fdb5a1"
+  },
+  {
+    "id": "dongli-wordmark-cn-black",
+    "file": "dongli-wordmark-cn-black.svg",
+    "source": "dongli-wordmark-cn-black.svg",
+    "sha256": "d1f0c540c3ea9dd404a9e5072a000a5955c0ab71602309df100987d7bca898cf",
+    "sourceSha256": "d23764464bfc4f19140ce08140d7dc5e2619cff322549b239df92420408b44c1"
+  },
+  {
+    "id": "dongli-wordmark-en-white",
+    "file": "dongli-wordmark-en-white.svg",
+    "source": "dongli-wordmark-en-white.svg",
+    "sha256": "b5ba104ab015c9e8c08332d8ca64972c32a7b6f72aa2e2c397e41673ab75698b",
+    "sourceSha256": "15a371b2e6eea4f2f75db9265984a6a265429384f70bf4fafbd8dbc0af26060f"
+  },
+  {
+    "id": "dongli-wordmark-en-primary",
+    "file": "dongli-wordmark-en-primary.svg",
+    "source": "dongli-wordmark-en-primary.svg",
+    "sha256": "fa3d08555dfcfef2c0fee8a48541fd7efefccf2e86b73b1bffc81604b937a138",
+    "sourceSha256": "a33607119bc68cf0f8450c3b8572779214974dde4494ecfb69333e5caf1741b9"
+  },
+  {
+    "id": "dongli-wordmark-en-black",
+    "file": "dongli-wordmark-en-black.svg",
+    "source": "dongli-wordmark-en-black.svg",
+    "sha256": "64c028caf047ef1f85b2b6f69a29446267fb389438c3bedfa0b7ed1155f0b673",
+    "sourceSha256": "bc9fa17fa9dd2e28a1c8921d84812e63e82d478c97179d527c60988a3b487079"
+  },
+  {
+    "id": "dongli-wordmark-bilingual-stacked-white",
+    "file": "dongli-wordmark-bilingual-stacked-white.svg",
+    "source": "dongli-wordmark-bilingual-stacked-white.svg",
+    "sha256": "86e69881126290ed59649cbb042de717de653de6adc537cd41baf09545f29e08",
+    "sourceSha256": "f6c3ad98f0e33370039731b8120a7d050d46df14187aea16aa8ef52b461eeb01"
+  },
+  {
+    "id": "dongli-wordmark-bilingual-stacked-primary",
+    "file": "dongli-wordmark-bilingual-stacked-primary.svg",
+    "source": "dongli-wordmark-bilingual-stacked-primary.svg",
+    "sha256": "46a0eb8384a9e4fa0663db6a6bf241f82f3f3c7affb9491aa6ee13f96e46c19c",
+    "sourceSha256": "a8e8e17201a35c3c8dca87d11316ba243df1672309a737a42f34508751ce9ad4"
+  },
+  {
+    "id": "dongli-wordmark-bilingual-stacked-black",
+    "file": "dongli-wordmark-bilingual-stacked-black.svg",
+    "source": "dongli-wordmark-bilingual-stacked-black.svg",
+    "sha256": "be6af4e88b58beaf68cbdf892cc22138e654ecd58197c6ec24ee770667ee033c",
+    "sourceSha256": "849dc42a308e3897b6783dcfa3f0e8f21d5830b0738c2f15e33783674923c7ab"
+  }
+]

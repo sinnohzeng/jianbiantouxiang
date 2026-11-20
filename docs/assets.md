@@ -10,7 +10,7 @@
 | emoji 图形 | [Noto Emoji](https://github.com/googlefonts/noto-emoji)，Apache-2.0 |
 | 默认字体 | Noto Serif SC、Noto Sans SC，OFL；[宋体许可](../public/FONT-NOTO-SERIF-SC-LICENSE.txt)、[黑体许可](../public/fonts/OFL-NotoSansSC.txt) |
 | 第三方品牌库 | [dashboard-icons](https://github.com/homarr-labs/dashboard-icons)，仓库 Apache-2.0；品牌权利仍归各所有者 |
-| 客户品牌 | 用户提供的 HARMAY、东黎稿件；[来源](../src/graphics/client-assets/README.md)与[使用要求](../src/graphics/client-assets/USAGE.md) |
+| 客户品牌 | 用户提供的 HARMAY、东黎及[本轮五客户精选](../assets/brand/clients-202611/README.md)；[来源](../src/graphics/client-assets/README.md)与[使用要求](../src/graphics/client-assets/USAGE.md) |
 | 字节品牌 | 用户指定素材，文件与哈希见[目录说明](../assets/brand/bytedance/README.md)及 manifest.json |
 | ISV 品牌 | 用户收集素材，版本缺口见[目录说明](../assets/brand/isv/README.md)及 manifest.json |
 
