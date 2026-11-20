@@ -199,7 +199,7 @@ it('晴空沿用演示分支色值，保留当前深色默认', () => {
 
 describe('有来源的三组配色', () => {
   it('追加并保留原默认，完整色组不重复', () => {
-    expect(PALETTES.slice(48).map((p) => p.id)).toEqual([
+    expect(PALETTES.slice(48, 51).map((p) => p.id)).toEqual([
       'supabase-green',
       'fluent-spark',
       'fluent-indigo',
@@ -216,4 +216,23 @@ describe('有来源的三组配色', () => {
       for (const c of p.colors) expect(wcagContrast(p.text, c)).toBeGreaterThanOrEqual(4.5)
     },
   )
+})
+
+describe('配色覆盖拓展', () => {
+  const ids = [
+    'apricot-cream',
+    'tangerine',
+    'burnt-orange',
+    'lemon-zest',
+    'chartreuse',
+    'crimson-velvet',
+  ]
+  it('在既有 51 套后追加六套', () => {
+    expect(PALETTES.slice(51).map((p) => p.id)).toEqual(ids)
+  })
+  it.each(ids)('%s 推荐字色节点对比达标且存档可恢复', (id) => {
+    const p = getPalette(id)!
+    expect(normalizeConfig({ palette: id }).palette).toBe(id)
+    for (const c of p.colors) expect(wcagContrast(p.text, c)).toBeGreaterThanOrEqual(4.5)
+  })
 })

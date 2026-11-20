@@ -1,0 +1,122 @@
+[
+  {
+    "id": "apricot-cream",
+    "tone": "light",
+    "colors": [
+      "#FFEFD6",
+      "#FFDFB5",
+      "#FFC182"
+    ],
+    "text": "#141413",
+    "bg": "#FFF7ED",
+    "name": {
+      "zh-CN": "浅橙奶杏",
+      "zh-HK": "淺橙奶杏",
+      "en": "Apricot Cream",
+      "ja": "アプリコットクリーム",
+      "ko": "살구 크림"
+    },
+    "minContrast": 11.589016499386243,
+    "whiteContrast": 1.1308800491913136
+  },
+  {
+    "id": "tangerine",
+    "tone": "light",
+    "colors": [
+      "#F76B15",
+      "#EC9455",
+      "#F5AE73"
+    ],
+    "text": "#141413",
+    "bg": "#FFF7ED",
+    "name": {
+      "zh-CN": "鲜橙活力",
+      "zh-HK": "鮮橙活力",
+      "en": "Tangerine",
+      "ja": "タンジェリン",
+      "ko": "탠저린"
+    },
+    "minContrast": 6.204945698583316,
+    "whiteContrast": 1.877602295027141
+  },
+  {
+    "id": "burnt-orange",
+    "tone": "dark",
+    "colors": [
+      "#582D1D",
+      "#7E451D",
+      "#A35829"
+    ],
+    "text": "#FFFFFF",
+    "bg": "#1E160F",
+    "name": {
+      "zh-CN": "深橙焙火",
+      "zh-HK": "深橙焙火",
+      "en": "Burnt Orange",
+      "ja": "バーントオレンジ",
+      "ko": "번트 오렌지"
+    },
+    "minContrast": 5.269477914197825,
+    "whiteContrast": 5.269477914197825
+  },
+  {
+    "id": "lemon-zest",
+    "tone": "light",
+    "colors": [
+      "#FFDC00",
+      "#FFE629",
+      "#FFF394"
+    ],
+    "text": "#141413",
+    "bg": "#FEFCE9",
+    "name": {
+      "zh-CN": "柠檬明黄",
+      "zh-HK": "檸檬明黃",
+      "en": "Lemon Zest",
+      "ja": "レモンゼスト",
+      "ko": "레몬 제스트"
+    },
+    "minContrast": 13.596506246367124,
+    "whiteContrast": 1.1351436951188554
+  },
+  {
+    "id": "chartreuse",
+    "tone": "light",
+    "colors": [
+      "#8DB654",
+      "#B0E64C",
+      "#D3E7A6"
+    ],
+    "text": "#141413",
+    "bg": "#F8FAF3",
+    "name": {
+      "zh-CN": "青柠嫩芽",
+      "zh-HK": "青檸嫩芽",
+      "en": "Chartreuse Sprout",
+      "ja": "シャルトリューズ",
+      "ko": "샤르트뢰즈"
+    },
+    "minContrast": 7.8578487151553045,
+    "whiteContrast": 1.3332675507270897
+  },
+  {
+    "id": "crimson-velvet",
+    "tone": "dark",
+    "colors": [
+      "#4D122F",
+      "#6D2545",
+      "#873356"
+    ],
+    "text": "#FFFFFF",
+    "bg": "#201318",
+    "name": {
+      "zh-CN": "莓红丝绒",
+      "zh-HK": "莓紅絲絨",
+      "en": "Crimson Velvet",
+      "ja": "クリムゾンベルベット",
+      "ko": "크림슨 벨벳"
+    },
+    "minContrast": 7.9603134973917875,
+    "whiteContrast": 7.9603134973917875
+  }
+]

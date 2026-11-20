@@ -458,6 +458,55 @@ const ROWS: readonly Row[] = [
     '#151329',
     ['深靛微光', '深靛微光', 'Indigo Glow', 'インディゴグロー', '인디고 글로우'],
   ],
+  // Radix 原始色阶与取色记录：docs/audits/2026-11-17-palette-range.md
+  [
+    'apricot-cream',
+    'light',
+    ['#FFEFD6', '#FFDFB5', '#FFC182'],
+    '#141413',
+    '#FFF7ED',
+    ['浅橙奶杏', '淺橙奶杏', 'Apricot Cream', 'アプリコットクリーム', '살구 크림'],
+  ],
+  [
+    'tangerine',
+    'light',
+    ['#F76B15', '#EC9455', '#F5AE73'],
+    '#141413',
+    '#FFF7ED',
+    ['鲜橙活力', '鮮橙活力', 'Tangerine', 'タンジェリン', '탠저린'],
+  ],
+  [
+    'burnt-orange',
+    'dark',
+    ['#582D1D', '#7E451D', '#A35829'],
+    '#FFFFFF',
+    '#1E160F',
+    ['深橙焙火', '深橙焙火', 'Burnt Orange', 'バーントオレンジ', '번트 오렌지'],
+  ],
+  [
+    'lemon-zest',
+    'light',
+    ['#FFDC00', '#FFE629', '#FFF394'],
+    '#141413',
+    '#FEFCE9',
+    ['柠檬明黄', '檸檬明黃', 'Lemon Zest', 'レモンゼスト', '레몬 제스트'],
+  ],
+  [
+    'chartreuse',
+    'light',
+    ['#8DB654', '#B0E64C', '#D3E7A6'],
+    '#141413',
+    '#F8FAF3',
+    ['青柠嫩芽', '青檸嫩芽', 'Chartreuse Sprout', 'シャルトリューズ', '샤르트뢰즈'],
+  ],
+  [
+    'crimson-velvet',
+    'dark',
+    ['#4D122F', '#6D2545', '#873356'],
+    '#FFFFFF',
+    '#201318',
+    ['莓红丝绒', '莓紅絲絨', 'Crimson Velvet', 'クリムゾンベルベット', '크림슨 벨벳'],
+  ],
 ]
 
 export const PALETTES: Palette[] = ROWS.map(([id, tone, colors, text, bg, names]) => ({
