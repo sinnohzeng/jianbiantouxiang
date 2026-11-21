@@ -57,6 +57,7 @@ try {
       const group = ink()
       const pct = (v) => Math.round((v / S) * 10000) / 100
       return {
+        optimizedBrand: !!layout.graphic && !!layout.optimization,
         errX: group ? pct(group.x + group.width / 2 - S / 2) : null,
         errY: group ? pct(group.y + group.height / 2 - S / 2) : null,
         logo: logo && { width: logo.width, height: logo.height },
@@ -143,7 +144,7 @@ try {
 
   const violations = result.unreadable.map((id) => `brand ${id}: no visible pixels`)
   for (const c of result.centering)
-    if (Math.abs(c.errY) > 0.5)
+    if (Math.abs(c.errY) > (c.optimizedBrand ? 3.6 : 0.5))
       violations.push(`centre ${c.icon} ${JSON.stringify(c.text)} ${c.shape}: errY ${c.errY}%`)
   const series = Object.groupBy(result.logoSweep, (r) => `${r.icon} ${r.text}`)
   for (const [name, rows] of Object.entries(series))

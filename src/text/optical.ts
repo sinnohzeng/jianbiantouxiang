@@ -77,7 +77,7 @@ export function groupCenterShift(boundsCenter: number, center: number, short: nu
 /** 素材可见像素在落位框里的比例。按素材对象缓存，同一张图只量一次。 */
 const inkFractions = new WeakMap<Graphic, Rect | null>()
 
-function graphicInkFraction(graphic: Graphic, config: AvatarConfig): Rect | null {
+export function graphicInkFraction(graphic: Graphic, config: AvatarConfig): Rect | null {
   if (inkFractions.has(graphic)) return inkFractions.get(graphic) ?? null
   const k = 512 / Math.max(graphic.width, graphic.height)
   const canvas = document.createElement('canvas')

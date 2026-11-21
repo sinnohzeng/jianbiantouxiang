@@ -30,11 +30,13 @@ flowchart LR
   mask --> encode[编码与导出]
 ```
 
-预览使用多层画布，导出由 `composeWith` 统一合成。两者复用布局和绘制函数；形状遮罩最后执行。字体加载完成后才量测与出图。排版参数和几何约束见[排版参考](layout.md)。
+预览使用多层画布，导出由 `composeWith` 统一合成。两者复用布局和绘制函数；形状遮罩最后执行。字体加载完成后才量测与出图。自动文字在既有 Logo 尺寸上按最终墨迹安全约束求最大字号；手动值保持原语义。排版参数和几何约束见[排版参考](layout.md)。
 
 四种质感的参数映射集中在 `src/engine/styles.ts`：mesh 对应 staticMeshGradient，flow 对应 meshGradient，silk 对应 warp，grain 对应 grainGradient。无 WebGL2 时采用相同种子的 2D 近似，并提示用户。设备渲染上限低于输出尺寸时先按上限渲染再放大。
 
 ## 配置与存档
+
+配色选择器使用 `src/palettes/display-order.ts` 的独立显示顺序；原配色清单仍用于查找和随机选择，显示排序不改变随机权重。
 
 网页配置定义在 `src/state/config.ts`。共享默认值集中在 `DEFAULT_CONFIG`；加载时通过 `normalizeConfig` 补缺失字段、校验枚举并限制数值范围。默认内容为「工作新习惯 / 你说豆包干」、豆包工作图标、钢灰深色背景、白色文字、投影 0.4、光感 0.08。主行 Noto Serif SC 700，副行 Noto Sans SC 700。
 

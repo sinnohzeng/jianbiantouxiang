@@ -1,3 +1,4 @@
+import { DISPLAY_PALETTES } from '@/palettes/display-order'
 /**
  * 配色节：明暗筛选加四列渐变磁贴，自定义色与种子生成器折在末尾。
  * 磁贴是真实渐变缩略图而不是圆点，选色时看到的就是画面里的走向。
@@ -49,7 +50,7 @@ export function PaletteSection() {
   const [pasted, setPasted] = useState('')
 
   const visible = useMemo(
-    () => PALETTES.filter((palette) => tone === 'all' || palette.tone === tone),
+    () => DISPLAY_PALETTES.filter((palette) => tone === 'all' || palette.tone === tone),
     [tone],
   )
 

@@ -42,6 +42,7 @@ export interface ProbeConfig {
   style: string
   palette: string
   typography: {
+    color: string
     effect: string
     effectStrength: number
     line1: {
@@ -51,7 +52,7 @@ export interface ProbeConfig {
     }
     line2: { size: number | null; font: { family: string; source: string; weight: number } | null }
   }
-  layout: { icon: { source: string; id: string; mono: boolean } }
+  layout: { graphic: number; icon: { source: string; id: string; mono: boolean } }
 }
 
 export interface ProbeRect {

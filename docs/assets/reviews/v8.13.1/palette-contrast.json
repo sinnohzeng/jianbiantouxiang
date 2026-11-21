@@ -1,0 +1,1250 @@
+[
+  {
+    "id": "steel-slate",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 5.236400597942548,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "steel-slate",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 6.06109715240992,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "steel-slate",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 5.629747898049944,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "steel-slate",
+    "style": "flow",
+    "seed": 0,
+    "worst": 5.472639906672499,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "steel-slate",
+    "style": "flow",
+    "seed": 1,
+    "worst": 7.344014175310685,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "steel-slate",
+    "style": "flow",
+    "seed": 2,
+    "worst": 6.616570333233606,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "steel-slate",
+    "style": "silk",
+    "seed": 0,
+    "worst": 5.306781834213793,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "steel-slate",
+    "style": "silk",
+    "seed": 1,
+    "worst": 6.5229716431992575,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "steel-slate",
+    "style": "silk",
+    "seed": 2,
+    "worst": 8.540419574714335,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "steel-slate",
+    "style": "grain",
+    "seed": 0,
+    "worst": 5.559722788546022,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "steel-slate",
+    "style": "grain",
+    "seed": 1,
+    "worst": 5.559722788546022,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "steel-slate",
+    "style": "grain",
+    "seed": 2,
+    "worst": 5.727404921448734,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 8.043718160947725,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 8.32329524344592,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 7.5552805933487885,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "flow",
+    "seed": 0,
+    "worst": 8.300361249169313,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "flow",
+    "seed": 1,
+    "worst": 8.58925707620136,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "flow",
+    "seed": 2,
+    "worst": 8.043718160947725,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "silk",
+    "seed": 0,
+    "worst": 7.803279828637442,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "silk",
+    "seed": 1,
+    "worst": 8.683354237531683,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "silk",
+    "seed": 2,
+    "worst": 10.278009267191353,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "grain",
+    "seed": 0,
+    "worst": 8.300361249169313,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "grain",
+    "seed": 1,
+    "worst": 8.300361249169313,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "warm-graphite",
+    "style": "grain",
+    "seed": 2,
+    "worst": 8.565467966058263,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 8.312668256092397,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 8.507347571295604,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 7.807468639475247,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "flow",
+    "seed": 0,
+    "worst": 8.286622984730156,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "flow",
+    "seed": 1,
+    "worst": 8.661761695001013,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "flow",
+    "seed": 2,
+    "worst": 8.400771730469447,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "silk",
+    "seed": 0,
+    "worst": 8.172030210142506,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "silk",
+    "seed": 1,
+    "worst": 8.501930084144714,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "silk",
+    "seed": 2,
+    "worst": 8.95057825661305,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "grain",
+    "seed": 0,
+    "worst": 8.668685530096242,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "grain",
+    "seed": 1,
+    "worst": 8.668685530096242,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "petrol-plum",
+    "style": "grain",
+    "seed": 2,
+    "worst": 8.945151967594573,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 6.863355187470043,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 7.106067316431473,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 6.478438875088455,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "flow",
+    "seed": 0,
+    "worst": 7.106067316431473,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "flow",
+    "seed": 1,
+    "worst": 7.438628154737823,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "flow",
+    "seed": 2,
+    "worst": 6.889510192977125,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "silk",
+    "seed": 0,
+    "worst": 6.661005963220158,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "silk",
+    "seed": 1,
+    "worst": 7.445234672018958,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "silk",
+    "seed": 2,
+    "worst": 9.086000648574954,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "grain",
+    "seed": 0,
+    "worst": 7.078914944172974,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "grain",
+    "seed": 1,
+    "worst": 7.078914944172974,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "cacao-linen",
+    "style": "grain",
+    "seed": 2,
+    "worst": 7.302054681056848,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 5.798858545885079,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 6.044913420149778,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 5.529910743243546,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "flow",
+    "seed": 0,
+    "worst": 6.044913420149778,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "flow",
+    "seed": 1,
+    "worst": 6.247850547257722,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "flow",
+    "seed": 2,
+    "worst": 5.865235612016138,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "silk",
+    "seed": 0,
+    "worst": 5.691862350300112,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "silk",
+    "seed": 1,
+    "worst": 6.192259627323465,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "silk",
+    "seed": 2,
+    "worst": 7.3214297984935,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "grain",
+    "seed": 0,
+    "worst": 5.97605847556923,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "grain",
+    "seed": 1,
+    "worst": 5.97605847556923,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "juniper-stone",
+    "style": "grain",
+    "seed": 2,
+    "worst": 6.159686230685472,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 6.156509515539281,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 6.345279391781767,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 5.822330074906358,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "flow",
+    "seed": 0,
+    "worst": 6.345279391781767,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "flow",
+    "seed": 1,
+    "worst": 6.630269471924501,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "flow",
+    "seed": 2,
+    "worst": 6.156509515539281,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "silk",
+    "seed": 0,
+    "worst": 5.97900240955246,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "silk",
+    "seed": 1,
+    "worst": 6.664404090124985,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "silk",
+    "seed": 2,
+    "worst": 8.062570703721748,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "grain",
+    "seed": 0,
+    "worst": 6.318120645346704,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "grain",
+    "seed": 1,
+    "worst": 6.318120645346704,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "redwood-smoke",
+    "style": "grain",
+    "seed": 2,
+    "worst": 6.512486475368936,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 6.447727826969053,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 6.681597133960065,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 6.104324917557272,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "flow",
+    "seed": 0,
+    "worst": 6.681597133960065,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "flow",
+    "seed": 1,
+    "worst": 6.998266043160801,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "flow",
+    "seed": 2,
+    "worst": 6.479553889046872,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "silk",
+    "seed": 0,
+    "worst": 6.26222604482591,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "silk",
+    "seed": 1,
+    "worst": 7.007815189821044,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "silk",
+    "seed": 2,
+    "worst": 8.617930992883952,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "grain",
+    "seed": 0,
+    "worst": 6.648557696241126,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "grain",
+    "seed": 1,
+    "worst": 6.648557696241126,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-lavender",
+    "style": "grain",
+    "seed": 2,
+    "worst": 6.8565678303220885,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 6.194873455813445,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 6.47984676326461,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 5.914891365335787,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "flow",
+    "seed": 0,
+    "worst": 6.47984676326461,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "flow",
+    "seed": 1,
+    "worst": 6.753282846916416,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "flow",
+    "seed": 2,
+    "worst": 6.265351508206172,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "silk",
+    "seed": 0,
+    "worst": 6.014627172187258,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "silk",
+    "seed": 1,
+    "worst": 6.7800653881803115,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "silk",
+    "seed": 2,
+    "worst": 8.267985725930458,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "grain",
+    "seed": 0,
+    "worst": 6.386647369477369,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "grain",
+    "seed": 1,
+    "worst": 6.386647369477369,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "ink-olive",
+    "style": "grain",
+    "seed": 2,
+    "worst": 6.585334049812805,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 5.605367406794845,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 5.854761815607647,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 5.361359126538055,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "flow",
+    "seed": 0,
+    "worst": 5.8389808950626385,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "flow",
+    "seed": 1,
+    "worst": 6.042279679923633,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "flow",
+    "seed": 2,
+    "worst": 5.6666321886370845,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "silk",
+    "seed": 0,
+    "worst": 5.5003375194929305,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "silk",
+    "seed": 1,
+    "worst": 6.082954617784785,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "silk",
+    "seed": 2,
+    "worst": 7.333162024257488,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "grain",
+    "seed": 0,
+    "worst": 5.767562858375838,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "grain",
+    "seed": 1,
+    "worst": 5.767562858375838,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "rainy-blue",
+    "style": "grain",
+    "seed": 2,
+    "worst": 5.943529503087639,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 6.787072485769624,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 7.021605349105067,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 6.437237531714787,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "flow",
+    "seed": 0,
+    "worst": 7.028502281556633,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "flow",
+    "seed": 1,
+    "worst": 7.3474678414380525,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "flow",
+    "seed": 2,
+    "worst": 6.815492377206556,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "silk",
+    "seed": 0,
+    "worst": 6.609731540613935,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "silk",
+    "seed": 1,
+    "worst": 7.332521940513632,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "silk",
+    "seed": 2,
+    "worst": 8.792173406882991,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "grain",
+    "seed": 0,
+    "worst": 6.998956585415127,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "grain",
+    "seed": 1,
+    "worst": 6.998956585415127,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "mulberry-clay",
+    "style": "grain",
+    "seed": 2,
+    "worst": 7.21824068558185,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 5.534348738330916,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 5.773814511877553,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 5.351079154750406,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "flow",
+    "seed": 0,
+    "worst": 5.773814511877553,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "flow",
+    "seed": 1,
+    "worst": 6.0186235972685,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "flow",
+    "seed": 2,
+    "worst": 5.604933643970188,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "silk",
+    "seed": 0,
+    "worst": 5.453398492280636,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "silk",
+    "seed": 1,
+    "worst": 6.0186235972685,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "silk",
+    "seed": 2,
+    "worst": 7.242981275108477,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "grain",
+    "seed": 0,
+    "worst": 5.700597251520412,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "grain",
+    "seed": 1,
+    "worst": 5.700597251520412,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "smoked-jade",
+    "style": "grain",
+    "seed": 2,
+    "worst": 5.872805740666691,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 7.844471701315963,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 7.844471701315963,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 7.030845525886996,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "flow",
+    "seed": 0,
+    "worst": 6.879785868503862,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "flow",
+    "seed": 1,
+    "worst": 7.454813487569298,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "flow",
+    "seed": 2,
+    "worst": 7.2969348767603766,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "silk",
+    "seed": 0,
+    "worst": 7.40065720433124,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "silk",
+    "seed": 1,
+    "worst": 7.774731394920223,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "silk",
+    "seed": 2,
+    "worst": 8.63075484516423,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "grain",
+    "seed": 0,
+    "worst": 7.786413838152919,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "grain",
+    "seed": 1,
+    "worst": 7.685956630142069,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "crimson-velvet",
+    "style": "grain",
+    "seed": 2,
+    "worst": 7.9603134973917875,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "mesh",
+    "seed": 0,
+    "worst": 5.249853715789961,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "mesh",
+    "seed": 1,
+    "worst": 5.275408149981708,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "mesh",
+    "seed": 2,
+    "worst": 4.830012318077737,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "flow",
+    "seed": 0,
+    "worst": 4.702923552989485,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "flow",
+    "seed": 1,
+    "worst": 5.017573298567085,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "flow",
+    "seed": 2,
+    "worst": 4.919717795820998,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "silk",
+    "seed": 0,
+    "worst": 4.900557649319598,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "silk",
+    "seed": 1,
+    "worst": 5.212155676578051,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "silk",
+    "seed": 2,
+    "worst": 6.046175257286615,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "grain",
+    "seed": 0,
+    "worst": 5.150418976094878,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "grain",
+    "seed": 1,
+    "worst": 5.150418976094878,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  },
+  {
+    "id": "burnt-orange",
+    "style": "grain",
+    "seed": 2,
+    "worst": 5.269477914197825,
+    "renderer": "webgl2",
+    "highlight": 0.08
+  }
+]

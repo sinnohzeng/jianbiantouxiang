@@ -1,3 +1,4 @@
+import { optimizeAutomaticText } from './optimize'
 import { compositionConfig, fillCircleLayout } from './fill'
 import { brandGap, stackGap } from './spacing'
 import { applyOpticalLayout, type OpticalReport } from './optical'
@@ -39,6 +40,7 @@ export interface GraphicSize {
 }
 
 export interface TextLayout {
+  optimization?: { fontGain: number; centerShiftY: number; logoGap: number }
   fillScale?: number
   optical?: OpticalReport
   lines: LayoutLine[]
@@ -420,8 +422,17 @@ export function layoutText(
         width,
         height,
       )
+  const optimized = measure
+    ? result
+    : optimizeAutomaticText(
+        result,
+        config,
+        width,
+        height,
+        graphic && 'kind' in graphic ? (graphic as Graphic) : null,
+      )
   return {
-    ...result,
-    overflow: finalOverflow(result.lines, result.graphic, config, width, height, !measure),
+    ...optimized,
+    overflow: finalOverflow(optimized.lines, optimized.graphic, config, width, height, !measure),
   }
 }

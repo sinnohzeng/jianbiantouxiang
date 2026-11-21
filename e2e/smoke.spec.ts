@@ -1,3 +1,4 @@
+import { PALETTES } from '../src/palettes/palettes'
 import { expect, test } from '@playwright/test'
 import { openApp, probeConfig, probeEncode, probeFlush, probeInk } from './helpers'
 
@@ -266,4 +267,59 @@ test('保存的纯色文字刷新后保持', async ({ page }) => {
   await expect(page.locator('#avatar-text-first')).toHaveValue('保存后的内容')
   await expect.poll(async () => (await probeConfig(page)).typography.effect).toBe('plain')
   expect((await probeConfig(page)).typography.effectStrength).toBe(0)
+})
+
+test('东黎自动双行用最终安全区放大，不写回固定字号', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'gradient-avatar:v4',
+      JSON.stringify({
+        config: {
+          text: '产品研发\n东黎羊绒',
+          layout: {
+            icon: { source: 'brand', id: 'dongli-symbol-white', mono: false },
+            graphic: 0.63,
+          },
+          canvas: { width: 512, height: 512 },
+        },
+      }),
+    )
+  })
+  await openApp(page)
+  await probeEncode(page, 512)
+  await expect(page.getByText('内容超出安全区', { exact: true })).toHaveCount(0)
+  await expect(
+    page.getByText('48 像素小头像中文字偏小，建议缩短文字或移除第二行', { exact: true }),
+  ).toHaveCount(0)
+  const config = await probeConfig(page)
+  expect(config.typography.line1.size).toBeNull()
+  expect(config.typography.line2.size).toBeNull()
+  expect(config.layout.graphic).toBe(0.63)
+})
+
+test('配色显示顺序在全部和明暗筛选一致且不改当前文字色', async ({ page }) => {
+  await openApp(page)
+  const readIds = () =>
+    page
+      .locator('input[data-group="palette"]')
+      .evaluateAll((inputs) => inputs.map((el) => (el as HTMLInputElement).value))
+  const all = await readIds()
+  expect(all).toHaveLength(57)
+  expect(all.slice(0, 4)).toEqual(['steel-slate', 'warm-graphite', 'petrol-plum', 'cacao-linen'])
+  const dark = page.getByRole('radio', { name: '深色系', exact: true })
+  await dark.scrollIntoViewIfNeeded()
+  await dark.check({ force: true })
+  const darkIds = await readIds()
+  expect(darkIds).toEqual(all.filter((id) => PALETTES.find((p) => p.id === id)?.tone === 'dark'))
+  const light = page.getByRole('radio', { name: '浅色系', exact: true })
+  await light.check({ force: true })
+  expect(await readIds()).toEqual(
+    all.filter((id) => PALETTES.find((p) => p.id === id)?.tone === 'light'),
+  )
+  const before = await probeConfig(page)
+  await page.locator('input[data-group="palette"][value="tangerine"]').check({ force: true })
+  const after = await probeConfig(page)
+  expect(after.palette).toBe('tangerine')
+  expect(after.typography.color).toBe(before.typography.color)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
