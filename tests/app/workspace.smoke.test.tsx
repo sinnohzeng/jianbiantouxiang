@@ -531,12 +531,12 @@ describe('挑选栏 · 逐行字体', () => {
     const follow = fontField(container, 2).querySelector('[data-slot="font-follow"]')!
     expect(follow.getAttribute('aria-pressed')).toBe('true')
 
-    const trigger = screen.getByRole('button', { name: 'Line 2 font Noto Serif SC' })
+    const trigger = screen.getByRole('button', { name: 'Line 2 font Noto Sans SC' })
     expect(trigger).toBe(fontTrigger(container, 2))
-    expect(trigger.getAttribute('title')).toBe('Noto Serif SC')
+    expect(trigger.getAttribute('title')).toBe('Noto Sans SC')
     const name = document.getElementById(trigger.getAttribute('aria-labelledby')!.split(' ')[1]!)!
     expect(name.className).toContain('text-muted-foreground')
-    expect(fontTrigger(container, 1).textContent).toContain('Noto Serif SC')
+    expect(fontTrigger(container, 1).textContent).toContain('Noto Sans SC')
   })
 
   it('第一行字重下拉写第一行，第二行仍跟随', async () => {
@@ -676,7 +676,7 @@ describe('FontPickerPanel', () => {
     useAvatarStore.setState({ past: [] })
     const onDone = panel(2)
     const checked = document.querySelector<HTMLElement>('[cmdk-item][data-checked="true"]')!
-    expect(checked.textContent).toContain('Noto Serif SC')
+    expect(checked.textContent).toContain('Noto Sans SC')
     fireEvent.click(checked)
     expect(onDone).toHaveBeenCalledTimes(1)
     expect(config().typography.line2.font).toBeNull()
@@ -853,7 +853,7 @@ describe('字体名预览', () => {
     const trigger = fontTrigger(container, 1)
     const name = document.getElementById(trigger.getAttribute('aria-labelledby')!.split(' ')[1]!)!
     await waitFor(() => expect(name.getAttribute('data-preview')).toBe('ready'))
-    expect(name.style.fontFamily.startsWith('"fp-noto-serif-sc"')).toBe(true)
+    expect(name.style.fontFamily.startsWith('"fp-noto-sans-sc"')).toBe(true)
     expect(name.lang).toBe('en')
   })
 })
@@ -1004,7 +1004,7 @@ describe('PreviewStage 的字体加载', () => {
     // 第二行没有文字，钉住的字体不加载
     await waitFor(() => expect(loader.loadFontsForConfig).toHaveBeenCalledTimes(1))
     const first = loader.loadFontsForConfig.mock.calls[0]![0]
-    expect(fontJobs(first).map((job) => job.font.family)).toEqual(['Noto Serif SC'])
+    expect(fontJobs(first).map((job) => job.font.family)).toEqual(['Noto Sans SC'])
 
     act(() => {
       useAvatarStore.getState().setConfig({ text: '飞书\n先锋' })

@@ -38,7 +38,7 @@ flowchart LR
 
 配色选择器使用 `src/palettes/display-order.ts` 的独立显示顺序；原配色清单仍用于查找和随机选择，显示排序不改变随机权重。
 
-网页配置定义在 `src/state/config.ts`。共享默认值集中在 `DEFAULT_CONFIG`；加载时通过 `normalizeConfig` 补缺失字段、校验枚举并限制数值范围。默认内容为「工作新习惯 / 你说豆包干」、豆包工作图标、钢灰深色背景、白色文字、投影 0.4、光感 0.08。主行 Noto Serif SC 700，副行 Noto Sans SC 700。
+网页配置定义在 `src/state/config.ts`。共享默认值集中在 `DEFAULT_CONFIG`；加载时通过 `normalizeConfig` 补缺失字段、校验枚举并限制数值范围。默认内容为「工作新习惯 / 你说豆包干」、豆包工作图标、钢灰深色背景、白色文字、投影 0.4、光感 0.08。主行 Noto Sans SC 900，副行 Noto Sans SC 700。
 
 首次进入和重置采用默认配置。已有存档的显式值保留，包括纯色效果和零强度；缺失效果字段补投影。旧默认与用户主动选择没有独立标记，因此不按值猜测迁移。网页配置与自动化请求格式不同，后者见[自动化指南](automation.md)。
 

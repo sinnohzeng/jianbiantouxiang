@@ -47,7 +47,7 @@ node service/cli.mjs batch --config service/examples/batch.json --out-dir ./avat
 | size | 1024；128–2048 整数 |
 | palette / style | steel-slate / mesh；配色查 options，质感另有 flow、silk、grain |
 | seed | gradient-avatar-v1；最多 128 字符 |
-| font / secondaryFont | serif / sans；随包 Noto Serif SC / Noto Sans SC 700 |
+| font / secondaryFont | serif / sans；随包 Noto Serif SC / Noto Sans SC 700（独立 v1 契约，不随网页默认字重变化） |
 | safeShape / padding | circle / 0.03；也可 square，边距 0.02–0.25 |
 | logoScale | 0.38；范围 0.2–0.55，始终等比 |
 | optical | true；关闭后使用几何基线 |

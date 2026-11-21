@@ -368,16 +368,20 @@ describe('默认超时', () => {
   })
 })
 
-it('默认中文粗体优先使用本站字体，无需注入外部样式表', async () => {
+it.each([700, 900] as const)('中文 %i 字重优先使用本站字体，无需注入外部样式表', async (weight) => {
   Object.defineProperty(document.fonts, Symbol.iterator, {
     configurable: true,
     value: function* () {
-      yield { family: 'Noto Sans SC', weight: '700' }
+      yield { family: 'Noto Sans SC', weight: String(weight) }
     },
   })
   fontsLoad.mockResolvedValue([{ status: 'loaded' }])
-  const result = await loadOne(config({ family: 'Noto Sans SC' }, '产品研发'))
+  const result = await loadOne(config({ family: 'Noto Sans SC', weight }, '产品研发'))
   expect(result?.via).toBe('bundled')
   expect(result?.ok).toBe(true)
   expect(hrefs).toEqual([])
+})
+
+it('同家族 900/700 两行分别生成字体任务', () => {
+  expect(fontJobs(normalizeConfig({})).map((job) => job.font.weight)).toEqual([900, 700])
 })

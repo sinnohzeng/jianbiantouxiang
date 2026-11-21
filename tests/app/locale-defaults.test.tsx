@@ -45,7 +45,7 @@ describe('统一默认内容与语言边界', () => {
     await waitFor(() => expect(activeLocale).toBe(locale))
     expect(config().text).toBe('工作新习惯\n你说豆包干')
     expect(config().layout.icon).toEqual({ source: 'brand', id: 'doubao-work', mono: false })
-    expect(config().typography.line1.font.family).toBe('Noto Serif SC')
+    expect(config().typography.line1.font.family).toBe('Noto Sans SC')
     expect(config().typography.line2.font?.family).toBe('Noto Sans SC')
   })
 

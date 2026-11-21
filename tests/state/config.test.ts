@@ -62,14 +62,14 @@ describe('normalizeConfig 补默认', () => {
     expect(config.typography).toEqual(DEFAULT_CONFIG.typography)
   })
 
-  it('默认是方形、白色文字、3% 边距、衬线主行与无衬线副行', () => {
+  it('默认是方形、白色文字、3% 边距、黑体 900 主行与 700 副行', () => {
     expect(DEFAULT_CONFIG.canvas.shape).toBe('square')
     expect(DEFAULT_CONFIG.text).toBe('工作新习惯\n你说豆包干')
     expect(DEFAULT_CONFIG.typography.color).toBe('#ffffff')
     expect(DEFAULT_CONFIG.typography.padding).toBe(0.03)
     expect(DEFAULT_CONFIG.typography.lineHeight).toBe(1.03)
     expect(DEFAULT_CONFIG.typography.line1).toEqual({
-      font: { family: 'Noto Serif SC', source: 'google', weight: 700 },
+      font: { family: 'Noto Sans SC', source: 'google', weight: 900 },
       size: null,
       offsetX: 0,
       offsetY: 0,
@@ -485,4 +485,21 @@ describe('nearestWeight', () => {
 it('保留显式旧边距，仅缺失值使用新默认', () => {
   expect(normalizeConfig({ typography: { padding: 0.15 } }).typography.padding).toBe(0.15)
   expect(normalizeConfig({ typography: {} }).typography.padding).toBe(0.03)
+})
+
+it('旧衬线主行和同家族不同字重不被新默认迁移', () => {
+  const old = { family: 'Noto Serif SC', source: 'google' as const, weight: 700 as const }
+  expect(normalizeConfig({ typography: { line1: { font: old } } }).typography.line1.font).toEqual(
+    old,
+  )
+  const fresh = normalizeConfig({})
+  expect(fresh.typography.line1.font.weight).toBe(900)
+  expect(fresh.typography.line2.font).toEqual({
+    family: 'Noto Sans SC',
+    source: 'google',
+    weight: 700,
+  })
+  expect(
+    normalizeConfig({ typography: { line2: { font: null } } }).typography.line2.font,
+  ).toBeNull()
 })

@@ -108,6 +108,16 @@ test('改文字后可以用键盘撤销与重做', async ({ page }) => {
   await expect(page.locator('#avatar-text-second')).toHaveValue('你说豆包干')
   expect((await probeConfig(page)).typography.effect).toBe('shadow')
   expect((await probeConfig(page)).typography.effectStrength).toBe(0.4)
+  expect((await probeConfig(page)).typography.line1.font).toEqual({
+    family: 'Noto Sans SC',
+    source: 'google',
+    weight: 900,
+  })
+  expect((await probeConfig(page)).typography.line2.font).toEqual({
+    family: 'Noto Sans SC',
+    source: 'google',
+    weight: 700,
+  })
   expect((await probeConfig(page)).layout.icon).toEqual({
     source: 'brand',
     id: 'doubao-work',
@@ -566,6 +576,16 @@ test('顶栏设置菜单里恢复默认，确认后回到默认档', async ({ pa
   await expect(page.locator('#avatar-text-second')).toHaveValue('你说豆包干')
   expect((await probeConfig(page)).typography.effect).toBe('shadow')
   expect((await probeConfig(page)).typography.effectStrength).toBe(0.4)
+  expect((await probeConfig(page)).typography.line1.font).toEqual({
+    family: 'Noto Sans SC',
+    source: 'google',
+    weight: 900,
+  })
+  expect((await probeConfig(page)).typography.line2.font).toEqual({
+    family: 'Noto Sans SC',
+    source: 'google',
+    weight: 700,
+  })
   expect((await probeConfig(page)).layout.icon).toEqual({
     source: 'brand',
     id: 'doubao-work',
@@ -694,22 +714,40 @@ test('长文显示小头像可读性提示，缩短后消失', async ({ page }) 
   await expect(warning).toHaveCount(0)
 })
 
-test('默认中文粗体在第三方网络不可用时仍从本站加载', async ({ page }) => {
+test('默认中文 900 与副行 700 在第三方网络不可用时从本站加载并导出', async ({ page }) => {
+  test.setTimeout(PROBE_TEST_TIMEOUT_MS)
+  const loaded: string[] = []
+  page.on('response', (response) => {
+    if (response.ok() && /noto-sans-sc-\d+-(700|900)-normal.*\.woff2/.test(response.url()))
+      loaded.push(response.url())
+  })
   await page.route('**/*', (route) =>
     new URL(route.request().url()).hostname === 'localhost' ? route.continue() : route.abort(),
   )
   await page.goto(APP_URL)
   await waitReady(page)
-  await expect
-    .poll(
-      () =>
-        page.evaluate(async () => {
-          const faces = await document.fonts.load('700 32px "Noto Sans SC"', '飞书效率先锋')
-          return faces.length > 0 && faces.every((f) => f.status === 'loaded')
-        }),
-      { timeout: PROBE_TIMEOUT_MS },
-    )
-    .toBe(true)
+  for (const weight of [900, 700]) {
+    await expect
+      .poll(() => loaded.some((url) => url.includes(`-${weight}-normal`)), {
+        timeout: PROBE_TIMEOUT_MS,
+      })
+      .toBe(true)
+  }
+  const config = await probeConfig(page)
+  expect(config.typography.line1.font).toEqual({
+    family: 'Noto Sans SC',
+    source: 'google',
+    weight: 900,
+  })
+  expect(config.typography.line2.font).toEqual({
+    family: 'Noto Sans SC',
+    source: 'google',
+    weight: 700,
+  })
+  const download = page.waitForEvent('download')
+  await page.locator('[data-slot="export-action"]').click()
+  expect((await download).suggestedFilename()).toMatch(/\.jpg$/)
+  expect((await probeEncode(page)).bytes).toBeGreaterThan(0)
   await expect(page.getByText(/Noto Sans SC没加载成功/)).toHaveCount(0)
 })
 

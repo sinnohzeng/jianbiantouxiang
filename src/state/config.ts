@@ -199,7 +199,7 @@ export const DEFAULT_CONFIG: AvatarConfig = {
   typography: {
     line1: {
       // 共享中文默认字体，也是 normalizeConfig 的兜底值。
-      font: { family: 'Noto Serif SC', source: 'google', weight: 700 },
+      font: { family: 'Noto Sans SC', source: 'google', weight: 900 },
       size: null,
       offsetX: 0,
       offsetY: 0,
