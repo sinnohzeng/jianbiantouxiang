@@ -228,7 +228,6 @@
   "preview.grid": "격자",
   "preview.label": "미리보기",
   "preview.longPressSave": "이미지를 길게 누르면 JPG로 저장됩니다",
-  "preview.smallText": "48px에서 글자가 작습니다. 문구를 줄이거나 두 번째 줄을 제거하세요.",
   "preview.overflow": "콘텐츠가 안전 영역을 벗어났습니다",
   "preview.safeArea": "안전 영역 안내선",
   "preview.webgl.desc": "정적 근사 표시로 대체했습니다. 실제 결과와는 차이가 있습니다",
@@ -286,5 +285,15 @@
   "export.loading": "내보내기 옵션 로딩 중…",
   "export.loadFailed": "내보내기 옵션을 불러오지 못했습니다. 연결 후 새로고침하세요.",
   "icon.brand.category.bytedance": "ByteDance",
-  "icon.brand.category.isv": "ISV"
+  "icon.brand.category.isv": "ISV",
+  "smallAvatar.title": "작은 아바타 미리보기",
+  "smallAvatar.description": "가운데를 원형으로 자른 표시 크기 시뮬레이션입니다. 실제 모습은 채팅 앱에 따라 달라집니다.",
+  "smallAvatar.loading": "현재 아바타를 생성하는 중…",
+  "smallAvatar.failed": "작은 아바타 미리보기를 생성하지 못했습니다.",
+  "smallAvatar.retry": "다시 시도",
+  "smallAvatar.primaryRisk": "이 크기에서는 주요 글자를 알아보기 어려울 수 있습니다. 중요한 정보를 먼저 확인하세요.",
+  "smallAvatar.secondaryRisk": "이 크기에서는 두 번째 줄을 알아보기 어려울 수 있습니다.",
+  "smallAvatar.adjust": "두 번째 줄 글자 크기 조정",
+  "smallAvatar.hide": "두 번째 줄 숨기기 (실행 취소 가능)",
+  "smallAvatar.close": "닫기"
 }

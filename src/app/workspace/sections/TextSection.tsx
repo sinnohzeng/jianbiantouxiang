@@ -229,7 +229,13 @@ export function TextSection() {
       {/* 第二行字号与第一行同一单位，按当前自动/手动规则跟随，一拖就钉成自己的值，
           点“跟随”回到跟随。两行都有内容才有这一行 */}
       {hasFirst && hasSecond ? (
-        <div data-slot="text-line2-size">
+        <div
+          data-slot="text-line2-size"
+          tabIndex={0}
+          role="group"
+          aria-label={t('panel.text.line2Size')}
+          className="focus-visible:ring-ring rounded-md focus-visible:ring-2"
+        >
           <Row
             mobileStepper
             label={t('panel.text.line2Size')}

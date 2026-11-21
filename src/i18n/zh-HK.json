@@ -228,7 +228,6 @@
   "preview.grid": "網格參考線",
   "preview.label": "預覽",
   "preview.longPressSave": "長按圖片可直接儲存為 JPG",
-  "preview.smallText": "48 像素小頭像中文字偏小，建議縮短文字或移除第二行",
   "preview.overflow": "內容超出安全區",
   "preview.safeArea": "安全區參考線",
   "preview.webgl.desc": "已回落到靜態近似漸變，構圖與實際效果會有出入",
@@ -286,5 +285,15 @@
   "export.loading": "正在載入匯出選項…",
   "export.loadFailed": "匯出選項載入失敗，請連線後重新整理。",
   "icon.brand.category.bytedance": "字節跳動",
-  "icon.brand.category.isv": "ISV"
+  "icon.brand.category.isv": "ISV",
+  "smallAvatar.title": "小頭像效果",
+  "smallAvatar.description": "按中心圓形裁切模擬顯示大小，實際效果以聊天客戶端為準。",
+  "smallAvatar.loading": "正在產生目前的頭像…",
+  "smallAvatar.failed": "暫時無法產生小頭像預覽。",
+  "smallAvatar.retry": "重試",
+  "smallAvatar.primaryRisk": "主文字在這個尺寸下可能不易辨認，請優先檢查關鍵資訊。",
+  "smallAvatar.secondaryRisk": "第二行在這個尺寸下可能不易辨認。",
+  "smallAvatar.adjust": "調整第二行字號",
+  "smallAvatar.hide": "隱藏第二行（可復原）",
+  "smallAvatar.close": "關閉"
 }

@@ -228,7 +228,6 @@
   "preview.grid": "Grid",
   "preview.label": "Preview",
   "preview.longPressSave": "Press and hold the image to save it as a JPG",
-  "preview.smallText": "Text is small at 48 px. Shorten it or remove the second line.",
   "preview.overflow": "Content overflows the safe area",
   "preview.safeArea": "Safe area guide",
   "preview.webgl.desc": "Falling back to a static approximation, which differs from the real render",
@@ -286,5 +285,15 @@
   "export.loading": "Loading export options…",
   "export.loadFailed": "Export options could not load. Reconnect and refresh.",
   "icon.brand.category.bytedance": "ByteDance",
-  "icon.brand.category.isv": "ISV"
+  "icon.brand.category.isv": "ISV",
+  "smallAvatar.title": "Small avatar preview",
+  "smallAvatar.description": "Simulated display sizes with a centered circular crop. Actual appearance depends on your chat app.",
+  "smallAvatar.loading": "Rendering the current avatar…",
+  "smallAvatar.failed": "Could not render the small avatar preview.",
+  "smallAvatar.retry": "Retry",
+  "smallAvatar.primaryRisk": "The main text may be hard to recognize at this size. Check essential information first.",
+  "smallAvatar.secondaryRisk": "The second line may be hard to recognize at this size.",
+  "smallAvatar.adjust": "Adjust line 2 size",
+  "smallAvatar.hide": "Hide line 2 (undoable)",
+  "smallAvatar.close": "Close"
 }

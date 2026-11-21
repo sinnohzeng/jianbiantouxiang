@@ -703,17 +703,6 @@ test('炫技层背景挂着自己的 WebGL 画布，预览与导出都不受影�
   expect(stats.colors).toBeGreaterThan(16)
 })
 
-test('长文显示小头像可读性提示，缩短后消失', async ({ page }) => {
-  await openApp(page)
-  await page.locator('#avatar-text-first').fill('产品设计与工程研发团队')
-  await page.locator('#avatar-text-second').fill('Design Engineering')
-  const warning = page.getByText('48 像素小头像中文字偏小，建议缩短文字或移除第二行')
-  await expect(warning).toBeVisible()
-  await page.locator('#avatar-text-first').fill('研发')
-  await page.locator('#avatar-text-second').fill('')
-  await expect(warning).toHaveCount(0)
-})
-
 test('默认中文 900 与副行 700 在第三方网络不可用时从本站加载并导出', async ({ page }) => {
   test.setTimeout(PROBE_TEST_TIMEOUT_MS)
   const loaded: string[] = []

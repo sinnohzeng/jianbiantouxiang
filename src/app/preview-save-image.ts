@@ -18,11 +18,11 @@ import type { AvatarConfig } from '@/state/config'
 /** 预览停稳多久才开始合成。手速再快也不会连着触发一串编码。 */
 export const SAVE_IMAGE_DEBOUNCE_MS = 600
 
-export interface SaveImageSchedulerOptions {
+export interface SaveImageSchedulerOptions<T = string> {
   /** 把配置合成成 data URL。真实实现是导出管线，测试里换成桩。 */
-  render: (config: AvatarConfig) => Promise<string>
+  render: (config: AvatarConfig) => Promise<T>
   /** 出图后回调；只有最后一次请求的结果会送到这里。 */
-  onImage: (dataUrl: string, config: AvatarConfig) => void
+  onImage: (dataUrl: T, config: AvatarConfig) => void
   /** 页面在后台就不排任务，回到前台由调用方重新 request。 */
   isHidden?: () => boolean
   delayMs?: number
@@ -38,7 +38,9 @@ export interface SaveImageScheduler {
   dispose: () => void
 }
 
-export function createSaveImageScheduler(options: SaveImageSchedulerOptions): SaveImageScheduler {
+export function createSaveImageScheduler<T = string>(
+  options: SaveImageSchedulerOptions<T>,
+): SaveImageScheduler {
   const {
     render,
     onImage,

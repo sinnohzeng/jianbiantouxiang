@@ -228,7 +228,6 @@
   "preview.grid": "网格参考线",
   "preview.label": "预览",
   "preview.longPressSave": "长按图片可直接保存为 JPG",
-  "preview.smallText": "48 像素小头像中文字偏小，建议缩短文字或移除第二行",
   "preview.overflow": "内容超出安全区",
   "preview.safeArea": "安全区参考线",
   "preview.webgl.desc": "已回落到静态近似渐变，构图与真实效果会有出入",
@@ -286,5 +285,15 @@
   "export.loading": "正在加载导出选项…",
   "export.loadFailed": "导出选项加载失败，请联网后刷新。",
   "icon.brand.category.bytedance": "字节跳动",
-  "icon.brand.category.isv": "ISV"
+  "icon.brand.category.isv": "ISV",
+  "smallAvatar.title": "小头像效果",
+  "smallAvatar.description": "按中心圆裁模拟显示大小，实际效果以聊天客户端为准。",
+  "smallAvatar.loading": "正在生成当前头像…",
+  "smallAvatar.failed": "暂时无法生成小头像预览。",
+  "smallAvatar.retry": "重试",
+  "smallAvatar.primaryRisk": "主文字在这个尺寸下可能不易辨认，请优先检查关键信息。",
+  "smallAvatar.secondaryRisk": "第二行在这个尺寸下可能不易辨认。",
+  "smallAvatar.adjust": "调整第二行字号",
+  "smallAvatar.hide": "隐藏第二行（可撤销）",
+  "smallAvatar.close": "关闭"
 }

@@ -288,9 +288,7 @@ test('东黎自动双行用最终安全区放大，不写回固定字号', async
   await openApp(page)
   await probeEncode(page, 512)
   await expect(page.getByText('内容超出安全区', { exact: true })).toHaveCount(0)
-  await expect(
-    page.getByText('48 像素小头像中文字偏小，建议缩短文字或移除第二行', { exact: true }),
-  ).toHaveCount(0)
+  await expect(page.locator('[data-slot="small-avatar-risk"]')).toHaveCount(0)
   const config = await probeConfig(page)
   expect(config.typography.line1.size).toBeNull()
   expect(config.typography.line2.size).toBeNull()
@@ -322,4 +320,47 @@ test('配色显示顺序在全部和明暗筛选一致且不改当前文字色',
   expect(after.palette).toBe('tangerine')
   expect(after.typography.color).toBe(before.typography.color)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
+test('小头像按需圆裁、尺寸切换、定位字号和隐藏撤销', async ({ page }) => {
+  test.setTimeout(150_000)
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'gradient-avatar:v4',
+      JSON.stringify({ config: { canvas: { width: 512, height: 512 } } }),
+    ),
+  )
+  await openApp(page)
+  const original = await probeConfig(page)
+  await expect(page.locator('[data-slot="small-avatar-risk"]')).toHaveCount(0)
+  await page.getByRole('button', { name: '小头像效果', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByText('按中心圆裁模拟显示大小，实际效果以聊天客户端为准。')).toBeVisible()
+  await expect(dialog.locator('[data-slot="small-avatar-image"]')).toHaveCount(3, {
+    timeout: 60_000,
+  })
+  for (const size of [32, 48, 64]) {
+    const button = dialog.getByRole('button', { name: `${size}px`, exact: true })
+    await expect(button).toHaveAttribute('aria-pressed', size === 48 ? 'true' : 'false')
+    const bounds = await button.locator('img').boundingBox()
+    expect(bounds?.width).toBe(size)
+    expect(bounds?.height).toBe(size)
+    expect(await button.locator('img').evaluate((el: HTMLImageElement) => el.naturalWidth)).toBe(
+      512,
+    )
+  }
+  await expect(dialog.getByText('第二行在这个尺寸下可能不易辨认。')).toBeVisible()
+  await dialog.getByRole('button', { name: '64px', exact: true }).click()
+  await expect(dialog.locator('[data-slot="small-avatar-risk"]')).toHaveCount(0)
+  await dialog.getByRole('button', { name: '调整第二行字号', exact: true }).click()
+  await expect(dialog).toBeHidden()
+  await expect(page.locator('[data-slot="text-line2-size"]')).toBeFocused()
+  expect(await probeConfig(page)).toEqual(original)
+  await page.getByRole('button', { name: '小头像效果', exact: true }).click()
+  await dialog.getByRole('button', { name: '隐藏第二行（可撤销）' }).click()
+  expect((await probeConfig(page)).text).toBe('工作新习惯')
+  expect((await probeConfig(page)).typography).toEqual(original.typography)
+  await dialog.getByRole('button', { name: '关闭', exact: true }).click()
+  await page.keyboard.press('Control+z')
+  expect(await probeConfig(page)).toEqual(original)
 })

@@ -275,8 +275,6 @@
 | `update.body`                     | 刷新页面就能用上新版本。                                                         |
 | `update.title`                    | 有新版本                                                                         |
 
-| `preview.smallText` | 48 像素小头像中文字偏小，建议缩短文字或移除第二行 |
-
 | `panel.common.group.horizontal` | 左右位置 |
 | `panel.text.details` | 字体与样式 |
 | `panel.text.restoreLayout` | 恢复自动排版 |
@@ -301,3 +299,18 @@
 
 | `export.loading` | 正在加载导出选项… |
 | `export.loadFailed` | 导出选项加载失败，请联网后刷新。 |
+
+## 小头像效果
+
+| Key                         | 中文                                                 |
+| --------------------------- | ---------------------------------------------------- |
+| `smallAvatar.title`         | 小头像效果                                           |
+| `smallAvatar.description`   | 按中心圆裁模拟显示大小，实际效果以聊天客户端为准。   |
+| `smallAvatar.loading`       | 正在生成当前头像…                                    |
+| `smallAvatar.failed`        | 暂时无法生成小头像预览。                             |
+| `smallAvatar.retry`         | 重试                                                 |
+| `smallAvatar.primaryRisk`   | 主文字在这个尺寸下可能不易辨认，请优先检查关键信息。 |
+| `smallAvatar.secondaryRisk` | 第二行在这个尺寸下可能不易辨认。                     |
+| `smallAvatar.adjust`        | 调整第二行字号                                       |
+| `smallAvatar.hide`          | 隐藏第二行（可撤销）                                 |
+| `smallAvatar.close`         | 关闭                                                 |

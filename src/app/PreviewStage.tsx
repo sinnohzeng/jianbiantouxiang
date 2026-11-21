@@ -31,6 +31,7 @@ import { drawText } from '@/text/draw'
 import { safeArea } from '@/text/fit'
 import { layoutText } from '@/text/layout'
 import { GRID_DIVISIONS, usePreviewOverlays } from '@/app/preview-overlays'
+import { SmallAvatarPreview } from '@/app/SmallAvatarPreview'
 import { usePreviewSaveImage } from '@/app/preview-save-image'
 import { PreviewFrame } from '@/app/showcase/PreviewFrame'
 import { usePreviewFx } from '@/app/showcase/preview-fx'
@@ -78,7 +79,6 @@ export function PreviewStage() {
   const canLongPress = isMobile || coarsePointer
   const saveImage = usePreviewSaveImage(config, canLongPress)
   const [overflow, setOverflow] = useState(false)
-  const [smallText, setSmallText] = useState(false)
   const [fontTick, setFontTick] = useState(0)
   const [graphic, setGraphic] = useState<Graphic | null>(null)
 
@@ -255,11 +255,6 @@ export function PreviewStage() {
 
       const drawConfig = preview
       const layout = layoutText(drawConfig, pixelWidth, pixelHeight, undefined, graphic)
-      setSmallText(
-        layout.lines.some(
-          (l) => ((l.ascent + l.descent) * 48) / Math.min(pixelWidth, pixelHeight) < 6,
-        ),
-      )
       if (graphic && layout.graphic) {
         drawGraphic(textCtx, graphic, layout.graphic, drawConfig, ink)
       }
@@ -496,9 +491,7 @@ export function PreviewStage() {
           </p>
         ) : null}
         {overflow ? <p className="text-destructive text-xs">{t('preview.overflow')}</p> : null}
-        {smallText ? (
-          <p className="text-muted-foreground text-xs">{t('preview.smallText')}</p>
-        ) : null}
+        <SmallAvatarPreview />
       </div>
     </div>
   )

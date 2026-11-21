@@ -228,7 +228,6 @@
   "preview.grid": "グリッド",
   "preview.label": "プレビュー",
   "preview.longPressSave": "画像を長押しすると JPG で保存できます",
-  "preview.smallText": "48 px では文字が小さくなります。文言を短くするか、2行目を削除してください。",
   "preview.overflow": "コンテンツがセーフエリアからはみ出しています",
   "preview.safeArea": "セーフエリア表示",
   "preview.webgl.desc": "静的な近似表示に切り替えました。実際の書き出しとは差が出ます",
@@ -286,5 +285,15 @@
   "export.loading": "書き出し設定を読み込み中…",
   "export.loadFailed": "書き出し設定を読み込めません。接続して再読み込みしてください。",
   "icon.brand.category.bytedance": "ByteDance",
-  "icon.brand.category.isv": "ISV"
+  "icon.brand.category.isv": "ISV",
+  "smallAvatar.title": "小さいアバターの見え方",
+  "smallAvatar.description": "中央を円形に切り抜いた表示サイズのシミュレーションです。実際の見え方はチャットアプリによって異なります。",
+  "smallAvatar.loading": "現在のアバターを生成中…",
+  "smallAvatar.failed": "小さいアバターのプレビューを生成できませんでした。",
+  "smallAvatar.retry": "再試行",
+  "smallAvatar.primaryRisk": "このサイズではメインの文字が読みにくい可能性があります。重要な情報を優先して確認してください。",
+  "smallAvatar.secondaryRisk": "このサイズでは2行目が読みにくい可能性があります。",
+  "smallAvatar.adjust": "2行目の文字サイズを調整",
+  "smallAvatar.hide": "2行目を非表示（元に戻せます）",
+  "smallAvatar.close": "閉じる"
 }
